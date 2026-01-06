@@ -1,9 +1,6 @@
 # CipherSwarm Agent & Authentication API Reference
 
-This document provides a comprehensive reference for all CipherSwarm API
-endpoints that are NOT part of the `/api/v1/web/*` or `/api/v1/control/*`
-interfaces. These endpoints are primarily used by CipherSwarm agents and
-authentication systems.
+This document provides a comprehensive reference for all CipherSwarm API endpoints that are NOT part of the `/api/v1/web/*` or `/api/v1/control/*` interfaces. These endpoints are primarily used by CipherSwarm agents and authentication systems.
 
 ---
 
@@ -83,11 +80,7 @@ POST /api/v1/auth/login?email=user@example.com&password=secret123
 
 **Summary:** Get agent configuration
 
-**Description:** Returns the configuration for the agent that has been set by
-the administrator on the server. The configuration is stored in the database and
-can be updated by the administrator on the server and is global, but specific to
-the individual agent. Client should cache the configuration and only request a
-new configuration if the agent is restarted or if the configuration has changed.
+**Description:** Returns the configuration for the agent that has been set by the administrator on the server. The configuration is stored in the database and can be updated by the administrator on the server and is global, but specific to the individual agent. Client should cache the configuration and only request a new configuration if the agent is restarted or if the configuration has changed.
 
 **Parameters:**
 
@@ -104,8 +97,7 @@ new configuration if the agent is restarted or if the configuration has changed.
 
 **Summary:** Get agent configuration (legacy v1 endpoint)
 
-**Description:** Legacy endpoint for agent configuration retrieval. Same
-functionality as `/api/v1/client/configuration`.
+**Description:** Legacy endpoint for agent configuration retrieval. Same functionality as `/api/v1/client/configuration`.
 
 **Parameters:**
 
@@ -124,8 +116,7 @@ functionality as `/api/v1/client/configuration`.
 
 **Summary:** Authenticate client
 
-**Description:** Authenticates the client. This is used to verify that the
-client is able to connect to the server.
+**Description:** Authenticates the client. This is used to verify that the client is able to connect to the server.
 
 **Parameters:**
 
@@ -133,8 +124,7 @@ client is able to connect to the server.
 
 **Responses:**
 
-- `200`: Successful - Returns `AgentAuthenticateResponse` with
-  `authenticated: true` and `agent_id`
+- `200`: Successful - Returns `AgentAuthenticateResponse` with `authenticated: true` and `agent_id`
 - `401`: Unauthorized - Returns `ErrorObject` with "Bad credentials" message
 - `422`: Validation error
 
@@ -151,8 +141,7 @@ client is able to connect to the server.
 
 **Summary:** Authenticate client (legacy v1 endpoint)
 
-**Description:** Legacy endpoint for client authentication. Same functionality
-as `/api/v1/client/authenticate`.
+**Description:** Legacy endpoint for client authentication. Same functionality as `/api/v1/client/authenticate`.
 
 **Parameters:**
 
@@ -255,8 +244,7 @@ as `/api/v1/client/authenticate`.
 
 **Summary:** Agent heartbeat
 
-**Description:** Agent sends a heartbeat to update its status and last seen
-timestamp. Contract-compliant endpoint.
+**Description:** Agent sends a heartbeat to update its status and last seen timestamp. Contract-compliant endpoint.
 
 **Parameters:**
 
@@ -276,8 +264,7 @@ timestamp. Contract-compliant endpoint.
 
 **Summary:** Request a new task from server
 
-**Description:** Request a new task from the server, if available. Compatibility
-layer for v1 API.
+**Description:** Request a new task from the server, if available. Compatibility layer for v1 API.
 
 **Parameters:**
 
@@ -292,8 +279,7 @@ layer for v1 API.
 
 **Summary:** Request task information
 
-**Description:** Request the task information from the server. Requires agent
-authentication and assignment.
+**Description:** Request the task information from the server. Requires agent authentication and assignment.
 
 **Parameters:**
 
@@ -312,8 +298,7 @@ authentication and assignment.
 
 **Summary:** Accept task
 
-**Description:** Accept an offered task from the server. Sets the task status to
-running and assigns it to the agent.
+**Description:** Accept an offered task from the server. Sets the task status to running and assigns it to the agent.
 
 **Parameters:**
 
@@ -332,8 +317,7 @@ running and assigns it to the agent.
 
 **Summary:** Submit task status update
 
-**Description:** Submit a status update for a running task. This is the main
-status heartbeat endpoint for agents.
+**Description:** Submit a status update for a running task. This is the main status heartbeat endpoint for agents.
 
 **Parameters:**
 
@@ -357,8 +341,7 @@ status heartbeat endpoint for agents.
 
 **Summary:** Update task progress
 
-**Description:** Agents send progress updates for a task. Compatibility layer
-for v1 API.
+**Description:** Agents send progress updates for a task. Compatibility layer for v1 API.
 
 **Parameters:**
 
@@ -376,8 +359,7 @@ for v1 API.
 
 **Summary:** Submit cracked hash result
 
-**Description:** Submit a cracked hash result for a task. Compatibility layer
-for v1 API.
+**Description:** Submit a cracked hash result for a task. Compatibility layer for v1 API.
 
 **Parameters:**
 
@@ -395,8 +377,7 @@ for v1 API.
 
 **Summary:** Notify of exhausted task
 
-**Description:** Notify the server that the task is exhausted. This will mark
-the task as completed.
+**Description:** Notify the server that the task is exhausted. This will mark the task as completed.
 
 **Parameters:**
 
@@ -415,8 +396,7 @@ the task as completed.
 
 **Summary:** Abandon task
 
-**Description:** Abandon a task. This will mark the task as abandoned. Usually
-used when the client is unable to complete the task.
+**Description:** Abandon a task. This will mark the task as abandoned. Usually used when the client is unable to complete the task.
 
 **Parameters:**
 
@@ -435,9 +415,7 @@ used when the client is unable to complete the task.
 
 **Summary:** Get completed hashes
 
-**Description:** Gets the completed hashes for a task. This is a text file that
-should be added to the monitored directory to remove the hashes from the list
-during runtime.
+**Description:** Gets the completed hashes for a task. This is a text file that should be added to the monitored directory to remove the hashes from the list during runtime.
 
 **Parameters:**
 
@@ -458,8 +436,7 @@ during runtime.
 
 **Summary:** Get attack by ID
 
-**Description:** Returns an attack by id. This is used to get the details of an
-attack.
+**Description:** Returns an attack by id. This is used to get the details of an attack.
 
 **Parameters:**
 
@@ -475,8 +452,7 @@ attack.
 
 **Summary:** Get hash list for attack
 
-**Description:** Returns the hash list for an attack as a text file. Each line
-is a hash value. Requires agent authentication.
+**Description:** Returns the hash list for an attack as a text file. Each line is a hash value. Requires agent authentication.
 
 **Parameters:**
 
@@ -497,14 +473,12 @@ is a hash value. Requires agent authentication.
 
 **Summary:** Check for cracker update
 
-**Description:** Checks for an update to the cracker and returns update info if
-available.
+**Description:** Checks for an update to the cracker and returns update info if available.
 
 **Parameters:**
 
 - `version` (query, required): Current cracker version (semver)
-- `operating_system` (query, required): Operating system (windows, linux,
-  darwin)
+- `operating_system` (query, required): Operating system (windows, linux, darwin)
 
 **Responses:**
 
@@ -558,9 +532,7 @@ GET /api/v1/client/crackers/check_for_cracker_update?version=6.2.6&operating_sys
 
 ### Enhanced Task Error Responses
 
-When task-related 404 errors occur, the API may provide enhanced error responses
-with optional metadata to help clients understand the cause and take appropriate
-action:
+When task-related 404 errors occur, the API may provide enhanced error responses with optional metadata to help clients understand the cause and take appropriate action:
 
 **Task Not Found - Task Deleted:**
 
@@ -596,24 +568,18 @@ action:
 
 Tasks can be removed or reassigned for several reasons:
 
-1. **Attack Abandonment**: When an attack is abandoned, all associated tasks are
-   destroyed immediately
-2. **Task Reassignment**: Tasks may be reassigned to other agents if not
-   accepted in time
+1. **Attack Abandonment**: When an attack is abandoned, all associated tasks are destroyed immediately
+2. **Task Reassignment**: Tasks may be reassigned to other agents if not accepted in time
 3. **Task Completion**: Completed tasks may be removed from the system
-4. **Server-Side Cleanup**: Tasks may be cleaned up during maintenance
-   operations
+4. **Server-Side Cleanup**: Tasks may be cleaned up during maintenance operations
 
 **Recommended Client Behavior:**
 
 When receiving a 404 error for a task operation:
 
 1. **Stop Retrying**: Do not retry the same task ID indefinitely
-2. **Exponential Backoff**: Implement exponential backoff starting at 1 second,
-   maximum 60 seconds
-3. **Request New Work**: After 3 consecutive 404 errors for the same task,
-   abandon the reference and request a new task via
-   `GET /api/v1/client/tasks/new`
+2. **Exponential Backoff**: Implement exponential backoff starting at 1 second, maximum 60 seconds
+3. **Request New Work**: After 3 consecutive 404 errors for the same task, abandon the reference and request a new task via `GET /api/v1/client/tasks/new`
 4. **Log the Error**: Log all 404 errors with task ID and agent ID for debugging
 5. **Monitor Patterns**: Track 404 error rates to identify systemic issues
 
@@ -633,24 +599,17 @@ When receiving a 404 error for a task operation:
 
 **Interpreting Reason Codes:**
 
-- `task_deleted`: The task was destroyed server-side, likely due to attack
-  abandonment. Request new work immediately.
-- `task_not_assigned`: The task exists but is assigned to another agent. Request
-  new work immediately.
-- `task_invalid`: The task ID does not exist. This may indicate a client bug.
-  Request new work immediately.
-- No reason field: Legacy error response format. Treat as `task_deleted` and
-  request new work.
+- `task_deleted`: The task was destroyed server-side, likely due to attack abandonment. Request new work immediately.
+- `task_not_assigned`: The task exists but is assigned to another agent. Request new work immediately.
+- `task_invalid`: The task ID does not exist. This may indicate a client bug. Request new work immediately.
+- No reason field: Legacy error response format. Treat as `task_deleted` and request new work.
 
 ### Error Codes by Endpoint
 
 - **Authentication endpoints**: 401 (unauthorized), 422 (validation)
-- **Agent endpoints**: 401 (unauthorized), 403 (forbidden), 404 (not found), 422
-  (validation)
-- **Task endpoints**: 401 (unauthorized), 403 (forbidden), 404 (not found), 409
-  (conflict), 410 (gone), 422 (validation)
-- **Attack endpoints**: 401 (unauthorized), 403 (forbidden), 404 (not found),
-  422 (validation)
+- **Agent endpoints**: 401 (unauthorized), 403 (forbidden), 404 (not found), 422 (validation)
+- **Task endpoints**: 401 (unauthorized), 403 (forbidden), 404 (not found), 409 (conflict), 410 (gone), 422 (validation)
+- **Attack endpoints**: 401 (unauthorized), 403 (forbidden), 404 (not found), 422 (validation)
 
 ## API Patterns
 
@@ -725,14 +684,11 @@ Agents should report errors using the dedicated error endpoint:
 
 - **Hash Lists**: Downloaded via `GET /api/v1/client/attacks/{id}/hash_list`
 - **Completed Hashes**: Retrieved via `GET /api/v1/client/tasks/{id}/get_zaps`
-- **Updates**: Checked via
-  `GET /api/v1/client/crackers/check_for_cracker_update`
+- **Updates**: Checked via `GET /api/v1/client/crackers/check_for_cracker_update`
 
 ## API Version Compatibility
 
-These endpoints represent the v1 Agent API, which is locked to the contract
-defined in `contracts/v1_api_swagger.json`. All endpoints must maintain exact
-compatibility with the legacy Ruby-on-Rails version of CipherSwarm.
+These endpoints represent the v1 Agent API, which is locked to the contract defined in `contracts/v1_api_swagger.json`. All endpoints must maintain exact compatibility with the legacy Ruby-on-Rails version of CipherSwarm.
 
 Key compatibility requirements:
 
@@ -768,14 +724,12 @@ When encountering 404 errors for task operations:
 1. First retry: Wait 1 second
 2. Second retry: Wait 2 seconds
 3. Third retry: Wait 4 seconds
-4. After 3 consecutive 404s for the same task: Abandon task reference and
-   request new work
+4. After 3 consecutive 404s for the same task: Abandon task reference and request new work
 5. Maximum backoff: 60 seconds between retries
 
 **Task Loss Recovery:**
 
-- After detecting a lost task (404 error), immediately request new work via
-  `/api/v1/client/tasks/new`
+- After detecting a lost task (404 error), immediately request new work via `/api/v1/client/tasks/new`
 - Don't retry indefinitely on non-existent tasks
 - Implement local task state tracking to detect inconsistencies
 - Log all task loss events with timestamps and task IDs
@@ -876,5 +830,4 @@ When encountering 404 errors for task operations:
 4. Check for task state transitions
 5. Identify root cause (abandonment, reassignment, completion)
 
-For more detailed troubleshooting information, see the
-[Agent Troubleshooting Guide](troubleshooting-agents.md).
+For more detailed troubleshooting information, see the [Agent Troubleshooting Guide](troubleshooting-agents.md).

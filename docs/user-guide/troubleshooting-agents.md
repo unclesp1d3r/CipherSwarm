@@ -1,7 +1,6 @@
 # Agent Troubleshooting Guide
 
-This guide provides detailed troubleshooting steps for common agent issues, with
-a focus on task lifecycle errors and recovery procedures.
+This guide provides detailed troubleshooting steps for common agent issues, with a focus on task lifecycle errors and recovery procedures.
 
 ---
 
@@ -20,27 +19,20 @@ a focus on task lifecycle errors and recovery procedures.
 
 ### What Causes "Task Not Found" Errors?
 
-Task not found errors (HTTP 404) occur when an agent attempts to interact with a
-task that no longer exists or is not assigned to that agent. Common causes
-include:
+Task not found errors (HTTP 404) occur when an agent attempts to interact with a task that no longer exists or is not assigned to that agent. Common causes include:
 
-1. **Attack Abandonment**: The server abandoned the attack, destroying all
-   associated tasks
-2. **Task Reassignment**: The task was reassigned to another agent due to
-   timeout or priority changes
+1. **Attack Abandonment**: The server abandoned the attack, destroying all associated tasks
+2. **Task Reassignment**: The task was reassigned to another agent due to timeout or priority changes
 3. **Task Completion**: The task was completed and removed from the system
-4. **Server Maintenance**: Tasks were cleaned up during server maintenance
-   operations
+4. **Server Maintenance**: Tasks were cleaned up during server maintenance operations
 
 ### Understanding Error Response Reason Codes
 
-The server provides enhanced error responses with reason codes to help diagnose
-the cause:
+The server provides enhanced error responses with reason codes to help diagnose the cause:
 
 #### `task_deleted`
 
-**Meaning**: The task was destroyed on the server, likely due to attack
-abandonment.
+**Meaning**: The task was destroyed on the server, likely due to attack abandonment.
 
 **Example Response:**
 
@@ -90,8 +82,7 @@ abandonment.
 **Root Causes:**
 
 - Task was never assigned to this agent
-- Task was reassigned after the agent failed to accept it within the timeout
-  period
+- Task was reassigned after the agent failed to accept it within the timeout period
 - Multiple agents using the same credentials (configuration error)
 
 #### `task_invalid`
@@ -123,8 +114,7 @@ abandonment.
 
 #### No Reason Field (Legacy Response)
 
-If the error response doesn't include a `reason` field, treat it as
-`task_deleted`:
+If the error response doesn't include a `reason` field, treat it as `task_deleted`:
 
 ```json
 {
@@ -166,8 +156,7 @@ Authorization: Bearer <your_token>
 **Step 3: Continue Normal Operations**
 
 - If new task received: Accept and begin processing
-- If no task available (204 response): Enter idle state and retry after
-  configured interval
+- If no task available (204 response): Enter idle state and retry after configured interval
 - Log the task loss event for audit purposes
 
 ### When to Restart an Agent
@@ -185,8 +174,7 @@ Authorization: Bearer <your_token>
 - Single task loss (404 error) - automatic recovery should handle this
 - Temporary network issues - agent should reconnect automatically
 - Server returns 5xx errors occasionally - implement retry logic
-- Status update returns 202 (stale) or 410 (paused) - these are normal
-  operations
+- Status update returns 202 (stale) or 410 (paused) - these are normal operations
 
 ### Manual Recovery Procedures
 
@@ -348,6 +336,7 @@ grep "\[Attack.*Abandoning attack" /var/log/cipherswarm/production.log | \
    ```
 
 4. **Timeline Reconstruction**:
+
    - When was task created?
    - When was task accepted by agent?
    - When did state changes occur?
@@ -355,6 +344,7 @@ grep "\[Attack.*Abandoning attack" /var/log/cipherswarm/production.log | \
    - When did agent receive 404?
 
 5. **Identify Root Cause**:
+
    - Attack abandonment due to priority change
    - Task reassignment due to timeout
    - System maintenance or restart
@@ -381,36 +371,39 @@ agent:
 
 **Why These Settings:**
 
-- **heartbeat_interval**: Keeps server aware of agent status without
-  overwhelming it
+- **heartbeat_interval**: Keeps server aware of agent status without overwhelming it
 - **status_update_interval**: Provides timely progress updates
 - **task_timeout**: Allows long-running tasks while preventing indefinite hangs
 - **max_404_retries**: Balances recovery attempts with quick failure detection
 - **retry_backoff**: Prevents overwhelming server during issues
-- **request_new_task_interval**: Regular check for work without excessive
-  polling
+- **request_new_task_interval**: Regular check for work without excessive polling
 
 ### Monitoring Agent Health
 
 **Metrics to Track:**
 
 1. **Task Success Rate**: `(completed_tasks / total_assigned_tasks) * 100`
+
    - Target: >95%
-   - Alert: <90%
+   - Alert: \<90%
 
 2. **404 Error Rate**: `(404_errors / total_requests) * 100`
-   - Target: <1%
+
+   - Target: \<1%
    - Alert: >5%
 
 3. **Average Task Duration**: Time from accept to completion
+
    - Track for anomalies
    - Alert on sudden increases
 
 4. **Network Latency**: Round-trip time for API requests
-   - Target: <500ms
+
+   - Target: \<500ms
    - Alert: >2000ms
 
 5. **Memory Usage**: Agent memory consumption
+
    - Target: Stable over time
    - Alert on continuous growth (potential leak)
 
@@ -426,7 +419,7 @@ agent:
 **Warning Alerts:**
 
 - 404 error rate >5% in 15-minute window
-- Task success rate <95%
+- Task success rate \<95%
 - High memory usage (>80% of limit)
 - Network latency >1000ms
 
@@ -759,23 +752,27 @@ grep "\[TaskNotFound\]" production.log | \
 **Information to Provide:**
 
 1. **Agent Details:**
+
    - Agent ID
    - Agent version
    - Operating system
    - Hashcat version
 
 2. **Error Details:**
+
    - Task ID(s) affected
    - Error messages and response bodies
    - Timestamps of errors
    - Frequency of errors
 
 3. **Logs:**
+
    - Agent logs (last 100 lines before error)
    - Network connectivity status
    - System resource usage
 
 4. **Context:**
+
    - What was the agent doing when error occurred?
    - Has anything changed recently (config, network, etc.)?
    - Is this a new issue or recurring problem?
@@ -806,11 +803,13 @@ Before contacting administrators, try:
    ```
 
 4. **Review Local Logs:**
+
    - Check for patterns in errors
    - Verify network connectivity logs
    - Review system resource usage
 
 5. **Restart Agent:**
+
    - Sometimes a clean restart resolves transient issues
    - Monitor logs after restart for recurrence
 
