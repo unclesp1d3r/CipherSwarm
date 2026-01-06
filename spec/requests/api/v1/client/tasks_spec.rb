@@ -447,18 +447,9 @@ RSpec.describe "api/v1/client/tasks" do
       let!(:agent) { create(:agent) }
       let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
 
-      response(200, "task accepted successfully") do
+      response(204, "task accepted successfully") do
         let(:task) { create(:task, agent: agent, state: "pending", attack: create(:dictionary_attack)) }
         let(:id) { task.id }
-
-        schema type: :object,
-               properties: {
-                 id: { type: :integer },
-                 state: { type: :string },
-                 agent_id: { type: :integer },
-                 attack_id: { type: :integer }
-               },
-               additionalProperties: true
 
         run_test!
       end
