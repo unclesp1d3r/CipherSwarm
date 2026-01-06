@@ -302,7 +302,7 @@ RSpec.describe "WordLists" do
         it "fails to create a new sensitive word list" do
           sign_in non_project_user
           post word_lists_path, params: private_params
-          expect(response).to have_http_status(:unauthorized)
+          expect(response).to have_http_status(:forbidden)
         end
       end
 
@@ -319,6 +319,55 @@ RSpec.describe "WordLists" do
           post word_lists_path, params: private_params
           expect(response).to redirect_to(word_list_path(WordList.last))
           expect(flash[:notice]).to eq("Word list was successfully created.")
+        end
+
+        it "fails to create word list with unauthorized project IDs" do
+          unauthorized_project = create(:project)
+          params_with_unauthorized_project = {
+            word_list: {
+              name: "Test Word List",
+              description: "Test Description",
+              file: file,
+              project_ids: [unauthorized_project.id]
+            }
+          }
+
+          sign_in project_user
+          post word_lists_path, params: params_with_unauthorized_project
+          expect(response).to have_http_status(:forbidden)
+          expect(flash[:error]).to include("You don't have permission")
+        end
+
+        it "fails gracefully with non-existent project IDs" do
+          params_with_invalid_project = {
+            word_list: {
+              name: "Test Word List",
+              description: "Test Description",
+              file: file,
+              project_ids: [99999]
+            }
+          }
+
+          sign_in project_user
+          post word_lists_path, params: params_with_invalid_project
+          expect(response).to have_http_status(:not_found)
+        end
+
+        it "handles empty string in project_ids array" do
+          params_with_empty_strings = {
+            word_list: {
+              name: "Test Word List",
+              description: "Test Description",
+              file: file,
+              project_ids: [""]
+            }
+          }
+
+          sign_in project_user
+          post word_lists_path, params: params_with_empty_strings
+          expect(response).to redirect_to(word_list_path(WordList.last))
+          expect(WordList.last.projects).to be_empty
+          expect(WordList.last.sensitive).to be false
         end
       end
     end
