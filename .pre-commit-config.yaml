@@ -26,7 +26,7 @@ repos:
 
   # 🧪 GitHub Actions validation
   - repo: https://github.com/rhysd/actionlint
-    rev: v1.7.8
+    rev: v1.7.10
     hooks:
       - id: actionlint
         files: ".github/workflows/"
@@ -40,14 +40,14 @@ repos:
 
   # 📝 Commit message linting (commit-msg only, not blocking push)
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.9.1
+    rev: v4.11.1
     hooks:
       - id: commitizen
         stages: [commit-msg]
 
   # 📝 Markdown formatting and linting (temporarily disabled in CI due to path issues)
-  - repo: https://github.com/hukkin/mdformat
-    rev: 0.7.22
+  - repo: https://github.com/executablebooks/mdformat
+    rev: 1.0.0
     hooks:
       - id: mdformat
         additional_dependencies:
@@ -55,11 +55,10 @@ repos:
           - mdformat-admon
           - mdformat-config
           - mdformat-footnote
-          - mdformat-frontmatter
           - mdformat-simple-breaks
-          - mdformat-tables
           - mdformat-web
-          - mdformat-wikilink
+          - mdformat-ruff
           - mdformat-gfm-alerts
           - mdformat-toc
-        files: \.(md|mdx)$
+          - mdformat-front-matters
+        types: [markdown]
