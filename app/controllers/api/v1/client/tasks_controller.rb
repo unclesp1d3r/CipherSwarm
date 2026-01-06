@@ -27,15 +27,15 @@
 # functionality consistent with the Rails MVC framework. These include
 # routing helpers, rendering methods, and other actionable controller features.
 class Api::V1::Client::TasksController < Api::V1::BaseController
+  before_action :set_task, only: %i[show abandon accept_task exhausted get_zaps submit_crack submit_status]
+
   # Retrieves a specific task for the agent based on the provided ID.
-  # If the task is not found, it renders a 404 Not Found status.
+  # Task lookup and error handling is performed by the set_task before_action.
   #
-  # @return [nil] if the task is not found
+  # @return [nil]
   def show
-    @task = @agent.tasks.find(params[:id])
-    return unless @task.nil?
-    render status: :not_found
-    nil
+    log_task_access(@agent.id, @task.id, { method: request.method, path: request.path }, true)
+    # Render using Jbuilder template (show.json.jbuilder)
   end
 
   # Initializes a new task for the agent.
@@ -48,115 +48,140 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
   end
 
   # Abandons a task assigned to the current agent.
+  # Task lookup and error handling is performed by the set_task before_action.
   #
-  # This action finds a task by its ID from the current agent's tasks. If the task is not found,
-  # it responds with a 404 Not Found status. If the task is found but cannot be abandoned,
+  # This action abandons a task. If the task cannot be abandoned,
   # it responds with a 422 Unprocessable Entity status and includes the task's errors in the response.
   #
   # @return [void]
   def abandon
-    @task = @agent.tasks.find_by(id: params[:id])
-    if @task.nil?
-      render json: { error: "Task not found or not assigned to this agent" }, status: :not_found
-      return
-    end
+    Rails.logger.info("[Agent #{@agent.id}] Task #{@task.id} - Abandoning task")
 
     if @task.abandon
+      log_task_state_change(
+        task_id: @task.id,
+        agent_id: @agent.id,
+        attack_id: @task.attack_id,
+        from_state: @task.state_was,
+        to_state: @task.state,
+        context: { action: "abandoned" }
+      )
       render json: { success: true, state: @task.state }, status: :ok
     else
-      Rails.logger.error("Failed to abandon task #{@task.id}: #{@task.errors.full_messages}")
+      Rails.logger.error("[Agent #{@agent.id}] Task #{@task.id} - Failed to abandon: #{@task.errors.full_messages}")
       render json: { error: "Failed to abandon task", details: @task.errors.full_messages },
              status: :unprocessable_content
     end
   end
 
   # Accepts a task for the current agent.
+  # Task lookup and error handling is performed by the set_task before_action.
   #
-  # This method attempts to find and accept a task for the current agent based on the provided task ID.
-  # If the task is not found, it returns a 404 Not Found status.
+  # This method attempts to accept a task for the current agent based on the provided task ID.
   # If the task is already completed, it returns a 422 Unprocessable Entity status with an error message.
   # If the task cannot be accepted due to validation errors, it returns a 422 Unprocessable Entity status with the errors.
   #
   # @return [void]
   def accept_task
-    @task = @agent.tasks.find_by(id: params[:id])
-    if @task.nil?
-      # This can happen if the task was deleted before the agent could accept it.
-      # Also, if another agent accepted the task before this agent could.
-      render json: { error: "Task not found or not assigned to this agent" }, status: :not_found
-      return
-    end
+    Rails.logger.info("[Agent #{@agent.id}] Task #{@task.id} - Accepting task")
 
     if @task.completed?
+      Rails.logger.warn("[Agent #{@agent.id}] Task #{@task.id} - Cannot accept: already completed")
       render json: { error: "Task already completed" }, status: :unprocessable_content
       return
     end
 
     unless @task.accept
-      Rails.logger.error("Failed to accept task #{@task.id}: #{@task.errors.full_messages}")
+      Rails.logger.error("[Agent #{@agent.id}] Task #{@task.id} - Failed to accept: #{@task.errors.full_messages}")
       render json: { error: "Failed to accept task", details: @task.errors.full_messages },
              status: :unprocessable_content
       return
     end
 
+    log_task_state_change(
+      task_id: @task.id,
+      agent_id: @agent.id,
+      attack_id: @task.attack_id,
+      from_state: @task.state_was,
+      to_state: @task.state,
+      context: { action: "accepted" }
+    )
+
     unless @task.attack.accept
-      Rails.logger.error("Failed to accept attack #{@task.attack.id} for task #{@task.id}: #{@task.attack.errors.full_messages}")
+      Rails.logger.error("[Agent #{@agent.id}] Task #{@task.id} - Failed to accept attack #{@task.attack.id}: #{@task.attack.errors.full_messages}")
       render json: { error: "Failed to start attack", details: @task.attack.errors.full_messages },
              status: :unprocessable_content
       return
     end
 
+    Rails.logger.info("[Agent #{@agent.id}] Task #{@task.id} - Successfully accepted")
     render json: @task, status: :ok
   end
 
   # Handles the exhaustion of a task.
+  # Task lookup and error handling is performed by the set_task before_action.
   #
-  # This action finds a task associated with the current agent using the provided task ID.
-  # If the task is not found, it responds with a 404 Not Found status.
+  # This action marks a task as exhausted.
   # If the task cannot be exhausted, it responds with a 422 Unprocessable Entity status and the task's errors.
   # If the task's associated attack cannot be exhausted, it also responds with a 422 Unprocessable Entity status and the task's errors.
   #
   # @return [void]
   def exhausted
-    @task = @agent.tasks.find(params[:id])
-    if @task.nil?
-      render status: :not_found
+    Rails.logger.info("[Agent #{@agent.id}] Task #{@task.id} - Marking task as exhausted")
+
+    unless @task.exhaust
+      Rails.logger.error("[Agent #{@agent.id}] Task #{@task.id} - Failed to exhaust: #{@task.errors.full_messages}")
+      render json: @task.errors, status: :unprocessable_content
       return
     end
-    render json: @task.errors, status: :unprocessable_content unless @task.exhaust
-    return if @task.attack.exhaust
 
-    render json: @task.errors, status: :unprocessable_content
+    log_task_state_change(
+      task_id: @task.id,
+      agent_id: @agent.id,
+      attack_id: @task.attack_id,
+      from_state: @task.state_was,
+      to_state: @task.state,
+      context: { action: "exhausted" }
+    )
+
+    unless @task.attack.exhaust
+      Rails.logger.error("[Agent #{@agent.id}] Task #{@task.id} - Failed to exhaust attack: #{@task.errors.full_messages}")
+      render json: @task.errors, status: :unprocessable_content
+      return
+    end
+
+    Rails.logger.info("[Agent #{@agent.id}] Task #{@task.id} - Successfully exhausted")
+    head :no_content
   end
 
   # Retrieves a cracked hash list associated with a task, marking the task as not stale
-  # and sending the cracked list data as a downloadable file. The task is identified
-  # by the provided ID.
+  # and sending the cracked list data as a downloadable file.
+  # Task lookup and error handling is performed by the set_task before_action.
   #
-  # If the task is not found, a 404 Not Found status is rendered. If the task is already
-  # completed, an error message is returned with an unprocessable entity status.
+  # If the task is already completed, an error message is returned with an unprocessable entity status.
   #
   # @return [void]
   def get_zaps
     # A `zap` is a hash that has already been cracked. This method retrieves the cracked hash list
     # so the agent can exclude these hashes from its workload.
-    @task = @agent.tasks.find(params[:id])
-    if @task.nil?
-      render status: :not_found
-      return
-    end
+    Rails.logger.info("[Agent #{@agent.id}] Task #{@task.id} - Retrieving zaps (cracked hashes)")
+
     if @task.completed?
+      Rails.logger.warn("[Agent #{@agent.id}] Task #{@task.id} - Cannot get zaps: task already completed")
       render json: { error: "Task already completed" }, status: :unprocessable_content
       return
     end
 
     @task.update(stale: false)
+    Rails.logger.info("[Agent #{@agent.id}] Task #{@task.id} - Sending cracked hash list")
     send_data @task.attack.campaign.hash_list.cracked_list,
               filename: "#{@task.attack.campaign.hash_list.id}.txt"
   end
 
   # Submits a crack result for a specific task, updating the relevant hash item and task state.
-  # If the task or hash item is not found, or if updates fail, appropriate error responses are rendered.
+  # Task lookup and error handling is performed by the set_task before_action.
+  #
+  # If the hash item is not found, or if updates fail, appropriate error responses are rendered.
   # Also updates related hash items with the same hash value and handles task completion.
   #
   # @return [nil] if any error occurs or when completing the process successfully. Renders appropriate responses.
@@ -165,46 +190,47 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
     hash = params[:hash]
     plain_text = params[:plain_text]
 
-    # Find the task on the agent
-    task = @agent.tasks.find(params[:id])
-    if task.nil?
-      render json: { error: "Task not found" }, status: :not_found
-      return
-    end
+    Rails.logger.info("[Agent #{@agent.id}] Task #{@task.id} - Submitting crack for hash: #{hash[0..15]}...")
 
-    hash_list = task.hash_list
+    hash_list = @task.hash_list
     hash_item = hash_list.hash_items.where(hash_value: hash).first
     if hash_item.blank?
+      Rails.logger.warn("[Agent #{@agent.id}] Task #{@task.id} - Hash not found: #{hash[0..15]}...")
       render json: { error: "Hash not found" }, status: :not_found
       return
     end
 
     HashItem.transaction do
-      unless hash_item.update(plain_text: plain_text, cracked: true, cracked_time: timestamp, attack: task.attack)
+      unless hash_item.update(plain_text: plain_text, cracked: true, cracked_time: timestamp, attack: @task.attack)
+        Rails.logger.error("[Agent #{@agent.id}] Task #{@task.id} - Failed to update hash item: #{hash_item.errors.full_messages}")
         render json: hash_item.errors, status: :unprocessable_content
         return
       end
 
-      unless task.accept_crack
-        render json: task.errors, status: :unprocessable_content
+      unless @task.accept_crack
+        Rails.logger.error("[Agent #{@agent.id}] Task #{@task.id} - Failed to accept crack: #{@task.errors.full_messages}")
+        render json: @task.errors, status: :unprocessable_content
         return
       end
 
       # Update any other hash items with the same hash value that are not cracked
       HashItem.includes(:hash_list).where(hash_value: hash_item.hash_value, cracked: false, hash_list: { hash_type_id: hash_list.hash_type_id }).
-        update!(plain_text: plain_text, cracked: true, cracked_time: timestamp, attack: task.attack)
+        update!(plain_text: plain_text, cracked: true, cracked_time: timestamp, attack: @task.attack)
 
       # If there is another task for the same hash list, they should be made stale.
-      task.hash_list.campaigns.each { |c| c.attacks.each { |a| a.tasks.where.not(id: task.id).update(stale: true) } }
+      @task.hash_list.campaigns.each { |c| c.attacks.each { |a| a.tasks.where.not(id: @task.id).update(stale: true) } }
     end
 
-    @message = "Hash cracked successfully, #{hash_list.uncracked_count} hashes remaining, task #{task.state}."
-    task.attack.campaign.touch # rubocop: disable Rails/SkipsModelValidations
-    return unless task.completed?
+    uncracked_count = hash_list.uncracked_count
+    Rails.logger.info("[Agent #{@agent.id}] Task #{@task.id} - Hash cracked successfully, #{uncracked_count} hashes remaining, task state: #{@task.state}")
+    @message = "Hash cracked successfully, #{uncracked_count} hashes remaining, task #{@task.state}."
+    @task.attack.campaign.touch # rubocop: disable Rails/SkipsModelValidations
+    return unless @task.completed?
     render status: :no_content
   end
 
   # Handles the submission of the current task's status.
+  # Task lookup and error handling is performed by the set_task before_action.
   #
   # This method updates the task's activity timestamp and creates a new status with the provided parameters.
   # If provided, the method processes hashcat guesses and device statuses to associate with the status.
@@ -216,7 +242,7 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
   # @return [Hash] an error response with validation messages and an HTTP status code of 422
   #   (Unprocessable Entity), if the creation of hashcat guesses or device statuses fails.
   def submit_status
-    @task = @agent.tasks.find(params[:id])
+    Rails.logger.debug { "[Agent #{@agent.id}] Task #{@task.id} - Submitting status update" }
     @task.update(activity_timestamp: Time.zone.now)
     status = @task.hashcat_statuses.build({
                                             original_line: params[:original_line],
@@ -238,6 +264,7 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
     if guess_params.present?
       status.hashcat_guess = HashcatGuess.new(guess_params)
     else
+      Rails.logger.warn("[Agent #{@agent.id}] Task #{@task.id} - Guess parameters not found in status update")
       render json: { error: "Guess not found" }, status: :unprocessable_content
       return
     end
@@ -250,27 +277,51 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
         status.device_statuses << device_status
       end
     else
+      Rails.logger.warn("[Agent #{@agent.id}] Task #{@task.id} - Device statuses not found in status update")
       render json: { error: "Device Statuses not found" }, status: :unprocessable_content
       return
     end
 
     unless status.save
+      Rails.logger.error("[Agent #{@agent.id}] Task #{@task.id} - Failed to save status: #{status.errors.full_messages}")
       render json: status.errors, status: :unprocessable_content
       return
     end
 
     # Update the task's state based on the status and return no_content if the state was updated
     if @task.accept_status
-      return head :accepted if @task.stale
-      return head :gone if @task.paused?
+      if @task.stale
+        Rails.logger.info("[Agent #{@agent.id}] Task #{@task.id} - Status accepted, task is stale")
+        return head :accepted
+      end
+      if @task.paused?
+        Rails.logger.info("[Agent #{@agent.id}] Task #{@task.id} - Status accepted, task is paused")
+        return head :gone
+      end
+      Rails.logger.debug { "[Agent #{@agent.id}] Task #{@task.id} - Status update successful" }
       return head :no_content
     end
 
     # If the state was not updated, return the task's errors
+    Rails.logger.error("[Agent #{@agent.id}] Task #{@task.id} - Failed to accept status: #{@task.errors.full_messages}")
     render json: @task.errors, status: :unprocessable_content
   end
 
   private
+
+  # Finds and sets the @task instance variable for the current agent.
+  # This method is used as a before_action callback to ensure tasks exist and belong to the agent.
+  # If the task is not found, it uses enhanced error handling from TaskErrorHandling concern.
+  #
+  # @return [void]
+  def set_task
+    @task = @agent.tasks.find(params[:id])
+    log_task_access(@agent.id, params[:id], { method: request.method, path: request.path }, true)
+  rescue ActiveRecord::RecordNotFound
+    log_task_access(@agent.id, params[:id], { method: request.method, path: request.path }, false)
+    error_response = handle_task_not_found(params[:id], @agent)
+    render json: error_response, status: :not_found
+  end
 
   # Strong parameters for status submission
   def status_params

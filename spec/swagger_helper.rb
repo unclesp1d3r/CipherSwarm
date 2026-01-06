@@ -87,7 +87,9 @@ RSpec.configure do |config|
             type: "object",
             properties: {
               error: { type: :string }
-            }
+            },
+            required: [:error],
+            additionalProperties: true
           },
           Agent: {
             type: :object,
