@@ -55,7 +55,7 @@ class MaskListsController < ApplicationController
         format.json { render :show, status: :created, location: @mask_list }
       else
         Rails.logger.warn "MaskList creation failed validation: #{@mask_list.errors.full_messages.join(', ')}"
-        Rails.logger.debug "User: #{current_user.id}, Parameters: #{mask_list_params.inspect}"
+        Rails.logger.debug { "User: #{current_user.id}, Parameters: #{mask_list_params.inspect}" }
 
         format.html { render :new, status: :unprocessable_content }
         format.json { render json: @mask_list.errors, status: :unprocessable_content }
@@ -70,13 +70,13 @@ class MaskListsController < ApplicationController
 
     respond_to do |format|
       if @mask_list.update(mask_list_params)
-        @mask_list.update_column(:sensitive, @mask_list.project_ids.any?)
+        @mask_list.update(sensitive: @mask_list.project_ids.any?)
 
         format.html { redirect_to mask_list_url(@mask_list), notice: "Mask list was successfully updated." }
         format.json { render :show, status: :ok, location: @mask_list }
       else
         Rails.logger.warn "MaskList update failed validation: #{@mask_list.errors.full_messages.join(', ')}"
-        Rails.logger.debug "User: #{current_user.id}, MaskList ID: #{@mask_list.id}"
+        Rails.logger.debug { "User: #{current_user.id}, MaskList ID: #{@mask_list.id}" }
 
         format.html { render :edit, status: :unprocessable_content }
         format.json { render json: @mask_list.errors, status: :unprocessable_content }
@@ -128,7 +128,7 @@ class MaskListsController < ApplicationController
   def validate_project_authorization(project_ids)
     return true if project_ids.blank?
 
-    project_ids.reject(&:blank?).each do |project_id|
+    project_ids.compact_blank.each do |project_id|
       project = Project.find(project_id)
       authorize! :read, project
     end
