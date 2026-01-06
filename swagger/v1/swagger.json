@@ -87,7 +87,11 @@
           "error": {
             "type": "string"
           }
-        }
+        },
+        "required": [
+          "error"
+        ],
+        "additionalProperties": true
       },
       "Agent": {
         "type": "object",

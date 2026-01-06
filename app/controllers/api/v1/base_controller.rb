@@ -7,6 +7,8 @@
 # It provides common functionality and configurations for handling API requests,
 # such as authentication, error handling, and ensuring security measures.
 class Api::V1::BaseController < ApplicationController
+  include TaskErrorHandling
+
   before_action :authenticate_agent # Authenticates the agent using a token.
   after_action :update_last_seen # Updates the last seen timestamp and IP address for the agent.
 
@@ -66,11 +68,26 @@ class Api::V1::BaseController < ApplicationController
   # This method is responsible for rendering a JSON response with a "Record not found" message
   # and setting the HTTP status code to 404 (Not Found).
   #
+  # For task-related errors, this method provides enhanced error responses with reason codes
+  # to help clients distinguish between different 404 scenarios and take appropriate action.
+  #
   # Example usage:
   #   handle_not_found
   #
   # @return [void]
-  def handle_not_found
+  def handle_not_found(exception = nil)
+    # Check if this is a task-related error by examining the exception message
+    if exception&.message&.match?(/Task/) || params[:controller]&.include?("tasks")
+      # Provide enhanced error response for task not found errors
+      task_id = params[:id]
+      if @agent && task_id
+        error_response = handle_task_not_found(task_id, @agent)
+        render json: error_response, status: :not_found
+        return
+      end
+    end
+
+    # Default error response for non-task errors
     render json: { error: "Record not found" }, status: :not_found
   end
 
