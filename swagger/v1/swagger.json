@@ -236,7 +236,8 @@
           "mask": {
             "type": "string",
             "default": "",
-            "description": "A hashcat mask string"
+            "description": "A hashcat mask string",
+            "nullable": true
           },
           "increment_mode": {
             "type": "boolean",
@@ -1549,8 +1550,30 @@
         ],
         "operationId": "setTaskAccepted",
         "responses": {
-          "204": {
-            "description": "task accepted successfully"
+          "200": {
+            "description": "task accepted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer"
+                    },
+                    "state": {
+                      "type": "string"
+                    },
+                    "agent_id": {
+                      "type": "integer"
+                    },
+                    "attack_id": {
+                      "type": "integer"
+                    }
+                  },
+                  "additionalProperties": true
+                }
+              }
+            }
           },
           "422": {
             "description": "task already completed",
@@ -1653,8 +1676,23 @@
         ],
         "operationId": "setTaskAbandoned",
         "responses": {
-          "204": {
-            "description": "successful"
+          "200": {
+            "description": "successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "state": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
           },
           "422": {
             "description": "already completed",
@@ -1663,7 +1701,10 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "state": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "details": {
                       "type": "array",
                       "items": {
                         "type": "string"
