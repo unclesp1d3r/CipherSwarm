@@ -184,13 +184,13 @@ class Task < ApplicationRecord
     after_transition on: :completed do |task|
       uncracked = task.hash_list.uncracked_count
       Rails.logger.info("[Task #{task.id}] Agent #{task.agent_id} - Attack #{task.attack_id} - State change: #{task.state_was} -> completed - Uncracked hashes: #{uncracked}")
-      task.attack.complete if attack.can_complete?
+      task.attack.complete if task.attack.can_complete?
       task.hashcat_statuses.destroy_all
     end
 
     after_transition on: :exhausted do |task|
       Rails.logger.info("[Task #{task.id}] Agent #{task.agent_id} - Attack #{task.attack_id} - State change: #{task.state_was} -> exhausted - Keyspace exhausted")
-      task.attack.exhaust if attack.can_exhaust?
+      task.attack.exhaust if task.attack.can_exhaust?
       task.hashcat_statuses.destroy_all
     end
 

@@ -115,7 +115,7 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
     end
 
     Rails.logger.info("[Agent #{@agent.id}] Task #{@task.id} - Successfully accepted")
-    render json: @task, status: :ok
+    head :no_content
   end
 
   # Handles the exhaustion of a task.
