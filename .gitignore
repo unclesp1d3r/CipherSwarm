@@ -190,3 +190,4 @@ modules.xml
 /config/*.local.yml
 /config/credentials/local.*
 
+.claude/settings.local.json
