@@ -142,14 +142,21 @@ RSpec.describe HashcatStatus do
       end
 
       it "rescues and logs errors without failing the status creation" do
-        allow(Rails.logger).to receive(:error)
-
         # Create a status that would trigger the callback
         hashcat_status = build(:hashcat_status, task: task, status: :running)
         hashcat_status.device_statuses << fast_device_status
 
-        # The callback should not raise an error even if something goes wrong
+        # Mock the agent's update_columns to raise an error in the callback
+        allow(agent).to receive(:update_columns).and_raise(StandardError.new("Database error"))
+
+        # Setup logger as a spy to verify error logging
+        allow(Rails.logger).to receive(:error)
+
+        # The callback should rescue the error and not raise it
         expect { hashcat_status.save! }.not_to raise_error
+
+        # Verify the error was logged
+        expect(Rails.logger).to have_received(:error).with(/Failed to update agent metrics for task #{task.id}/)
       end
     end
   end
