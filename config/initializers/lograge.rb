@@ -8,7 +8,8 @@
 # This enables easier parsing by log aggregation services (ELK, Datadog, etc.).
 
 Rails.application.configure do
-  config.lograge.enabled = Rails.env.production?
+  # Enable in production for structured logging and in development for testing purposes
+  config.lograge.enabled = Rails.env.production? || Rails.env.development?
 
   # Use JSON formatter for machine-readable logs
   config.lograge.formatter = Lograge::Formatters::Json.new
@@ -90,6 +91,11 @@ Rails.application.configure do
       payload[:attack_id] = controller.params[:attack_id]
     elsif controller.instance_variable_defined?(:@attack) && controller.instance_variable_get(:@attack).present?
       payload[:attack_id] = controller.instance_variable_get(:@attack).id
+    end
+
+    # Extract user_id from Devise current_user (web UI requests)
+    if controller.respond_to?(:current_user, true) && controller.send(:current_user).present?
+      payload[:user_id] = controller.send(:current_user).id
     end
 
     payload
