@@ -169,13 +169,14 @@ class HashList < ApplicationRecord
   # Uses Rails.cache with a 1-minute TTL for performance.
   #
   # @param limit [Integer] Maximum number of recent cracks to return (default: 100)
-  # @return [ActiveRecord::Relation] Collection of hash items cracked in the last 24 hours
+  # @return [Array] Collection of hash items cracked in the last 24 hours
   def recent_cracks(limit: 100)
     Rails.cache.fetch("#{cache_key_with_version}/recent_cracks/#{limit}", expires_in: 1.minute) do
       hash_items.where(cracked: true)
                 .where("cracked_time > ?", 24.hours.ago)
                 .order(cracked_time: :desc)
                 .limit(limit)
+                .to_a
     end
   end
 
