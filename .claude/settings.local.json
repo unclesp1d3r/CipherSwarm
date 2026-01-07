@@ -1,8 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(bundle install:*)",
-      "Bash(RAILS_ENV=production bundle exec rails runner:*)"
-    ]
-  }
-}
