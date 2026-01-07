@@ -227,28 +227,6 @@ class Campaign < ApplicationRecord
     attacks.with_state(:paused).find_each(&:resume)
   end
 
-  # Returns the estimated time to complete currently running attacks.
-  #
-  # Uses Rails.cache with a 1-minute TTL for performance.
-  #
-  # @return [Time, nil] The maximum estimated finish time among running attacks, or nil if no running attacks
-  def current_eta
-    Rails.cache.fetch("#{cache_key_with_version}/current_eta", expires_in: 1.minute) do
-      calculate_current_eta
-    end
-  end
-
-  # Returns the estimated total time to complete all incomplete attacks.
-  #
-  # Uses Rails.cache with a 1-minute TTL for performance.
-  #
-  # @return [Time, nil] The total estimated completion time, or nil if no incomplete attacks
-  def total_eta
-    Rails.cache.fetch("#{cache_key_with_version}/total_eta", expires_in: 1.minute) do
-      calculate_total_eta
-    end
-  end
-
   # Calculates the estimated time to complete currently running attacks.
   #
   # Queries running attacks and extracts the maximum estimated finish time from their running tasks.
@@ -300,6 +278,17 @@ class Campaign < ApplicationRecord
     end
   end
 
+  # Returns the estimated time to complete currently running attacks.
+  #
+  # Uses Rails.cache with a 1-minute TTL for performance.
+  #
+  # @return [Time, nil] The maximum estimated finish time among running attacks, or nil if no running attacks
+  def current_eta
+    Rails.cache.fetch("#{cache_key_with_version}/current_eta", expires_in: 1.minute) do
+      calculate_current_eta
+    end
+  end
+
   # Estimates the total duration for pending/paused attacks based on complexity and benchmark rates.
   #
   # For each attack, calculates: complexity_value / fastest_hash_rate_for_hash_type
@@ -339,6 +328,17 @@ class Campaign < ApplicationRecord
     # Find the fastest benchmark for this hash type
     fastest_benchmark = HashcatBenchmark.fastest_device_for_hash_type(hash_mode)
     fastest_benchmark&.hash_speed
+  end
+
+  # Returns the estimated total time to complete all incomplete attacks.
+  #
+  # Uses Rails.cache with a 1-minute TTL for performance.
+  #
+  # @return [Time, nil] The total estimated completion time, or nil if no incomplete attacks
+  def total_eta
+    Rails.cache.fetch("#{cache_key_with_version}/total_eta", expires_in: 1.minute) do
+      calculate_total_eta
+    end
   end
 
   private
