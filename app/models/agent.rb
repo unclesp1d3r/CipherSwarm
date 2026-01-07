@@ -36,25 +36,30 @@
 #
 # Table name: agents
 #
-#  id                                                            :bigint           not null, primary key
-#  advanced_configuration(Advanced configuration for the agent.) :jsonb
-#  client_signature(The signature of the agent)                  :text
-#  custom_label(Custom label for the agent)                      :string           uniquely indexed
-#  devices(Devices that the agent supports)                      :string           default([]), is an Array
-#  enabled(Is the agent active)                                  :boolean          default(TRUE), not null
-#  host_name(Name of the agent)                                  :string           default(""), not null
-#  last_ipaddress(Last known IP address)                         :string           default("")
-#  last_seen_at(Last time the agent checked in)                  :datetime         indexed => [state]
-#  operating_system(Operating system of the agent)               :integer          default("unknown")
-#  state(The state of the agent)                                 :string           default("pending"), not null, indexed, indexed => [last_seen_at]
-#  token(Token used to authenticate the agent)                   :string(24)       uniquely indexed
-#  created_at                                                    :datetime         not null
-#  updated_at                                                    :datetime         not null
-#  user_id(The user that the agent is associated with)           :bigint           not null, indexed
+#  id                                                                                     :bigint           not null, primary key
+#  advanced_configuration(Advanced configuration for the agent.)                          :jsonb
+#  client_signature(The signature of the agent)                                           :text
+#  current_hash_rate(Current hash rate in H/s, updated from HashcatStatus)                :decimal(20, 2)   default(0.0)
+#  current_temperature(Current device temperature in Celsius, updated from HashcatStatus) :integer          default(0)
+#  current_utilization(Current device utilization percentage, updated from HashcatStatus) :integer          default(0)
+#  custom_label(Custom label for the agent)                                               :string           uniquely indexed
+#  devices(Devices that the agent supports)                                               :string           default([]), is an Array
+#  enabled(Is the agent active)                                                           :boolean          default(TRUE), not null
+#  host_name(Name of the agent)                                                           :string           default(""), not null
+#  last_ipaddress(Last known IP address)                                                  :string           default("")
+#  last_seen_at(Last time the agent checked in)                                           :datetime         indexed => [state]
+#  metrics_updated_at(Timestamp of last metrics update for throttling)                    :datetime         indexed
+#  operating_system(Operating system of the agent)                                        :integer          default("unknown")
+#  state(The state of the agent)                                                          :string           default("pending"), not null, indexed, indexed => [last_seen_at]
+#  token(Token used to authenticate the agent)                                            :string(24)       uniquely indexed
+#  created_at                                                                             :datetime         not null
+#  updated_at                                                                             :datetime         not null
+#  user_id(The user that the agent is associated with)                                    :bigint           not null, indexed
 #
 # Indexes
 #
 #  index_agents_on_custom_label            (custom_label) UNIQUE
+#  index_agents_on_metrics_updated_at      (metrics_updated_at)
 #  index_agents_on_state                   (state)
 #  index_agents_on_state_and_last_seen_at  (state,last_seen_at)
 #  index_agents_on_token                   (token) UNIQUE
@@ -65,7 +70,19 @@
 #  fk_rails_...  (user_id => users.id)
 #
 class Agent < ApplicationRecord
+  include ActiveSupport::NumberHelper
   include StoreModel::NestedAttributes
+
+  # Hash rate units map for formatting display values.
+  # Uses standard hash rate conventions (H/s, kH/s, MH/s, GH/s, TH/s, PH/s).
+  HASH_RATE_UNITS = {
+    unit: "H/s",
+    thousand: "kH/s",
+    million: "MH/s",
+    billion: "GH/s",
+    trillion: "TH/s",
+    quadrillion: "PH/s"
+  }.freeze
 
   belongs_to :user, touch: true
   has_and_belongs_to_many :projects, touch: true
@@ -361,5 +378,24 @@ class Agent < ApplicationRecord
   def set_update_interval
     interval = rand(5..60)
     advanced_configuration["agent_update_interval"] = interval
+  end
+
+  # Returns a formatted hash rate display string.
+  #
+  # - Returns "—" if current_hash_rate is nil
+  # - Returns "0 H/s" if current_hash_rate is zero
+  # - Returns formatted hash rate with proper units (e.g., "123.45 MH/s") for positive values
+  #
+  # @return [String] A formatted hash rate string suitable for display
+  def hash_rate_display
+    return "—" if current_hash_rate.nil?
+    return "0 H/s" if current_hash_rate.zero?
+
+    number_to_human(
+      current_hash_rate,
+      significant: false,
+      units: HASH_RATE_UNITS,
+      format: "%n %u"
+    )
   end
 end

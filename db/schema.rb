@@ -10,9 +10,9 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_10_12_180032) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_06_000002) do
   # These are extensions that must be enabled in order to support this database
-  enable_extension "plpgsql"
+  enable_extension "pg_catalog.plpgsql"
 
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
@@ -51,6 +51,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_10_12_180032) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["agent_id"], name: "index_agent_errors_on_agent_id"
+    t.index ["created_at"], name: "index_agent_errors_on_created_at"
     t.index ["task_id"], name: "index_agent_errors_on_task_id"
   end
 
@@ -69,7 +70,12 @@ ActiveRecord::Schema[7.2].define(version: 2025_10_12_180032) do
     t.jsonb "advanced_configuration", default: {}, comment: "Advanced configuration for the agent."
     t.string "state", default: "pending", null: false, comment: "The state of the agent"
     t.string "custom_label", comment: "Custom label for the agent"
+    t.decimal "current_hash_rate", precision: 20, scale: 2, default: "0.0", comment: "Current hash rate in H/s, updated from HashcatStatus"
+    t.integer "current_temperature", default: 0, comment: "Current device temperature in Celsius, updated from HashcatStatus"
+    t.integer "current_utilization", default: 0, comment: "Current device utilization percentage, updated from HashcatStatus"
+    t.datetime "metrics_updated_at", comment: "Timestamp of last metrics update for throttling"
     t.index ["custom_label"], name: "index_agents_on_custom_label", unique: true
+    t.index ["metrics_updated_at"], name: "index_agents_on_metrics_updated_at"
     t.index ["state", "last_seen_at"], name: "index_agents_on_state_and_last_seen_at"
     t.index ["state"], name: "index_agents_on_state"
     t.index ["token"], name: "index_agents_on_token", unique: true
@@ -207,6 +213,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_10_12_180032) do
     t.bigint "attack_id", comment: "The attack that cracked this hash"
     t.jsonb "metadata", default: {}, null: false, comment: "Optional metadata fields for the hash item."
     t.index ["attack_id"], name: "index_hash_items_on_attack_id"
+    t.index ["cracked_time"], name: "index_hash_items_on_cracked_time"
     t.index ["hash_list_id"], name: "index_hash_items_on_hash_list_id"
     t.index ["hash_value", "cracked"], name: "index_hash_items_on_hash_value_and_cracked"
     t.index ["hash_value", "hash_list_id"], name: "index_hash_items_on_hash_value_and_hash_list_id"
@@ -286,6 +293,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_10_12_180032) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["task_id"], name: "index_hashcat_statuses_on_task_id"
+    t.index ["time"], name: "index_hashcat_statuses_on_time"
   end
 
   create_table "mask_lists", force: :cascade do |t|
@@ -486,6 +494,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_10_12_180032) do
     t.text "last_error"
     t.datetime "expires_at"
     t.index ["activity_timestamp"], name: "index_tasks_on_activity_timestamp"
+    t.index ["agent_id", "state"], name: "index_tasks_on_agent_id_and_state"
     t.index ["agent_id"], name: "index_tasks_on_agent_id"
     t.index ["attack_id"], name: "index_tasks_on_attack_id"
     t.index ["claimed_by_agent_id"], name: "index_tasks_on_claimed_by_agent_id"

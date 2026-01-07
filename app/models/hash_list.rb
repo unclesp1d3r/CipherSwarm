@@ -164,6 +164,32 @@ class HashList < ApplicationRecord
     md5.base64digest
   end
 
+  # Returns recently cracked hashes from the last 24 hours.
+  #
+  # Uses Rails.cache with a 1-minute TTL for performance.
+  #
+  # @param limit [Integer] Maximum number of recent cracks to return (default: 100)
+  # @return [ActiveRecord::Relation] Collection of hash items cracked in the last 24 hours
+  def recent_cracks(limit: 100)
+    Rails.cache.fetch("#{cache_key_with_version}/recent_cracks/#{limit}", expires_in: 1.minute) do
+      hash_items.where(cracked: true)
+                .where("cracked_time > ?", 24.hours.ago)
+                .order(cracked_time: :desc)
+                .limit(limit)
+    end
+  end
+
+  # Returns the count of recently cracked hashes from the last 24 hours.
+  #
+  # Uses Rails.cache with a 1-minute TTL for performance.
+  #
+  # @return [Integer] Count of hash items cracked in the last 24 hours
+  def recent_cracks_count
+    Rails.cache.fetch("#{cache_key_with_version}/recent_cracks_count", expires_in: 1.minute) do
+      hash_items.where(cracked: true).where("cracked_time > ?", 24.hours.ago).count
+    end
+  end
+
   private
 
   # Checks if a file is attached and not processed.

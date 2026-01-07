@@ -37,7 +37,7 @@
 #  session(The session name)                                :string           not null
 #  status(The status code)                                  :integer          not null
 #  target(The target file)                                  :string           not null
-#  time(The time of the status)                             :datetime         not null
+#  time(The time of the status)                             :datetime         not null, indexed
 #  time_start(The time the task started)                    :datetime         not null
 #  created_at                                               :datetime         not null
 #  updated_at                                               :datetime         not null
@@ -46,6 +46,7 @@
 # Indexes
 #
 #  index_hashcat_statuses_on_task_id  (task_id)
+#  index_hashcat_statuses_on_time     (time)
 #
 # Foreign Keys
 #
@@ -73,6 +74,8 @@ class HashcatStatus < ApplicationRecord
 
   accepts_nested_attributes_for :device_statuses, allow_destroy: true
   accepts_nested_attributes_for :hashcat_guess, allow_destroy: true
+
+  after_create_commit :update_agent_metrics
 
   scope :latest, -> { order(time: :desc).first }
   scope :older_than, ->(time) { where(time: ...time) }
@@ -181,5 +184,53 @@ class HashcatStatus < ApplicationRecord
   # @return [Integer] the total number of iterations, or 0 if no count is present
   def total_iterations
     guess_base_count.presence || 0
+  end
+
+  private
+
+  # Updates the agent's cached metrics from this status update.
+  #
+  # Only updates metrics if the status is :running. Throttles updates to prevent
+  # excessive database writes by checking if metrics were updated less than 30 seconds ago.
+  #
+  # Calculates aggregated metrics from all device statuses:
+  # - current_hash_rate: sum of all device speeds
+  # - current_temperature: maximum temperature across devices
+  # - current_utilization: average utilization across devices
+  #
+  # Uses update_columns to bypass callbacks and avoid touching timestamps.
+  #
+  # @return [void]
+  def update_agent_metrics
+    return unless running? # Only update metrics for running status
+
+    agent = task.agent
+    return if agent.blank?
+
+    # Throttle updates: skip if metrics were updated less than 30 seconds ago
+    if agent.metrics_updated_at.present? && agent.metrics_updated_at > 30.seconds.ago
+      return
+    end
+
+    # Calculate aggregate metrics from device statuses
+    current_hash_rate = device_statuses.sum(&:speed)
+    current_temperature = device_statuses.map(&:temperature).compact.max || 0
+    current_utilization = if device_statuses.any?
+                           (device_statuses.sum(&:utilization).to_f / device_statuses.count).round
+    else
+                           0
+    end
+
+    # Update agent metrics using direct SQL to avoid callbacks and timestamp touching
+    # rubocop:disable Rails/SkipsModelValidations
+    agent.update_columns(
+      current_hash_rate: current_hash_rate,
+      current_temperature: current_temperature,
+      current_utilization: current_utilization,
+      metrics_updated_at: Time.zone.now
+    )
+    # rubocop:enable Rails/SkipsModelValidations
+  rescue StandardError => e
+    Rails.logger.error("Failed to update agent metrics for task #{task.id}: #{e.message}")
   end
 end

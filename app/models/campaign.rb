@@ -227,6 +227,120 @@ class Campaign < ApplicationRecord
     attacks.with_state(:paused).find_each(&:resume)
   end
 
+  # Returns the estimated time to complete currently running attacks.
+  #
+  # Uses Rails.cache with a 1-minute TTL for performance.
+  #
+  # @return [Time, nil] The maximum estimated finish time among running attacks, or nil if no running attacks
+  def current_eta
+    Rails.cache.fetch("#{cache_key_with_version}/current_eta", expires_in: 1.minute) do
+      calculate_current_eta
+    end
+  end
+
+  # Returns the estimated total time to complete all incomplete attacks.
+  #
+  # Uses Rails.cache with a 1-minute TTL for performance.
+  #
+  # @return [Time, nil] The total estimated completion time, or nil if no incomplete attacks
+  def total_eta
+    Rails.cache.fetch("#{cache_key_with_version}/total_eta", expires_in: 1.minute) do
+      calculate_total_eta
+    end
+  end
+
+  # Calculates the estimated time to complete currently running attacks.
+  #
+  # Queries running attacks and extracts the maximum estimated finish time from their running tasks.
+  #
+  # @return [Time, nil] The maximum estimated finish time among running attacks, or nil if no running attacks
+  def calculate_current_eta
+    running_attacks = attacks.with_state(:running)
+    return nil if running_attacks.blank?
+
+    # Find all running tasks from running attacks and get their estimated finish times
+    running_tasks = Task.joins(:attack)
+                        .where(attacks: { id: running_attacks.ids })
+                        .with_state(:running)
+
+    # Get the maximum estimated finish time from all running tasks
+    max_eta = running_tasks.map(&:estimated_finish_time).compact.max
+    max_eta
+  end
+
+  # Calculates the estimated total time to complete all incomplete attacks.
+  #
+  # Combines running attack ETAs with estimated time for pending/paused attacks
+  # based on their complexity values and benchmark hash rates.
+  #
+  # @return [Time, nil] The total estimated completion time, or nil if no incomplete attacks
+  def calculate_total_eta
+    incomplete_attacks = attacks.incomplete
+
+    return nil if incomplete_attacks.blank?
+
+    # Get current ETA for running attacks as the baseline
+    current_eta_time = calculate_current_eta
+
+    # Find pending or paused attacks that need time estimation
+    pending_or_paused_attacks = incomplete_attacks.with_states(:pending, :paused)
+
+    # If no pending/paused attacks, return the current running ETA
+    return current_eta_time if pending_or_paused_attacks.blank?
+
+    # Calculate estimated additional time for pending/paused attacks
+    additional_seconds = estimate_pending_attacks_duration(pending_or_paused_attacks)
+
+    # If we have a current ETA baseline, add the additional time
+    # Otherwise, use now + additional time as the baseline
+    if current_eta_time.present?
+      current_eta_time + additional_seconds.seconds
+    elsif additional_seconds.positive?
+      Time.current + additional_seconds.seconds
+    end
+  end
+
+  # Estimates the total duration for pending/paused attacks based on complexity and benchmark rates.
+  #
+  # For each attack, calculates: complexity_value / fastest_hash_rate_for_hash_type
+  # Falls back to a default rate if no benchmarks exist.
+  #
+  # @param pending_attacks [ActiveRecord::Relation] Collection of pending/paused attacks
+  # @return [Float] Estimated total seconds for all pending attacks
+  def estimate_pending_attacks_duration(pending_attacks)
+    total_seconds = 0.0
+
+    pending_attacks.find_each do |attack|
+      complexity = attack.complexity_value.to_f
+      next if complexity.zero?
+
+      # Get the fastest known hash rate for this attack's hash type
+      hash_rate = fastest_hash_rate_for_attack(attack)
+      next if hash_rate.nil? || hash_rate.zero?
+
+      # Estimate time: complexity (keyspace) / hash_rate (H/s) = seconds
+      estimated_seconds = complexity / hash_rate
+      total_seconds += estimated_seconds
+    end
+
+    total_seconds
+  end
+
+  # Finds the fastest hash rate available for the given attack's hash type.
+  #
+  # Uses benchmarks from all agents to find the maximum throughput.
+  #
+  # @param attack [Attack] The attack to find hash rate for
+  # @return [Float, nil] The fastest hash rate in H/s, or nil if no benchmarks exist
+  def fastest_hash_rate_for_attack(attack)
+    hash_mode = attack.hash_mode
+    return nil if hash_mode.blank?
+
+    # Find the fastest benchmark for this hash type
+    fastest_benchmark = HashcatBenchmark.fastest_device_for_hash_type(hash_mode)
+    fastest_benchmark&.hash_speed
+  end
+
   private
 
   # This method checks and pauses campaigns with lower priority.

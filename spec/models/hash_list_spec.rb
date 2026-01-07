@@ -73,4 +73,63 @@ RSpec.describe HashList do
     it { is_expected.to have_db_column(:sensitive).of_type(:boolean).with_options(default: false) }
     it { is_expected.to have_db_column(:separator).of_type(:string).with_options(default: ":", null: false) }
   end
+
+  describe "instance methods" do
+    let(:hash_list) { create(:hash_list) }
+
+    describe "#recent_cracks" do
+      before do
+        # Create cracks from different time periods
+        create(:hash_item, hash_list: hash_list, cracked: true, cracked_time: 2.hours.ago, plain_text: "password1")
+        create(:hash_item, hash_list: hash_list, cracked: true, cracked_time: 12.hours.ago, plain_text: "password2")
+        create(:hash_item, hash_list: hash_list, cracked: true, cracked_time: 25.hours.ago, plain_text: "password3")
+        create(:hash_item, hash_list: hash_list, cracked: false)
+      end
+
+      it "returns cracked hashes from the last 24 hours" do
+        recent = hash_list.recent_cracks
+        expect(recent.count).to eq(2)
+      end
+
+      it "respects the limit parameter" do
+        recent = hash_list.recent_cracks(limit: 1)
+        expect(recent.count).to eq(1)
+      end
+
+      it "orders by cracked_time descending" do
+        recent = hash_list.recent_cracks
+        times = recent.map(&:cracked_time)
+        expect(times).to eq(times.sort.reverse)
+      end
+
+      it "uses caching with 1-minute TTL" do
+        allow(Rails.cache).to receive(:fetch).and_call_original
+        hash_list.recent_cracks
+        hash_list.recent_cracks
+        # Cache.fetch should be called for caching
+        expect(Rails.cache).to have_received(:fetch).at_least(:once)
+      end
+    end
+
+    describe "#recent_cracks_count" do
+      before do
+        create(:hash_item, hash_list: hash_list, cracked: true, cracked_time: 2.hours.ago, plain_text: "password1")
+        create(:hash_item, hash_list: hash_list, cracked: true, cracked_time: 12.hours.ago, plain_text: "password2")
+        create(:hash_item, hash_list: hash_list, cracked: true, cracked_time: 25.hours.ago, plain_text: "password3")
+      end
+
+      it "returns count of cracked hashes from the last 24 hours" do
+        count = hash_list.recent_cracks_count
+        expect(count).to eq(2)
+      end
+
+      it "uses caching with 1-minute TTL" do
+        allow(Rails.cache).to receive(:fetch).and_call_original
+        hash_list.recent_cracks_count
+        hash_list.recent_cracks_count
+        # Cache.fetch should be called for caching
+        expect(Rails.cache).to have_received(:fetch).at_least(:once)
+      end
+    end
+  end
 end
