@@ -19,10 +19,10 @@
 #  retry_count                                                                                            :integer          default(0), not null
 #  stale(If new cracks since the last check, the task is stale and the new cracks need to be downloaded.) :boolean          default(FALSE), not null
 #  start_date(The date and time that the task was started.)                                               :datetime         not null
-#  state                                                                                                  :string           default("pending"), not null, indexed, indexed => [claimed_by_agent_id]
+#  state                                                                                                  :string           default("pending"), not null, indexed => [agent_id], indexed, indexed => [claimed_by_agent_id]
 #  created_at                                                                                             :datetime         not null
 #  updated_at                                                                                             :datetime         not null
-#  agent_id(The agent that the task is assigned to, if any.)                                              :bigint           not null, indexed
+#  agent_id(The agent that the task is assigned to, if any.)                                              :bigint           not null, indexed, indexed => [state]
 #  attack_id(The attack that the task is associated with.)                                                :bigint           not null, indexed
 #  claimed_by_agent_id                                                                                    :bigint           indexed, indexed => [state]
 #
@@ -30,6 +30,7 @@
 #
 #  index_tasks_on_activity_timestamp             (activity_timestamp)
 #  index_tasks_on_agent_id                       (agent_id)
+#  index_tasks_on_agent_id_and_state             (agent_id,state)
 #  index_tasks_on_attack_id                      (attack_id)
 #  index_tasks_on_claimed_by_agent_id            (claimed_by_agent_id)
 #  index_tasks_on_expires_at                     (expires_at)
@@ -99,6 +100,41 @@ RSpec.describe Task do
     it "transitions to completed" do
       task.complete
       expect(task).to be_completed
+    end
+
+    describe "#retry" do
+      let(:failed_task) { create(:task, state: "failed") }
+
+      it "transitions from failed to pending" do
+        failed_task.retry
+        expect(failed_task).to be_pending
+      end
+
+      it "increments retry_count" do
+        failed_task.last_error = "Some error"
+        failed_task.save
+
+        expect(failed_task.retry_count).to eq(0)
+        failed_task.retry
+        failed_task.reload
+        expect(failed_task.retry_count).to eq(1)
+      end
+
+      it "clears last_error" do
+        failed_task.last_error = "Some error"
+        failed_task.save
+
+        expect(failed_task.last_error).not_to be_nil
+        failed_task.retry
+        failed_task.reload
+        expect(failed_task.last_error).to be_nil
+      end
+
+      it "logs the retry event" do
+        allow(Rails.logger).to receive(:info)
+        failed_task.retry
+        expect(Rails.logger).to have_received(:info).with(/State change:.*pending.*Task retried/)
+      end
     end
   end
 end

@@ -42,7 +42,7 @@ pre-commit:
     pre-commit run --all-files
 
 # Run all linters and formatters (pre-commit equivalent)
-check: lint security pre-commit
+check: pre-commit security
     @echo "✓ All checks passed"
 
 # Auto-format all code (RuboCop, ERB)

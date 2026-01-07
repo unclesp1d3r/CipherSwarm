@@ -18,7 +18,7 @@
 #  session(The session name)                                :string           not null
 #  status(The status code)                                  :integer          not null
 #  target(The target file)                                  :string           not null
-#  time(The time of the status)                             :datetime         not null
+#  time(The time of the status)                             :datetime         not null, indexed
 #  time_start(The time the task started)                    :datetime         not null
 #  created_at                                               :datetime         not null
 #  updated_at                                               :datetime         not null
@@ -27,6 +27,7 @@
 # Indexes
 #
 #  index_hashcat_statuses_on_task_id  (task_id)
+#  index_hashcat_statuses_on_time     (time)
 #
 # Foreign Keys
 #
