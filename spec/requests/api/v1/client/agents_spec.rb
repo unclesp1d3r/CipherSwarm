@@ -6,6 +6,81 @@
 require "swagger_helper"
 
 RSpec.describe "api/v1/client/agents" do
+  describe "API Request Logging" do
+    let(:agent) { create(:agent) }
+
+    context "when making a successful API request" do
+      it "logs APIRequest START and COMPLETE messages" do
+        allow(Rails.logger).to receive(:info)
+
+        get "/api/v1/client/agents/#{agent.id}",
+            headers: { "Authorization" => "Bearer #{agent.token}" }
+
+        expect(response).to have_http_status(:ok)
+        expect(Rails.logger).to have_received(:info).with(/\[APIRequest\] START.*Agent #{agent.id}/).at_least(:once)
+        expect(Rails.logger).to have_received(:info).with(/\[APIRequest\] COMPLETE.*Agent #{agent.id}.*Status 200/).at_least(:once)
+      end
+
+      it "includes duration in COMPLETE log" do
+        allow(Rails.logger).to receive(:info)
+
+        get "/api/v1/client/agents/#{agent.id}",
+            headers: { "Authorization" => "Bearer #{agent.token}" }
+
+        expect(Rails.logger).to have_received(:info).with(/\[APIRequest\] COMPLETE.*Duration.*ms/).at_least(:once)
+      end
+    end
+
+    context "when authentication fails" do
+      it "returns unauthorized status" do
+        get "/api/v1/client/agents/#{agent.id}",
+            headers: { "Authorization" => "Bearer InvalidToken" }
+
+        expect(response).to have_http_status(:unauthorized)
+      end
+
+      it "does not raise when logging with invalid token" do
+        expect {
+          get "/api/v1/client/agents/#{agent.id}",
+              headers: { "Authorization" => "Bearer InvalidToken" }
+        }.not_to raise_error
+      end
+    end
+
+    context "when request contains invalid JSON" do
+      it "logs APIError JSON_PARSE_ERROR" do
+        allow(Rails.logger).to receive(:info)
+        allow(Rails.logger).to receive(:error)
+
+        put "/api/v1/client/agents/#{agent.id}",
+            headers: {
+              "Authorization" => "Bearer #{agent.token}",
+              "Content-Type" => "application/json"
+            },
+            params: "{invalid json"
+
+        expect(response).to have_http_status(:bad_request)
+        expect(Rails.logger).to have_received(:error).with(/\[APIError\] JSON_PARSE_ERROR/).at_least(:once)
+      end
+    end
+
+    context "when heartbeat updates agent state" do
+      let(:active_agent) { create(:agent, state: "active") }
+
+      it "logs APIRequest without raising errors" do
+        allow(Rails.logger).to receive(:info)
+
+        expect {
+          post "/api/v1/client/agents/#{active_agent.id}/heartbeat",
+               headers: { "Authorization" => "Bearer #{active_agent.token}" }
+        }.not_to raise_error
+
+        expect(response).to have_http_status(:success)
+        expect(Rails.logger).to have_received(:info).with(/\[APIRequest\] COMPLETE/).at_least(:once)
+      end
+    end
+  end
+
   path "/api/v1/client/agents/{id}" do
     parameter name: :id, in: :path, schema: { type: :integer, format: "int64" },
               required: true, description: "id"

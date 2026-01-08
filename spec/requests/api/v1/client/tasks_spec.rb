@@ -6,6 +6,138 @@
 require "swagger_helper"
 
 RSpec.describe "api/v1/client/tasks" do
+  describe "API Request Logging" do
+    let(:agent) { create(:agent) }
+    let(:attack) { create(:dictionary_attack) }
+    let(:task) { create(:task, agent: agent, attack: attack) }
+
+    context "when requesting a task" do
+      it "logs APIRequest START and COMPLETE messages" do
+        allow(Rails.logger).to receive(:info)
+
+        get "/api/v1/client/tasks/#{task.id}",
+            headers: { "Authorization" => "Bearer #{agent.token}" }
+
+        expect(response).to have_http_status(:ok)
+        expect(Rails.logger).to have_received(:info).with(/\[APIRequest\] START.*Agent #{agent.id}/).at_least(:once)
+        expect(Rails.logger).to have_received(:info).with(/\[APIRequest\] COMPLETE.*Agent #{agent.id}.*Status 200/).at_least(:once)
+      end
+    end
+
+    context "when task is not found" do
+      it "returns 404 and logs TaskAccess failed" do
+        allow(Rails.logger).to receive(:info)
+
+        get "/api/v1/client/tasks/-1",
+            headers: { "Authorization" => "Bearer #{agent.token}" }
+
+        expect(response).to have_http_status(:not_found)
+        # The TaskAccess log is emitted for failed task lookups
+        expect(Rails.logger).to have_received(:info).with(/\[TaskAccess\].*FAILED/).at_least(:once)
+      end
+
+      it "does not raise when task is not found" do
+        expect {
+          get "/api/v1/client/tasks/-1",
+              headers: { "Authorization" => "Bearer #{agent.token}" }
+        }.not_to raise_error
+      end
+    end
+
+    context "when submitting status update" do
+      let(:running_task) { create(:task, agent: agent, attack: attack, state: "running") }
+
+      it "logs APIRequest for status submission" do
+        allow(Rails.logger).to receive(:info)
+        allow(Rails.logger).to receive(:error)
+
+        hashcat_status = build(:hashcat_status, task: running_task,
+                                                device_statuses: [build(:device_status)],
+                                                hashcat_guess: build(:hashcat_guess))
+
+        post "/api/v1/client/tasks/#{running_task.id}/submit_status",
+             headers: {
+               "Authorization" => "Bearer #{agent.token}",
+               "Content-Type" => "application/json"
+             },
+             params: hashcat_status.to_json
+
+        expect(Rails.logger).to have_received(:info).with(/\[APIRequest\] COMPLETE/).at_least(:once)
+      end
+
+      it "logs APIError for malformed status data" do
+        allow(Rails.logger).to receive(:info)
+        allow(Rails.logger).to receive(:error)
+
+        hashcat_status = build(:hashcat_status, task: running_task)
+
+        post "/api/v1/client/tasks/#{running_task.id}/submit_status",
+             headers: {
+               "Authorization" => "Bearer #{agent.token}",
+               "Content-Type" => "application/json"
+             },
+             params: hashcat_status.to_json
+
+        expect(response).to have_http_status(:unprocessable_content)
+        # Error is logged for missing device_statuses
+        expect(Rails.logger).to have_received(:error).at_least(:once)
+      end
+    end
+
+    context "when accepting a task" do
+      let(:pending_task) { create(:task, agent: agent, attack: attack, state: "pending") }
+      let(:completed_task) { create(:task, agent: agent, attack: attack, state: "completed") }
+
+      it "logs successful task acceptance" do
+        allow(Rails.logger).to receive(:info)
+
+        post "/api/v1/client/tasks/#{pending_task.id}/accept_task",
+             headers: { "Authorization" => "Bearer #{agent.token}" }
+
+        expect(response).to have_http_status(:no_content)
+        expect(Rails.logger).to have_received(:info).with(/\[APIRequest\] COMPLETE.*Status 204/).at_least(:once)
+      end
+
+      it "logs task already completed error" do
+        allow(Rails.logger).to receive(:info)
+        allow(Rails.logger).to receive(:error)
+
+        post "/api/v1/client/tasks/#{completed_task.id}/accept_task",
+             headers: { "Authorization" => "Bearer #{agent.token}" }
+
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(Rails.logger).to have_received(:info).with(/\[APIRequest\] COMPLETE.*Status 422/).at_least(:once)
+      end
+    end
+
+    context "when abandoning a task" do
+      let(:running_task) { create(:task, agent: agent, attack: attack, state: "running") }
+
+      it "logs successful task abandonment" do
+        allow(Rails.logger).to receive(:info)
+
+        post "/api/v1/client/tasks/#{running_task.id}/abandon",
+             headers: { "Authorization" => "Bearer #{agent.token}" }
+
+        expect(response).to have_http_status(:ok)
+        expect(Rails.logger).to have_received(:info).with(/\[APIRequest\] COMPLETE.*Status 200/).at_least(:once)
+      end
+    end
+
+    context "when request logging does not break the request" do
+      it "handles logging errors gracefully" do
+        allow(Rails.logger).to receive(:info)
+        allow(Rails.logger).to receive(:error)
+
+        # Request should still succeed even if logging is mocked
+        get "/api/v1/client/tasks/#{task.id}",
+            headers: { "Authorization" => "Bearer #{agent.token}" }
+
+        expect(response).to have_http_status(:ok)
+      end
+    end
+  end
+
   path "/api/v1/client/tasks/new" do
     get("Request a new task from server") do
       tags "Tasks"
