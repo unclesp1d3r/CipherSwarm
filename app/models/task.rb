@@ -123,6 +123,10 @@ class Task < ApplicationRecord
   scope :finished, -> { with_states(:completed, :exhausted, :failed) }
   scope :running, -> { with_state(:running) }
 
+  include SafeBroadcasting
+
+  broadcasts_refreshes unless Rails.env.test?
+
   state_machine :state, initial: :pending do
     event :accept do
       transition pending: :running

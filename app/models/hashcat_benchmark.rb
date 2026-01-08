@@ -124,6 +124,8 @@ class HashcatBenchmark < ApplicationRecord
   validates :device, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validates :hash_type, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
 
+  include SafeBroadcasting
+
   broadcasts_refreshes unless Rails.env.test?
 
   # Scopes

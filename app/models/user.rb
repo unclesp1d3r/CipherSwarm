@@ -85,6 +85,8 @@ class User < ApplicationRecord
   normalizes :email, with: ->(value) { value.strip.downcase }
   normalizes :name, with: ->(value) { value.strip.downcase }
 
+  include SafeBroadcasting
+
   broadcasts_refreshes unless Rails.env.test?
 
   kredis_boolean :hide_completed_activities, default: false

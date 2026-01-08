@@ -65,6 +65,8 @@ class HashList < ApplicationRecord
   validates :separator, length: { is: 1, allow_blank: true }
   validate :file_must_be_attached
 
+  include SafeBroadcasting
+
   broadcasts_refreshes unless Rails.env.test?
 
   scope :sensitive, -> { where(sensitive: true) }

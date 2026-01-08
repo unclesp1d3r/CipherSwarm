@@ -217,6 +217,7 @@ class Attack < ApplicationRecord
   scope :active, -> { with_states(:running, :pending) }
 
   # Broadcasts a refresh to the client when the attack is updated unless running in test environment
+  include SafeBroadcasting
 
   broadcasts_refreshes unless Rails.env.test?
 

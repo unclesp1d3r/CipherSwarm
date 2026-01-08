@@ -57,6 +57,8 @@ class AgentError < ApplicationRecord
 
   default_scope { order(created_at: :desc) }
 
+  include SafeBroadcasting
+
   broadcasts_refreshes unless Rails.env.test?
 
   # Retrieves the attack ID associated with the task.
