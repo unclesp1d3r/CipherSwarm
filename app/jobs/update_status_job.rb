@@ -44,7 +44,16 @@ class UpdateStatusJob < ApplicationJob
   end
 
   def check_agents_online_status
-    Agent.without_state(:offline).inactive_for(ApplicationConfig.agent_considered_offline_time).each(&:check_online)
+    offline_candidates = Agent.without_state(:offline).inactive_for(ApplicationConfig.agent_considered_offline_time)
+
+    if offline_candidates.any?
+      Rails.logger.info(
+        "[AgentLifecycle] Checking #{offline_candidates.count} agents for heartbeat timeout - " \
+        "Threshold: #{ApplicationConfig.agent_considered_offline_time}"
+      )
+    end
+
+    offline_candidates.each(&:check_online)
   end
 
   def pause_lower_priority_campaigns

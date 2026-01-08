@@ -35,10 +35,31 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
   # If the agent is active, does nothing. Otherwise, renders the agent's state.
   def heartbeat
     unless @agent.heartbeat
-      Rails.logger.error("Agent heartbeat failed for agent #{@agent.id}: #{@agent.errors.full_messages}")
+      Rails.logger.error(
+        "[AgentLifecycle] heartbeat_failed: agent_id=#{@agent.id} state=#{@agent.state} " \
+        "errors=#{@agent.errors.full_messages.join(', ')} timestamp=#{Time.zone.now}"
+      )
       render json: { error: "Heartbeat state transition failed", details: @agent.errors.full_messages },
              status: :unprocessable_content
       return
+    end
+
+    # Log when agent transitions from offline to active/pending
+    if @agent.state_previously_changed? && @agent.state_was == "offline"
+      Rails.logger.info(
+        "[AgentLifecycle] reconnect: agent_id=#{@agent.id} state_change=offline->#{@agent.state} " \
+        "last_seen_at=#{@agent.last_seen_at} ip=#{@agent.last_ipaddress} timestamp=#{Time.zone.now}"
+      )
+    end
+
+    # Log heartbeat failure if last_seen_at exceeds offline threshold
+    offline_threshold = ApplicationConfig.agent_considered_offline_time.ago
+    if @agent.last_seen_at.present? && @agent.last_seen_at < offline_threshold
+      Rails.logger.warn(
+        "[AgentLifecycle] heartbeat_threshold_exceeded: agent_id=#{@agent.id} state=#{@agent.state} " \
+        "last_seen_at=#{@agent.last_seen_at} threshold=#{ApplicationConfig.agent_considered_offline_time} " \
+        "threshold_time=#{offline_threshold} current_time=#{Time.zone.now} timestamp=#{Time.zone.now}"
+      )
     end
 
     return if @agent.active?
@@ -51,12 +72,18 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
   # Marks the agent as shutdown.
   def shutdown
     unless @agent.shutdown
-      Rails.logger.error("Agent shutdown failed for agent #{@agent.id}: #{@agent.errors.full_messages}")
+      Rails.logger.error(
+        "[AgentLifecycle] shutdown_failed: agent_id=#{@agent.id} state=#{@agent.state} " \
+        "errors=#{@agent.errors.full_messages.join(', ')} timestamp=#{Time.zone.now}"
+      )
       render json: { error: "Shutdown transition failed", details: @agent.errors.full_messages },
              status: :unprocessable_content
       return
     end
 
+    Rails.logger.info(
+      "[AgentLifecycle] shutdown_success: agent_id=#{@agent.id} state=#{@agent.state} timestamp=#{Time.zone.now}"
+    )
     head :no_content
   end
 
