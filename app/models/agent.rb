@@ -129,7 +129,60 @@ class Agent < ApplicationRecord
     end
 
     after_transition on: :shutdown do |agent|
+      Rails.logger.info(
+        "[AgentLifecycle] shutdown: agent_id=#{agent.id} state_change=#{agent.state_was}->offline " \
+        "running_tasks_abandoned=#{agent.tasks.with_states(:running).count} timestamp=#{Time.zone.now}"
+      )
       agent.tasks.with_states(:running).each { |task| task.abandon }
+    end
+
+    after_transition on: :activate do |agent|
+      Rails.logger.info(
+        "[AgentLifecycle] connect: agent_id=#{agent.id} state_change=#{agent.state_was}->active " \
+        "last_seen_at=#{agent.last_seen_at} ip=#{agent.last_ipaddress} timestamp=#{Time.zone.now}"
+      )
+    end
+
+    after_transition on: :deactivate do |agent|
+      Rails.logger.info(
+        "[AgentLifecycle] disconnect: agent_id=#{agent.id} state_change=#{agent.state_was}->stopped " \
+        "last_seen_at=#{agent.last_seen_at} ip=#{agent.last_ipaddress} timestamp=#{Time.zone.now}"
+      )
+    end
+
+    after_transition on: :benchmarked do |agent|
+      Rails.logger.info(
+        "[AgentLifecycle] benchmark_complete: agent_id=#{agent.id} state_change=#{agent.state_was}->#{agent.state} " \
+        "benchmark_count=#{agent.hashcat_benchmarks.count} timestamp=#{Time.zone.now}"
+      )
+    end
+
+    after_transition on: :heartbeat do |agent|
+      if agent.state_was == "offline"
+        Rails.logger.info(
+          "[AgentLifecycle] reconnect: agent_id=#{agent.id} state_change=offline->#{agent.state} " \
+          "last_seen_at=#{agent.last_seen_at} ip=#{agent.last_ipaddress} timestamp=#{Time.zone.now}"
+        )
+      end
+    end
+
+    after_transition on: :check_online do |agent|
+      if agent.offline?
+        Rails.logger.warn(
+          "[AgentLifecycle] heartbeat_timeout: agent_id=#{agent.id} state_change=#{agent.state_was}->offline " \
+          "last_seen_at=#{agent.last_seen_at} threshold=#{ApplicationConfig.agent_considered_offline_time} timestamp=#{Time.zone.now}"
+        )
+      end
+    end
+
+    after_transition on: :check_benchmark_age do |agent|
+      if agent.pending? && agent.state_was == "active"
+        Rails.logger.info(
+          "[AgentLifecycle] benchmark_stale: agent_id=#{agent.id} state_change=active->pending " \
+          "last_benchmark_date=#{agent.last_benchmark_date} max_benchmark_age=#{ApplicationConfig.max_benchmark_age} " \
+          "timestamp=#{Time.zone.now}"
+        )
+      end
     end
 
     event :check_online do
