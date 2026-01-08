@@ -71,6 +71,7 @@
 #
 class Agent < ApplicationRecord
   include ActiveSupport::NumberHelper
+  include SafeBroadcasting
   include StoreModel::NestedAttributes
 
   # Hash rate units map for formatting display values.

@@ -23,6 +23,7 @@ include ActiveSupport::NumberHelper
 module AttackResource
   extend ActiveSupport::Concern
   included do
+    include SafeBroadcasting
     has_one_attached :file
     has_and_belongs_to_many :projects
     belongs_to :creator, class_name: "User", optional: true

@@ -122,6 +122,8 @@ class Campaign < ApplicationRecord
   delegate :uncracked_count, :cracked_count, :hash_item_count, to: :hash_list
 
   # Broadcasts a refresh to the client when the campaign is updated unless running in test environment
+  include SafeBroadcasting
+
   broadcasts_refreshes unless Rails.env.test?
 
   # Callbacks
