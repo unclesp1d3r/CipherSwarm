@@ -29,6 +29,7 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
     agent_params.delete(:name)
 
     return if @agent.update(agent_params)
+    Rails.logger.error("[APIError] AGENT_UPDATE_FAILED - Agent #{@agent.id} - Errors: #{@agent.errors.full_messages.join(', ')} - #{Time.current}")
     render json: @agent.errors, status: :unprocessable_content
   end
 
@@ -129,6 +130,7 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
       return
     end
 
+    Rails.logger.error("[APIError] BENCHMARK_SUBMISSION_FAILED - Agent #{@agent.id} - Error: Failed to submit benchmarks - #{Time.current}")
     render json: { error: "Failed to submit benchmarks" }, status: :unprocessable_content
   end
 
@@ -192,6 +194,7 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
       head :no_content
       return
     end
+    Rails.logger.error("[APIError] ERROR_RECORD_SAVE_FAILED - Agent #{@agent.id} - Errors: #{error_record.errors.full_messages.join(', ')} - #{Time.current}")
     render json: error_record.errors, status: :unprocessable_content
   end
 

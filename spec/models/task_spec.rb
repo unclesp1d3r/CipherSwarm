@@ -137,4 +137,31 @@ RSpec.describe Task do
       end
     end
   end
+
+  describe "SafeBroadcasting integration" do
+    let(:task) { create(:task) }
+
+    it "includes SafeBroadcasting concern" do
+      expect(described_class.included_modules).to include(SafeBroadcasting)
+    end
+
+    context "when broadcast fails" do
+      it "logs BroadcastError without raising" do
+        allow(Rails.logger).to receive(:error)
+        expect { task.send(:log_broadcast_error, StandardError.new("Connection refused")) }.not_to raise_error
+      end
+
+      it "includes task ID in broadcast error log" do
+        allow(Rails.logger).to receive(:error)
+        task.send(:log_broadcast_error, StandardError.new("Test error"))
+        expect(Rails.logger).to have_received(:error).with(/Record ID: #{task.id}/).at_least(:once)
+      end
+
+      it "includes model name in broadcast error log" do
+        allow(Rails.logger).to receive(:error)
+        task.send(:log_broadcast_error, StandardError.new("Test error"))
+        expect(Rails.logger).to have_received(:error).with(/\[BroadcastError\].*Model: Task/).at_least(:once)
+      end
+    end
+  end
 end
