@@ -68,7 +68,7 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
       )
       render json: { success: true, state: @task.state }, status: :ok
     else
-      Rails.logger.error("[Agent #{@agent.id}] Task #{@task.id} - Failed to abandon: #{@task.errors.full_messages}")
+      Rails.logger.error("[APIError] TASK_ABANDON_FAILED - Agent #{@agent.id} - Task #{@task.id} - Errors: #{@task.errors.full_messages.join(', ')} - #{Time.current}")
       render json: { error: "Failed to abandon task", details: @task.errors.full_messages },
              status: :unprocessable_content
     end
@@ -92,7 +92,7 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
     end
 
     unless @task.accept
-      Rails.logger.error("[Agent #{@agent.id}] Task #{@task.id} - Failed to accept: #{@task.errors.full_messages}")
+      Rails.logger.error("[APIError] TASK_ACCEPT_FAILED - Agent #{@agent.id} - Task #{@task.id} - Errors: #{@task.errors.full_messages.join(', ')} - #{Time.current}")
       render json: { error: "Failed to accept task", details: @task.errors.full_messages },
              status: :unprocessable_content
       return
@@ -108,7 +108,7 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
     )
 
     unless @task.attack.accept
-      Rails.logger.error("[Agent #{@agent.id}] Task #{@task.id} - Failed to accept attack #{@task.attack.id}: #{@task.attack.errors.full_messages}")
+      Rails.logger.error("[APIError] ATTACK_ACCEPT_FAILED - Agent #{@agent.id} - Task #{@task.id} - Attack #{@task.attack.id} - Errors: #{@task.attack.errors.full_messages.join(', ')} - #{Time.current}")
       render json: { error: "Failed to start attack", details: @task.attack.errors.full_messages },
              status: :unprocessable_content
       return
@@ -130,7 +130,7 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
     Rails.logger.info("[Agent #{@agent.id}] Task #{@task.id} - Marking task as exhausted")
 
     unless @task.exhaust
-      Rails.logger.error("[Agent #{@agent.id}] Task #{@task.id} - Failed to exhaust: #{@task.errors.full_messages}")
+      Rails.logger.error("[APIError] TASK_EXHAUST_FAILED - Agent #{@agent.id} - Task #{@task.id} - Errors: #{@task.errors.full_messages.join(', ')} - #{Time.current}")
       render json: @task.errors, status: :unprocessable_content
       return
     end
@@ -145,7 +145,7 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
     )
 
     unless @task.attack.exhaust
-      Rails.logger.error("[Agent #{@agent.id}] Task #{@task.id} - Failed to exhaust attack: #{@task.errors.full_messages}")
+      Rails.logger.error("[APIError] ATTACK_EXHAUST_FAILED - Agent #{@agent.id} - Task #{@task.id} - Attack #{@task.attack.id} - Errors: #{@task.errors.full_messages.join(', ')} - #{Time.current}")
       render json: @task.errors, status: :unprocessable_content
       return
     end
@@ -167,7 +167,7 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
     Rails.logger.info("[Agent #{@agent.id}] Task #{@task.id} - Retrieving zaps (cracked hashes)")
 
     if @task.completed?
-      Rails.logger.warn("[Agent #{@agent.id}] Task #{@task.id} - Cannot get zaps: task already completed")
+      Rails.logger.error("[APIError] TASK_ALREADY_COMPLETED - Agent #{@agent.id} - Task #{@task.id} - Action: get_zaps - #{Time.current}")
       render json: { error: "Task already completed" }, status: :unprocessable_content
       return
     end
@@ -195,20 +195,20 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
     hash_list = @task.hash_list
     hash_item = hash_list.hash_items.where(hash_value: hash).first
     if hash_item.blank?
-      Rails.logger.warn("[Agent #{@agent.id}] Task #{@task.id} - Hash not found: #{hash[0..15]}...")
+      Rails.logger.error("[APIError] HASH_NOT_FOUND - Agent #{@agent.id} - Task #{@task.id} - Hash: #{hash[0..15]}... - #{Time.current}")
       render json: { error: "Hash not found" }, status: :not_found
       return
     end
 
     HashItem.transaction do
       unless hash_item.update(plain_text: plain_text, cracked: true, cracked_time: timestamp, attack: @task.attack)
-        Rails.logger.error("[Agent #{@agent.id}] Task #{@task.id} - Failed to update hash item: #{hash_item.errors.full_messages}")
+        Rails.logger.error("[APIError] HASH_UPDATE_FAILED - Agent #{@agent.id} - Task #{@task.id} - Hash: #{hash[0..15]}... - Errors: #{hash_item.errors.full_messages.join(', ')} - #{Time.current}")
         render json: hash_item.errors, status: :unprocessable_content
         return
       end
 
       unless @task.accept_crack
-        Rails.logger.error("[Agent #{@agent.id}] Task #{@task.id} - Failed to accept crack: #{@task.errors.full_messages}")
+        Rails.logger.error("[APIError] TASK_ACCEPT_CRACK_FAILED - Agent #{@agent.id} - Task #{@task.id} - Errors: #{@task.errors.full_messages.join(', ')} - #{Time.current}")
         render json: @task.errors, status: :unprocessable_content
         return
       end
@@ -264,7 +264,7 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
     if guess_params.present?
       status.hashcat_guess = HashcatGuess.new(guess_params)
     else
-      Rails.logger.warn("[Agent #{@agent.id}] Task #{@task.id} - Guess parameters not found in status update")
+      Rails.logger.error("[APIError] GUESS_NOT_FOUND - Agent #{@agent.id} - Task #{@task.id} - #{Time.current}")
       render json: { error: "Guess not found" }, status: :unprocessable_content
       return
     end
@@ -277,13 +277,13 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
         status.device_statuses << device_status
       end
     else
-      Rails.logger.warn("[Agent #{@agent.id}] Task #{@task.id} - Device statuses not found in status update")
+      Rails.logger.error("[APIError] DEVICE_STATUSES_NOT_FOUND - Agent #{@agent.id} - Task #{@task.id} - #{Time.current}")
       render json: { error: "Device Statuses not found" }, status: :unprocessable_content
       return
     end
 
     unless status.save
-      Rails.logger.error("[Agent #{@agent.id}] Task #{@task.id} - Failed to save status: #{status.errors.full_messages}")
+      Rails.logger.error("[APIError] STATUS_SAVE_FAILED - Agent #{@agent.id} - Task #{@task.id} - Errors: #{status.errors.full_messages.join(', ')} - #{Time.current}")
       render json: status.errors, status: :unprocessable_content
       return
     end
@@ -303,7 +303,7 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
     end
 
     # If the state was not updated, return the task's errors
-    Rails.logger.error("[Agent #{@agent.id}] Task #{@task.id} - Failed to accept status: #{@task.errors.full_messages}")
+    Rails.logger.error("[APIError] TASK_ACCEPT_STATUS_FAILED - Agent #{@agent.id} - Task #{@task.id} - Errors: #{@task.errors.full_messages.join(', ')} - #{Time.current}")
     render json: @task.errors, status: :unprocessable_content
   end
 

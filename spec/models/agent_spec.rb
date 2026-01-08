@@ -159,4 +159,92 @@ RSpec.describe Agent do
       expect(agent.client_signature).to be_truthy
     end
   end
+
+  describe "SafeBroadcasting integration" do
+    let(:agent) { create(:agent) }
+
+    it "includes SafeBroadcasting concern" do
+      expect(described_class.included_modules).to include(SafeBroadcasting)
+    end
+
+    context "when broadcast fails" do
+      it "logs BroadcastError without raising" do
+        allow(Rails.logger).to receive(:error)
+        agent.send(:log_broadcast_error, StandardError.new("Connection refused"))
+        expect(Rails.logger).to have_received(:error).with(/\[BroadcastError\].*Model: Agent/).at_least(:once)
+      end
+
+      it "includes agent ID in broadcast error log" do
+        allow(Rails.logger).to receive(:error)
+        agent.send(:log_broadcast_error, StandardError.new("Test error"))
+        expect(Rails.logger).to have_received(:error).with(/Record ID: #{agent.id}/).at_least(:once)
+      end
+
+      it "includes backtrace in broadcast error log" do
+        allow(Rails.logger).to receive(:error)
+        begin
+          raise StandardError, "Test error"
+        rescue StandardError => e
+          agent.send(:log_broadcast_error, e)
+        end
+        expect(Rails.logger).to have_received(:error).with(/Backtrace:/).at_least(:once)
+      end
+
+      it "does not raise when log_broadcast_error is called" do
+        allow(Rails.logger).to receive(:error)
+        expect { agent.send(:log_broadcast_error, StandardError.new("Test")) }.not_to raise_error
+      end
+    end
+  end
+
+  describe "lifecycle logging" do
+    describe "#shutdown" do
+      it "logs AgentLifecycle shutdown event" do
+        agent = create(:agent)
+        allow(Rails.logger).to receive(:info)
+        agent.shutdown
+        expect(Rails.logger).to have_received(:info).with(/\[AgentLifecycle\] shutdown:.*agent_id=#{agent.id}/)
+      end
+
+      it "includes running_tasks_abandoned count in shutdown log" do
+        agent = create(:agent)
+        allow(Rails.logger).to receive(:info)
+        agent.shutdown
+        expect(Rails.logger).to have_received(:info).with(/running_tasks_abandoned=\d+/)
+      end
+
+      it "does not raise on shutdown" do
+        agent = create(:agent)
+        expect { agent.shutdown }.not_to raise_error
+      end
+    end
+
+    describe "#activate" do
+      it "logs AgentLifecycle connect event" do
+        agent = build(:agent, state: "pending")
+        agent.save(validate: false)
+        allow(Rails.logger).to receive(:info)
+        agent.activate
+        expect(Rails.logger).to have_received(:info).with(/\[AgentLifecycle\] connect:.*agent_id=#{agent.id}/)
+      end
+
+      it "includes IP address in connect log" do
+        agent = build(:agent, state: "pending", last_ipaddress: "192.168.1.100")
+        agent.save(validate: false)
+        allow(Rails.logger).to receive(:info)
+        agent.activate
+        expect(Rails.logger).to have_received(:info).with(/ip=192\.168\.1\.100/)
+      end
+    end
+
+    describe "#deactivate" do
+      it "logs AgentLifecycle disconnect event" do
+        agent = build(:agent, state: "active")
+        agent.save(validate: false)
+        allow(Rails.logger).to receive(:info)
+        agent.deactivate
+        expect(Rails.logger).to have_received(:info).with(/\[AgentLifecycle\] disconnect:.*agent_id=#{agent.id}/)
+      end
+    end
+  end
 end

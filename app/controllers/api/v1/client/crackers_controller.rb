@@ -20,11 +20,13 @@ class Api::V1::Client::CrackersController < Api::V1::BaseController
     operating_system = params[:operating_system]
 
     if current_version.blank? || current_version.nil?
+      Rails.logger.error("[APIError] MISSING_VERSION - Agent #{@agent&.id || 'unknown'} - #{Time.current}")
       render json: { error: "Version is required" }, status: :bad_request
       return
     end
 
     if operating_system.blank? || operating_system.nil?
+      Rails.logger.error("[APIError] MISSING_OS - Agent #{@agent&.id || 'unknown'} - #{Time.current}")
       render json: { error: "Operating System is required" }, status: :bad_request
       return
     end
@@ -32,6 +34,7 @@ class Api::V1::Client::CrackersController < Api::V1::BaseController
     current_semantic_version = CrackerBinary.to_semantic_version(current_version)
 
     if current_semantic_version.nil?
+      Rails.logger.error("[APIError] INVALID_VERSION_FORMAT - Agent #{@agent&.id || 'unknown'} - Version: #{current_version} - #{Time.current}")
       render json: { error: "Invalid version format", version: current_version }, status: :bad_request
       return
     end

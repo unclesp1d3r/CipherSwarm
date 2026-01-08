@@ -182,4 +182,41 @@ RSpec.describe Campaign do
       end
     end
   end
+
+  describe "SafeBroadcasting integration" do
+    let(:campaign) { create(:campaign) }
+
+    it "includes SafeBroadcasting concern" do
+      expect(described_class.included_modules).to include(SafeBroadcasting)
+    end
+
+    context "when broadcast fails" do
+      it "logs BroadcastError without raising" do
+        allow(Rails.logger).to receive(:error)
+        expect { campaign.send(:log_broadcast_error, StandardError.new("Connection refused")) }.not_to raise_error
+      end
+
+      it "includes campaign ID in broadcast error log" do
+        allow(Rails.logger).to receive(:error)
+        campaign.send(:log_broadcast_error, StandardError.new("Test error"))
+        expect(Rails.logger).to have_received(:error).with(/Record ID: #{campaign.id}/).at_least(:once)
+      end
+
+      it "includes model name in broadcast error log" do
+        allow(Rails.logger).to receive(:error)
+        campaign.send(:log_broadcast_error, StandardError.new("Test error"))
+        expect(Rails.logger).to have_received(:error).with(/\[BroadcastError\].*Model: Campaign/).at_least(:once)
+      end
+
+      it "includes backtrace in broadcast error log" do
+        allow(Rails.logger).to receive(:error)
+        begin
+          raise StandardError, "Test error"
+        rescue StandardError => e
+          campaign.send(:log_broadcast_error, e)
+        end
+        expect(Rails.logger).to have_received(:error).with(/Backtrace:/).at_least(:once)
+      end
+    end
+  end
 end

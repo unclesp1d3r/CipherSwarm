@@ -14,6 +14,7 @@ class Api::V1::Client::AttacksController < Api::V1::BaseController
   def show
     @attack = Attack.find_by(id: params[:id])
     return if @attack
+    Rails.logger.error("[APIError] ATTACK_NOT_FOUND - Agent #{@agent&.id || 'unknown'} - Attack ID: #{params[:id]} - #{Time.current}")
     render json: { error: "Attack not found." }, status: :not_found
     nil
   end
@@ -27,8 +28,9 @@ class Api::V1::Client::AttacksController < Api::V1::BaseController
   # @param [Integer] id The ID of the attack whose hash list is to be retrieved.
   # @return [void]
   def hash_list
-    @attack = Attack.find(params[:id])
+    @attack = Attack.find_by(id: params[:id])
     if @attack.nil?
+      Rails.logger.error("[APIError] ATTACK_NOT_FOUND - Agent #{@agent&.id || 'unknown'} - Attack ID: #{params[:id]} - #{Time.current}")
       render json: { error: "Attack not found." }, status: :not_found
       return
     end
