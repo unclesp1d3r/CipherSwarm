@@ -191,3 +191,4 @@ modules.xml
 /config/credentials/local.*
 
 .claude/settings.local.json
+.claude/skills/repomix-reference-cipher-swarm/
