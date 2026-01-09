@@ -1,0 +1,28 @@
+<%= render Railsboot::CardComponent.new(class: "h-100 placeholder-glow") do |card| %>
+  <% card.with_header do %>
+    <div class="d-flex justify-content-between align-items-center">
+      <span class="placeholder col-6"></span>
+      <span class="placeholder col-3"></span>
+    </div>
+  <% end %>
+
+  <% card.with_body do %>
+    <div class="mb-2">
+      <span class="placeholder col-8"></span>
+    </div>
+    <div class="mb-2">
+      <span class="placeholder col-6"></span>
+    </div>
+    <div class="mb-0">
+      <span class="placeholder col-7"></span>
+    </div>
+  <% end %>
+
+  <% card.with_footer do %>
+    <div class="btn-group btn-group-sm">
+      <span class="placeholder col-2 btn"></span>
+      <span class="placeholder col-2 btn"></span>
+      <span class="placeholder col-2 btn"></span>
+    </div>
+  <% end %>
+<% end %>
