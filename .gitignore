@@ -192,3 +192,4 @@ modules.xml
 
 .claude/settings.local.json
 .claude/skills/repomix-reference-cipher-swarm/
+repomix-output.xml

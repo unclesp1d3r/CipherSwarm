@@ -1,0 +1,40 @@
+<%= turbo_frame_tag dom_id(agent, :errors) do %>
+<% if errors&.any? %>
+    <div class="mb-3">
+      <%== pagy_info(pagy) %>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-sm table-hover">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Severity</th>
+            <th>Message</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <%= render partial: "agents/error", collection: errors, cached: true %>
+        </tbody>
+      </table>
+    </div>
+
+    <div data-controller="pagy-initializer">
+      <%== pagy_bootstrap_nav(pagy) if pagy.pages > 1 %>
+      <noscript><%== pagy_nav(pagy) %></noscript>
+    </div>
+  <% else %>
+    <%= render Railsboot::BlankSlateComponent.new do |blank_slate| %>
+      <% blank_slate.with_icon do %>
+        <span style="font-size: 64px;"><%= icon("check-circle") %></span>
+      <% end %>
+      <% blank_slate.with_heading do %>
+        No errors recorded
+      <% end %>
+      <% blank_slate.with_description do %>
+        This agent has not reported any errors yet.
+      <% end %>
+    <% end %>
+<% end %>
+<% end %>

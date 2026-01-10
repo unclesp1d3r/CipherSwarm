@@ -1,0 +1,81 @@
+<%= turbo_frame_tag dom_id(agent, :capabilities) do %>
+<div class="row g-3">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0">Device Information</h5>
+        </div>
+        <div class="card-body">
+          <% if agent.devices.present? %>
+            <p class="mb-2"><strong>Device Count:</strong> <%= agent.devices.size %></p>
+            <ul class="list-unstyled mb-0">
+              <% agent.devices.each do |device| %>
+                <li class="mb-1">
+                  <span class="me-1"><%= icon("hdd") %></span>
+                  <%= device %>
+                </li>
+              <% end %>
+            </ul>
+          <% else %>
+            <p class="text-muted mb-0">No device information available</p>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0">Supported Hash Types</h5>
+        </div>
+        <div class="card-body">
+          <% benchmarks = agent.aggregate_benchmarks %>
+          <% if benchmarks&.any? %>
+            <% cache agent do %>
+              <% if agent.last_benchmark_date.present? %>
+                <div class="alert alert-info mb-3">
+                  <small>
+                    Last benchmarked: <%= time_ago_in_words(agent.last_benchmark_date) %> ago
+                    (<%= agent.last_benchmark_date.to_fs(:short) %>)
+                  </small>
+                  <% if agent.last_benchmark_date < ApplicationConfig.max_benchmark_age.ago %>
+                    <span class="badge bg-warning ms-2">Stale</span>
+                  <% end %>
+                </div>
+              <% end %>
+
+              <div class="table-responsive">
+                <table class="table table-sm table-hover">
+                  <thead>
+                    <tr>
+                      <th>Hash Type</th>
+                      <th>Runtime</th>
+                      <th>Hash Rate</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% benchmarks.each do |benchmark| %>
+                      <%= render partial: "agents/benchmark", locals: { benchmark: benchmark } %>
+                    <% end %>
+                  </tbody>
+                </table>
+              </div>
+            <% end %>
+          <% else %>
+            <%= render Railsboot::BlankSlateComponent.new do |blank_slate| %>
+              <% blank_slate.with_icon do %>
+                <span style="font-size: 64px;"><%= icon("speedometer") %></span>
+              <% end %>
+              <% blank_slate.with_heading do %>
+                No benchmarks available
+              <% end %>
+              <% blank_slate.with_description do %>
+                This agent has not been benchmarked yet. Benchmarks will be available after the agent runs its first benchmark test.
+              <% end %>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+</div>
+<% end %>

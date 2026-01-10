@@ -1,0 +1,67 @@
+<div data-controller="tabs" data-tabs-active-value="0">
+  <%= render Railsboot::NavComponent.new(style: "tabs", role: "tablist") do |nav| %>
+    <% nav.with_item(
+      text: "Overview",
+      href: "##{panel_id('overview')}",
+      id: tab_id("overview"),
+      active: true,
+      aria: { controls: panel_id("overview") },
+      data: { tabs_target: "tab", action: "click->tabs#showTab" }
+    ) %>
+    <% nav.with_item(
+      text: "Errors",
+      href: "##{panel_id('errors')}",
+      id: tab_id("errors"),
+      aria: { controls: panel_id("errors") },
+      data: { tabs_target: "tab", action: "click->tabs#showTab" }
+    ) %>
+    <% nav.with_item(
+      text: "Configuration",
+      href: "##{panel_id('configuration')}",
+      id: tab_id("configuration"),
+      aria: { controls: panel_id("configuration") },
+      data: { tabs_target: "tab", action: "click->tabs#showTab" }
+    ) %>
+    <% nav.with_item(
+      text: "Capabilities",
+      href: "##{panel_id('capabilities')}",
+      id: tab_id("capabilities"),
+      aria: { controls: panel_id("capabilities") },
+      data: { tabs_target: "tab", action: "click->tabs#showTab" }
+    ) %>
+  <% end %>
+
+  <div class="tab-content mt-3">
+    <div id="<%= panel_id("overview") %>"
+         class="tab-pane active"
+         role="tabpanel"
+         data-tabs-target="panel"
+         aria-labelledby="<%= tab_id("overview") %>">
+      <%= overview_tab %>
+    </div>
+
+    <div id="<%= panel_id("errors") %>"
+         class="tab-pane d-none"
+         role="tabpanel"
+         data-tabs-target="panel"
+         aria-labelledby="<%= tab_id("errors") %>">
+      <%= errors_tab %>
+    </div>
+
+    <div id="<%= panel_id("configuration") %>"
+         class="tab-pane d-none"
+         role="tabpanel"
+         data-tabs-target="panel"
+         aria-labelledby="<%= tab_id("configuration") %>">
+      <%= configuration_tab %>
+    </div>
+
+    <div id="<%= panel_id("capabilities") %>"
+         class="tab-pane d-none"
+         role="tabpanel"
+         data-tabs-target="panel"
+         aria-labelledby="<%= tab_id("capabilities") %>">
+      <%= capabilities_tab %>
+    </div>
+  </div>
+</div>
