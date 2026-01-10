@@ -104,7 +104,28 @@ class Agent < ApplicationRecord
   scope :inactive_for, ->(time) { where(last_seen_at: ...time.ago) }
   default_scope { order(:created_at) }
 
-  broadcasts_refreshes unless Rails.env.test?
+  # Broadcast tab-specific updates instead of full page refresh
+  # This prevents resetting the active tab state when agent data changes
+  after_update_commit :broadcast_tab_updates, unless: -> { Rails.env.test? }
+
+  # Broadcasts updates to individual tab streams instead of the root agent stream.
+  # This allows each tab panel to update independently without affecting the active tab state.
+  def broadcast_tab_updates
+    broadcast_replace_later_to [self, :overview],
+      target: ActionView::RecordIdentifier.dom_id(self, :overview),
+      partial: "agents/overview_tab",
+      locals: { agent: self }
+
+    broadcast_replace_later_to [self, :configuration],
+      target: ActionView::RecordIdentifier.dom_id(self, :configuration),
+      partial: "agents/configuration_tab",
+      locals: { agent: self }
+
+    broadcast_replace_later_to [self, :capabilities],
+      target: ActionView::RecordIdentifier.dom_id(self, :capabilities),
+      partial: "agents/capabilities_tab",
+      locals: { agent: self }
+  end
 
   # The operating system of the agent.
   enum :operating_system, { unknown: 0, linux: 1, windows: 2, darwin: 3, other: 4 }

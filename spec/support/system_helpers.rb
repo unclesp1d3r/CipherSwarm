@@ -15,7 +15,9 @@ module SystemHelpers
     fill_in name_field, with: user.name
     fill_in password_field, with: password
     click_button "Log in"
-    expect(page).to have_current_path(root_path)
+
+    expect(page).to have_no_current_path(new_user_session_path, wait: 5)
+    expect(page).to have_css("a.nav-link.dropdown-toggle", text: user.name, wait: 5)
   end
 
   # Sign out the current user via the UI

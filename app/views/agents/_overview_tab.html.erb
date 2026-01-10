@@ -1,0 +1,111 @@
+<%= turbo_frame_tag dom_id(agent, :overview) do %>
+<div class="row g-3">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0">Current Task</h5>
+        </div>
+        <div class="card-body">
+          <% if agent.current_running_attack %>
+            <% attack = agent.current_running_attack %>
+            <p class="mb-0">
+              <%= link_to [attack.campaign, attack], class: "text-decoration-none" do %>
+                <%= attack.campaign.name %> - <%= attack.attack_mode.humanize %>
+              <% end %>
+            </p>
+          <% else %>
+            <p class="text-muted mb-0">No active task</p>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0">Performance Metrics</h5>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <div class="d-flex align-items-center">
+                <span class="me-2"><%= icon("speedometer2") %></span>
+                <div>
+                  <small class="text-muted d-block">Hash Rate</small>
+                  <strong><%= agent.hash_rate_display %></strong>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="d-flex align-items-center">
+                <span class="me-2"><%= icon("thermometer-half") %></span>
+                <div>
+                  <small class="text-muted d-block">Temperature</small>
+                  <strong><%= agent.current_temperature %>°C</strong>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="d-flex align-items-center">
+                <span class="me-2"><%= icon("cpu") %></span>
+                <div>
+                  <small class="text-muted d-block">Utilization</small>
+                  <strong><%= agent.current_utilization %>%</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0">Agent Status</h5>
+        </div>
+        <div class="card-body">
+          <dl class="row mb-0">
+            <dt class="col-sm-3">State</dt>
+            <dd class="col-sm-9">
+              <%
+                variant = case agent.state
+                when "pending" then "secondary"
+                when "active" then "info"
+                when "benchmarked" then "success"
+                when "error" then "danger"
+                when "stopped" then "warning"
+                else "secondary"
+                end
+              %>
+              <span class="badge bg-<%= variant %>"><%= agent.state.humanize %></span>
+            </dd>
+
+            <dt class="col-sm-3">Last Seen</dt>
+            <dd class="col-sm-9">
+              <% if agent.last_seen_at.present? %>
+                <%= time_ago_in_words(agent.last_seen_at) %> ago
+              <% else %>
+                <span class="text-muted">Never</span>
+              <% end %>
+            </dd>
+
+            <dt class="col-sm-3">Operating System</dt>
+            <dd class="col-sm-9">
+              <%= agent.operating_system.humanize %>
+            </dd>
+
+            <dt class="col-sm-3">Projects</dt>
+            <dd class="col-sm-9">
+              <% if agent.projects&.any? %>
+                <%= safe_join(agent.projects.map { |p| link_to(p.name, p) }, ", ") %>
+              <% else %>
+                <span class="text-muted">All projects</span>
+              <% end %>
+            </dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+</div>
+<% end %>
