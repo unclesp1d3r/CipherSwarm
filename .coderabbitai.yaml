@@ -4,27 +4,28 @@ tone_instructions: "Senior Rails engineer: distributed password cracking. Priori
 early_access: true
 enable_free_tier: true
 reviews:
-  profile: chill
+  profile: assertive
   request_changes_workflow: false
   high_level_summary: true
   high_level_summary_placeholder: "@coderabbitai summary"
-  high_level_summary_in_walkthrough: false
+  high_level_summary_in_walkthrough: true
   auto_title_placeholder: "@coderabbitai"
   auto_title_instructions: "Generate title using Conventional Commits format: <type>(scope): <description>. Types: feat (new features), fix (bug fixes), refactor (code improvements), perf (performance), docs (documentation), test (tests), chore (maintenance). Scopes: auth, api, models, cli, docs, deps. Description: imperative mood, capitalize first word, no period, under 72 chars. Prioritize: 1) security fixes, 2) breaking changes (use !), 3) API changes, 4) core functionality. Emphasize user impact over implementation details."
   review_status: true
   commit_status: true
   fail_commit_status: false
-  collapse_walkthrough: false
+  collapse_walkthrough: true
   changed_files_summary: true
   sequence_diagrams: true
   estimate_code_review_effort: true
+  enable_prompt_for_ai_agents: true
   assess_linked_issues: true
   related_issues: true
   related_prs: true
   suggested_labels: true
-  auto_apply_labels: false
+  auto_apply_labels: true
   suggested_reviewers: true
-  auto_assign_reviewers: false
+  auto_assign_reviewers: true
   in_progress_fortune: true
   poem: true
   labeling_instructions:
@@ -118,16 +119,52 @@ reviews:
       instructions: "Verify Stimulus controller patterns, proper targets/actions/values. Check for accessibility and progressive enhancement. Ensure Turbo compatibility."
     - path: "Gemfile"
       instructions: "Verify gem versions are specified, security implications are considered, and dependencies are necessary. Check for conflicts and license compatibility."
+    - path: "app/validators/**/*.rb"
+      instructions: "Custom validators should follow ActiveModel::EachValidator or ActiveModel::Validator patterns. Verify proper error message I18n keys, edge case handling, and unit test coverage. Document validation logic with YARD."
+    - path: "app/mailers/**/*.rb"
+      instructions: "Verify ActionMailer patterns, proper use of deliver_later for async, I18n for email content, and proper template organization. Check for PII handling in email content."
+    - path: "app/models/concerns/**/*.rb"
+      instructions: "Concerns should be focused and reusable. Verify proper use of ActiveSupport::Concern, included/class_methods blocks, and clear documentation. Check for circular dependencies."
+    - path: "app/controllers/concerns/**/*.rb"
+      instructions: "Controller concerns should handle cross-cutting controller logic. Verify proper before_action usage, authentication/authorization helpers, and response formatting consistency."
+    - path: "app/helpers/**/*.rb"
+      instructions: "View helpers should be simple presentation logic only. Avoid business logic. Verify proper escaping for XSS prevention and I18n usage. Consider ViewComponents for complex helpers."
+    - path: "app/dashboards/**/*.rb"
+      instructions: "Administrate dashboards define admin UI. Verify ATTRIBUTE_TYPES are correct, proper field ordering, sensible defaults, and secure attribute exposure. Check for N+1 in associated resources."
+    - path: "app/inputs/**/*.rb"
+      instructions: "Custom SimpleForm inputs should follow SimpleForm::Inputs::Base patterns. Verify proper wrapper usage, accessibility attributes, and consistent styling with other inputs."
+    - path: "app/channels/**/*.rb"
+      instructions: "ActionCable channels handle WebSocket connections. Verify proper authentication in connection.rb, authorization in subscribed, and secure broadcasting patterns. Check for race conditions."
+    - path: "spec/system/**/*_spec.rb"
+      instructions: "System tests use Capybara with Page Object pattern. Verify proper wait strategies (no sleep), use of page objects from spec/support/page_objects/, screenshot on failure setup, and realistic user flows. Test accessibility where applicable."
+    - path: "spec/components/**/*_spec.rb"
+      instructions: "ViewComponent specs should use render_inline. Test initialization, slot content, conditional rendering, and accessibility attributes (ARIA). Verify CSS class assertions for styling."
+    - path: "app/assets/stylesheets/**/*.scss"
+      instructions: "SCSS should follow Bootstrap 5 conventions. Verify proper use of variables, mixins, and component organization. Check for accessibility (contrast ratios, focus states). Avoid !important."
+    - path: "config/initializers/**/*.rb"
+      instructions: "Initializers run at boot. Verify no slow operations, proper error handling, environment-aware configuration, and secure defaults. Check load order dependencies."
+    - path: "app/views/layouts/**/*.erb"
+      instructions: "Layout templates define page structure. Verify proper meta tags, CSP headers via meta-tags gem, accessibility landmarks (header, main, footer), and Turbo Drive compatibility."
+    - path: "app/views/devise/**/*.erb"
+      instructions: "Devise views handle authentication UI. Verify accessible forms, proper CSRF tokens, secure password field handling, I18n usage, and consistent styling with app design."
+    - path: "spec/support/**/*.rb"
+      instructions: "Test support files should be focused and reusable. Verify proper module organization, clear documentation, and no side effects on load. Page objects should follow consistent patterns."
+    - path: "package.json"
+      instructions: "Verify npm dependencies are necessary, versions are appropriate, and no known vulnerabilities exist. Check for unused dependencies and proper script organization."
+    - path: "**/*.yml"
+      instructions: "YAML configuration files should be properly structured. Verify syntax, appropriate defaults, and no secrets in plain text. Check for environment-specific overrides."
+    - path: ".github/**/*.yml"
+      instructions: "GitHub Actions workflows should be secure and efficient. Verify proper secret handling, caching strategies, matrix builds where appropriate, and fail-fast behavior."
   abort_on_close: true
   disable_cache: false
   auto_review:
     enabled: true
     auto_incremental_review: true
-    ignore_title_keywords: []
+    ignore_title_keywords: ["WIP"]
     labels: []
     drafts: false
-    base_branches: []
-    ignore_usernames: []
+    base_branches: ["main"]
+    ignore_usernames: ["dependabot[bot]", "github-actions[bot]"]
   finishing_touches:
     docstrings:
       enabled: true
@@ -144,7 +181,17 @@ reviews:
       mode: warning
     issue_assessment:
       mode: warning
-    custom_checks: []
+    custom_checks:
+      - name: "API Security"
+        instructions: "For API endpoints in app/controllers/api/**, verify: 1) Bearer token authentication via authenticate_agent!, 2) No mass assignment vulnerabilities (params.permit only allowed attributes), 3) Rate limiting consideration for heavy operations, 4) Proper error responses without leaking sensitive data. Flag any endpoint missing authentication."
+      - name: "N+1 Detection"
+        instructions: "Check for N+1 query patterns: 1) Associations accessed in loops without includes/preload, 2) Callbacks that trigger additional queries, 3) Serializers/jbuilder accessing associations. Suggest ar_lazy_preload or explicit eager loading."
+      - name: "State Machine Safety"
+        instructions: "For models using state_machines-activerecord, verify: 1) Transition guards prevent invalid state changes, 2) Callbacks don't have side effects that break idempotency, 3) State column has database default, 4) Tests cover all transitions. Check Agent, Attack, and Task models specifically."
+      - name: "Soft Delete Awareness"
+        instructions: "For models using paranoia (acts_as_paranoid), verify: 1) Queries use default scope (deleted records excluded), 2) really_destroy! is used intentionally, 3) Associations handle soft-deleted parents correctly, 4) Unique constraints consider deleted_at. Campaign model uses paranoia."
+      - name: "Agent API Contract"
+        instructions: "Changes to app/controllers/api/v1/client/** must maintain backward compatibility with v1 API contract. Verify: 1) Response schema matches existing format, 2) New fields are optional, 3) Deprecations are documented, 4) Rswag specs are updated. Breaking changes require api-v2 label."
   tools:
     ast-grep:
       rule_dirs: []
@@ -240,25 +287,31 @@ chat:
   auto_reply: true
   integrations:
     jira:
-      usage: "disabled"
+      usage: disabled
     linear:
-      usage: "disabled"
+      usage: disabled
 knowledge_base:
   opt_out: false
   web_search:
     enabled: true
   code_guidelines:
     enabled: true
-    filePatterns: []
+    filePatterns:
+      - "CLAUDE.md"
+      - "AGENTS.md"
+      - ".rubocop.yml"
+      - "docs/development/*.md"
+      - "docs/testing/*.md"
+      - ".cursor/rules/*.mdc"
   learnings:
     scope: auto
   issues:
     scope: auto
   jira:
-    usage: "disabled"
+    usage: disabled
     project_keys: []
   linear:
-    usage: "disabled"
+    usage: disabled
     team_keys: []
   pull_requests:
     scope: auto
@@ -283,6 +336,14 @@ code_generation:
         instructions: "Generate detailed YARD documentation with @param, @return, @raise, @example tags. Include usage examples and integration notes. Document thread safety if applicable."
       - path: "app/services/**/*.rb"
         instructions: "Document service objects with clear input/output contracts, business logic flow, and error scenarios. Include @param, @return, @raise tags with examples."
+      - path: "app/validators/**/*.rb"
+        instructions: "Document custom validators with @param for validated attribute, @example for usage in models, and clear explanation of validation rules. Include edge case behavior."
+      - path: "app/models/concerns/**/*.rb"
+        instructions: "Document concerns with @example showing include usage, list of methods added, and any configuration options. Include dependencies on other concerns or modules."
+      - path: "app/channels/**/*.rb"
+        instructions: "Document ActionCable channels with connection requirements, subscription parameters, and broadcast event formats. Include authentication/authorization requirements."
+      - path: "app/dashboards/**/*.rb"
+        instructions: "Document Administrate dashboards with field type explanations, custom display logic, and any authorization restrictions on fields."
   unit_tests:
     path_instructions:
       - path: "app/models/**/*.rb"
@@ -299,3 +360,36 @@ code_generation:
         instructions: "Generate comprehensive unit tests with edge cases, error scenarios, and integration patterns. Include performance tests for critical paths. Use proper test isolation and mocking."
       - path: "app/services/**/*.rb"
         instructions: "Generate service object tests covering happy path, error cases, validation failures, and side effects. Test transaction rollback scenarios. Use FactoryBot and proper test isolation."
+      - path: "app/validators/**/*.rb"
+        instructions: "Generate validator tests with valid and invalid inputs, edge cases, nil handling, and proper error messages. Test I18n error message keys. Use simple mock objects or real models."
+      - path: "app/models/concerns/**/*.rb"
+        instructions: "Generate concern tests using a test class that includes the concern. Test all added methods, class methods, callbacks, and scopes. Verify concern works in isolation."
+      - path: "app/channels/**/*.rb"
+        instructions: "Generate ActionCable channel tests with stub_connection. Test subscription, rejection, broadcasting, and stream management. Include authentication failure scenarios."
+      - path: "app/dashboards/**/*.rb"
+        instructions: "Generate Administrate dashboard tests verifying ATTRIBUTE_TYPES configuration, required attributes, and custom field behavior. Use request specs for admin UI flows."
+      - path: "spec/system/**/*_spec.rb"
+        instructions: "Generate system tests following Page Object pattern from spec/support/page_objects/. Use proper wait strategies (have_content, have_selector), avoid sleep, include screenshot on failure. Test complete user journeys."
+issue_enrichment:
+  auto_enrich:
+    enabled: true
+  planning:
+    enabled: false
+    auto_planning:
+      enabled: false
+      labels: []
+  labeling:
+    labeling_instructions:
+      - label: "bug"
+        instructions: "Apply when issue describes a malfunction, error, or unexpected behavior in existing functionality"
+      - label: "enhancement"
+        instructions: "Apply for feature requests, improvements, or new capabilities"
+      - label: "documentation"
+        instructions: "Apply for issues related to docs, comments, README updates, or code documentation"
+      - label: "question"
+        instructions: "Apply when issue seeks clarification, explanation, or is asking for help/information"
+      - label: "good first issue"
+        instructions: "Apply to simple, self-contained issues suitable for newcomers (clear scope, minimal dependencies)"
+      - label: "help wanted"
+        instructions: "Apply when issue needs extra attention, expertise, or community contribution"
+    auto_apply_labels: true
