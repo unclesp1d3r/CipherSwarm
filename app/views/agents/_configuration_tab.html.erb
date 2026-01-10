@@ -1,0 +1,94 @@
+<%= turbo_frame_tag dom_id(agent, :configuration) do %>
+<div class="row g-3">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0">Basic Configuration</h5>
+        </div>
+        <div class="card-body">
+          <dl class="row mb-0">
+            <dt class="col-sm-3">Status</dt>
+            <dd class="col-sm-9">
+              <% if agent.enabled %>
+                <span class="badge bg-success">Enabled</span>
+              <% else %>
+                <span class="badge bg-danger">Disabled</span>
+              <% end %>
+            </dd>
+
+            <% if can? :read, agent.user %>
+              <dt class="col-sm-3">User</dt>
+              <dd class="col-sm-9">
+                <%= agent.user.email %>
+              </dd>
+            <% end %>
+
+            <% if can? :read, Project %>
+              <dt class="col-sm-3">Projects</dt>
+              <dd class="col-sm-9">
+                <% if agent.projects&.any? %>
+                  <ul class="list-unstyled mb-0">
+                    <% agent.projects.each do |project| %>
+                      <li><%= link_to project.name, project %></li>
+                    <% end %>
+                  </ul>
+                <% else %>
+                  <span class="text-muted">All projects</span>
+                <% end %>
+              </dd>
+            <% end %>
+
+            <dt class="col-sm-3">Client Signature</dt>
+            <dd class="col-sm-9">
+              <code><%= agent.client_signature %></code>
+            </dd>
+
+            <dt class="col-sm-3">Last IP Address</dt>
+            <dd class="col-sm-9">
+              <%= agent.last_ipaddress || "N/A" %>
+            </dd>
+
+            <dt class="col-sm-3">Token</dt>
+            <dd class="col-sm-9">
+              <code class="user-select-all"><%= agent.token %></code>
+            </dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0">Advanced Configuration</h5>
+        </div>
+        <div class="card-body">
+          <dl class="row mb-0">
+            <dt class="col-sm-3">Update Interval</dt>
+            <dd class="col-sm-9">
+              <%= agent.advanced_configuration.agent_update_interval %> seconds
+            </dd>
+
+            <dt class="col-sm-3">Use Native Hashcat</dt>
+            <dd class="col-sm-9">
+              <%= agent.advanced_configuration.use_native_hashcat ? "Yes" : "No" %>
+            </dd>
+
+            <% if agent.advanced_configuration.backend_device.present? %>
+              <dt class="col-sm-3">Backend Device</dt>
+              <dd class="col-sm-9">
+                <%= agent.advanced_configuration.backend_device %>
+              </dd>
+            <% end %>
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <% if can? :update, agent %>
+      <div class="col-12">
+        <%= link_to "Edit Agent", edit_agent_path(agent), class: "btn btn-primary" %>
+      </div>
+    <% end %>
+</div>
+<% end %>
