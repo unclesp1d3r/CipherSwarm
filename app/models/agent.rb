@@ -362,55 +362,7 @@ class Agent < ApplicationRecord
   #
   # @return [Task, nil] The next task for the agent, or nil if no task is found.
   def new_task
-    # Immediately return the first incomplete task if there's no fatal errors for it.
-    incomplete_task = tasks.incomplete.find do |task|
-      !agent_errors.exists?(severity: :fatal, task_id: task.id) && task.uncracked_remaining
-    end
-
-    return incomplete_task if incomplete_task
-
-    # Ensure projects are present.
-    return nil if project_ids.blank?
-
-    # Get hash types allowed for the agent. This does not change often, so we cache it for an hour.
-    allowed_hash_type_ids = Rails.cache.fetch("#{cache_key_with_version}/allowed_hash_types", expires_in: 1.hour) do
-      HashType.where(hashcat_mode: allowed_hash_types).pluck(:id)
-    end
-
-    # Fetch applicable attacks.
-    attacks = Attack.incomplete.joins(campaign: { hash_list: :hash_type })
-                    .where(campaigns: { project_id: project_ids })
-                    .where(hash_lists: { hash_type_id: allowed_hash_type_ids })
-                    .order(:complexity_value, :created_at)
-    return nil if attacks.blank?
-
-    attacks.each do |attack|
-      next if attack.uncracked_count.zero?
-
-      # Return the first failed task without fatal errors.
-      failed_task = attack.tasks.with_state(:failed).find do |task|
-        !agent_errors.exists?(severity: :fatal, task_id: task.id)
-      end
-      return failed_task if failed_task
-
-      # Return the first pending task.
-      pending_task = attack.tasks.with_state(:pending).first
-      return pending_task if pending_task
-
-      # If no pending tasks, create a new task for the agent.
-      if attack.tasks.with_state(:pending).none?
-        return tasks.create(attack: attack, start_date: Time.zone.now) if meets_performance_threshold?(attack.hash_mode)
-
-        agent_errors.create(
-          severity: :info,
-          message: "Task skipped for agent because it does not meet the performance threshold",
-          metadata: { attack_id: attack.id, hash_type: attack.hash_type }
-        )
-      end
-    end
-
-    # If no tasks can be assigned, return nil.
-    nil
+    TaskAssignmentService.new(self).find_next_task
   end
 
   # Returns an array of project IDs associated with the agent.
