@@ -15,6 +15,9 @@ class AgentDetailTabsComponent < ApplicationViewComponent
   end
 
   def panel_id(name)
+    # Unique ID for the panel wrapper div (used by the tabs Stimulus controller).
+    # The turbo_frame_tag inside each partial has its own ID using dom_id(agent, name)
+    # which is targeted by broadcast_tab_updates for real-time updates.
     "#{helpers.dom_id(agent)}_#{name}_panel"
   end
 end

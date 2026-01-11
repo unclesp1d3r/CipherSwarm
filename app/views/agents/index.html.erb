@@ -16,32 +16,13 @@
      ]) %>
 <% end %>
 
-<% if @agents.empty? %>
-  <%= render Railsboot::BlankSlateComponent.new do |blank_slate| %>
-    <% blank_slate.with_icon do %>
-      <%= icon("robot") %>
-    <% end %>
-
-    <% blank_slate.with_heading do %>
-      No Agents Found
-    <% end %>
-
-    <% blank_slate.with_description do %>
-      Create your first agent to start cracking hashes
-    <% end %>
-
-    <% if can? :create, Agent %>
-      <% blank_slate.with_primary_action do %>
-        <%= link_to "New Agent", new_agent_path, class: "btn btn-primary" %>
-      <% end %>
-    <% end %>
-  <% end %>
-<% else %>
+<%= turbo_frame_tag "agents-cards", src: cards_agents_path, loading: (Rails.env.test? ? :eager : :lazy) do %>
   <div class="row g-4">
-    <% @agents.each do |agent| %>
+    <% 4.times do %>
       <div class="col-12 col-md-6 col-lg-4 col-xl-3">
-        <%= render AgentStatusCardComponent.new(agent: agent), cache: true %>
+        <%= render AgentStatusCardSkeletonComponent.new %>
       </div>
     <% end %>
   </div>
 <% end %>
+

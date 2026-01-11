@@ -6,12 +6,21 @@
 require "rails_helper"
 
 RSpec.describe AgentStatusCardComponent, type: :component do
+  let(:user) { create(:user) }
   let(:agent) do
     create(:agent,
+      user: user,
       state: :active,
       custom_label: "Test Agent",
       current_hash_rate: 1_000_000_000, # 1 GH/s
       last_seen_at: 5.minutes.ago)
+  end
+
+  before do
+    # Set up Warden for authorization helpers
+    # Create ability based on the user
+    ability = Ability.new(user)
+    allow(vc_test_controller).to receive_messages(current_user: user, user_signed_in?: true, current_ability: ability)
   end
 
   describe "rendering" do
@@ -70,7 +79,7 @@ RSpec.describe AgentStatusCardComponent, type: :component do
 
   describe "different agent states" do
     context "when agent is pending" do
-      let(:agent) { create(:agent, state: :pending) }
+      let(:agent) { create(:agent, user: user, state: :pending) }
 
       it "displays warning badge" do
         render_inline(described_class.new(agent: agent))
@@ -79,7 +88,7 @@ RSpec.describe AgentStatusCardComponent, type: :component do
     end
 
     context "when agent has error state" do
-      let(:agent) { create(:agent, state: :error) }
+      let(:agent) { create(:agent, user: user, state: :error) }
 
       it "displays danger badge" do
         render_inline(described_class.new(agent: agent))
@@ -93,7 +102,7 @@ RSpec.describe AgentStatusCardComponent, type: :component do
     end
 
     context "when agent is offline" do
-      let(:agent) { create(:agent, state: :offline) }
+      let(:agent) { create(:agent, user: user, state: :offline) }
 
       it "displays dark badge" do
         render_inline(described_class.new(agent: agent))
@@ -102,7 +111,7 @@ RSpec.describe AgentStatusCardComponent, type: :component do
     end
 
     context "when agent is stopped" do
-      let(:agent) { create(:agent, state: :stopped) }
+      let(:agent) { create(:agent, user: user, state: :stopped) }
 
       it "displays secondary badge" do
         render_inline(described_class.new(agent: agent))
@@ -112,7 +121,7 @@ RSpec.describe AgentStatusCardComponent, type: :component do
   end
 
   describe "with nil last_seen_at" do
-    let(:agent) { create(:agent, last_seen_at: nil) }
+    let(:agent) { create(:agent, user: user, last_seen_at: nil) }
 
     it "displays 'Not seen yet' text" do
       render_inline(described_class.new(agent: agent))
@@ -121,7 +130,7 @@ RSpec.describe AgentStatusCardComponent, type: :component do
   end
 
   describe "with zero hash rate" do
-    let(:agent) { create(:agent, current_hash_rate: 0) }
+    let(:agent) { create(:agent, user: user, current_hash_rate: 0) }
 
     it "displays '0 H/s' correctly" do
       render_inline(described_class.new(agent: agent))
