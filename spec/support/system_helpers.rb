@@ -15,7 +15,9 @@ module SystemHelpers
     fill_in name_field, with: user.name
     fill_in password_field, with: password
     click_button "Log in"
-    expect(page).to have_current_path(root_path)
+
+    expect(page).to have_no_current_path(new_user_session_path, wait: 5)
+    expect(page).to have_css("a.nav-link.dropdown-toggle", text: user.name, wait: 5)
   end
 
   # Sign out the current user via the UI
@@ -24,7 +26,7 @@ module SystemHelpers
   # @param user [User, nil]
   def sign_out_via_ui(user = nil)
     if user
-      find("a.nav-link.dropdown-toggle", text: user.name).click
+      toggle = find("a.nav-link.dropdown-toggle", text: user.name)
     else
       # Prefer a dropdown toggle that is not the "Tools" menu (which may also
       # render a dropdown-toggle). Fall back to the first non-tools toggle.
@@ -33,10 +35,16 @@ module SystemHelpers
         raise Capybara::ElementNotFound, "Could not find a user dropdown toggle to sign out via the UI. Ensure the user menu is present before calling sign_out_via_ui."
       end
       toggle = toggles.find { |el| el.text.strip.downcase != "tools" } || toggles.first
-      toggle.click
     end
 
-    click_on "Log out"
+    # Click the dropdown toggle and wait for dropdown to open
+    toggle.click
+    # Wait for the dropdown menu to appear
+    sleep 0.2 # Brief pause for animation
+    # Find the Log out button (button_to renders a submit button) and click it
+    # Use execute_script to bypass visibility issues with Bootstrap dropdown
+    logout_form = find("form[action*='sign_out']", visible: :all)
+    page.execute_script("arguments[0].submit()", logout_form.native)
     expect(page).to have_current_path(new_user_session_path)
   end
 

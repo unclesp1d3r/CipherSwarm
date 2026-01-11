@@ -177,6 +177,14 @@ class BasePage
     @session.has_content?(content, **options)
   end
 
+  def has_text?(text, **options)
+    @session.has_text?(text, **options)
+  end
+
+  def has_no_text?(text = nil, **options)
+    @session.has_no_text?(text, **options)
+  end
+
   # Check if the page has a CSS selector
   def has_css?(selector, **options)
     @session.has_css?(selector, **options)

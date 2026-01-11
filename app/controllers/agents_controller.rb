@@ -18,6 +18,16 @@ class AgentsController < ApplicationController
   # GET /agents or /agents.json
   def index; end
 
+  # GET /agents/cards
+  # Returns agent cards for turbo frame lazy loading
+  # Skip default authorization and use index authorization for this collection action
+  skip_authorize_resource only: :cards
+  def cards
+    authorize! :index, Agent
+    @agents = Agent.accessible_by(current_ability, :read)
+    render partial: "agents/cards", locals: { agents: @agents }
+  end
+
   # GET /agents/1 or /agents/1.json
   def show
     @pagy, @errors = pagy(@agent.agent_errors.order(created_at: :desc),
