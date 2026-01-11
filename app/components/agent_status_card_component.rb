@@ -13,7 +13,7 @@ class AgentStatusCardComponent < ApplicationViewComponent
   # Returns the count of agent errors in the last 24 hours
   # @return [Integer] Number of errors
   def error_count_last_24h
-    agent.agent_errors.where(created_at: 24.hours.ago..).count
+    @error_count_last_24h ||= agent.agent_errors.where(created_at: 24.hours.ago..).count
   end
 
   # Maps agent states to Bootstrap badge variants

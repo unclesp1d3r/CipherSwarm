@@ -35,21 +35,28 @@
 
     <% card.with_footer do %>
       <%= render Railsboot::ButtonGroupComponent.new(size: "sm") do |group| %>
-        <%= helpers.link_to agent, class: "btn btn-sm btn-primary", title: "View Agent", "aria-label": "View Agent" do %>
-          <%= helpers.icon("eye") %>
+        <% if helpers.can?(:read, agent) %>
+          <%= helpers.link_to agent, class: "btn btn-sm btn-primary", title: "View Agent", "aria-label": "View Agent", data: { turbo_frame: "_top" } do %>
+            <%= helpers.icon("eye") %>
+          <% end %>
         <% end %>
 
-        <%= helpers.link_to helpers.edit_agent_path(agent), class: "btn btn-sm btn-warning", title: "Edit Agent", "aria-label": "Edit Agent" do %>
-          <%= helpers.icon("pencil") %>
+        <% if helpers.can?(:update, agent) %>
+          <%= helpers.link_to helpers.edit_agent_path(agent), class: "btn btn-sm btn-warning", title: "Edit Agent", "aria-label": "Edit Agent", data: { turbo_frame: "_top" } do %>
+            <%= helpers.icon("pencil") %>
+          <% end %>
         <% end %>
 
-        <%= helpers.button_to agent,
-                          method: :delete,
-                          class: "btn btn-sm btn-danger",
-                          title: "Delete Agent",
-                          "aria-label": "Delete Agent",
-                          data: { turbo_confirm: "Are you sure you want to delete this agent?" } do %>
-          <%= helpers.icon("trash") %>
+        <% if helpers.can?(:destroy, agent) %>
+          <%= helpers.button_to agent,
+                            method: :delete,
+                            class: "btn btn-sm btn-danger",
+                            title: "Delete Agent",
+                            "aria-label": "Delete Agent",
+                            form: { data: { turbo_frame: "_top" } },
+                            data: { turbo_confirm: "Are you sure you want to delete this agent?" } do %>
+            <%= helpers.icon("trash") %>
+          <% end %>
         <% end %>
       <% end %>
     <% end %>

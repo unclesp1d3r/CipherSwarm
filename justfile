@@ -64,11 +64,17 @@ quality: lint security format
 
 # === Testing ===
 
-# Run all RSpec tests with coverage
-test:
+# Run JavaScript tests
+test-js:
+    yarn test:js
+
+# Run all tests (JS + RSpec with coverage)
+test-all: test-js
     COVERAGE=true bundle exec rspec
 
-# Run all tests (CI equivalent - includes lint, security, test)
+# Run RSpec tests with coverage
+test:
+    COVERAGE=true bundle exec rspec
 
 # Run specific test file
 test-file FILE:

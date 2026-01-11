@@ -142,6 +142,9 @@ RSpec.describe "Agent monitoring" do
       agent.update!(current_hash_rate: 5_000_000_000, state: :pending)
       original_hash_rate = agent.hash_rate_display
 
+      # Update to a different hash rate
+      agent.update!(current_hash_rate: 10_000_000_000)
+
       perform_enqueued_jobs do
         agent.broadcast_replace_to(
           agent,

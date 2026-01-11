@@ -252,7 +252,40 @@ Business logic is extracted into service objects and models:
 - Tests in spec/requests/ generate documentation
 - Run `just docs-api` or `RAILS_ENV=test rails rswag` to regenerate
 
-### Testing Strategy
+#### JavaScript Testing
+
+To set up JavaScript testing in the project, we use Vitest. Follow the steps below:
+
+1. Install Vitest and dependencies:
+
+   ```bash
+   yarn add -D vitest jsdom @testing-library/dom @hotwired/stimulus
+   ```
+
+2. Create a Vitest configuration file `vitest.config.js` in the project root:
+
+   ```javascript
+   import {
+       defineConfig
+   } from 'vitest/config';
+   export default defineConfig({
+       test: {
+           environment: 'jsdom',
+       },
+   });
+   ```
+
+3. Create a test setup file `spec/javascript/setup.js` to initialize Stimulus Application for tests.
+
+4. Run tests using:
+
+   ```bash
+   yarn test:js
+   ```
+
+Both unit tests for Stimulus controllers and integration tests via system tests are included in the project.
+
+## Testing Strategy
 
 **System Tests (spec/system/):**
 

@@ -51,6 +51,31 @@ RSpec.describe "Agents" do
     end
   end
 
+  describe "#cards" do
+    context "when a non-logged in user tries to access the agents cards" do
+      it "redirects to login page" do
+        get cards_agents_path
+        expect(response).to redirect_to(new_user_session_path)
+      end
+    end
+
+    context "when a non-admin user tries to access the agents cards" do
+      it "returns http success" do
+        sign_in first_regular_user
+        get cards_agents_path
+        expect(response).to have_http_status(:success)
+      end
+    end
+
+    context "when an admin user tries to access the agents cards" do
+      it "returns http success" do
+        sign_in admin_user
+        get cards_agents_path
+        expect(response).to have_http_status(:success)
+      end
+    end
+  end
+
   describe "#show" do
     context "when a non-logged in user tries to access an agent" do
       it "redirects to login page" do

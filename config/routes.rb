@@ -321,7 +321,11 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :agents
+  resources :agents do
+    collection do
+      get :cards
+    end
+  end
   resources :projects, only: %i[ show new create edit update destroy ]
 
   # Define the admin routes
