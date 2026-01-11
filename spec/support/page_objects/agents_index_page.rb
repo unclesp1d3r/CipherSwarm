@@ -75,6 +75,96 @@ class AgentsIndexPage < BasePage
     has_content?("No Agents Found")
   end
 
+  # Check if the agent card shows the status badge with the expected state
+  # @param agent_name [String] the agent name or custom label
+  # @param state [String] the expected state text (e.g., "Active", "Pending")
+  # @return [Boolean] true if the status badge displays the expected state
+  def has_status_badge?(agent_name, state)
+    within_agent_card(agent_name) do
+      has_css?(".badge", text: state)
+    end
+  end
+
+  # Check if the agent card shows the error indicator with the expected count
+  # @param agent_name [String] the agent name or custom label
+  # @param count [Integer] the expected error count
+  # @return [Boolean] true if the error indicator displays the expected count
+  def has_error_count?(agent_name, count)
+    within_agent_card(agent_name) do
+      has_content?("Errors (24h): #{count}")
+    end
+  end
+
+  # Check if the agent card shows a danger-styled error indicator (positive error count)
+  # @param agent_name [String] the agent name or custom label
+  # @return [Boolean] true if the error indicator has the danger text class
+  def has_error_indicator_danger?(agent_name)
+    within_agent_card(agent_name) do
+      has_css?(".text-danger", text: /Errors/)
+    end
+  end
+
+  # Check if the agent card shows the hash rate display
+  # @param agent_name [String] the agent name or custom label
+  # @param hash_rate [String] the expected hash rate display text
+  # @return [Boolean] true if the hash rate displays the expected value
+  def has_hash_rate?(agent_name, hash_rate)
+    within_agent_card(agent_name) do
+      has_content?("Hash Rate: #{hash_rate}")
+    end
+  end
+
+  # Check if skeleton loading placeholders are displayed
+  # @return [Boolean] true if skeleton placeholders are visible
+  def has_skeleton_loading?
+    has_css?(".placeholder-glow")
+  end
+
+  # Check if the agent card has a view button with icon
+  # @param agent_name [String] the agent name or custom label
+  # @return [Boolean] true if view button contains the eye icon
+  def has_view_button_with_icon?(agent_name)
+    within_agent_card(agent_name) do
+      has_css?("a.btn-primary i.bi-eye")
+    end
+  end
+
+  # Check if the agent card has an edit button with icon
+  # @param agent_name [String] the agent name or custom label
+  # @return [Boolean] true if edit button contains the pencil icon
+  def has_edit_button_with_icon?(agent_name)
+    within_agent_card(agent_name) do
+      has_css?("a.btn-warning i.bi-pencil")
+    end
+  end
+
+  # Check if the agent card has a delete button with icon
+  # @param agent_name [String] the agent name or custom label
+  # @return [Boolean] true if delete button contains the trash icon
+  def has_delete_button_with_icon?(agent_name)
+    within_agent_card(agent_name) do
+      has_css?("button.btn-danger i.bi-trash")
+    end
+  end
+
+  # Check if all action buttons are in a button group
+  # @param agent_name [String] the agent name or custom label
+  # @return [Boolean] true if buttons are within a button group
+  def has_button_group?(agent_name)
+    within_agent_card(agent_name) do
+      has_css?(".btn-group")
+    end
+  end
+
+  # Check if button icons render correctly (not escaped as text)
+  # @param agent_name [String] the agent name or custom label
+  # @return [Boolean] true if no escaped icon HTML is visible as text
+  def icons_not_escaped?(agent_name)
+    within_agent_card(agent_name) do
+      !has_content?('<i class="bi')
+    end
+  end
+
   private
 
   # Scope operations to an agent card

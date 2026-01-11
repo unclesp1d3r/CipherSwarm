@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
+$bootstrap-icons-font-dir: ".";
+$bootstrap-icons-font-src: url("bootstrap-icons.woff2") format("woff2"), url("bootstrap-icons.woff") format("woff");
 @import "bootstrap/scss/bootstrap";
 @import "bootstrap-icons/font/bootstrap-icons.scss";
 @import "stepper_component.scss";
