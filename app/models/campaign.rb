@@ -10,13 +10,9 @@
 #
 # @enums
 # - priority:
-#   - deferred (-1): best effort
-#   - routine (0): default
-#   - priority (1): important
-#   - urgent (2): important and urgent
-#   - immediate (3): run ASAP
-#   - flash (4): critical, small hashes
-#   - flash_override (5): admin only
+#   - deferred (-1): best effort, runs when no other campaigns are running
+#   - normal (0): default priority
+#   - high (2): important campaigns, restricted to project admins
 #
 # @relationships
 # - belongs_to :hash_list, :project (touch: true)
@@ -58,16 +54,16 @@
 #
 # Table name: campaigns
 #
-#  id                                                                                                     :bigint           not null, primary key
-#  attacks_count                                                                                          :integer          default(0), not null
-#  deleted_at                                                                                             :datetime         indexed
-#  description                                                                                            :text
-#  name                                                                                                   :string           not null
-#  priority( -1: Deferred, 0: Routine, 1: Priority, 2: Urgent, 3: Immediate, 4: Flash, 5: Flash Override) :integer          default("routine"), not null
-#  created_at                                                                                             :datetime         not null
-#  updated_at                                                                                             :datetime         not null
-#  hash_list_id                                                                                           :bigint           not null, indexed
-#  project_id                                                                                             :bigint           not null, indexed
+#  id                                         :bigint           not null, primary key
+#  attacks_count                              :integer          default(0), not null
+#  deleted_at                                 :datetime         indexed
+#  description                                :text
+#  name                                       :string           not null
+#  priority(-1: Deferred, 0: Normal, 2: High) :integer          default("normal"), not null
+#  created_at                                 :datetime         not null
+#  updated_at                                 :datetime         not null
+#  hash_list_id                               :bigint           not null, indexed
+#  project_id                                 :bigint           not null, indexed
 #
 # Indexes
 #
@@ -86,19 +82,15 @@ class Campaign < ApplicationRecord
   # Priority enum for the campaign.
   #
   # The priority enum is used to determine the priority of the campaign.
-  # When a campaign exists in the system with a priority, all campaigns of lower priority are paused until the campaign is completed.
+  # Higher priority campaigns receive preferential task assignment and may preempt lower priority tasks.
   #
   # The priority can be one of the following values:
-  # - `deferred`: -1 (best effort, runs when no other campaigns are running)
-  # - `routine`: 0 (default)
-  # - `priority`: 1 (Important, but not urgent)
-  # - `urgent`: 2 (Important and urgent)
-  # - `immediate`: 3 (Immediate, must be run as soon as possible)
-  # - `flash`: 4 (Critical and should only include a small number of hashes with simple attacks)
-  # - `flash_override`: 5 (Restricted to admin users only)
+  # - `deferred`: -1 (best effort, runs when capacity available)
+  # - `normal`: 0 (default priority for regular campaigns)
+  # - `high`: 2 (important campaigns, restricted to project admins/owners)
   #
   # @return [Hash] the priority enum hash.
-  enum :priority, { deferred: -1, routine: 0, priority: 1, urgent: 2, immediate: 3, flash: 4, flash_override: 5 }
+  enum :priority, { deferred: -1, normal: 0, high: 2 }
 
   # Associations
   belongs_to :hash_list, touch: true
@@ -113,7 +105,7 @@ class Campaign < ApplicationRecord
   validates_associated :project
 
   # Scopes
-  default_scope { in_order_of(:priority, %i[flash_override flash immediate urgent priority routine deferred]).order(:created_at) }
+  default_scope { in_order_of(:priority, %i[high normal deferred]).order(:created_at) }
   scope :completed, -> { joins(:attacks).where(attacks: { state: :completed }) }
   scope :active, -> { joins(:attacks).where(attacks: { state: %i[running paused pending] }) }
   scope :in_projects, ->(ids) { where(project_id: ids) }
@@ -127,24 +119,7 @@ class Campaign < ApplicationRecord
   broadcasts_refreshes unless Rails.env.test?
 
   # Callbacks
-  after_commit :check_and_pause_lower_priority_campaigns, on: %i[create update]
   after_commit :mark_attacks_complete, on: [:update]
-
-  # Pauses all campaigns with a priority lower than the maximum priority and resumes all campaigns with the maximum priority.
-  #
-  # This method performs the following steps:
-  # 1. Finds the maximum priority of all active campaigns in the system.
-  # 2. Pauses all campaigns that have a priority lower than the maximum priority.
-  # 3. Resumes all campaigns that have the maximum priority.
-  #
-  # @return [void]
-  def self.pause_lower_priority_campaigns
-    max_priority = Campaign.active.maximum(:priority)
-    return if max_priority.nil?
-
-    Campaign.where(priority: ...max_priority).find_each(&:pause)
-    Campaign.where(priority: max_priority).find_each(&:resume)
-  end
 
   # Provides a label indicating the number of incomplete attacks out of the total number of attacks.
   #
@@ -195,29 +170,17 @@ class Campaign < ApplicationRecord
   #
   # @return [String] the emoji representing the campaign's priority.
   #   - "deferred" => "🕰"
-  #   - "routine" => "🔄"
-  #   - "priority" => "🔵"
-  #   - "urgent" => "🟠"
-  #   - "immediate" => "🔴"
-  #   - "flash" => "🟡"
-  #   - "flash_override" => "🔒"
+  #   - "normal" => "🔄"
+  #   - "high" => "🔴"
   #   - any other value => "❓"
   def priority_to_emoji
     case priority
     when "deferred"
       "🕰"
-    when "routine"
+    when "normal"
       "🔄"
-    when "priority"
-      "🔵"
-    when "urgent"
-      "🟠"
-    when "immediate"
+    when "high"
       "🔴"
-    when "flash"
-      "🟡"
-    when "flash_override"
-      "🔒"
     else
       "❓"
     end
@@ -346,14 +309,6 @@ class Campaign < ApplicationRecord
   end
 
   private
-
-  # This method checks and pauses campaigns with lower priority.
-  # It calls the class method `pause_lower_priority_campaigns` on the `Campaign` model.
-  #
-  # @return [void]
-  def check_and_pause_lower_priority_campaigns
-    self.class.pause_lower_priority_campaigns
-  end
 
   # Marks all attacks as complete if the campaign is completed.
   # This is skipped in test environments to avoid interfering with unit tests.
