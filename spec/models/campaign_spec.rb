@@ -183,6 +183,80 @@ RSpec.describe Campaign do
     end
   end
 
+  describe ".pause_lower_priority_campaigns" do
+    context "when no campaigns exist" do
+      it "completes without raising errors" do
+        expect { described_class.pause_lower_priority_campaigns }.not_to raise_error
+      end
+    end
+
+    context "when no active campaigns exist" do
+      it "completes without raising errors when all campaigns are completed" do
+        campaign = create(:campaign)
+        create(:dictionary_attack, campaign: campaign, state: "completed")
+        expect { described_class.pause_lower_priority_campaigns }.not_to raise_error
+      end
+    end
+
+    context "when a single active campaign exists" do
+      it "resumes the campaign" do
+        campaign = create(:campaign, priority: :routine)
+        attack = create(:dictionary_attack, campaign: campaign, state: "paused")
+
+        described_class.pause_lower_priority_campaigns
+        attack.reload
+        expect(attack.state).to eq("pending")
+      end
+    end
+
+    context "when multiple campaigns with same priority exist" do
+      it "resumes all campaigns with max priority" do
+        campaign1 = create(:campaign, priority: :routine)
+        campaign2 = create(:campaign, priority: :routine)
+        attack1 = create(:dictionary_attack, campaign: campaign1, state: "paused")
+        attack2 = create(:dictionary_attack, campaign: campaign2, state: "paused")
+
+        described_class.pause_lower_priority_campaigns
+        attack1.reload
+        attack2.reload
+        expect(attack1.state).to eq("pending")
+        expect(attack2.state).to eq("pending")
+      end
+    end
+
+    context "when multiple campaigns with different priorities exist" do
+      it "pauses lower priority campaigns and resumes highest priority" do
+        low_priority = create(:campaign, priority: :routine)
+        high_priority = create(:campaign, priority: :urgent)
+        low_attack = create(:dictionary_attack, campaign: low_priority, state: "running")
+        high_attack = create(:dictionary_attack, campaign: high_priority, state: "paused")
+
+        described_class.pause_lower_priority_campaigns
+        low_attack.reload
+        high_attack.reload
+        expect(low_attack.state).to eq("paused")
+        expect(high_attack.state).to eq("pending")
+      end
+
+      it "pauses all campaigns below highest priority" do
+        deferred = create(:campaign, priority: :deferred)
+        routine = create(:campaign, priority: :routine)
+        urgent = create(:campaign, priority: :urgent)
+        deferred_attack = create(:dictionary_attack, campaign: deferred, state: "running")
+        routine_attack = create(:dictionary_attack, campaign: routine, state: "running")
+        urgent_attack = create(:dictionary_attack, campaign: urgent, state: "paused")
+
+        described_class.pause_lower_priority_campaigns
+        deferred_attack.reload
+        routine_attack.reload
+        urgent_attack.reload
+        expect(deferred_attack.state).to eq("paused")
+        expect(routine_attack.state).to eq("paused")
+        expect(urgent_attack.state).to eq("pending")
+      end
+    end
+  end
+
   describe "SafeBroadcasting integration" do
     let(:campaign) { create(:campaign) }
 
