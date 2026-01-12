@@ -140,6 +140,8 @@ class Campaign < ApplicationRecord
   # @return [void]
   def self.pause_lower_priority_campaigns
     max_priority = Campaign.active.maximum(:priority)
+    return if max_priority.nil?
+
     Campaign.where(priority: ...max_priority).find_each(&:pause)
     Campaign.where(priority: max_priority).find_each(&:resume)
   end
