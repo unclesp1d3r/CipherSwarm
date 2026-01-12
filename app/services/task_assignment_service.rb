@@ -54,6 +54,7 @@ class TaskAssignmentService
   end
 
   # Searches available attacks for a task to assign.
+  # Attempts preemption for high-priority attacks when no tasks are available.
   #
   # @return [Task, nil] a task from available attacks, or nil
   def find_task_from_available_attacks
@@ -64,9 +65,29 @@ class TaskAssignmentService
 
       task = find_or_create_task_for_attack(attack)
       return task if task
+
+      # If no task was found and this is a higher-priority attack, try preemption
+      if should_attempt_preemption?(attack)
+        preempted = TaskPreemptionService.new(attack).preempt_if_needed
+        if preempted
+          # Retry finding/creating a task after successful preemption
+          task = find_or_create_task_for_attack(attack)
+          return task if task
+        end
+      end
     end
 
     nil
+  end
+
+  # Checks if preemption should be attempted for an attack.
+  #
+  # @param attack [Attack] the attack to check
+  # @return [Boolean] true if preemption should be attempted
+  def should_attempt_preemption?(attack)
+    # Only attempt preemption for normal or high priority attacks
+    # Deferred attacks wait naturally
+    attack.campaign.priority.present? && attack.campaign.priority.to_sym != :deferred
   end
 
   # Finds or creates a task for a specific attack.
@@ -121,14 +142,15 @@ class TaskAssignmentService
   end
 
   # Returns attacks available for the agent based on projects and hash types.
+  # Orders by campaign priority first (high → normal → deferred), then by complexity.
   #
-  # @return [ActiveRecord::Relation<Attack>] available attacks ordered by complexity
+  # @return [ActiveRecord::Relation<Attack>] available attacks ordered by priority and complexity
   def available_attacks
     Attack.incomplete
           .joins(campaign: { hash_list: :hash_type })
           .where(campaigns: { project_id: agent.project_ids })
           .where(hash_lists: { hash_type_id: allowed_hash_type_ids })
-          .order(:complexity_value, :created_at)
+          .order("campaigns.priority DESC, attacks.complexity_value, attacks.created_at")
   end
 
   # Returns hash type IDs the agent can work on, cached for performance.
