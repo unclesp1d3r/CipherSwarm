@@ -16,6 +16,7 @@
 #  last_error                                                                                             :text
 #  lock_version                                                                                           :integer          default(0), not null
 #  max_retries                                                                                            :integer          default(3), not null
+#  preemption_count                                                                                       :integer          default(0), not null, indexed
 #  retry_count                                                                                            :integer          default(0), not null
 #  stale(If new cracks since the last check, the task is stale and the new cracks need to be downloaded.) :boolean          default(FALSE), not null
 #  start_date(The date and time that the task was started.)                                               :datetime         not null
@@ -34,6 +35,7 @@
 #  index_tasks_on_attack_id                      (attack_id)
 #  index_tasks_on_claimed_by_agent_id            (claimed_by_agent_id)
 #  index_tasks_on_expires_at                     (expires_at)
+#  index_tasks_on_preemption_count               (preemption_count)
 #  index_tasks_on_state                          (state)
 #  index_tasks_on_state_and_claimed_by_agent_id  (state,claimed_by_agent_id)
 #

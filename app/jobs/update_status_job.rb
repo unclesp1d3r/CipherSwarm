@@ -23,6 +23,7 @@ class UpdateStatusJob < ApplicationJob
   # 2. Removes old status for tasks in a finished state.
   # 3. Removes running status for incomplete tasks.
   # 4. Abandons tasks that have been running for more than a configurable amount of time without activity.
+  # 5. Rebalances task assignments for high-priority campaigns.
   #
   # This method ensures that the database connection is properly managed by using a connection pool and clearing active connections after execution.
   def perform(*_args)
@@ -31,7 +32,7 @@ class UpdateStatusJob < ApplicationJob
       remove_finished_tasks_status
       remove_incomplete_tasks_status
       abandon_inactive_tasks
-      pause_lower_priority_campaigns
+      rebalance_task_assignments
     end
   ensure
     ActiveRecord::Base.connection_handler.clear_active_connections!
@@ -56,15 +57,28 @@ class UpdateStatusJob < ApplicationJob
     offline_candidates.each(&:check_online)
   end
 
-  def pause_lower_priority_campaigns
-    Campaign.pause_lower_priority_campaigns
-  end
-
   def remove_finished_tasks_status
     Task.finished.each { |task| task.hashcat_statuses.destroy_all }
   end
 
   def remove_incomplete_tasks_status
     Task.incomplete.each { |task| task.remove_old_status }
+  end
+
+  # Rebalances task assignments by checking for pending high-priority attacks
+  # and attempting to preempt lower-priority tasks if needed.
+  def rebalance_task_assignments
+    # Find high-priority attacks with no running tasks
+    high_priority_attacks = Attack.incomplete
+                                   .joins(:campaign)
+                                   .where(campaigns: { priority: 2 })
+                                   .where.not(id: Task.with_state(:running).select(:attack_id))
+
+    high_priority_attacks.each do |attack|
+      next if attack.uncracked_count.zero?
+
+      # Attempt preemption
+      TaskPreemptionService.new(attack).preempt_if_needed
+    end
   end
 end

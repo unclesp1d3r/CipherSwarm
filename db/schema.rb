@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_06_000002) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_12_052238) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -89,6 +89,15 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_06_000002) do
     t.index ["project_id"], name: "index_agents_projects_on_project_id"
   end
 
+  create_table "application_settings", force: :cascade do |t|
+    t.string "key", null: false, comment: "Unique setting key"
+    t.text "value", comment: "Setting value (JSON serialized)"
+    t.text "description", comment: "Human-readable description of the setting"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["key"], name: "index_application_settings_on_key", unique: true
+  end
+
   create_table "attacks", force: :cascade do |t|
     t.string "name", default: "", null: false, comment: "Attack name"
     t.text "description", default: "", comment: "Attack description"
@@ -163,7 +172,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_06_000002) do
     t.integer "attacks_count", default: 0, null: false
     t.text "description"
     t.datetime "deleted_at"
-    t.integer "priority", default: 0, null: false, comment: " -1: Deferred, 0: Routine, 1: Priority, 2: Urgent, 3: Immediate, 4: Flash, 5: Flash Override"
+    t.integer "priority", default: 0, null: false, comment: "-1: Deferred, 0: Normal, 2: High"
     t.index ["deleted_at"], name: "index_campaigns_on_deleted_at"
     t.index ["hash_list_id"], name: "index_campaigns_on_hash_list_id"
     t.index ["project_id"], name: "index_campaigns_on_project_id"
@@ -381,6 +390,19 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_06_000002) do
     t.index ["name"], name: "index_rule_lists_on_name", unique: true
   end
 
+  create_table "sessions", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "ip_address"
+    t.string "user_agent"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "last_activity_at", comment: "Last time the session was active"
+    t.datetime "expires_at", comment: "When the session expires"
+    t.index ["expires_at"], name: "index_sessions_on_expires_at"
+    t.index ["last_activity_at"], name: "index_sessions_on_last_activity_at"
+    t.index ["user_id"], name: "index_sessions_on_user_id"
+  end
+
   create_table "solid_queue_blocked_executions", force: :cascade do |t|
     t.bigint "job_id", null: false
     t.string "queue_name", null: false
@@ -493,12 +515,14 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_06_000002) do
     t.integer "retry_count", default: 0, null: false
     t.text "last_error"
     t.datetime "expires_at"
+    t.integer "preemption_count", default: 0, null: false
     t.index ["activity_timestamp"], name: "index_tasks_on_activity_timestamp"
     t.index ["agent_id", "state"], name: "index_tasks_on_agent_id_and_state"
     t.index ["agent_id"], name: "index_tasks_on_agent_id"
     t.index ["attack_id"], name: "index_tasks_on_attack_id"
     t.index ["claimed_by_agent_id"], name: "index_tasks_on_claimed_by_agent_id"
     t.index ["expires_at"], name: "index_tasks_on_expires_at"
+    t.index ["preemption_count"], name: "index_tasks_on_preemption_count"
     t.index ["state", "claimed_by_agent_id"], name: "index_tasks_on_state_and_claimed_by_agent_id"
     t.index ["state"], name: "index_tasks_on_state"
   end
@@ -521,6 +545,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_06_000002) do
     t.datetime "updated_at", null: false
     t.string "name", null: false, comment: "Unique username. Used for login."
     t.integer "role", default: 0, comment: "The role of the user, either basic or admin"
+    t.string "password_digest"
+    t.boolean "auth_migrated", default: false, null: false
+    t.index ["auth_migrated"], name: "index_users_on_auth_migrated"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["name"], name: "index_users_on_name", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
@@ -572,6 +599,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_06_000002) do
   add_foreign_key "project_users", "projects"
   add_foreign_key "project_users", "users"
   add_foreign_key "rule_lists", "users", column: "creator_id"
+  add_foreign_key "sessions", "users"
   add_foreign_key "solid_queue_blocked_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_claimed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_failed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade

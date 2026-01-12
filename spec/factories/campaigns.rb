@@ -7,16 +7,16 @@
 #
 # Table name: campaigns
 #
-#  id                                                                                                     :bigint           not null, primary key
-#  attacks_count                                                                                          :integer          default(0), not null
-#  deleted_at                                                                                             :datetime         indexed
-#  description                                                                                            :text
-#  name                                                                                                   :string           not null
-#  priority( -1: Deferred, 0: Routine, 1: Priority, 2: Urgent, 3: Immediate, 4: Flash, 5: Flash Override) :integer          default("routine"), not null
-#  created_at                                                                                             :datetime         not null
-#  updated_at                                                                                             :datetime         not null
-#  hash_list_id                                                                                           :bigint           not null, indexed
-#  project_id                                                                                             :bigint           not null, indexed
+#  id                                         :bigint           not null, primary key
+#  attacks_count                              :integer          default(0), not null
+#  deleted_at                                 :datetime         indexed
+#  description                                :text
+#  name                                       :string           not null
+#  priority(-1: Deferred, 0: Normal, 2: High) :integer          default("normal"), not null
+#  created_at                                 :datetime         not null
+#  updated_at                                 :datetime         not null
+#  hash_list_id                               :bigint           not null, indexed
+#  project_id                                 :bigint           not null, indexed
 #
 # Indexes
 #
