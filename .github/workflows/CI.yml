@@ -100,7 +100,7 @@ jobs:
           CHROME_BIN: /usr/bin/google-chrome-stable
         run: bin/bundle exec rspec --profile 10 --format RspecJunitFormatter --out /tmp/test-results/rspec.xml --format progress
       - name: Upload Test Results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: always()
         with:
           name: test-results
@@ -112,14 +112,14 @@ jobs:
           ./tmp/cc-test-reporter format-coverage -t simplecov coverage/.resultset.json
           ./tmp/cc-test-reporter upload-coverage
       - name: Upload coverage artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: always()
         with:
           name: coverage
           path: coverage/
           if-no-files-found: ignore
       - name: Upload Capybara screenshots
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: always()
         with:
           name: capybara-screenshots
