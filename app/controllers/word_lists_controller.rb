@@ -63,9 +63,11 @@ class WordListsController < ApplicationController
 
   # POST /word_lists or /word_lists.json
   def create
-    @word_list = WordList.new(word_list_params)
+    @word_list.assign_attributes(word_list_params)
     @word_list.creator = current_user
-    @word_list.project_ids.each { |project_id| authorize! :read, Project.find(project_id) }
+
+    return unless validate_project_authorization(@word_list.project_ids)
+
     @word_list.sensitive = @word_list.project_ids.any?
 
     respond_to do |format|
@@ -73,6 +75,9 @@ class WordListsController < ApplicationController
         format.html { redirect_to word_list_url(@word_list), notice: "Word list was successfully created." }
         format.json { render :show, status: :created, location: @word_list }
       else
+        Rails.logger.warn "WordList creation failed validation: #{@word_list.errors.full_messages.join(', ')}"
+        Rails.logger.debug { "User: #{current_user.id}, Parameters: #{word_list_params.inspect}" }
+
         format.html { render :new, status: :unprocessable_content }
         format.json { render json: @word_list.errors, status: :unprocessable_content }
       end
@@ -81,11 +86,19 @@ class WordListsController < ApplicationController
 
   # PATCH/PUT /word_lists/1 or /word_lists/1.json
   def update
+    new_project_ids = word_list_params[:project_ids]
+    return unless validate_project_authorization(new_project_ids) if new_project_ids.present?
+
     respond_to do |format|
       if @word_list.update(word_list_params)
+        @word_list.update(sensitive: @word_list.project_ids.any?)
+
         format.html { redirect_to word_list_url(@word_list), notice: "Word list was successfully updated." }
         format.json { render :show, status: :ok, location: @word_list }
       else
+        Rails.logger.warn "WordList update failed validation: #{@word_list.errors.full_messages.join(', ')}"
+        Rails.logger.debug { "User: #{current_user.id}, WordList ID: #{@word_list.id}" }
+
         format.html { render :edit, status: :unprocessable_content }
         format.json { render json: @word_list.errors, status: :unprocessable_content }
       end
@@ -94,11 +107,24 @@ class WordListsController < ApplicationController
 
   # DELETE /word_lists/1 or /word_lists/1.json
   def destroy
-    @word_list.destroy!
-
     respond_to do |format|
-      format.html { redirect_to word_lists_url, notice: "Word list was successfully destroyed." }
-      format.json { head :no_content }
+      if @word_list.destroy
+        format.html { redirect_to word_lists_url, notice: "Word list was successfully destroyed." }
+        format.json { head :no_content }
+      else
+        Rails.logger.error "Failed to destroy WordList #{@word_list.id}: #{@word_list.errors.full_messages.join(', ')}"
+
+        format.html do
+          redirect_to word_lists_url,
+                      alert: "Could not delete word list: #{@word_list.errors.full_messages.join(', ')}"
+        end
+        format.json do
+          render json: {
+            error: "Deletion failed",
+            messages: @word_list.errors.full_messages
+          }, status: :unprocessable_content
+        end
+      end
     end
   end
 
@@ -113,5 +139,57 @@ class WordListsController < ApplicationController
 
   def set_projects
     @projects = Project.accessible_by(current_ability)
+  end
+
+  # Validates that the current user has read access to all specified projects.
+  # Handles RecordNotFound and AccessDenied exceptions with appropriate error responses.
+  #
+  # @param project_ids [Array<String, Integer>] Array of project IDs to validate
+  # @return [Boolean] true if validation passes, false otherwise (renders error response)
+  def validate_project_authorization(project_ids)
+    return true if project_ids.blank?
+
+    project_ids.compact_blank.each do |project_id|
+      project = Project.find(project_id)
+      authorize! :read, project
+    end
+
+    true
+  rescue ActiveRecord::RecordNotFound => e
+    Rails.logger.error "WordList #{action_name} failed - invalid project_id: #{e.message}"
+    Rails.logger.error "User: #{current_user.id}, IP: #{request.remote_ip}, Project IDs: #{project_ids.inspect}"
+
+    respond_to do |format|
+      format.html do
+        flash.now[:error] = "One or more selected projects no longer exist. Please refresh the page and try again."
+        render action_name == "create" ? :new : :edit, status: :unprocessable_content
+      end
+      format.json do
+        render json: {
+          error: "Invalid project selection",
+          message: "One or more selected projects do not exist"
+        }, status: :unprocessable_content
+      end
+    end
+
+    false
+  rescue CanCan::AccessDenied => e
+    Rails.logger.warn "WordList #{action_name} failed - unauthorized project access attempt"
+    Rails.logger.warn "User: #{current_user.id}, IP: #{request.remote_ip}, Attempted project_ids: #{project_ids.inspect}"
+
+    respond_to do |format|
+      format.html do
+        flash.now[:error] = "You don't have permission to associate this resource with one or more selected projects."
+        render action_name == "create" ? :new : :edit, status: :forbidden
+      end
+      format.json do
+        render json: {
+          error: "Forbidden",
+          message: "You don't have permission to access one or more selected projects"
+        }, status: :forbidden
+      end
+    end
+
+    false
   end
 end

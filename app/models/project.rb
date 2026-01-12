@@ -66,6 +66,9 @@ class Project < ApplicationRecord
   has_and_belongs_to_many :rule_lists
   has_and_belongs_to_many :mask_lists
   has_and_belongs_to_many :agents
+
+  include SafeBroadcasting
+
   broadcasts_refreshes unless Rails.env.test?
 
   default_scope { order(:created_at) }

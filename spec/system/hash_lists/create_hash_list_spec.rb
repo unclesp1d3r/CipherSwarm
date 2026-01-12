@@ -28,9 +28,9 @@ RSpec.describe "Create hash list" do
       hash_list_form.wait_for_upload_complete
       hash_list_form.submit_form
 
+      # Check for validation errors and fail test if found
       if page.has_content?("error") || page.has_content?("prohibited")
-        puts "DEBUG: Validation errors found:"
-        puts page.text
+        raise "Validation errors found on page: #{page.text}"
       end
 
       # Wait for redirect to hash list show page

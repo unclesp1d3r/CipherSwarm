@@ -6,9 +6,9 @@
     <%= f.input :description %>
     <%= f.input :file,
                 input_html: { direct_upload: true } %>
-    <%= f.association :projects, as: :radio_buttons, include_blank: false,
+    <%= f.association :projects, as: :check_boxes, include_blank: false,
                                  collection: projects,
-                                 hint: "Select the project to associate this list with. If none are selected, the list will be available to all projects." %>
+                                 hint: "Select the project(s) to associate this list with. If none are selected, the list will be available to all projects." %>
   </div>
   <div class="form-actions">
     <%= f.button :submit, class: "btn btn-primary" %>

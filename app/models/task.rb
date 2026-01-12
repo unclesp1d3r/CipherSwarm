@@ -85,10 +85,10 @@
 #  retry_count                                                                                            :integer          default(0), not null
 #  stale(If new cracks since the last check, the task is stale and the new cracks need to be downloaded.) :boolean          default(FALSE), not null
 #  start_date(The date and time that the task was started.)                                               :datetime         not null
-#  state                                                                                                  :string           default("pending"), not null, indexed, indexed => [claimed_by_agent_id]
+#  state                                                                                                  :string           default("pending"), not null, indexed => [agent_id], indexed, indexed => [claimed_by_agent_id]
 #  created_at                                                                                             :datetime         not null
 #  updated_at                                                                                             :datetime         not null
-#  agent_id(The agent that the task is assigned to, if any.)                                              :bigint           not null, indexed
+#  agent_id(The agent that the task is assigned to, if any.)                                              :bigint           not null, indexed, indexed => [state]
 #  attack_id(The attack that the task is associated with.)                                                :bigint           not null, indexed
 #  claimed_by_agent_id                                                                                    :bigint           indexed, indexed => [state]
 #
@@ -96,6 +96,7 @@
 #
 #  index_tasks_on_activity_timestamp             (activity_timestamp)
 #  index_tasks_on_agent_id                       (agent_id)
+#  index_tasks_on_agent_id_and_state             (agent_id,state)
 #  index_tasks_on_attack_id                      (attack_id)
 #  index_tasks_on_claimed_by_agent_id            (claimed_by_agent_id)
 #  index_tasks_on_expires_at                     (expires_at)
@@ -121,6 +122,10 @@ class Task < ApplicationRecord
   scope :successful, -> { with_states(:completed, :exhausted) }
   scope :finished, -> { with_states(:completed, :exhausted, :failed) }
   scope :running, -> { with_state(:running) }
+
+  include SafeBroadcasting
+
+  broadcasts_refreshes unless Rails.env.test?
 
   state_machine :state, initial: :pending do
     event :accept do
@@ -176,25 +181,47 @@ class Task < ApplicationRecord
       transition running: :pending
     end
 
+    event :retry do
+      transition failed: :pending
+    end
+
     after_transition on: :running do |task|
+      Rails.logger.info("[Task #{task.id}] Agent #{task.agent_id} - Attack #{task.attack_id} - State change: #{task.state_was} -> running - Task accepted and running")
       task.attack.accept
     end
 
     after_transition on: :completed do |task|
-      task.attack.complete if attack.can_complete?
+      uncracked = task.hash_list.uncracked_count
+      Rails.logger.info("[Task #{task.id}] Agent #{task.agent_id} - Attack #{task.attack_id} - State change: #{task.state_was} -> completed - Uncracked hashes: #{uncracked}")
+      task.attack.complete if task.attack.can_complete?
       task.hashcat_statuses.destroy_all
     end
 
     after_transition on: :exhausted do |task|
-      task.attack.exhaust if attack.can_exhaust?
+      Rails.logger.info("[Task #{task.id}] Agent #{task.agent_id} - Attack #{task.attack_id} - State change: #{task.state_was} -> exhausted - Keyspace exhausted")
+      task.attack.exhaust if task.attack.can_exhaust?
       task.hashcat_statuses.destroy_all
     end
+
     after_transition on: :abandon do |task|
+      Rails.logger.info("[Task #{task.id}] Agent #{task.agent_id} - Attack #{task.attack_id} - State change: #{task.state_was} -> abandoned - Triggering attack abandonment")
       task.attack.abandon
     end
 
     after_transition on: :resume do |task|
+      Rails.logger.info("[Task #{task.id}] Agent #{task.agent_id} - Attack #{task.attack_id} - State change: #{task.state_was} -> resumed - Marking as stale")
       task.update(stale: true)
+    end
+
+    after_transition on: :paused do |task|
+      Rails.logger.info("[Task #{task.id}] Agent #{task.agent_id} - Attack #{task.attack_id} - State change: #{task.state_was} -> paused - Task execution paused")
+    end
+
+    after_transition on: :retry do |task|
+      Rails.logger.info("[Task #{task.id}] Agent #{task.agent_id} - Attack #{task.attack_id} - State change: #{task.state_was} -> pending - Task retried")
+      # rubocop:disable Rails/SkipsModelValidations
+      task.update_columns(retry_count: task.retry_count + 1, last_error: nil)
+      # rubocop:enable Rails/SkipsModelValidations
     end
 
     after_transition on: :exhausted, do: :mark_attack_exhausted

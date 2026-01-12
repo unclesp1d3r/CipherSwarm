@@ -29,15 +29,16 @@
 #  message(The error message)                      :string           not null
 #  metadata(Additional metadata about the error)   :jsonb            not null
 #  severity(The severity of the error)             :integer          default("info"), not null
-#  created_at                                      :datetime         not null
+#  created_at                                      :datetime         not null, indexed
 #  updated_at                                      :datetime         not null
 #  agent_id(The agent that caused the error)       :bigint           not null, indexed
 #  task_id(The task that caused the error, if any) :bigint           indexed
 #
 # Indexes
 #
-#  index_agent_errors_on_agent_id  (agent_id)
-#  index_agent_errors_on_task_id   (task_id)
+#  index_agent_errors_on_agent_id    (agent_id)
+#  index_agent_errors_on_created_at  (created_at)
+#  index_agent_errors_on_task_id     (task_id)
 #
 # Foreign Keys
 #
@@ -55,6 +56,8 @@ class AgentError < ApplicationRecord
   validates :metadata, presence: true
 
   default_scope { order(created_at: :desc) }
+
+  include SafeBroadcasting
 
   broadcasts_refreshes unless Rails.env.test?
 

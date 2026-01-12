@@ -48,10 +48,10 @@ RSpec.describe "Error pages" do
 
     it "displays success flash message" do
       visit agents_path
-      # Wait for the New Agent link to be available
-      # Verify link exists or visit directly
-      if page.has_link?(href: new_agent_path)
-        find("a[href='#{new_agent_path}']").click
+      # Wait for the New Agent link to be available in the toolbar
+      # Use the toolbar-specific link to avoid ambiguity with empty state link
+      if page.has_css?(".toolbar a[href='#{new_agent_path}']")
+        find(".toolbar a[href='#{new_agent_path}']").click
       else
         visit new_agent_path
       end
