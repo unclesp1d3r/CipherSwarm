@@ -52,9 +52,12 @@ FactoryBot.define do
     workload_profile { 3 }
     optimized { true }
     campaign
+    attack_mode { :mask }
+    mask { "?a?a?a?a" }
 
     factory :dictionary_attack do
       attack_mode { :dictionary }
+      mask { nil }
       word_list
     end
 

@@ -51,6 +51,31 @@ RSpec.describe "Agents" do
     end
   end
 
+  describe "#cards" do
+    context "when a non-logged in user tries to access the agents cards" do
+      it "redirects to login page" do
+        get cards_agents_path
+        expect(response).to redirect_to(new_user_session_path)
+      end
+    end
+
+    context "when a non-admin user tries to access the agents cards" do
+      it "returns http success" do
+        sign_in first_regular_user
+        get cards_agents_path
+        expect(response).to have_http_status(:success)
+      end
+    end
+
+    context "when an admin user tries to access the agents cards" do
+      it "returns http success" do
+        sign_in admin_user
+        get cards_agents_path
+        expect(response).to have_http_status(:success)
+      end
+    end
+  end
+
   describe "#show" do
     context "when a non-logged in user tries to access an agent" do
       it "redirects to login page" do
@@ -105,12 +130,31 @@ RSpec.describe "Agents" do
       end
     end
 
-    context "when use is not an admin" do
-      it "returns http unauthorized" do
+    context "when user is not an admin" do
+      it "returns http success" do
         sign_in first_regular_user
         post agents_path, params: form_params
-        expect(response).to have_http_status(:unauthorized)
-        expect(response).to render_template("errors/not_authorized")
+        expect(response).to have_http_status(:found)
+        expect(response).to redirect_to agent_path(Agent.last)
+      end
+
+      it "ignores user_id parameter and assigns to current user" do
+        sign_in first_regular_user
+        other_user = second_regular_user
+
+        post agents_path, params: {
+          agent: {
+            custom_label: "Test Agent",
+            operating_system: "linux",
+            user_id: other_user.id
+          }
+        }
+
+        expect(response).to have_http_status(:found)
+        created_agent = Agent.last
+        expect(created_agent.user_id).to eq(first_regular_user.id),
+                                          "Non-admin should not be able to assign agents to other users"
+        expect(created_agent.user_id).not_to eq(other_user.id)
       end
     end
 
@@ -120,6 +164,24 @@ RSpec.describe "Agents" do
         post agents_path, params: form_params
         expect(response).to have_http_status(:found)
         expect(response).to redirect_to agent_path(Agent.last)
+      end
+
+      it "allows assigning agent to another user" do
+        sign_in admin_user
+        target_user = first_regular_user
+
+        post agents_path, params: {
+          agent: {
+            custom_label: "Admin Created Agent",
+            operating_system: "linux",
+            user_id: target_user.id
+          }
+        }
+
+        expect(response).to have_http_status(:found)
+        created_agent = Agent.last
+        expect(created_agent.user_id).to eq(target_user.id),
+                                          "Admin should be able to assign agents to other users"
       end
     end
   end
@@ -133,11 +195,10 @@ RSpec.describe "Agents" do
     end
 
     context "when a non-admin user tries to access the new agent page" do
-      it "returns http unauthorized" do
+      it "returns http success" do
         sign_in first_regular_user
         get new_agent_path
-        expect(response).to have_http_status(:unauthorized)
-        expect(response).to render_template("errors/not_authorized")
+        expect(response).to have_http_status(:success)
       end
     end
 
@@ -257,6 +318,42 @@ RSpec.describe "Agents" do
         patch agent_path(first_agent), params: first_agent_form_params
         expect(response).to have_http_status(:found)
         expect(response).to redirect_to(agent_path(first_agent))
+      end
+    end
+  end
+
+  describe "#destroy" do
+    context "when a non-logged in user tries to delete an agent" do
+      it "redirects to login page" do
+        delete agent_path(first_agent)
+        expect(response).to redirect_to(new_user_session_path)
+      end
+    end
+
+    context "when a non-admin user tries to delete their own agent" do
+      it "returns http success" do
+        sign_in first_regular_user
+        delete agent_path(first_agent)
+        expect(response).to have_http_status(:found)
+        expect(response).to redirect_to(agents_path)
+      end
+    end
+
+    context "when a non-admin user tries to delete another user's agent" do
+      it "returns http unauthorized" do
+        sign_in first_regular_user
+        delete agent_path(second_agent)
+        expect(response).to have_http_status(:unauthorized)
+        expect(response).to render_template("errors/not_authorized")
+      end
+    end
+
+    context "when an admin user tries to delete another user's agent" do
+      it "returns http success" do
+        sign_in admin_user
+        delete agent_path(first_agent)
+        expect(response).to have_http_status(:found)
+        expect(response).to redirect_to(agents_path)
       end
     end
   end

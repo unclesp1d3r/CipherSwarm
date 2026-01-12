@@ -18,6 +18,16 @@ class AgentsController < ApplicationController
   # GET /agents or /agents.json
   def index; end
 
+  # GET /agents/cards
+  # Returns agent cards for turbo frame lazy loading
+  # Skip default authorization and use index authorization for this collection action
+  skip_authorize_resource only: :cards
+  def cards
+    authorize! :index, Agent
+    @agents = Agent.accessible_by(current_ability, :read)
+    render partial: "agents/cards", locals: { agents: @agents }
+  end
+
   # GET /agents/1 or /agents/1.json
   def show
     @pagy, @errors = pagy(@agent.agent_errors.order(created_at: :desc),
@@ -36,6 +46,8 @@ class AgentsController < ApplicationController
     # if it is present. Otherwise, we will set it to a random string.
     # It will be updated when the agent checks in.
     @agent.host_name = @agent.custom_label.presence || SecureRandom.hex(8)
+    # Allow admins to assign agents to other users, otherwise default to current_user
+    @agent.user_id = @agent.user_id.presence || current_user.id
 
     respond_to do |format|
       if @agent.save
@@ -75,11 +87,14 @@ class AgentsController < ApplicationController
 
   # Only allow a list of trusted parameters through.
   def agent_params
-    params
-          .expect(agent: [:client_signature, :command_parameters, :cpu_only, :ignore_errors,
-            :enabled, :trusted, :last_ipaddress, :last_seen_at, :custom_label, :operating_system,
-            :token, :user_id,
-            advanced_configuration_attributes: %i[agent_update_interval use_native_hashcat backend_device opencl_devices],
-            project_ids: []])
+    permitted = [:client_signature, :command_parameters, :cpu_only, :ignore_errors,
+      :enabled, :trusted, :last_ipaddress, :last_seen_at, :custom_label, :operating_system,
+      :token,
+      advanced_configuration_attributes: %i[agent_update_interval use_native_hashcat backend_device opencl_devices],
+      project_ids: []]
+    # Allow admins to assign agents to users
+    permitted << :user_id if current_user.admin?
+
+    params.expect(agent: permitted)
   end
 end

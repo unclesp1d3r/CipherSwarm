@@ -6,11 +6,20 @@
 require "database_cleaner/active_record"
 RSpec.configure do |config|
   config.before(:suite) do
-    DatabaseCleaner.strategy = :transaction
     DatabaseCleaner.clean_with(:deletion)
   end
 
   config.around do |example|
+    # System tests use truncation strategy because they run in a separate browser process
+    # which requires a different database connection, making transactions ineffective
+    strategy = if example.metadata[:type] == :system
+      :truncation
+    else
+      :transaction
+    end
+
+    DatabaseCleaner.strategy = strategy
+
     DatabaseCleaner.cleaning do
       example.run
     end

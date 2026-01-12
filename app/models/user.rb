@@ -32,6 +32,7 @@
 # Table name: users
 #
 #  id                                                :bigint           not null, primary key
+#  auth_migrated                                     :boolean          default(FALSE), not null, indexed
 #  current_sign_in_at                                :datetime
 #  current_sign_in_ip                                :string
 #  email                                             :string(50)       default(""), not null, uniquely indexed
@@ -41,6 +42,7 @@
 #  last_sign_in_ip                                   :string
 #  locked_at                                         :datetime
 #  name(Unique username. Used for login.)            :string           not null, uniquely indexed
+#  password_digest                                   :string
 #  remember_created_at                               :datetime
 #  reset_password_sent_at                            :datetime
 #  reset_password_token                              :string           uniquely indexed
@@ -52,6 +54,7 @@
 #
 # Indexes
 #
+#  index_users_on_auth_migrated         (auth_migrated)
 #  index_users_on_email                 (email) UNIQUE
 #  index_users_on_name                  (name) UNIQUE
 #  index_users_on_reset_password_token  (reset_password_token) UNIQUE
@@ -81,6 +84,8 @@ class User < ApplicationRecord
 
   normalizes :email, with: ->(value) { value.strip.downcase }
   normalizes :name, with: ->(value) { value.strip.downcase }
+
+  include SafeBroadcasting
 
   broadcasts_refreshes unless Rails.env.test?
 

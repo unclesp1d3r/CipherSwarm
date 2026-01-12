@@ -36,25 +36,30 @@
 #
 # Table name: agents
 #
-#  id                                                            :bigint           not null, primary key
-#  advanced_configuration(Advanced configuration for the agent.) :jsonb
-#  client_signature(The signature of the agent)                  :text
-#  custom_label(Custom label for the agent)                      :string           uniquely indexed
-#  devices(Devices that the agent supports)                      :string           default([]), is an Array
-#  enabled(Is the agent active)                                  :boolean          default(TRUE), not null
-#  host_name(Name of the agent)                                  :string           default(""), not null
-#  last_ipaddress(Last known IP address)                         :string           default("")
-#  last_seen_at(Last time the agent checked in)                  :datetime         indexed => [state]
-#  operating_system(Operating system of the agent)               :integer          default("unknown")
-#  state(The state of the agent)                                 :string           default("pending"), not null, indexed, indexed => [last_seen_at]
-#  token(Token used to authenticate the agent)                   :string(24)       uniquely indexed
-#  created_at                                                    :datetime         not null
-#  updated_at                                                    :datetime         not null
-#  user_id(The user that the agent is associated with)           :bigint           not null, indexed
+#  id                                                                                     :bigint           not null, primary key
+#  advanced_configuration(Advanced configuration for the agent.)                          :jsonb
+#  client_signature(The signature of the agent)                                           :text
+#  current_hash_rate(Current hash rate in H/s, updated from HashcatStatus)                :decimal(20, 2)   default(0.0)
+#  current_temperature(Current device temperature in Celsius, updated from HashcatStatus) :integer          default(0)
+#  current_utilization(Current device utilization percentage, updated from HashcatStatus) :integer          default(0)
+#  custom_label(Custom label for the agent)                                               :string           uniquely indexed
+#  devices(Devices that the agent supports)                                               :string           default([]), is an Array
+#  enabled(Is the agent active)                                                           :boolean          default(TRUE), not null
+#  host_name(Name of the agent)                                                           :string           default(""), not null
+#  last_ipaddress(Last known IP address)                                                  :string           default("")
+#  last_seen_at(Last time the agent checked in)                                           :datetime         indexed => [state]
+#  metrics_updated_at(Timestamp of last metrics update for throttling)                    :datetime         indexed
+#  operating_system(Operating system of the agent)                                        :integer          default("unknown")
+#  state(The state of the agent)                                                          :string           default("pending"), not null, indexed, indexed => [last_seen_at]
+#  token(Token used to authenticate the agent)                                            :string(24)       uniquely indexed
+#  created_at                                                                             :datetime         not null
+#  updated_at                                                                             :datetime         not null
+#  user_id(The user that the agent is associated with)                                    :bigint           not null, indexed
 #
 # Indexes
 #
 #  index_agents_on_custom_label            (custom_label) UNIQUE
+#  index_agents_on_metrics_updated_at      (metrics_updated_at)
 #  index_agents_on_state                   (state)
 #  index_agents_on_state_and_last_seen_at  (state,last_seen_at)
 #  index_agents_on_token                   (token) UNIQUE
@@ -65,7 +70,20 @@
 #  fk_rails_...  (user_id => users.id)
 #
 class Agent < ApplicationRecord
+  include ActiveSupport::NumberHelper
+  include SafeBroadcasting
   include StoreModel::NestedAttributes
+
+  # Hash rate units map for formatting display values.
+  # Uses standard hash rate conventions (H/s, kH/s, MH/s, GH/s, TH/s, PH/s).
+  HASH_RATE_UNITS = {
+    unit: "H/s",
+    thousand: "kH/s",
+    million: "MH/s",
+    billion: "GH/s",
+    trillion: "TH/s",
+    quadrillion: "PH/s"
+  }.freeze
 
   belongs_to :user, touch: true
   has_and_belongs_to_many :projects, touch: true
@@ -78,7 +96,6 @@ class Agent < ApplicationRecord
   before_create :set_update_interval
 
   attribute :advanced_configuration, AdvancedConfiguration.to_type
-  accepts_nested_attributes_for :advanced_configuration, allow_destroy: true
 
   validates :host_name, presence: true, length: { maximum: 255 }
   validates :custom_label, length: { maximum: 255 }, uniqueness: true, allow_nil: true
@@ -87,7 +104,28 @@ class Agent < ApplicationRecord
   scope :inactive_for, ->(time) { where(last_seen_at: ...time.ago) }
   default_scope { order(:created_at) }
 
-  broadcasts_refreshes unless Rails.env.test?
+  # Broadcast tab-specific updates instead of full page refresh
+  # This prevents resetting the active tab state when agent data changes
+  after_update_commit :broadcast_tab_updates, unless: -> { Rails.env.test? }
+
+  # Broadcasts updates to individual tab streams instead of the root agent stream.
+  # This allows each tab panel to update independently without affecting the active tab state.
+  def broadcast_tab_updates
+    broadcast_replace_later_to [self, :overview],
+      target: ActionView::RecordIdentifier.dom_id(self, :overview),
+      partial: "agents/overview_tab",
+      locals: { agent: self }
+
+    broadcast_replace_later_to [self, :configuration],
+      target: ActionView::RecordIdentifier.dom_id(self, :configuration),
+      partial: "agents/configuration_tab",
+      locals: { agent: self }
+
+    broadcast_replace_later_to [self, :capabilities],
+      target: ActionView::RecordIdentifier.dom_id(self, :capabilities),
+      partial: "agents/capabilities_tab",
+      locals: { agent: self }
+  end
 
   # The operating system of the agent.
   enum :operating_system, { unknown: 0, linux: 1, windows: 2, darwin: 3, other: 4 }
@@ -112,12 +150,65 @@ class Agent < ApplicationRecord
     end
 
     after_transition on: :shutdown do |agent|
+      Rails.logger.info(
+        "[AgentLifecycle] shutdown: agent_id=#{agent.id} state_change=#{agent.state_was}->offline " \
+        "running_tasks_abandoned=#{agent.tasks.with_states(:running).count} timestamp=#{Time.zone.now}"
+      )
       agent.tasks.with_states(:running).each { |task| task.abandon }
     end
 
+    after_transition on: :activate do |agent|
+      Rails.logger.info(
+        "[AgentLifecycle] connect: agent_id=#{agent.id} state_change=#{agent.state_was}->active " \
+        "last_seen_at=#{agent.last_seen_at} ip=#{agent.last_ipaddress} timestamp=#{Time.zone.now}"
+      )
+    end
+
+    after_transition on: :deactivate do |agent|
+      Rails.logger.info(
+        "[AgentLifecycle] disconnect: agent_id=#{agent.id} state_change=#{agent.state_was}->stopped " \
+        "last_seen_at=#{agent.last_seen_at} ip=#{agent.last_ipaddress} timestamp=#{Time.zone.now}"
+      )
+    end
+
+    after_transition on: :benchmarked do |agent|
+      Rails.logger.info(
+        "[AgentLifecycle] benchmark_complete: agent_id=#{agent.id} state_change=#{agent.state_was}->#{agent.state} " \
+        "benchmark_count=#{agent.hashcat_benchmarks.count} timestamp=#{Time.zone.now}"
+      )
+    end
+
+    after_transition on: :heartbeat do |agent|
+      if agent.state_was == "offline"
+        Rails.logger.info(
+          "[AgentLifecycle] reconnect: agent_id=#{agent.id} state_change=offline->#{agent.state} " \
+          "last_seen_at=#{agent.last_seen_at} ip=#{agent.last_ipaddress} timestamp=#{Time.zone.now}"
+        )
+      end
+    end
+
+    after_transition on: :check_online do |agent|
+      if agent.offline?
+        Rails.logger.warn(
+          "[AgentLifecycle] heartbeat_timeout: agent_id=#{agent.id} state_change=#{agent.state_was}->offline " \
+          "last_seen_at=#{agent.last_seen_at} threshold=#{ApplicationConfig.agent_considered_offline_time} timestamp=#{Time.zone.now}"
+        )
+      end
+    end
+
+    after_transition on: :check_benchmark_age do |agent|
+      if agent.pending? && agent.state_was == "active"
+        Rails.logger.info(
+          "[AgentLifecycle] benchmark_stale: agent_id=#{agent.id} state_change=active->pending " \
+          "last_benchmark_date=#{agent.last_benchmark_date} max_benchmark_age=#{ApplicationConfig.max_benchmark_age} " \
+          "timestamp=#{Time.zone.now}"
+        )
+      end
+    end
+
     event :check_online do
-      # If the agent has checked in within the last 30 minutes, mark it as online.
-      transition any => :offline if ->(agent) { agent.last_seen_at >= ApplicationConfig.agent_considered_offline_time.ago }
+      # If the agent has NOT checked in within the configured offline threshold, mark it as offline.
+      transition any => :offline if ->(agent) { agent.last_seen_at < ApplicationConfig.agent_considered_offline_time.ago }
       transition any => same
     end
 
@@ -292,55 +383,7 @@ class Agent < ApplicationRecord
   #
   # @return [Task, nil] The next task for the agent, or nil if no task is found.
   def new_task
-    # Immediately return the first incomplete task if there's no fatal errors for it.
-    incomplete_task = tasks.incomplete.find do |task|
-      !agent_errors.exists?(severity: :fatal, task_id: task.id) && task.uncracked_remaining
-    end
-
-    return incomplete_task if incomplete_task
-
-    # Ensure projects are present.
-    return nil if project_ids.blank?
-
-    # Get hash types allowed for the agent. This does not change often, so we cache it for an hour.
-    allowed_hash_type_ids = Rails.cache.fetch("#{cache_key_with_version}/allowed_hash_types", expires_in: 1.hour) do
-      HashType.where(hashcat_mode: allowed_hash_types).pluck(:id)
-    end
-
-    # Fetch applicable attacks.
-    attacks = Attack.incomplete.joins(campaign: { hash_list: :hash_type })
-                    .where(campaigns: { project_id: project_ids })
-                    .where(hash_lists: { hash_type_id: allowed_hash_type_ids })
-                    .order(:complexity_value, :created_at)
-    return nil if attacks.blank?
-
-    attacks.each do |attack|
-      next if attack.uncracked_count.zero?
-
-      # Return the first failed task without fatal errors.
-      failed_task = attack.tasks.with_state(:failed).find do |task|
-        !agent_errors.exists?(severity: :fatal, task_id: task.id)
-      end
-      return failed_task if failed_task
-
-      # Return the first pending task.
-      pending_task = attack.tasks.with_state(:pending).first
-      return pending_task if pending_task
-
-      # If no pending tasks, create a new task for the agent.
-      if attack.tasks.with_state(:pending).none?
-        return tasks.create(attack: attack, start_date: Time.zone.now) if meets_performance_threshold?(attack.hash_mode)
-
-        agent_errors.create(
-          severity: :info,
-          message: "Task skipped for agent because it does not meet the performance threshold",
-          metadata: { attack_id: attack.id, hash_type: attack.hash_type }
-        )
-      end
-    end
-
-    # If no tasks can be assigned, return nil.
-    nil
+    TaskAssignmentService.new(self).find_next_task
   end
 
   # Returns an array of project IDs associated with the agent.
@@ -362,5 +405,24 @@ class Agent < ApplicationRecord
   def set_update_interval
     interval = rand(5..60)
     advanced_configuration["agent_update_interval"] = interval
+  end
+
+  # Returns a formatted hash rate display string.
+  #
+  # - Returns "—" if current_hash_rate is nil
+  # - Returns "0 H/s" if current_hash_rate is zero
+  # - Returns formatted hash rate with proper units (e.g., "123.45 MH/s") for positive values
+  #
+  # @return [String] A formatted hash rate string suitable for display
+  def hash_rate_display
+    return "—" if current_hash_rate.nil?
+    return "0 H/s" if current_hash_rate.zero?
+
+    number_to_human(
+      current_hash_rate,
+      significant: false,
+      units: HASH_RATE_UNITS,
+      format: "%n %u"
+    )
   end
 end

@@ -151,4 +151,32 @@ RSpec.describe Attack do
     it { expect(attack.tasks.count).to eq(1) }
     it { expect { attack.destroy }.to change(Task, :count).by(-1) }
   end
+
+  describe "SafeBroadcasting integration" do
+    let(:attack) { create(:dictionary_attack) }
+
+    it "includes SafeBroadcasting concern" do
+      expect(described_class.included_modules).to include(SafeBroadcasting)
+    end
+
+    context "when broadcast fails" do
+      it "logs BroadcastError without raising" do
+        allow(Rails.logger).to receive(:error)
+        expect { attack.send(:log_broadcast_error, StandardError.new("Connection refused")) }.not_to raise_error
+      end
+
+      it "includes attack ID in broadcast error log" do
+        allow(Rails.logger).to receive(:error)
+        attack.send(:log_broadcast_error, StandardError.new("Test error"))
+        expect(Rails.logger).to have_received(:error).with(/Record ID: #{attack.id}/).at_least(:once)
+      end
+
+      it "includes model name in broadcast error log" do
+        # Note: Attack is the base class name, not DictionaryAttack (the STI subclass)
+        allow(Rails.logger).to receive(:error)
+        attack.send(:log_broadcast_error, StandardError.new("Test error"))
+        expect(Rails.logger).to have_received(:error).with(/\[BroadcastError\].*Model: Attack/).at_least(:once)
+      end
+    end
+  end
 end

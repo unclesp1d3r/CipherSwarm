@@ -182,9 +182,15 @@ modules.xml
 .idea/dataSources.xml
 !/bin
 
+.vale/styles
+!.vale/styles/.keep
 
 /node_modules
 
 /config/*.local.yml
 /config/credentials/local.*
 
+.claude/settings.local.json
+.claude/skills/repomix-reference-cipher-swarm/
+repomix-output.xml
+.playwright-mcp/

@@ -65,6 +65,8 @@ class HashList < ApplicationRecord
   validates :separator, length: { is: 1, allow_blank: true }
   validate :file_must_be_attached
 
+  include SafeBroadcasting
+
   broadcasts_refreshes unless Rails.env.test?
 
   scope :sensitive, -> { where(sensitive: true) }
@@ -162,6 +164,33 @@ class HashList < ApplicationRecord
     md5 = OpenSSL::Digest.new("MD5")
     md5.update(uncracked_list)
     md5.base64digest
+  end
+
+  # Returns recently cracked hashes from the last 24 hours.
+  #
+  # Uses Rails.cache with a 1-minute TTL for performance.
+  #
+  # @param limit [Integer] Maximum number of recent cracks to return (default: 100)
+  # @return [Array] Collection of hash items cracked in the last 24 hours
+  def recent_cracks(limit: 100)
+    Rails.cache.fetch("#{cache_key_with_version}/recent_cracks/#{limit}", expires_in: 1.minute) do
+      hash_items.where(cracked: true)
+                .where("cracked_time > ?", 24.hours.ago)
+                .order(cracked_time: :desc)
+                .limit(limit)
+                .to_a
+    end
+  end
+
+  # Returns the count of recently cracked hashes from the last 24 hours.
+  #
+  # Uses Rails.cache with a 1-minute TTL for performance.
+  #
+  # @return [Integer] Count of hash items cracked in the last 24 hours
+  def recent_cracks_count
+    Rails.cache.fetch("#{cache_key_with_version}/recent_cracks_count", expires_in: 1.minute) do
+      hash_items.where(cracked: true).where("cracked_time > ?", 24.hours.ago).count
+    end
   end
 
   private

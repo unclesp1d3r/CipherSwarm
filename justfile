@@ -42,7 +42,7 @@ pre-commit:
     pre-commit run --all-files
 
 # Run all linters and formatters (pre-commit equivalent)
-check: lint security pre-commit
+check: pre-commit security
     @echo "✓ All checks passed"
 
 # Auto-format all code (RuboCop, ERB)
@@ -64,11 +64,17 @@ quality: lint security format
 
 # === Testing ===
 
-# Run all RSpec tests with coverage
-test:
+# Run JavaScript tests
+test-js:
+    yarn test:js
+
+# Run all tests (JS + RSpec with coverage)
+test-all: test-js
     COVERAGE=true bundle exec rspec
 
-# Run all tests (CI equivalent - includes lint, security, test)
+# Run RSpec tests with coverage
+test:
+    COVERAGE=true bundle exec rspec
 
 # Run specific test file
 test-file FILE:

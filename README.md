@@ -2,7 +2,7 @@
 
 [![GitHub](https://img.shields.io/github/license/unclesp1d3r/CipherSwarm)](https://github.com/unclesp1d3r/CipherSwarm/blob/main/LICENSE) [![GitHub issues](https://img.shields.io/github/issues/unclesp1d3r/CipherSwarm)](https://github.com/unclesp1d3r/CipherSwarm/issues) [![GitHub last commit](https://img.shields.io/github/last-commit/unclesp1d3r/CipherSwarm)](https://github.com/unclesp1d3r/CipherSwarm/graphs/commit-activity) ![Maintenance](https://img.shields.io/maintenance/yes/2025) [![wakatime](https://wakatime.com/badge/github/unclesp1d3r/CipherSwarm.svg)](https://wakatime.com/badge/github/unclesp1d3r/CipherSwarm)
 
-[![Maintainability](https://api.codeclimate.com/v1/badges/347fc7e944ae3b9a5111/maintainability)](https://codeclimate.com/github/unclesp1d3r/CipherSwarm/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/347fc7e944ae3b9a5111/test_coverage)](https://codeclimate.com/github/unclesp1d3r/CipherSwarm/test_coverage) [![CircleCI](https://dl.circleci.com/status-badge/img/circleci/UWCMdwjzsT7X1qaHsgphoh/449a1171-f53f-45c9-9646-31cb1f9901f1/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/circleci/UWCMdwjzsT7X1qaHsgphoh/449a1171-f53f-45c9-9646-31cb1f9901f1/tree/main)
+[![Maintainability](https://api.codeclimate.com/v1/badges/347fc7e944ae3b9a5111/maintainability)](https://codeclimate.com/github/unclesp1d3r/CipherSwarm/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/347fc7e944ae3b9a5111/test_coverage)](https://codeclimate.com/github/unclesp1d3r/CipherSwarm/test_coverage)
 
 CipherSwarm is a distributed hash cracking system designed for efficiency and scalability and built on Ruby on Rails. Inspired by the principles of Hashtopolis, CipherSwarm leverages the power of collaborative computing to tackle complex cryptographic challenges, offering a web-based interface for managing and distributing hash-cracking tasks across multiple nodes.
 
@@ -31,7 +31,7 @@ For detailed information about the V2 upgrade, see the [V2 Upgrade Overview](doc
   - [Getting Started](#getting-started)
   - [Usage](#usage)
   - [Architecture](#architecture)
-  - [Documentation](#documentation)
+  - [Documentation](#documentation-1)
   - [Contributing](#contributing)
   - [Acknowledgments](#acknowledgments)
 
@@ -129,6 +129,41 @@ Common commands:
 - `just test` - Run all tests with coverage
 - `just check` - Run linters and security checks
 - `just db-reset` - Reset database
+
+### System Tests (UI/UX Testing)
+
+CipherSwarm includes comprehensive UI tests implemented using Capybara and Selenium WebDriver. These tests provide end-to-end coverage for critical user workflows:
+
+- **Authentication**: Sign in, password reset, account management
+- **Agent Management**: Create, edit, delete agents with authorization checks
+- **Campaign and Attack Workflows**: Create campaigns, add attacks, manage nested resources
+- **File Upload Operations**: Hash lists, word lists, and other file resources with Active Storage
+- **Admin User Management**: User creation, locking/unlocking, role management
+- **Navigation and Authorization**: Navbar, sidebar, access control verification
+- **Error Handling**: Validation errors, authorization errors, error pages
+
+#### Running System Tests
+
+```bash
+# Run all system tests
+bundle exec rspec spec/system
+
+# Run specific test directory
+bundle exec rspec spec/system/agents
+
+# Run with visible browser for debugging
+HEADLESS=false bundle exec rspec spec/system
+```
+
+#### Documentation
+
+For detailed information on writing and maintaining system tests, see the [System Tests Guide](docs/testing/system-tests-guide.md).
+
+The test suite uses the **Page Object Pattern** for maintainability, with page objects located in `spec/support/page_objects/`. Screenshots are automatically captured on test failures and saved to `tmp/capybara/`.
+
+#### CI/CD
+
+System tests run automatically in GitHub Actions as part of the test suite. Test results and screenshots from failed tests are available as artifacts.
 
 See `.kiro/steering/justfile.md` for complete command documentation.
 

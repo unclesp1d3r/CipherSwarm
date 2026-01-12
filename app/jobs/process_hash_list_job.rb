@@ -70,9 +70,25 @@ class ProcessHashListJob < ApplicationJob
 
     # Mark as processed if we actually ingested items
     if processed_count.positive?
-      list.update(processed: true)
+      # rubocop:disable Rails/SkipsModelValidations
+      # Intentionally skipping validations for performance during bulk status update
+      affected_rows = HashList.where(id: list.id).update_all(
+        processed: true,
+        hash_items_count: processed_count
+      )
+      # rubocop:enable Rails/SkipsModelValidations
+
+      if affected_rows.zero?
+        error_msg = "Failed to mark hash list #{list.id} as processed - record may have been deleted"
+        Rails.logger.error(error_msg)
+        raise ActiveRecord::RecordNotSaved, error_msg
+      end
+
+      Rails.logger.info("Successfully processed #{processed_count} hash items for list #{list.id}")
     else
-      Rails.logger.error("No hash items were processed for list #{list.id}")
+      error_msg = "No hash items were processed for list #{list.id}"
+      Rails.logger.error(error_msg)
+      raise StandardError, error_msg
     end
   end
 

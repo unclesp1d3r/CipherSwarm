@@ -18,7 +18,7 @@
 #  session(The session name)                                :string           not null
 #  status(The status code)                                  :integer          not null
 #  target(The target file)                                  :string           not null
-#  time(The time of the status)                             :datetime         not null
+#  time(The time of the status)                             :datetime         not null, indexed
 #  time_start(The time the task started)                    :datetime         not null
 #  created_at                                               :datetime         not null
 #  updated_at                                               :datetime         not null
@@ -27,6 +27,7 @@
 # Indexes
 #
 #  index_hashcat_statuses_on_task_id  (task_id)
+#  index_hashcat_statuses_on_time     (time)
 #
 # Foreign Keys
 #
@@ -91,6 +92,71 @@ RSpec.describe HashcatStatus do
 
       it "returns the status text" do
         expect(hashcat_status.status_text).to eq("Running")
+      end
+    end
+
+    describe "#update_agent_metrics callback" do
+      let(:task) { create(:task) }
+      let(:agent) { task.agent }
+      let(:fast_device_status) { create(:device_status, speed: 1000, temperature: 65, utilization: 80) }
+      let(:faster_device_status) { create(:device_status, speed: 1500, temperature: 70, utilization: 90) }
+
+      it "updates agent metrics when status is :running" do
+        hashcat_status = build(:hashcat_status, task: task, status: :running)
+        hashcat_status.device_statuses << fast_device_status
+        hashcat_status.device_statuses << faster_device_status
+        hashcat_status.save!
+
+        agent.reload
+        expect(agent.current_hash_rate).to eq(2500)
+        expect(agent.current_temperature).to eq(70)
+        expect(agent.current_utilization).to eq(85)
+        expect(agent.metrics_updated_at).not_to be_nil
+      end
+
+      it "does not update agent metrics when status is not :running" do
+        hashcat_status = build(:hashcat_status, task: task, status: :paused)
+        hashcat_status.device_statuses << fast_device_status
+        hashcat_status.save!
+
+        agent.reload
+        expect(agent.current_hash_rate).to be_zero
+        expect(agent.metrics_updated_at).to be_nil
+      end
+
+      it "throttles updates when metrics were updated less than 30 seconds ago" do
+        # Create first status and update metrics
+        hashcat_status_1 = build(:hashcat_status, task: task, status: :running)
+        hashcat_status_1.device_statuses << fast_device_status
+        hashcat_status_1.save!
+
+        first_metrics_updated_at = agent.reload.metrics_updated_at
+
+        # Create second status immediately (within 30 seconds)
+        hashcat_status_2 = build(:hashcat_status, task: task, status: :running)
+        hashcat_status_2.device_statuses << faster_device_status
+        hashcat_status_2.save!
+
+        # Metrics should not be updated
+        expect(agent.reload.metrics_updated_at).to eq(first_metrics_updated_at)
+      end
+
+      it "rescues and logs errors without failing the status creation" do
+        # Create a status that would trigger the callback
+        hashcat_status = build(:hashcat_status, task: task, status: :running)
+        hashcat_status.device_statuses << fast_device_status
+
+        # Mock the agent's update_columns to raise an error in the callback
+        allow(agent).to receive(:update_columns).and_raise(StandardError.new("Database error"))
+
+        # Setup logger as a spy to verify error logging
+        allow(Rails.logger).to receive(:error)
+
+        # The callback should rescue the error and not raise it
+        expect { hashcat_status.save! }.not_to raise_error
+
+        # Verify the error was logged
+        expect(Rails.logger).to have_received(:error).with(/Failed to update agent metrics for task #{task.id}/)
       end
     end
   end

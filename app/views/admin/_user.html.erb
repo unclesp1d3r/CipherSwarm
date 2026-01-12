@@ -16,11 +16,11 @@
     <div class="btn-group btn-group-sm">
       <% if user != current_user %>
         <% if user.access_locked? %>
-          <%= button_to unlock_user_path(user), method: :post, class: "btn btn-primary btn-sm" do %>
+          <%= button_to unlock_user_path(user), method: :post, data: { turbo_method: :post }, class: "btn btn-primary btn-sm", id: "unlock-user-#{user.id}" do %>
             <%= icon("lock-fill") %>
           <% end %>
         <% else %>
-          <%= button_to lock_user_path(user), method: :post, class: "btn btn-primary btn-sm" do %>
+          <%= button_to lock_user_path(user), method: :post, data: { turbo_method: :post }, class: "btn btn-primary btn-sm", id: "lock-user-#{user.id}" do %>
             <%= icon("unlock-fill") %>
           <% end %>
         <% end %>

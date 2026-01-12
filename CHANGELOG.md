@@ -2,6 +2,52 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### 🎯 Features
+
+- Implement comprehensive UI/UX testing with Capybara
+  - Add system tests for authentication, agent management, campaigns, hash lists, navigation, and admin functionality
+  - Implement Page Object Pattern for maintainable test architecture
+  - Add 13 new system test files with extensive coverage
+
+### 🐛 Bug Fixes
+
+- Fix `HashType#to_s` to use instance attributes instead of class method
+- Fix database pool size calculation to properly multiply integers instead of strings
+  - **IMPORTANT**: This changes the database pool size calculation. Verify production `DB_POOL_MULTIPLIER` environment variable.
+  - Old behavior: String multiplication (e.g., "5" * "2" = "52")
+  - New behavior: Integer multiplication (e.g., 5 * 2 = 10)
+- Configure Devise paranoid mode to prevent user enumeration attacks
+- Update Devise navigational formats to support Turbo Stream requests
+
+### ✨ Enhancements
+
+- Allow users to create and destroy their own agents (non-admins)
+- Standardize submit buttons across forms to display "Submit" for improved clarity
+- Update CI/CD workflow with improved Chrome installation and better artifact handling
+- Add webdrivers gem for automatic browser driver management (note: gem is deprecated, consider migration)
+
+### 🧪 Testing
+
+- Add Turbo/Hotwire wait helpers to prevent flaky tests
+- Add comprehensive ability specs for agent permissions
+- Configure Capybara with headless Chrome for system tests
+- Add screenshot capture on test failures
+
+### 📚 Documentation
+
+- Add comprehensive system tests guide (docs/testing/system-tests-guide.md)
+- Add test failures investigation documentation
+- Update README with system test section and CI integration details
+
+### ⚙️ Miscellaneous Tasks
+
+- Restore pessimistic version constraints in Gemfile for stability
+- Update PostgreSQL version to 17.0 and Redis to 7.2 in CI
+- Update GitHub Actions checkout action to v5
+- Add Vale configuration for documentation linting
+
 ## [0.6.7] - 2025-08-09
 
 ### 🐛 Bug Fixes

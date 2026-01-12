@@ -87,7 +87,11 @@
           "error": {
             "type": "string"
           }
-        }
+        },
+        "required": [
+          "error"
+        ],
+        "additionalProperties": true
       },
       "Agent": {
         "type": "object",
@@ -236,7 +240,8 @@
           "mask": {
             "type": "string",
             "default": "",
-            "description": "A hashcat mask string"
+            "description": "A hashcat mask string",
+            "nullable": true
           },
           "increment_mode": {
             "type": "boolean",
@@ -1653,8 +1658,23 @@
         ],
         "operationId": "setTaskAbandoned",
         "responses": {
-          "204": {
-            "description": "successful"
+          "200": {
+            "description": "successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "state": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
           },
           "422": {
             "description": "already completed",
@@ -1663,7 +1683,10 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "state": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "details": {
                       "type": "array",
                       "items": {
                         "type": "string"
