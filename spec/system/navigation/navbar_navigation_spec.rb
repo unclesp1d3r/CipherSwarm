@@ -36,8 +36,9 @@ RSpec.describe "Navbar navigation" do
       # Find the Tools dropdown and click it
       find("a.dropdown-toggle", text: /Tools/i).click
 
-      # Click the Word Lists link (Capybara can find it even if not visible)
-      click_link "Word Lists"
+      # Use JavaScript to click the link to bypass Bootstrap dropdown timing issues
+      word_lists_link = find("a[href='#{word_lists_path}']", visible: :all)
+      page.execute_script("arguments[0].click()", word_lists_link.native)
 
       expect(page).to have_current_path(word_lists_path)
     end
@@ -46,11 +47,14 @@ RSpec.describe "Navbar navigation" do
   describe "navigate via user dropdown" do
     let(:user) { create_and_sign_in_user }
 
-    it "navigates to edit profile" do
+    it "navigates to edit profile", js: true do
       visit root_path
 
       find("a.nav-link.dropdown-toggle", text: user.name).click
-      click_link "Edit Profile"
+
+      # Use JavaScript to click the link to bypass Bootstrap dropdown timing issues
+      edit_profile_link = find("a[href='#{edit_user_registration_path}']", visible: :all)
+      page.execute_script("arguments[0].click()", edit_profile_link.native)
 
       expect(page).to have_current_path(edit_user_registration_path)
     end

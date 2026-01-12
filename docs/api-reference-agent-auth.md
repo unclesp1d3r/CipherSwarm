@@ -23,6 +23,7 @@ This document provides a comprehensive reference for all CipherSwarm API endpoin
   - [API Version Compatibility](#api-version-compatibility)
   - [Security Considerations](#security-considerations)
   - [Performance Notes](#performance-notes)
+  - [Agent Implementation Best Practices](#agent-implementation-best-practices)
 
 <!-- mdformat-toc end -->
 
@@ -529,6 +530,80 @@ GET /api/v1/client/crackers/check_for_cracker_update?version=6.2.6&operating_sys
 }
 ```
 
+### Enhanced Task Error Responses
+
+When task-related 404 errors occur, the API may provide enhanced error responses with optional metadata to help clients understand the cause and take appropriate action:
+
+**Task Not Found - Task Deleted:**
+
+```json
+{
+  "error": "Record not found",
+  "reason": "task_deleted",
+  "details": "Task was removed when attack was abandoned or completed"
+}
+```
+
+**Task Not Found - Task Not Assigned:**
+
+```json
+{
+  "error": "Record not found",
+  "reason": "task_not_assigned",
+  "details": "Task belongs to another agent"
+}
+```
+
+**Task Not Found - Invalid Task ID:**
+
+```json
+{
+  "error": "Record not found",
+  "reason": "task_invalid",
+  "details": "Task ID does not exist"
+}
+```
+
+### Handling Task Lifecycle Errors
+
+Tasks can be removed or reassigned for several reasons:
+
+1. **Attack Abandonment**: When an attack is abandoned, all associated tasks are destroyed immediately
+2. **Task Reassignment**: Tasks may be reassigned to other agents if not accepted in time
+3. **Task Completion**: Completed tasks may be removed from the system
+4. **Server-Side Cleanup**: Tasks may be cleaned up during maintenance operations
+
+**Recommended Client Behavior:**
+
+When receiving a 404 error for a task operation:
+
+1. **Stop Retrying**: Do not retry the same task ID indefinitely
+2. **Exponential Backoff**: Implement exponential backoff starting at 1 second, maximum 60 seconds
+3. **Request New Work**: After 3 consecutive 404 errors for the same task, abandon the reference and request a new task via `GET /api/v1/client/tasks/new`
+4. **Log the Error**: Log all 404 errors with task ID and agent ID for debugging
+5. **Monitor Patterns**: Track 404 error rates to identify systemic issues
+
+**Example Recovery Flow:**
+
+```
+1. Agent receives 404 for submit_status on Task 123
+2. Agent waits 1 second (exponential backoff attempt 1)
+3. Agent retries submit_status → 404 again
+4. Agent waits 2 seconds (exponential backoff attempt 2)
+5. Agent retries submit_status → 404 again
+6. Agent waits 4 seconds (exponential backoff attempt 3)
+7. Agent abandons Task 123 reference
+8. Agent requests new task: GET /api/v1/client/tasks/new
+9. Agent receives Task 456 and continues work
+```
+
+**Interpreting Reason Codes:**
+
+- `task_deleted`: The task was destroyed server-side, likely due to attack abandonment. Request new work immediately.
+- `task_not_assigned`: The task exists but is assigned to another agent. Request new work immediately.
+- `task_invalid`: The task ID does not exist. This may indicate a client bug. Request new work immediately.
+- No reason field: Legacy error response format. Treat as `task_deleted` and request new work.
+
 ### Error Codes by Endpoint
 
 - **Authentication endpoints**: 401 (unauthorized), 422 (validation)
@@ -576,6 +651,26 @@ Agents should send periodic status updates while executing tasks:
   - 204: Continue execution
   - 202: Status accepted but stale
   - 410: Task paused, stop execution
+  - 404: Task not found, abandon and request new work
+
+**Handling 404 Errors on Status Updates:**
+
+If `submit_status` returns a 404 error:
+
+1. The task no longer exists on the server
+2. Stop processing immediately and don't retry
+3. Abandon the current task reference locally
+4. Request a new task via `GET /api/v1/client/tasks/new`
+5. Implement exponential backoff (1s, 2s, 4s) before final abandonment
+6. Log the error with task ID and agent ID for diagnostics
+
+**Best Practices for Status Updates:**
+
+- Always check response status codes before continuing
+- Don't retry indefinitely on 404 errors (max 3 attempts)
+- Use exponential backoff starting at 1 second, maximum 60 seconds
+- Log all status update failures for debugging
+- Monitor error rates to detect systemic issues
 
 ### Error Reporting
 
@@ -617,3 +712,122 @@ Key compatibility requirements:
 - Status updates should be batched when possible
 - Large hash lists may require streaming or chunked downloads
 - Error reporting should be throttled to prevent spam
+
+## Agent Implementation Best Practices
+
+### Error Handling and Recovery
+
+**Exponential Backoff Strategy:**
+
+When encountering 404 errors for task operations:
+
+1. First retry: Wait 1 second
+2. Second retry: Wait 2 seconds
+3. Third retry: Wait 4 seconds
+4. After 3 consecutive 404s for the same task: Abandon task reference and request new work
+5. Maximum backoff: 60 seconds between retries
+
+**Task Loss Recovery:**
+
+- After detecting a lost task (404 error), immediately request new work via `/api/v1/client/tasks/new`
+- Don't retry indefinitely on non-existent tasks
+- Implement local task state tracking to detect inconsistencies
+- Log all task loss events with timestamps and task IDs
+
+**Error Logging Requirements:**
+
+- Log all 404 errors with: task ID, agent ID, operation type, timestamp
+- Log task state transitions locally for correlation with server logs
+- Include server response bodies in logs for debugging
+- Use structured logging format (JSON) for easy parsing
+
+### Monitoring and Diagnostics
+
+**Health Checks:**
+
+- Implement regular self-health checks independent of heartbeats
+- Monitor task assignment rates and success rates
+- Track 404 error rates and patterns
+- Alert on high error rates (>5% of requests)
+
+**Server Log Correlation:**
+
+- Server logs include structured task lifecycle events
+- Match client task IDs with server task IDs for debugging
+- Look for "Task not found" patterns in server logs
+- Contact administrators if repeated task loss occurs
+
+### Task Validation
+
+**Before Starting Expensive Operations:**
+
+- Validate task existence before downloading large hash lists
+- Check task state before starting compute-intensive work
+- Implement local task expiration tracking
+- Request task updates periodically for long-running operations
+
+### Configuration
+
+**Recommended Settings:**
+
+- Heartbeat interval: 30-60 seconds
+- Status update interval: 10-30 seconds (during active work)
+- Task timeout: Configurable, default 24 hours
+- Max retry attempts: 3 for 404 errors
+- Backoff multiplier: 2x (exponential)
+- Max backoff: 60 seconds
+
+### Common Scenarios and Solutions
+
+**Scenario 1: Attack Abandoned While Agent Processing**
+
+- **Symptom**: Agent receives 404 on status update
+- **Cause**: Server abandoned attack, destroying all tasks
+- **Solution**: Stop processing, request new task immediately
+- **Prevention**: Check for stale tasks before expensive operations
+
+**Scenario 2: Network Interruption Causing Stale References**
+
+- **Symptom**: Multiple 404 errors after network recovery
+- **Cause**: Tasks reassigned during network outage
+- **Solution**: Implement exponential backoff, request new tasks
+- **Prevention**: Detect network issues early, implement connection monitoring
+
+**Scenario 3: Multiple Agents Competing for Same Task**
+
+- **Symptom**: 404 with reason "task_not_assigned"
+- **Cause**: Task was claimed by another agent
+- **Solution**: Request new task immediately
+- **Prevention**: Accept tasks promptly after receiving them
+
+**Scenario 4: Server Restart Causing Task Reassignment**
+
+- **Symptom**: All tasks return 404 after server maintenance
+- **Cause**: Server state reset, tasks reassigned
+- **Solution**: Detect server downtime, re-authenticate and request new tasks
+- **Prevention**: Monitor server availability, implement graceful reconnection
+
+### Debugging Task Lifecycle Issues
+
+**Server-Side Logs to Check:**
+
+- `[Attack <id>] Abandoning attack` - Indicates attack abandonment
+- `[Task <id>] Agent <id> - State change` - Shows task state transitions
+- `[TaskNotFound]` - Shows task lookup failures with reason codes
+
+**Client-Side Data to Collect:**
+
+- Task ID and agent ID for all 404 errors
+- Timestamps of task acceptance and loss
+- Network conditions at time of error
+- Task processing duration before 404
+
+**Correlation Steps:**
+
+1. Find task ID in client logs
+2. Search server logs for same task ID
+3. Look for attack abandonment events
+4. Check for task state transitions
+5. Identify root cause (abandonment, reassignment, completion)
+
+For more detailed troubleshooting information, see the [Agent Troubleshooting Guide](troubleshooting-agents.md).

@@ -80,10 +80,11 @@ gem "aws-sdk-s3", "~> 1.151", groups: %i[production development]
 gem "cancancan", "~> 3.5"
 gem "devise", "~> 4.9"
 gem "dry-initializer", "~> 3.1"
-gem "groupdate", "~> 6.4"
+# gem "groupdate", "~> 6.4"  # REMOVED: Not currently used in codebase
 gem "inline_svg", "~> 1.9"
 gem "kredis", "~> 1.7"
-gem "maruku", "~> 0.7"
+gem "lograge", "~> 0.14"
+# gem "maruku", "~> 0.7"  # REMOVED: Not used - consider commonmarker or redcarpet if markdown needed
 gem "meta-tags", "~> 2.21"
 gem "oj", "~> 3.16"
 gem "pagy", "~> 8.0"

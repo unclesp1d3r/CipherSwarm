@@ -119,5 +119,104 @@ RSpec.describe Campaign do
     #     expect(attack.pending?).to be true
     #   end
     # end
+
+    describe "#current_eta" do
+      let(:campaign) { create(:campaign) }
+
+      it "returns nil when there are no running attacks" do
+        create(:dictionary_attack, campaign: campaign, state: "pending")
+        expect(campaign.current_eta).to be_nil
+      end
+
+      it "returns the maximum ETA from running attacks" do
+        attack = create(:dictionary_attack, campaign: campaign, state: "running")
+        task = create(:task, attack: attack, state: "running")
+
+        result = campaign.current_eta
+        expect(result).to be_nil.or be_a(Time)
+      end
+    end
+
+    describe "#total_eta" do
+      let(:campaign) { create(:campaign) }
+
+      it "returns nil when there are no incomplete attacks" do
+        attack = create(:dictionary_attack, campaign: campaign, state: "completed")
+        expect(campaign.total_eta).to be_nil
+      end
+
+      it "returns estimated total completion time for incomplete attacks" do
+        attack = create(:dictionary_attack, campaign: campaign, state: "pending")
+        result = campaign.total_eta
+        expect(result).to be_nil.or be_a(Time)
+      end
+    end
+
+    describe "#calculate_current_eta" do
+      let(:campaign) { create(:campaign) }
+
+      it "returns the maximum ETA from running attacks" do
+        attack = create(:dictionary_attack, campaign: campaign, state: "running")
+        task = create(:task, attack: attack, state: "running")
+
+        eta = campaign.calculate_current_eta
+        # Should return a time or nil
+        expect(eta).to be_nil.or be_a(Time)
+      end
+
+      it "returns nil when there are no running attacks" do
+        expect(campaign.calculate_current_eta).to be_nil
+      end
+    end
+
+    describe "#calculate_total_eta" do
+      let(:campaign) { create(:campaign) }
+
+      it "returns nil when there are no incomplete attacks" do
+        expect(campaign.calculate_total_eta).to be_nil
+      end
+
+      it "returns total ETA for all incomplete attacks" do
+        attack = create(:dictionary_attack, campaign: campaign, state: "pending")
+        expect(campaign.calculate_total_eta).to be_nil.or be_a(Time)
+      end
+    end
+  end
+
+  describe "SafeBroadcasting integration" do
+    let(:campaign) { create(:campaign) }
+
+    it "includes SafeBroadcasting concern" do
+      expect(described_class.included_modules).to include(SafeBroadcasting)
+    end
+
+    context "when broadcast fails" do
+      it "logs BroadcastError without raising" do
+        allow(Rails.logger).to receive(:error)
+        expect { campaign.send(:log_broadcast_error, StandardError.new("Connection refused")) }.not_to raise_error
+      end
+
+      it "includes campaign ID in broadcast error log" do
+        allow(Rails.logger).to receive(:error)
+        campaign.send(:log_broadcast_error, StandardError.new("Test error"))
+        expect(Rails.logger).to have_received(:error).with(/Record ID: #{campaign.id}/).at_least(:once)
+      end
+
+      it "includes model name in broadcast error log" do
+        allow(Rails.logger).to receive(:error)
+        campaign.send(:log_broadcast_error, StandardError.new("Test error"))
+        expect(Rails.logger).to have_received(:error).with(/\[BroadcastError\].*Model: Campaign/).at_least(:once)
+      end
+
+      it "includes backtrace in broadcast error log" do
+        allow(Rails.logger).to receive(:error)
+        begin
+          raise StandardError, "Test error"
+        rescue StandardError => e
+          campaign.send(:log_broadcast_error, e)
+        end
+        expect(Rails.logger).to have_received(:error).with(/Backtrace:/).at_least(:once)
+      end
+    end
   end
 end

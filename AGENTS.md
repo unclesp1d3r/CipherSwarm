@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Agents when working with code in this repository.
 
 ## Project Overview
 
@@ -252,7 +252,40 @@ Business logic is extracted into service objects and models:
 - Tests in spec/requests/ generate documentation
 - Run `just docs-api` or `RAILS_ENV=test rails rswag` to regenerate
 
-### Testing Strategy
+#### JavaScript Testing
+
+To set up JavaScript testing in the project, we use Vitest. Follow the steps below:
+
+1. Install Vitest and dependencies:
+
+   ```bash
+   yarn add -D vitest jsdom @testing-library/dom @hotwired/stimulus
+   ```
+
+2. Create a Vitest configuration file `vitest.config.js` in the project root:
+
+   ```javascript
+   import {
+       defineConfig
+   } from 'vitest/config';
+   export default defineConfig({
+       test: {
+           environment: 'jsdom',
+       },
+   });
+   ```
+
+3. Create a test setup file `spec/javascript/setup.js` to initialize Stimulus Application for tests.
+
+4. Run tests using:
+
+   ```bash
+   yarn test:js
+   ```
+
+Both unit tests for Stimulus controllers and integration tests via system tests are included in the project.
+
+## Testing Strategy
 
 **System Tests (spec/system/):**
 
@@ -273,6 +306,15 @@ Business logic is extracted into service objects and models:
 - API endpoint testing
 - Generates Swagger documentation via RSwag
 - Authentication and authorization testing
+
+**Logging Tests:**
+
+- Structured log output verification
+- Rails.logger mocking to verify log messages
+- Sensitive data filtering verification
+- Error handling without breaking application flow
+- Test that logs include relevant context (IDs, timestamps, state changes)
+- See docs/development/logging-guide.md for logging patterns
 
 ### Key Gems and Their Purposes
 
@@ -357,6 +399,15 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 - Project-based scoping for all resources
 - Admin users have unrestricted access
 
+**Logging Patterns:**
+
+- Use structured logging with `[LogType]` prefixes (`[APIRequest]`, `[APIError]`, `[AgentLifecycle]`, `[BroadcastError]`)
+- Include relevant context (IDs, timestamps, state changes)
+- Log errors with backtrace (first 5 lines)
+- Ensure logging failures don't break application (rescue blocks)
+- Always test that important events are logged correctly
+- Verify sensitive data is filtered (see docs/development/logging-guide.md)
+
 ### Development Workflow
 
 1. Use `just dev` to start the development server (Rails + assets + Sidekiq)
@@ -365,6 +416,8 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 4. Always use Rails generators for migrations and models
 5. Follow conventional commits for git messages
 6. Keep PRs focused and small
+7. Verify logs are helpful for debugging and don't contain sensitive data
+8. Ensure log volume is reasonable (not too verbose)
 
 ### Docker Development
 
@@ -383,5 +436,6 @@ just docker-shell
 
 - V2 Upgrade Overview: docs/v2-upgrade-overview.md
 - System Tests Guide: docs/testing/system-tests-guide.md
+- Logging Guide: docs/development/logging-guide.md
 - API Documentation: /api-docs (when server running)
 - Justfile Documentation: .kiro/steering/justfile.md

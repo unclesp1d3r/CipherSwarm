@@ -10,64 +10,28 @@
 <% end %>
 
 <div id="<%= dom_id @agent %>">
-  <%= show_for @agent do |s| %>
-    <%= turbo_stream_from @agent %>
-    <%= s.attribute :client_signature %>
-    <%= s.attribute :state %>
-    <%= s.attribute :last_ipaddress %>
-    <%= s.attribute :last_seen_at, format: :short %>
-    <%= s.attribute :operating_system %>
-    <%= s.attribute :token %>
-    <%= s.association :user %>
-    <%= s.association :projects %>
-    <%= s.attribute :current_running_attack do |a| %>
-      <%= link_to a.to_full_label, [a.campaign, a], class: "btn btn-outline-info btn-sm" if can? :read, a %>
+  <%= turbo_stream_from @agent, :overview %>
+  <%= turbo_stream_from @agent, :errors %>
+  <%= turbo_stream_from @agent, :configuration %>
+  <%= turbo_stream_from @agent, :capabilities %>
+
+  <%= render AgentDetailTabsComponent.new(agent: @agent, errors: @errors, pagy: @pagy) do |tabs| %>
+    <% tabs.with_overview_tab do %>
+      <%= render "overview_tab", agent: @agent %>
     <% end %>
-    <%= s.attribute :devices %>
-    <%= s.association :advanced_configuration do |a| %>
-      <dl>
-        <dt>Agent Update Interval</dt>
-        <dd><%= a.agent_update_interval %></dd>
-      </dl>
-      <dl>
-        <dt>Use Native Hashcat</dt>
-        <dd><%= a.use_native_hashcat %></dd>
-      </dl>
-      <% unless a.backend_device.blank? %>
-        <dl>
-          <dt>Backend Devices</dt>
-          <dd><%= a.backend_device %></dd>
-        </dl>
-      <% end %>
+
+    <% tabs.with_errors_tab do %>
+      <%= render "errors_tab", agent: @agent, errors: @errors, pagy: @pagy %>
     <% end %>
-    <% cache @agent do %>
-      <%= s.association :aggregate_benchmarks do |b| %>
-        <%= render partial: "benchmark", locals: { benchmark: b } %>
-      <% end %>
+
+    <% tabs.with_configuration_tab do %>
+      <%= render "configuration_tab", agent: @agent %>
+    <% end %>
+
+    <% tabs.with_capabilities_tab do %>
+      <%= render "capabilities_tab", agent: @agent %>
     <% end %>
   <% end %>
-  <div id="agent_errors">
-    <div>
-      <%== pagy_info(@pagy) %>
-    </div>
-    <table class="table table-sm table-hover">
-      <thead>
-      <tr>
-        <th>Date</th>
-        <th>Severity</th>
-        <th>Message</th>
-        <th></th>
-      </tr>
-      </thead>
-      <tbody>
-      <%= render partial: "error", collection: @errors, cached: true %>
-      </tbody>
-    </table>
-    <div data-controller="pagy-initializer">
-      <%== pagy_bootstrap_nav(@pagy) if @pagy.pages > 1 %> <!-- Pagy pagination -->
-    </div>
-    <noscript><%== pagy_nav(@pagy) %></noscript>
-  </div>
 </div>
 
 <div class="btn-group">
