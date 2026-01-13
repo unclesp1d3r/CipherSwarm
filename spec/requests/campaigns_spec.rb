@@ -13,7 +13,11 @@ RSpec.describe "Campaigns" do
     user
   }
   let!(:non_project_user) { create(:user) }
-  let!(:project_user) { create(:user, projects: [project]) }
+  let!(:project_user) do
+    user = create(:user)
+    create(:project_user, project: project, user: user, role: :viewer)
+    user
+  end
   let!(:campaign) { create(:campaign) }
 
   describe "GET /index" do
@@ -113,7 +117,7 @@ RSpec.describe "Campaigns" do
 
     context "when project admin creates campaign with high priority" do
       it "succeeds" do
-        project_admin = create(:user, projects: [project])
+        project_admin = create(:user)
         create(:project_user, project: project, user: project_admin, role: :admin)
         sign_in(project_admin)
         expect {
@@ -135,7 +139,7 @@ RSpec.describe "Campaigns" do
 
     context "when project owner creates campaign with high priority" do
       it "succeeds" do
-        project_owner = create(:user, projects: [project])
+        project_owner = create(:user)
         create(:project_user, project: project, user: project_owner, role: :owner)
         sign_in(project_owner)
         expect {
@@ -195,7 +199,7 @@ RSpec.describe "Campaigns" do
 
   describe "PATCH /update with priority authorization" do
     let!(:project_campaign) { create(:campaign, project: project, priority: :normal) }
-    let!(:project_admin) { create(:user, projects: [project]) }
+    let!(:project_admin) { create(:user) }
 
     before { create(:project_user, project: project, user: project_admin, role: :admin) }
 
