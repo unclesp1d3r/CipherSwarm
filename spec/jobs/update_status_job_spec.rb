@@ -241,6 +241,32 @@ RSpec.describe UpdateStatusJob do
 
         expect(Rails.logger).to have_received(:error).with(/Backtrace:/)
       end
+
+      it "avoids N+1 queries when checking multiple high-priority attacks" do
+        # Create 3 high-priority attacks to detect N+1 queries
+        3.times do
+          campaign = create(:campaign, project: project, priority: :high)
+          attack = create(:dictionary_attack, campaign: campaign)
+          create(:hash_item, hash_list: campaign.hash_list, plain_text: nil)
+        end
+
+        # Track queries - without includes, this would generate N queries for campaign and hash_list
+        queries = []
+        query_counter = lambda do |_name, _started, _finished, _unique_id, payload|
+          queries << payload[:sql] if payload[:name] == "SQL" && payload[:sql] !~ /^(BEGIN|COMMIT|SAVEPOINT|RELEASE)/
+        end
+
+        ActiveSupport::Notifications.subscribed(query_counter, "sql.active_record") do
+          described_class.new.send(:rebalance_task_assignments)
+        end
+
+        # Should only have:
+        # 1. Query to load attacks with includes (campaign and hash_list)
+        # 2. Query to check for running tasks
+        # Without includes, there would be 3 queries per attack (1 for campaign, 1 for hash_list for each attack.uncracked_count call)
+        # With 3 attacks, that would be 9+ queries. With includes, should be ~2-3 queries total.
+        expect(queries.count).to be <= 5
+      end
     end
   end
 end
