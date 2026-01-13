@@ -8,16 +8,18 @@ class SimplifyCampaignPriorities < ActiveRecord::Migration[8.0]
     # urgent (2), priority (1), routine (0) → normal (0)
     # deferred (-1) → deferred (-1)
 
-    execute <<-SQL.squish
-      UPDATE campaigns
-      SET priority = 2
-      WHERE priority IN (3, 4, 5);
-    SQL
-
+    # IMPORTANT: Execute updates in reverse order to prevent the second UPDATE
+    # from overwriting priority=2 values set by the first UPDATE
     execute <<-SQL.squish
       UPDATE campaigns
       SET priority = 0
       WHERE priority IN (1, 2);
+    SQL
+
+    execute <<-SQL.squish
+      UPDATE campaigns
+      SET priority = 2
+      WHERE priority IN (3, 4, 5);
     SQL
 
     # Update column comment to reflect new values
