@@ -138,6 +138,34 @@ RSpec.describe Task do
         expect(Rails.logger).to have_received(:info).with(/State change:.*pending.*Task retried/)
       end
     end
+
+    describe "#abandon" do
+      let(:running_task) { create(:task, state: "running") }
+
+      it "transitions from running to pending" do
+        running_task.abandon
+        expect(running_task).to be_pending
+      end
+
+      it "marks the task as stale" do
+        expect(running_task.stale).to be false
+        running_task.abandon
+        expect(running_task.stale).to be true
+      end
+
+      it "triggers attack abandonment" do
+        attack = running_task.attack
+        allow(attack).to receive(:abandon)
+        running_task.abandon
+        expect(attack).to have_received(:abandon)
+      end
+
+      it "logs the abandon event" do
+        allow(Rails.logger).to receive(:info)
+        running_task.abandon
+        expect(Rails.logger).to have_received(:info).with(/State change:.*abandoned.*Triggering attack abandonment/)
+      end
+    end
   end
 
   describe "SafeBroadcasting integration" do
