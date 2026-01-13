@@ -179,7 +179,9 @@ class Campaign < ApplicationRecord
   #   - "deferred" => "🕰"
   #   - "normal" => "🔄"
   #   - "high" => "🔴"
-  #   - any other value => "❓"
+  ##
+  # Maps the campaign's priority to a single emoji representing that priority.
+  # @return [String] The emoji for the campaign's priority: "🕰" for deferred, "🔄" for normal, "🔴" for high, "❓" for any other or unknown value.
   def priority_to_emoji
     case priority
     when "deferred"
