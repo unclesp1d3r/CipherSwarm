@@ -190,6 +190,57 @@ RSpec.describe UpdateStatusJob do
           described_class.new.perform
         }.not_to change { running_task_1.reload.state }
       end
+
+      it "handles individual preemption errors gracefully" do
+        high_campaign = create(:campaign, project: project, priority: :high)
+        normal_campaign = create(:campaign, project: project, priority: :normal)
+
+        # Fill both nodes
+        normal_attack_1 = create(:dictionary_attack, campaign: normal_campaign)
+        normal_attack_2 = create(:dictionary_attack, campaign: normal_campaign)
+        running_task_1 = create(:task, attack: normal_attack_1, agent: agents[0], state: :running)
+        running_task_2 = create(:task, attack: normal_attack_2, agent: agents[1], state: :running)
+        create(:hashcat_status, task: running_task_1, progress: [25, 100], status: :running)
+        create(:hashcat_status, task: running_task_2, progress: [50, 100], status: :running)
+
+        # Create high-priority attack with uncracked hashes
+        high_attack = create(:dictionary_attack, campaign: high_campaign)
+        create(:hash_item, hash_list: high_campaign.hash_list, plain_text: nil)
+
+        # Simulate error for preemption
+        service_double = instance_double(TaskPreemptionService)
+        allow(TaskPreemptionService).to receive(:new).and_return(service_double)
+        allow(service_double).to receive(:preempt_if_needed)
+          .and_raise(StandardError.new("Preemption failed"))
+
+        allow(Rails.logger).to receive(:error)
+
+        # Should not raise error and should log
+        expect { described_class.new.perform }.not_to raise_error
+        expect(Rails.logger).to have_received(:error).with(/Error preempting tasks for attack/)
+      end
+
+      it "handles database errors in query gracefully" do
+        high_campaign = create(:campaign, project: project, priority: :high)
+
+        # Simulate database error
+        allow(Attack).to receive(:incomplete).and_raise(ActiveRecord::StatementInvalid.new("Database connection lost"))
+        allow(Rails.logger).to receive(:error)
+
+        expect { described_class.new.perform }.not_to raise_error
+        expect(Rails.logger).to have_received(:error).with(/Error in rebalance_task_assignments/)
+      end
+
+      it "logs errors with backtrace for debugging" do
+        high_campaign = create(:campaign, project: project, priority: :high)
+
+        allow(Attack).to receive(:incomplete).and_raise(StandardError.new("Test error"))
+        allow(Rails.logger).to receive(:error)
+
+        described_class.new.perform
+
+        expect(Rails.logger).to have_received(:error).with(/Backtrace:/)
+      end
     end
   end
 end
