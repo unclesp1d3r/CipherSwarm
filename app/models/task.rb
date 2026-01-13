@@ -299,7 +299,7 @@ class Task < ApplicationRecord
   #
   # A task is not preemptable if:
   # - It is more than 90% complete (avoid preempting nearly-done work)
-  # - It has been preempted more than 2 times (prevent starvation)
+  # - It has been preempted 2 or more times (prevent starvation)
   #
   # @return [Boolean] true if the task can be preempted
   def preemptable?
