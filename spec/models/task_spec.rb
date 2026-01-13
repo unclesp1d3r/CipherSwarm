@@ -227,5 +227,24 @@ RSpec.describe Task do
         expect(task.preemptable?).to be true
       end
     end
+
+    context "with error handling" do
+      it "returns false and logs error when progress_percentage raises exception" do
+        allow(Rails.logger).to receive(:error)
+        allow(task).to receive(:progress_percentage).and_raise(StandardError.new("Database error"))
+
+        expect(task.preemptable?).to be false
+        expect(Rails.logger).to have_received(:error).with(/\[Task #{task.id}\].*Error calculating progress percentage/)
+      end
+
+      it "logs warning when preemption_count is nil" do
+        task = create(:task, state: :running)
+        allow(Rails.logger).to receive(:warn)
+        allow(task).to receive(:preemption_count).and_return(nil)
+
+        task.preemptable?
+        expect(Rails.logger).to have_received(:warn).with(/preemption_count is nil/)
+      end
+    end
   end
 end
