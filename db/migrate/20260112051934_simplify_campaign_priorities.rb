@@ -2,6 +2,12 @@
 
 # Migration to simplify campaign priorities from 7 levels to 3 levels
 class SimplifyCampaignPriorities < ActiveRecord::Migration[8.0]
+  ##
+  # Collapse existing campaign priority levels into a simplified three-tier system and update the column comment.
+  #
+  # Maps priorities 3, 4, 5 to `2` (High), maps priorities 0, 1, 2 to `0` (Normal), and preserves `-1` (Deferred).
+  # Executes the SQL updates in an order that prevents overwriting newly mapped values, then replaces the
+  # campaigns.priority column comment to "-1: Deferred, 0: Normal, 2: High".
   def up
     # Map existing priorities to new 3-tier system:
     # flash_override (5), flash (4), immediate (3) → high (2)
@@ -28,6 +34,9 @@ class SimplifyCampaignPriorities < ActiveRecord::Migration[8.0]
       to: "-1: Deferred, 0: Normal, 2: High"
   end
 
+  ##
+  # Reverts the SimplifyCampaignPriorities migration by resetting campaigns with priority `2` to `0` and restoring the original priority column comment.
+  # Records with priority `-1` (Deferred) are left unchanged.
   def down
     # Restore to normal (0) as safe fallback for all non-deferred campaigns
     execute <<-SQL.squish

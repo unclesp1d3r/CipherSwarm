@@ -22,7 +22,9 @@ class TaskPreemptionService
 
   # Initializes a new TaskPreemptionService.
   #
-  # @param attack [Attack] the attack that needs a node
+  ##
+  # Initializes the service with the attack that requires a node.
+  # @param [Attack] attack The Attack instance requiring a node.
   def initialize(attack)
     @attack = attack
   end
@@ -36,7 +38,10 @@ class TaskPreemptionService
   # 4. Abandon the task to return it to pending state
   # 5. Log the preemption event
   #
-  # @return [Task, nil] the preempted task, or nil if no preemption occurred
+  ##
+  # Decides whether a node must be freed for the service's attack and, if required, selects and preempts a running task.
+  # Preemption updates the chosen task (marks it stale, sets its state to pending, and increments its preemption count).
+  # @return [Task, nil] The preempted task if one was preempted, `nil` otherwise.
   def preempt_if_needed
     if nodes_available?
       Rails.logger.info(
@@ -61,7 +66,9 @@ class TaskPreemptionService
 
   # Checks if there are available nodes (active agents > running tasks).
   #
-  # @return [Boolean] true if nodes are available
+  ##
+  # Determine whether there are more active agents than running tasks.
+  # @return [Boolean] `true` if there are more active agents than running tasks, `false` otherwise.
   def nodes_available?
     active_agent_count = Agent.with_state(:active).count
     running_task_count = Task.with_state(:running).count
@@ -71,7 +78,14 @@ class TaskPreemptionService
   # Finds the best task to preempt based on priority and progress.
   # Only considers tasks from the same project to prevent cross-project preemption.
   #
-  # @return [Task, nil] the task to preempt, or nil if none suitable
+  ##
+  # Selects a running task from a lower-priority campaign in the same project that can be preempted.
+  # The chosen task must belong to a campaign with a strictly lower priority than the current attack's
+  # campaign and respond true to `preemptable?`. When multiple candidates exist, the task with the
+  # lowest campaign priority and then the smallest progress percentage (least complete) is returned.
+  # If no suitable task is found or an error occurs while evaluating candidates, `nil` is returned
+  # (errors are logged).
+  # @return [Task, nil] The task to preempt, or `nil` if none suitable or an error occurred.
   def find_preemptable_task
     # Get all running tasks from lower-priority campaigns in the same project
     priority_value = Campaign.priorities[attack.campaign.priority.to_sym]
@@ -120,7 +134,10 @@ class TaskPreemptionService
   # 4. We want to avoid N+1 queries from state machine callbacks
   #
   # @param task [Task] the task to preempt
-  # @return [Task] the preempted task
+  ##
+  # Forces a running task back to `pending`, marks it as stale, and increments its preemption count.
+  # @param [Task] task - The running Task to preempt.
+  # @return [Task] The task after being marked pending and stale with its `preemption_count` incremented.
   def preempt_task(task)
     Rails.logger.info(
       "[TaskPreemption] Preempting task #{task.id} (priority: #{task.attack.campaign.priority}, " \

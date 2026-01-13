@@ -298,7 +298,9 @@ class Task < ApplicationRecord
   # @return [Float] the progress percentage of the task, ranging from 0 to 100.
   #
   # @note The current implementation works well for dictionary attacks, but may need adjustments
-  #       for other types of attacks.
+  ##
+  # The task's current progress percentage.
+  # @return [Float] The progress percentage between 0.0 and 100.0; `0.0` if no latest status is available.
   def progress_percentage
     latest_status&.progress_percentage || 0.0
   end
@@ -309,7 +311,13 @@ class Task < ApplicationRecord
   # - It is more than 90% complete (avoid preempting nearly-done work)
   # - It has been preempted 2 or more times (prevent starvation)
   #
-  # @return [Boolean] true if the task can be preempted
+  ##
+  # Determine whether the task is eligible to be preempted.
+  # This returns `false` if the task's progress is greater than 90%, or if the task's
+  # `preemption_count` is greater than or equal to 2. If `preemption_count` is `nil`,
+  # it is treated as 0 (a warning is logged). If an error occurs while computing
+  # progress, the method assumes the task is not preemptable.
+  # @return [Boolean] `true` if the task can be preempted, `false` otherwise.
   def preemptable?
     begin
       return false if progress_percentage > 90.0
@@ -330,6 +338,9 @@ class Task < ApplicationRecord
     true
   end
 
+  ##
+  # Human-readable progress text for the task's current running status.
+  # @return [String, nil] The progress text from the latest running hashcat status, or `nil` if no running status exists.
   def progress_text
     latest_status&.progress_text
   end

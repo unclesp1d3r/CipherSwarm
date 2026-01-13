@@ -27,6 +27,21 @@
 class Ability
   include CanCan::Ability
 
+  ##
+  # Define CanCanCan authorization rules for the given user.
+  #
+  # For a non-blank user, grants:
+  # - Read access to the user's own User record.
+  # - Creation permissions for list resources and campaigns.
+  # - Agent permissions to create, read/update/destroy own agents and read agents in the user's projects.
+  # - Read access to projects the user is associated with.
+  # - Management of campaigns, attacks, tasks, and HashList scoped to the user's projects.
+  # - Read/create (and view file/content) access to non-sensitive WordList/RuleList/MaskList; full management of those lists within the user's projects or when the user is the creator.
+  # - By default, denies setting high priority on campaigns; allows it only for global admins or project admin/owners of the campaign's project.
+  #
+  # For a user with admin privileges, grants full management of all resources and read access to the admin dashboard.
+  #
+  # @param [User, nil] user - The current user whose abilities are being defined. If `nil` or blank, no abilities are granted.
   def initialize(user)
     return if user.blank?
 

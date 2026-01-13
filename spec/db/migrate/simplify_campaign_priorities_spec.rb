@@ -14,13 +14,20 @@ RSpec.describe SimplifyCampaignPriorities, type: :migration do
   let(:project) { create(:project) }
   let(:hash_list) { create(:hash_list, hash_type: hash_type, project: project) }
 
-  # Helper to update priority directly via SQL (bypassing model validations)
+  ##
+  # Set a campaign's priority value directly in the database and reload the campaign instance.
+  # @param [Campaign] campaign - The campaign record to update.
+  # @param [Integer] priority_value - The priority value to write to the database (e.g., -1, 0, 1, 2, 3, 4, 5).
+  # @return [Campaign] The reloaded campaign reflecting the updated priority.
   def set_campaign_priority(campaign, priority_value)
     connection.execute("UPDATE campaigns SET priority = #{priority_value} WHERE id = #{campaign.id}")
     campaign.reload
   end
 
-  # Helper to get current priority value
+  ##
+  # Retrieves the raw priority value for the given campaign directly from the database.
+  # @param [Campaign] campaign - The campaign whose priority to fetch.
+  # @return [Integer, nil] The priority value stored in the database for that campaign, or `nil` if no record exists.
   def get_campaign_priority(campaign)
     connection.select_value("SELECT priority FROM campaigns WHERE id = #{campaign.id}")
   end
