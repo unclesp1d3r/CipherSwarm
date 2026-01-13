@@ -81,13 +81,22 @@ class TaskAssignmentService
   end
 
   # Checks if preemption should be attempted for an attack.
+  # Returns false if attack or campaign data is unavailable to prevent errors.
   #
   # @param attack [Attack] the attack to check
-  # @return [Boolean] true if preemption should be attempted
+  # @return [Boolean] true if preemption should be attempted, false on any error
   def should_attempt_preemption?(attack)
     # Only attempt preemption for normal or high priority attacks
     # Deferred attacks wait naturally
+    return false if attack.nil? || attack.campaign.nil?
+
     attack.campaign.priority.present? && attack.campaign.priority.to_sym != :deferred
+  rescue StandardError => e
+    Rails.logger.error(
+      "[TaskAssignmentService] Error checking preemption eligibility for attack #{attack&.id} - " \
+      "Error: #{e.class} - #{e.message} - #{Time.current}"
+    )
+    false
   end
 
   # Finds or creates a task for a specific attack.
