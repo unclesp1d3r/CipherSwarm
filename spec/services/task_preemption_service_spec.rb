@@ -266,5 +266,67 @@ RSpec.describe TaskPreemptionService do
         )
       end
     end
+
+    context "when handling errors during preemption" do
+      it "logs error and returns nil if database query fails" do
+        agent_1 = agents[0]
+        agent_2 = agents[1]
+
+        # Fill both agents
+        normal_attack_1 = create(:dictionary_attack, campaign: normal_priority_campaign)
+        normal_attack_2 = create(:dictionary_attack, campaign: normal_priority_campaign)
+        create(:task, attack: normal_attack_1, agent: agent_1, state: :running)
+        create(:task, attack: normal_attack_2, agent: agent_2, state: :running)
+
+        high_attack = create(:dictionary_attack, campaign: high_priority_campaign)
+        service = described_class.new(high_attack)
+
+        # Simulate database error during find_preemptable_task
+        allow(Campaign).to receive(:priorities).and_raise(ActiveRecord::StatementInvalid.new("Database error"))
+        allow(Rails.logger).to receive(:error)
+
+        result = service.preempt_if_needed
+        expect(result).to be_nil
+        expect(Rails.logger).to have_received(:error).with(
+          /\[TaskPreemption\] Error finding preemptable task for attack #{high_attack.id}: Database error/
+        )
+      end
+
+      it "skips tasks that raise errors during preemptability check" do # rubocop:disable RSpec/ExampleLength
+        agent_1 = agents[0]
+        agent_2 = agents[1]
+
+        normal_attack_1 = create(:dictionary_attack, campaign: normal_priority_campaign)
+        normal_attack_2 = create(:dictionary_attack, campaign: normal_priority_campaign)
+        task_1 = create(:task, attack: normal_attack_1, agent: agent_1, state: :running)
+        task_2 = create(:task, attack: normal_attack_2, agent: agent_2, state: :running)
+
+        create(:hashcat_status, task: task_1, progress: [25, 100], status: :running)
+        create(:hashcat_status, task: task_2, progress: [50, 100], status: :running)
+
+        high_attack = create(:dictionary_attack, campaign: high_priority_campaign)
+        service = described_class.new(high_attack)
+
+        # Make preemptable? raise an error for one task and succeed for the other
+        # rubocop:disable RSpec/AnyInstance
+        allow_any_instance_of(Task).to receive(:preemptable?).and_wrap_original do |method, *args|
+          # rubocop:enable RSpec/AnyInstance
+          task = method.receiver
+          raise StandardError, "Unexpected error" if task.id == task_1.id
+
+          method.call(*args)
+        end
+
+        allow(Rails.logger).to receive(:error)
+        allow(Rails.logger).to receive(:info)
+
+        preempted = service.preempt_if_needed
+
+        expect(preempted).to eq(task_2)
+        expect(Rails.logger).to have_received(:error).with(
+          "[TaskPreemption] Error checking if task #{task_1.id} is preemptable: Unexpected error"
+        )
+      end
+    end
   end
 end
