@@ -72,8 +72,10 @@ class UpdateStatusJob < ApplicationJob
   def rebalance_task_assignments
     begin
       # Find high-priority attacks with no running tasks
+      # Eager load campaign and hash_list to avoid N+1 queries when checking uncracked_count
       high_priority_attacks = Attack.incomplete
                                      .joins(:campaign)
+                                     .includes(:campaign, campaign: :hash_list)
                                      .where(campaigns: { priority: Campaign.priorities[:high] })
                                      .where.not(id: Task.with_state(:running).select(:attack_id))
 
