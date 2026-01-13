@@ -88,6 +88,7 @@ class TaskPreemptionService
 
   # Preempts a task by transitioning it to pending and marking it as stale.
   # Does not destroy the task or trigger attack abandonment.
+  # Uses a database transaction with row-level locking to prevent race conditions.
   #
   # @param task [Task] the task to preempt
   # @return [Task] the preempted task
@@ -98,15 +99,20 @@ class TaskPreemptionService
       "(priority: #{attack.campaign.priority})"
     )
 
-    # rubocop:disable Rails/SkipsModelValidations
-    task.increment!(:preemption_count)
-    # rubocop:enable Rails/SkipsModelValidations
+    Task.transaction do
+      # Lock the task row to prevent concurrent modifications
+      task.lock!
 
-    # Transition to pending state without triggering attack abandonment
-    # Update columns directly to avoid StaleObjectError from optimistic locking
-    # rubocop:disable Rails/SkipsModelValidations
-    task.update_columns(state: "pending", stale: true)
-    # rubocop:enable Rails/SkipsModelValidations
+      # rubocop:disable Rails/SkipsModelValidations
+      task.increment!(:preemption_count)
+      # rubocop:enable Rails/SkipsModelValidations
+
+      # Transition to pending state without triggering attack abandonment
+      # Update columns directly to avoid StaleObjectError from optimistic locking
+      # rubocop:disable Rails/SkipsModelValidations
+      task.update_columns(state: "pending", stale: true)
+      # rubocop:enable Rails/SkipsModelValidations
+    end
 
     task
   end
