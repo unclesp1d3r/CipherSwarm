@@ -227,5 +227,44 @@ RSpec.describe TaskPreemptionService do
         expect(task_1.state).to eq("pending")
       end
     end
+
+    context "when logging preemption decisions" do
+      it "logs when nodes are available" do
+        high_attack = create(:dictionary_attack, campaign: high_priority_campaign)
+        service = described_class.new(high_attack)
+
+        allow(Rails.logger).to receive(:info)
+        service.preempt_if_needed
+
+        expect(Rails.logger).to have_received(:info).with(
+          "[TaskPreemption] No preemption needed for attack #{high_attack.id}: nodes available"
+        )
+      end
+
+      it "logs when no preemptable tasks are found" do
+        agent_1 = agents[0]
+        agent_2 = agents[1]
+
+        # Fill both agents with non-preemptable tasks (90%+ progress)
+        normal_attack_1 = create(:dictionary_attack, campaign: normal_priority_campaign)
+        normal_attack_2 = create(:dictionary_attack, campaign: normal_priority_campaign)
+        task_1 = create(:task, attack: normal_attack_1, agent: agent_1, state: :running)
+        task_2 = create(:task, attack: normal_attack_2, agent: agent_2, state: :running)
+
+        create(:hashcat_status, task: task_1, progress: [95, 100], status: :running)
+        create(:hashcat_status, task: task_2, progress: [92, 100], status: :running)
+
+        high_attack = create(:dictionary_attack, campaign: high_priority_campaign)
+        service = described_class.new(high_attack)
+
+        allow(Rails.logger).to receive(:info)
+        service.preempt_if_needed
+
+        expect(Rails.logger).to have_received(:info).with(
+          "[TaskPreemption] No preemptable tasks found for attack #{high_attack.id} " \
+          "(priority: high)"
+        )
+      end
+    end
   end
 end

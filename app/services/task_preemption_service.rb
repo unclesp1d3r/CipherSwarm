@@ -38,11 +38,21 @@ class TaskPreemptionService
   #
   # @return [Task, nil] the preempted task, or nil if no preemption occurred
   def preempt_if_needed
-    return nil if nodes_available?
-    return nil if attack.campaign.priority.blank?
+    if nodes_available?
+      Rails.logger.info(
+        "[TaskPreemption] No preemption needed for attack #{attack.id}: nodes available"
+      )
+      return nil
+    end
 
     preemptable_task = find_preemptable_task
-    return nil unless preemptable_task
+    unless preemptable_task
+      Rails.logger.info(
+        "[TaskPreemption] No preemptable tasks found for attack #{attack.id} " \
+        "(priority: #{attack.campaign.priority})"
+      )
+      return nil
+    end
 
     preempt_task(preemptable_task)
   end
