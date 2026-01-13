@@ -165,6 +165,15 @@ RSpec.describe Task do
         running_task.abandon
         expect(Rails.logger).to have_received(:info).with(/State change:.*abandoned.*Triggering attack abandonment/)
       end
+
+      it "handles stale update failure gracefully" do
+        allow(running_task).to receive(:update_columns).and_raise(ActiveRecord::RecordNotFound.new("Task destroyed"))
+        allow(Rails.logger).to receive(:error)
+
+        expect { running_task.abandon }.not_to raise_error
+        expect(running_task).to be_pending
+        expect(Rails.logger).to have_received(:error).with(/Error updating stale flag in abandon callback/)
+      end
     end
   end
 

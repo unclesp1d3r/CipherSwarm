@@ -211,7 +211,15 @@ class Task < ApplicationRecord
       # Mark task as stale to indicate new cracks may have been discovered
       # Use update_columns to avoid stale object errors from optimistic locking
       # rubocop:disable Rails/SkipsModelValidations
-      task.update_columns(stale: true)
+      begin
+        task.update_columns(stale: true)
+      rescue StandardError => e
+        Rails.logger.error(
+          "[Task #{task.id}] Error updating stale flag in abandon callback - " \
+          "Error: #{e.class} - #{e.message} - #{Time.current}"
+        )
+        # Don't re-raise - this is a non-critical update
+      end
       # rubocop:enable Rails/SkipsModelValidations
     end
 
