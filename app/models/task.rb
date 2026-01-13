@@ -303,7 +303,20 @@ class Task < ApplicationRecord
   #
   # @return [Boolean] true if the task can be preempted
   def preemptable?
-    return false if progress_percentage > 90.0
+    begin
+      return false if progress_percentage > 90.0
+    rescue StandardError => e
+      Rails.logger.error(
+        "[Task #{id}] Error calculating progress percentage in preemptable? check - " \
+        "Error: #{e.class} - #{e.message} - Assuming not preemptable - #{Time.current}"
+      )
+      return false
+    end
+
+    if preemption_count.nil?
+      Rails.logger.warn("[Task #{id}] preemption_count is nil - assuming 0")
+    end
+
     return false if preemption_count.to_i >= 2
 
     true
