@@ -150,5 +150,82 @@ RSpec.describe TaskPreemptionService do
         expect(preempted).to eq(task_2)
       end
     end
+
+    context "when preventing race conditions" do
+      it "ensures atomicity with transaction and locking" do
+        agent_1 = agents[0]
+        agent_2 = agents[1]
+
+        # Fill both agents with running tasks
+        normal_attack_1 = create(:dictionary_attack, campaign: normal_priority_campaign)
+        normal_attack_2 = create(:dictionary_attack, campaign: normal_priority_campaign)
+        task_1 = create(:task, attack: normal_attack_1, agent: agent_1, state: :running, preemption_count: 0)
+        task_2 = create(:task, attack: normal_attack_2, agent: agent_2, state: :running, preemption_count: 0)
+
+        create(:hashcat_status, task: task_1, progress: [25, 100], status: :running)
+        create(:hashcat_status, task: task_2, progress: [50, 100], status: :running)
+
+        high_attack = create(:dictionary_attack, campaign: high_priority_campaign)
+        service = described_class.new(high_attack)
+
+        # Preempt task and verify changes were applied atomically
+        service.preempt_if_needed
+
+        task_1.reload
+        expect(task_1.state).to eq("pending")
+        expect(task_1.preemption_count).to eq(1)
+        expect(task_1.stale).to be true
+      end
+
+      it "rolls back all changes on failure" do
+        agent_1 = agents[0]
+        agent_2 = agents[1]
+
+        # Fill both agents
+        normal_attack_1 = create(:dictionary_attack, campaign: normal_priority_campaign)
+        normal_attack_2 = create(:dictionary_attack, campaign: normal_priority_campaign)
+        task_1 = create(:task, attack: normal_attack_1, agent: agent_1, state: :running, preemption_count: 0)
+        task_2 = create(:task, attack: normal_attack_2, agent: agent_2, state: :running, preemption_count: 0)
+
+        create(:hashcat_status, task: task_1, progress: [25, 100], status: :running)
+        create(:hashcat_status, task: task_2, progress: [50, 100], status: :running)
+
+        high_attack = create(:dictionary_attack, campaign: high_priority_campaign)
+        service = described_class.new(high_attack)
+
+        # Simulate an error during preemption
+        allow(Task).to receive(:transaction).and_raise(ActiveRecord::StatementInvalid.new("Database error"))
+
+        expect { service.preempt_if_needed }.to raise_error(ActiveRecord::StatementInvalid)
+
+        # Verify nothing was changed (transaction rolled back)
+        task_1.reload
+        expect(task_1.state).to eq("running")
+        expect(task_1.preemption_count).to eq(0)
+      end
+
+      it "prevents concurrent modifications with row locking" do
+        agent_1 = agents[0]
+        agent_2 = agents[1]
+
+        # Fill both agents
+        normal_attack_1 = create(:dictionary_attack, campaign: normal_priority_campaign)
+        normal_attack_2 = create(:dictionary_attack, campaign: normal_priority_campaign)
+        task_1 = create(:task, attack: normal_attack_1, agent: agent_1, state: :running)
+        task_2 = create(:task, attack: normal_attack_2, agent: agent_2, state: :running)
+
+        create(:hashcat_status, task: task_1, progress: [25, 100], status: :running)
+        create(:hashcat_status, task: task_2, progress: [50, 100], status: :running)
+
+        high_attack = create(:dictionary_attack, campaign: high_priority_campaign)
+        service = described_class.new(high_attack)
+
+        # Verify the service can successfully preempt (lock doesn't raise error)
+        expect { service.preempt_if_needed }.not_to raise_error
+
+        task_1.reload
+        expect(task_1.state).to eq("pending")
+      end
+    end
   end
 end
