@@ -61,7 +61,10 @@ class TaskAssignmentService
   # 3. If no task available and attack is high priority, attempts preemption
   # 4. Preemption allows high-priority work to interrupt lower-priority tasks
   #
-  # @return [Task, nil] a task from available attacks, or nil
+  ##
+  # Searches the agent's available attacks in priority order and returns the first assignable task.
+  # May attempt preemption on higher-priority attacks when no immediate task is found, and will retry after successful preemption.
+  # @return [Task, nil] The found or newly created task for the agent, or `nil` if no task could be assigned.
   def find_task_from_available_attacks
     return nil if agent.project_ids.blank?
 
@@ -94,7 +97,10 @@ class TaskAssignmentService
   # process continues even if campaign data is malformed or missing.
   #
   # @param attack [Attack] the attack to check
-  # @return [Boolean] true if preemption should be attempted, false on any error
+  ##
+  # Determines whether preemption should be attempted for the given attack.
+  # @param [Attack] attack - The attack to evaluate; may be nil.
+  # @return [Boolean] `true` if the attack's campaign exists and its priority is not `:deferred` (for example normal or high), `false` otherwise or on error.
   def should_attempt_preemption?(attack)
     # Only attempt preemption for normal or high priority attacks
     # Deferred attacks wait naturally
@@ -170,7 +176,9 @@ class TaskAssignmentService
   # This ordering ensures high-priority campaigns get resources first,
   # while still respecting attack complexity within each priority level.
   #
-  # @return [ActiveRecord::Relation<Attack>] available attacks ordered by priority and complexity
+  ##
+  # Retrieves attacks that are not complete for campaigns associated with the agent, filtered by the agent's allowed hash types and ordered by campaign priority, attack complexity, then creation time.
+  # @return [ActiveRecord::Relation<Attack>] An ActiveRecord relation of matching Attack records ordered by campaigns.priority DESC, attacks.complexity_value, and attacks.created_at.
   def available_attacks
     Attack.incomplete
           .joins(campaign: { hash_list: :hash_type })

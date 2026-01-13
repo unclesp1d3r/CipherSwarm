@@ -16,7 +16,11 @@ module CampaignsHelper
   #
   # @param campaign [Campaign] the campaign being edited/created
   # @param user [User] the current user
-  # @return [Array<Symbol>] available priority options (e.g., [:deferred, :normal, :high])
+  ##
+  # Determine which priority options are available to a given user for a campaign.
+  # @param [Campaign] campaign - The campaign being edited or created; used to infer the associated project when present.
+  # @param [User] user - The current user whose permissions determine available priorities.
+  # @return [Array<Symbol>] The available priority symbols. Always includes `:deferred` and `:normal`; includes `:high` when the user is a global admin or an admin/owner of the campaign's project.
   def available_priorities_for(campaign, user)
     base_priorities = %i[deferred normal]
 
