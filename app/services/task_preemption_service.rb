@@ -90,6 +90,12 @@ class TaskPreemptionService
   # Does not destroy the task or trigger attack abandonment.
   # Uses a database transaction with row-level locking to prevent race conditions.
   #
+  # We bypass the state machine here and use update_columns because:
+  # 1. State machine transitions trigger callbacks that may modify task state (abandon logic)
+  # 2. The task object may be stale (optimistic locking conflicts)
+  # 3. We need precise control over the transition for preemption semantics
+  # 4. We want to avoid N+1 queries from state machine callbacks
+  #
   # @param task [Task] the task to preempt
   # @return [Task] the preempted task
   def preempt_task(task)
@@ -107,8 +113,8 @@ class TaskPreemptionService
       task.increment!(:preemption_count)
       # rubocop:enable Rails/SkipsModelValidations
 
-      # Transition to pending state without triggering attack abandonment
-      # Update columns directly to avoid StaleObjectError from optimistic locking
+      # Update columns directly to bypass state machine transitions
+      # This avoids triggering abandon callbacks and prevents StaleObjectError from optimistic locking
       # rubocop:disable Rails/SkipsModelValidations
       task.update_columns(state: "pending", stale: true)
       # rubocop:enable Rails/SkipsModelValidations
