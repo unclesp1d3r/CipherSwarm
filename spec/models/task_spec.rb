@@ -166,4 +166,66 @@ RSpec.describe Task do
       end
     end
   end
+
+  describe "#preemptable?" do
+    let(:task) { create(:task) }
+
+    context "when task is over 90% complete" do
+      it "returns false" do
+        create(:hashcat_status, :running, task: task, progress: [95, 100])
+        expect(task.preemptable?).to be false
+      end
+    end
+
+    context "when task has been preempted 2 or more times" do
+      it "returns false with 2 preemptions" do
+        task.update!(preemption_count: 2)
+        create(:hashcat_status, :running, task: task, progress: [50, 100])
+        expect(task.preemptable?).to be false
+      end
+
+      it "returns false with 3 preemptions" do
+        task.update!(preemption_count: 3)
+        create(:hashcat_status, :running, task: task, progress: [50, 100])
+        expect(task.preemptable?).to be false
+      end
+    end
+
+    context "when task is preemptable" do
+      it "returns true for task under 90% complete with 0 preemptions" do
+        create(:hashcat_status, :running, task: task, progress: [50, 100])
+        expect(task.preemptable?).to be true
+      end
+
+      it "returns true for task under 90% complete with 1 preemption" do
+        task.update!(preemption_count: 1)
+        create(:hashcat_status, :running, task: task, progress: [50, 100])
+        expect(task.preemptable?).to be true
+      end
+    end
+
+    context "when task has no hashcat_status" do
+      it "returns true" do
+        expect(task.preemptable?).to be true
+      end
+    end
+
+    context "with boundary conditions" do
+      it "returns true at exactly 90% complete" do
+        create(:hashcat_status, :running, task: task, progress: [90, 100])
+        expect(task.preemptable?).to be true
+      end
+
+      it "returns false at 90.01% complete" do
+        create(:hashcat_status, :running, task: task, progress: [9001, 10000])
+        expect(task.preemptable?).to be false
+      end
+
+      it "returns true with exactly 1 preemption" do
+        task.update!(preemption_count: 1)
+        create(:hashcat_status, :running, task: task, progress: [50, 100])
+        expect(task.preemptable?).to be true
+      end
+    end
+  end
 end
