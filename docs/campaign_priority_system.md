@@ -165,6 +165,24 @@ Key log events for troubleshooting:
 
 Check logs to verify preemption behavior and identify potential issues.
 
+### Operator View of Preemption
+
+From an operator perspective, preemption looks like this:
+
+- When you start a **high-priority** campaign while all nodes are busy with **normal/deferred** work, one of the lower-priority tasks will move from **Running → Pending** and be marked **stale**.
+- On the **dashboard**, you will see:
+  - The new high-priority attack start running on at least one agent.
+  - One or more lower-priority tasks transition to **Pending** with their last progress preserved.
+- In **logs**, you will see a `[TaskPreemption] Preempting task ...` entry with the task ID, campaign priority, and progress percentage at the moment of preemption.
+- When capacity frees up, preempted tasks will be rescheduled automatically. Because they are marked **stale**, agents will re-sync crack results before resuming.
+
+If preemption is not happening when you expect it to:
+
+- Confirm there is at least one **high-priority** campaign with remaining uncracked hashes.
+- Verify all agents are already busy with **normal** or **deferred** campaigns in the same project.
+- Check that the running tasks are not protected by the rules (e.g., >90% complete or preempted 2+ times).
+- Review logs for `[TaskPreemption]` and `[UpdateStatusJob]` entries to see why no candidate tasks were eligible.
+
 ## Migration from 7-Tier System
 
 The previous system used 7 priority levels with hard pausing:
