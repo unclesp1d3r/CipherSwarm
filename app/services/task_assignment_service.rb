@@ -54,7 +54,12 @@ class TaskAssignmentService
   end
 
   # Searches available attacks for a task to assign.
-  # Attempts preemption for high-priority attacks when no tasks are available.
+  #
+  # This method is the core of the priority-based scheduling system:
+  # 1. Iterates attacks in priority order (high → normal → deferred)
+  # 2. For each attack, tries to find/create a task
+  # 3. If no task available and attack is high priority, attempts preemption
+  # 4. Preemption allows high-priority work to interrupt lower-priority tasks
   #
   # @return [Task, nil] a task from available attacks, or nil
   def find_task_from_available_attacks
@@ -81,7 +86,12 @@ class TaskAssignmentService
   end
 
   # Checks if preemption should be attempted for an attack.
-  # Returns false if attack or campaign data is unavailable to prevent errors.
+  #
+  # Preemption is only considered for normal and high priority attacks.
+  # Deferred attacks wait naturally and never trigger preemption.
+  #
+  # The defensive nil checks and error handling ensure the assignment
+  # process continues even if campaign data is malformed or missing.
   #
   # @param attack [Attack] the attack to check
   # @return [Boolean] true if preemption should be attempted, false on any error
@@ -151,7 +161,14 @@ class TaskAssignmentService
   end
 
   # Returns attacks available for the agent based on projects and hash types.
-  # Orders by campaign priority first (high → normal → deferred), then by complexity.
+  #
+  # Ordering strategy:
+  # 1. campaigns.priority DESC: High priority attacks first (high=2, normal=0, deferred=-1)
+  # 2. attacks.complexity_value: Within same priority, simpler attacks first
+  # 3. attacks.created_at: Tie-breaker for same priority and complexity
+  #
+  # This ordering ensures high-priority campaigns get resources first,
+  # while still respecting attack complexity within each priority level.
   #
   # @return [ActiveRecord::Relation<Attack>] available attacks ordered by priority and complexity
   def available_attacks
