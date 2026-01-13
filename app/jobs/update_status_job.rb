@@ -67,18 +67,36 @@ class UpdateStatusJob < ApplicationJob
 
   # Rebalances task assignments by checking for pending high-priority attacks
   # and attempting to preempt lower-priority tasks if needed.
+  # Includes comprehensive error handling to ensure individual failures don't
+  # stop the entire rebalancing process.
   def rebalance_task_assignments
-    # Find high-priority attacks with no running tasks
-    high_priority_attacks = Attack.incomplete
-                                   .joins(:campaign)
-                                   .where(campaigns: { priority: 2 })
-                                   .where.not(id: Task.with_state(:running).select(:attack_id))
+    begin
+      # Find high-priority attacks with no running tasks
+      high_priority_attacks = Attack.incomplete
+                                     .joins(:campaign)
+                                     .where(campaigns: { priority: Campaign.priorities[:high] })
+                                     .where.not(id: Task.with_state(:running).select(:attack_id))
 
-    high_priority_attacks.each do |attack|
-      next if attack.uncracked_count.zero?
+      high_priority_attacks.each do |attack|
+        begin
+          next if attack.uncracked_count.zero?
 
-      # Attempt preemption
-      TaskPreemptionService.new(attack).preempt_if_needed
+          # Attempt preemption
+          TaskPreemptionService.new(attack).preempt_if_needed
+        rescue StandardError => e
+          Rails.logger.error(
+            "[UpdateStatusJob] Error preempting tasks for attack #{attack.id} - " \
+            "Error: #{e.class} - #{e.message} - #{Time.current}"
+          )
+          # Continue with next attack
+        end
+      end
+    rescue StandardError => e
+      Rails.logger.error(
+        "[UpdateStatusJob] Error in rebalance_task_assignments - " \
+        "Error: #{e.class} - #{e.message} - Backtrace: #{e.backtrace.first(5).join(' | ')} - #{Time.current}"
+      )
+      # Don't re-raise - this is a background job that should complete
     end
   end
 end
