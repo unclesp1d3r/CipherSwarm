@@ -111,5 +111,18 @@ RSpec.describe UpdateStatusJob do
         expect { described_class.new.perform }.to change { completed_task.hashcat_statuses.count }.from(50).to(0)
       end
     end
+
+    context "when managing campaign priorities" do
+      it "completes successfully with no active campaigns" do
+        campaign = create(:campaign)
+        create(:dictionary_attack, campaign: campaign, state: "completed")
+
+        expect { described_class.new.perform }.not_to raise_error
+      end
+
+      it "completes successfully with no campaigns at all" do
+        expect { described_class.new.perform }.not_to raise_error
+      end
+    end
   end
 end
