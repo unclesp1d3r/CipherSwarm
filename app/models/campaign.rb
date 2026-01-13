@@ -48,7 +48,7 @@
 # - `resume` - Resumes paused attacks associated with the campaign.
 #
 # @class_methods
-# - `pause_lower_priority_campaigns` - Pauses campaigns with lower priority and resumes those with the highest priority.
+# None (priority-based task assignment handled by TaskPreemptionService)
 #
 # == Schema Information
 #
