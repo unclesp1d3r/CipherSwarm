@@ -51,6 +51,15 @@ class Ability
 
     # Campaign permissions
     can :manage, Campaign, project: { id: user.all_project_ids } # User can manage campaigns in their projects
+    cannot :set_high_priority, Campaign # By default, users cannot set high priority
+
+    # High priority campaign permissions - only project admins/owners and global admins can set high priority
+    can :set_high_priority, Campaign do |campaign|
+      user.admin? || user.project_users.exists?(
+        project_id: campaign.project_id,
+        role: %i[admin owner]
+      )
+    end
 
     # Attack Resource permissions
     can %i[read create view_file view_file_content], [WordList, RuleList, MaskList], sensitive: false # Public lists

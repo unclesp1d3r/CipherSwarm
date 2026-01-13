@@ -36,8 +36,9 @@ class CampaignsController < ApplicationController
     @hash_list = HashList.find(campaign_params[:hash_list_id])
     @campaign.project = @hash_list.project if @hash_list.present?
 
-    if check_priority_authorization
-      return redirect_to(campaigns_path)
+    # Check high priority authorization if priority is high
+    if campaign_params[:priority] == "high"
+      authorize! :set_high_priority, @campaign
     end
 
     respond_to do |format|
@@ -53,8 +54,9 @@ class CampaignsController < ApplicationController
 
   # PATCH/PUT /campaigns/1 or /campaigns/1.json
   def update
-    if check_priority_authorization
-      return redirect_to(campaigns_path)
+    # Check high priority authorization if priority is high
+    if campaign_params[:priority] == "high"
+      authorize! :set_high_priority, @campaign
     end
 
     respond_to do |format|
@@ -103,36 +105,5 @@ class CampaignsController < ApplicationController
 
   def set_hash_lists
     @hash_lists = HashList.accessible_by(current_ability)
-  end
-
-  # Check if user is authorized to set high priority
-  # Regular users can only set deferred/normal priority
-  # Project admins/owners and global admins can set high priority
-  # Returns true if authorization failed (and action should not continue)
-  def check_priority_authorization
-    # If priority is not high, no authorization check needed
-    return false unless campaign_params[:priority] == "high"
-
-    # Global admins can always set high priority
-    return false if current_user.admin?
-
-    # Use campaign's project (set in create) or get from hash_list for new campaigns
-    project_id = @campaign.project_id
-    if project_id.nil?
-      hash_list = HashList.find(campaign_params[:hash_list_id])
-      project_id = hash_list.project_id
-    end
-
-    # Check if user is project admin or owner
-    is_project_admin = current_user.projects.joins(:project_users).exists?(
-      project_users: { project_id: project_id, role: %i[admin owner] }
-    )
-
-    # If user is authorized, allow the action to continue
-    return false if is_project_admin
-
-    # User is not authorized - set alert and return true
-    flash.alert = "You are not authorized to set high priority. Only project admins and owners can set high priority campaigns."
-    true
   end
 end
