@@ -81,13 +81,20 @@ class Campaign < ApplicationRecord
 
   # Priority enum for the campaign.
   #
-  # The priority enum is used to determine the priority of the campaign.
-  # Higher priority campaigns receive preferential task assignment and may preempt lower priority tasks.
+  # The priority determines task assignment order and preemption behavior:
+  # - Higher priority campaigns receive tasks before lower priority ones
+  # - High/normal priority campaigns can preempt lower priority running tasks
+  # - Deferred campaigns never trigger preemption, running only when capacity available
   #
-  # The priority can be one of the following values:
-  # - `deferred`: -1 (best effort, runs when capacity available)
-  # - `normal`: 0 (default priority for regular campaigns)
-  # - `high`: 2 (important campaigns, restricted to project admins/owners)
+  # Priority values:
+  # - `deferred`: -1 (best effort, runs when capacity available, never preempts)
+  # - `normal`: 0 (default priority for regular campaigns, can preempt deferred)
+  # - `high`: 2 (important campaigns, can preempt normal/deferred, restricted to admins)
+  #
+  # Access control:
+  # - All users can create deferred/normal campaigns
+  # - Only project admins/owners and global admins can create high priority campaigns
+  #   (enforced by CampaignsHelper#available_priorities_for and controller authorization)
   #
   # @return [Hash] the priority enum hash.
   enum :priority, { deferred: -1, normal: 0, high: 2 }
