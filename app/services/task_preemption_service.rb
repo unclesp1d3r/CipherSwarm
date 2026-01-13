@@ -85,7 +85,14 @@ class TaskPreemptionService
 
     # Filter out tasks that shouldn't be preempted
     preemptable_tasks = lower_priority_tasks.select do |task|
-      task.preemptable?
+      begin
+        task.preemptable?
+      rescue StandardError => e
+        Rails.logger.error(
+          "[TaskPreemption] Error checking if task #{task.id} is preemptable: #{e.message}"
+        )
+        false
+      end
     end
 
     return nil if preemptable_tasks.empty?
@@ -94,6 +101,12 @@ class TaskPreemptionService
     preemptable_tasks.min_by do |task|
       [task.attack.campaign.priority, task.progress_percentage]
     end
+  rescue StandardError => e
+    Rails.logger.error(
+      "[TaskPreemption] Error finding preemptable task for attack #{attack.id}: " \
+      "#{e.message}\n#{e.backtrace.first(5).join("\n")}"
+    )
+    nil
   end
 
   # Preempts a task by transitioning it to pending and marking it as stale.
