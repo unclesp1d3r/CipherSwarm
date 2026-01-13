@@ -201,4 +201,43 @@ RSpec.describe Ability do
       it { is_expected.to be_able_to(:read, :admin_dashboard) }
     end
   end
+
+  describe "High priority campaign permissions" do
+    let(:project_campaign) { create(:campaign, project: project) }
+    let(:other_campaign) { create(:campaign, project: other_project) }
+    let(:project_admin) { create(:user) }
+    let(:project_owner) { create(:user) }
+
+    before do
+      create(:project_user, user: user, project: project, role: :viewer)
+      create(:project_user, user: project_admin, project: project, role: :admin)
+      create(:project_user, user: project_owner, project: project, role: :owner)
+    end
+
+    context "when user is regular project member" do
+      it { is_expected.not_to be_able_to(:set_high_priority, project_campaign) }
+      it { is_expected.not_to be_able_to(:set_high_priority, other_campaign) }
+    end
+
+    context "when user is project admin" do
+      subject(:ability) { described_class.new(project_admin) }
+
+      it { is_expected.to be_able_to(:set_high_priority, project_campaign) }
+      it { is_expected.not_to be_able_to(:set_high_priority, other_campaign) }
+    end
+
+    context "when user is project owner" do
+      subject(:ability) { described_class.new(project_owner) }
+
+      it { is_expected.to be_able_to(:set_high_priority, project_campaign) }
+      it { is_expected.not_to be_able_to(:set_high_priority, other_campaign) }
+    end
+
+    context "when user is global admin" do
+      subject(:ability) { described_class.new(admin) }
+
+      it { is_expected.to be_able_to(:set_high_priority, project_campaign) }
+      it { is_expected.to be_able_to(:set_high_priority, other_campaign) }
+    end
+  end
 end

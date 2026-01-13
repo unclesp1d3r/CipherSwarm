@@ -167,8 +167,8 @@ RSpec.describe "Campaigns" do
           }
         }
         expect(Campaign.count).to eq(campaigns_before)
-        expect(response).to redirect_to(campaigns_path)
-        expect(flash[:alert]).to include("not authorized")
+        expect(response).to have_http_status(:unauthorized)
+        expect(response).to render_template("errors/not_authorized")
       end
     end
 
@@ -216,8 +216,8 @@ RSpec.describe "Campaigns" do
         patch campaign_path(project_campaign), params: {
           campaign: { priority: "high" }
         }
-        expect(response).to redirect_to(campaigns_path)
-        expect(flash[:alert]).to include("not authorized")
+        expect(response).to have_http_status(:unauthorized)
+        expect(response).to render_template("errors/not_authorized")
         expect(project_campaign.reload.priority).to eq("normal")
       end
     end
