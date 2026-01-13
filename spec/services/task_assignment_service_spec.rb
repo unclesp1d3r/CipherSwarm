@@ -240,4 +240,52 @@ RSpec.describe TaskAssignmentService do
       expect(second_task).to eq(first_task)
     end
   end
+
+  describe "#should_attempt_preemption?" do
+    let(:attack) { create(:dictionary_attack, campaign: campaign) }
+
+    context "when attack has nil campaign" do
+      it "returns false without raising error" do
+        allow(attack).to receive(:campaign).and_return(nil)
+        expect(service.send(:should_attempt_preemption?, attack)).to be false
+      end
+    end
+
+    context "when attack.campaign.priority is nil" do
+      it "returns false without raising error" do
+        allow(campaign).to receive(:priority).and_return(nil)
+        expect(service.send(:should_attempt_preemption?, attack)).to be false
+      end
+    end
+
+    context "when attack.campaign raises an error" do
+      it "returns false without raising error" do
+        allow(attack).to receive(:campaign).and_raise(ActiveRecord::RecordNotFound)
+        expect(service.send(:should_attempt_preemption?, attack)).to be false
+      end
+    end
+
+    context "when attack.campaign.priority raises an error" do
+      it "returns false without raising error" do
+        allow(attack.campaign).to receive(:priority).and_raise(StandardError)
+        expect(service.send(:should_attempt_preemption?, attack)).to be false
+      end
+    end
+
+    context "when campaign priority is high" do
+      before { campaign.update!(priority: :high) }
+
+      it "returns true" do
+        expect(service.send(:should_attempt_preemption?, attack)).to be true
+      end
+    end
+
+    context "when campaign priority is deferred" do
+      before { campaign.update!(priority: :deferred) }
+
+      it "returns false" do
+        expect(service.send(:should_attempt_preemption?, attack)).to be false
+      end
+    end
+  end
 end
