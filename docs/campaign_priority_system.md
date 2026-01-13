@@ -175,7 +175,11 @@ The previous system used 7 priority levels with hard pausing:
 
 ### Benefits of Simplified System
 
-✅ **Clarity**: Easy-to-understand priority levels ✅ **Efficiency**: Maximizes node utilization ✅ **Fairness**: Lower priority work progresses when capacity exists ✅ **Control**: Clear authorization for high-priority campaigns ✅ **Flexibility**: Intelligent preemption balances urgency with waste reduction
+- ✅ **Clarity**: Easy-to-understand priority levels
+- ✅ **Efficiency**: Maximizes node utilization
+- ✅ **Fairness**: Lower priority work progresses when capacity exists
+- ✅ **Control**: Clear authorization for high-priority campaigns
+- ✅ **Flexibility**: Intelligent preemption balances urgency with waste reduction
 
 ## Technical Implementation
 

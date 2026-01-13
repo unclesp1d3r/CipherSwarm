@@ -367,7 +367,7 @@ it "logs error but completes abandonment if stale update fails" do
   allow(task).to receive(:update_columns).and_raise(ActiveRecord::StatementInvalid.new("Connection lost"))
   expect(Rails.logger).to receive(:error).with(a_string_matching(/Failed to mark task as stale/))
   expect { task.abandon }.not_to raise_error
-  expect(task.reload.state).to eq("pending") # abandoned state
+  expect(task.reload.state).to eq("pending") # pending state after abandonment event
 end
 ```
 

@@ -42,7 +42,9 @@ jobs:
           cache-dependency-path: "yarn.lock"
 
       - name: Install just
-        uses: extractions/setup-just@v1
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y just
 
       # Use your canonical install recipe so this stays in sync with dev/CI.
       - name: Install project dependencies

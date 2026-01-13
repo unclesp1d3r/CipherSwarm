@@ -130,7 +130,6 @@ RSpec.describe UpdateStatusJob do
       let!(:agents) { create_list(:agent, 2, state: :active) }
 
       it "triggers preemption for pending high-priority attacks with no running tasks" do
-        skip "Debugging: preemption not being triggered. This may be a query issue with finding incomplete attacks."
         high_campaign = create(:campaign, project: project, priority: :high)
         normal_campaign = create(:campaign, project: project, priority: :normal)
 
@@ -142,8 +141,9 @@ RSpec.describe UpdateStatusJob do
         create(:hashcat_status, task: running_task_1, progress: [25, 100], status: :running)
         create(:hashcat_status, task: running_task_2, progress: [50, 100], status: :running)
 
-        # Create high-priority attack with no running tasks
+        # Create high-priority attack with no running tasks but remaining work
         high_attack = create(:dictionary_attack, campaign: high_campaign)
+        create(:hash_item, hash_list: high_campaign.hash_list, plain_text: nil)
 
         # Before running the job, verify the task is running
         expect(running_task_1.reload.state).to eq("running")

@@ -182,7 +182,7 @@ Uncovered code paths = increased bug risk
 
 | Gem                | Current | Latest | Lag         | Security Risk | Performance Gain          |
 | ------------------ | ------- | ------ | ----------- | ------------- | ------------------------- |
-| **pagy**           | 8.6.3   | 43.2.4 | 34 versions | Low           | Significant (~30% faster) |
+| **pagy**           | 8.6.3   | 43.2.3 | 34 versions | Low           | Significant (~30% faster) |
 | **rspec-rails**    | 6.1.5   | 8.0.2  | 2 major     | Low           | Better syntax, faster     |
 | **sidekiq**        | 7.3.10  | 8.1.0  | 1 major     | Low           | Better monitoring         |
 | **sidekiq-cron**   | 1.12.0  | 2.3.1  | 1 major     | Low           | Improved scheduling       |
