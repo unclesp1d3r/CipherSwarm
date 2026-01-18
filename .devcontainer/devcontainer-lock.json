@@ -1,0 +1,88 @@
+{
+  "features": {
+    "ghcr.io/devcontainers-extra/features/mise:1": {
+      "version": "1.0.0",
+      "resolved": "ghcr.io/devcontainers-extra/features/mise@sha256:5c389ab1e3c8e44e5e0ff119f6868d54dbb781bc860bd8587dc66209cb8c4a8c",
+      "integrity": "sha256:5c389ab1e3c8e44e5e0ff119f6868d54dbb781bc860bd8587dc66209cb8c4a8c"
+    },
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+      "version": "1.6.5",
+      "resolved": "ghcr.io/devcontainers/features/docker-outside-of-docker@sha256:5c0af58d6acc6d81e38b5a6130724330f2eb4f703120dea0016a35da4ad30861",
+      "integrity": "sha256:5c0af58d6acc6d81e38b5a6130724330f2eb4f703120dea0016a35da4ad30861"
+    },
+    "ghcr.io/guiyomh/features/just:0": {
+      "version": "0.1.0",
+      "resolved": "ghcr.io/guiyomh/features/just@sha256:8311dff976bd153a54a879021353a7e149963e580022b25af49c45cfc5f13bec",
+      "integrity": "sha256:8311dff976bd153a54a879021353a7e149963e580022b25af49c45cfc5f13bec"
+    },
+    "ghcr.io/joshuanianji/devcontainer-features/aws-cli-persistence:1": {
+      "version": "1.0.3",
+      "resolved": "ghcr.io/joshuanianji/devcontainer-features/aws-cli-persistence@sha256:9a09481a80ea0a2448767cd7dc03a7cd7afd568043efc63d0c77e18ded6eee9e",
+      "integrity": "sha256:9a09481a80ea0a2448767cd7dc03a7cd7afd568043efc63d0c77e18ded6eee9e"
+    },
+    "ghcr.io/joshuanianji/devcontainer-features/github-cli-persistence:1": {
+      "version": "1.0.3",
+      "resolved": "ghcr.io/joshuanianji/devcontainer-features/github-cli-persistence@sha256:757843d75915f140ec22bc16ccb5e657a910d9b1d1f445d15350a78e584d130f",
+      "integrity": "sha256:757843d75915f140ec22bc16ccb5e657a910d9b1d1f445d15350a78e584d130f"
+    },
+    "ghcr.io/nikobockerman/devcontainer-features/yarn-persistent-cache:1": {
+      "version": "1.0.0",
+      "resolved": "ghcr.io/nikobockerman/devcontainer-features/yarn-persistent-cache@sha256:f0601e287d56952dc726ee40205a278a58c9b6e4a19c5a03309253f8a18fe5e6",
+      "integrity": "sha256:f0601e287d56952dc726ee40205a278a58c9b6e4a19c5a03309253f8a18fe5e6"
+    },
+    "ghcr.io/rails/devcontainer/features/activestorage": {
+      "version": "1.1.1",
+      "resolved": "ghcr.io/rails/devcontainer/features/activestorage@sha256:7fa8fff898ac33076ebf65631d3c6c902dc9bad87de3e5dfa645f3e2d7a35c07",
+      "integrity": "sha256:7fa8fff898ac33076ebf65631d3c6c902dc9bad87de3e5dfa645f3e2d7a35c07"
+    },
+    "ghcr.io/rails/devcontainer/features/activestorage:1": {
+      "version": "1.1.1",
+      "resolved": "ghcr.io/rails/devcontainer/features/activestorage@sha256:7fa8fff898ac33076ebf65631d3c6c902dc9bad87de3e5dfa645f3e2d7a35c07",
+      "integrity": "sha256:7fa8fff898ac33076ebf65631d3c6c902dc9bad87de3e5dfa645f3e2d7a35c07"
+    },
+    "ghcr.io/rails/devcontainer/features/bundler-cache:1": {
+      "version": "1.0.1",
+      "resolved": "ghcr.io/rails/devcontainer/features/bundler-cache@sha256:a86f0bcae6473bdc4df43bf68fc57c2ce42e88790d32fed2e1c10aee1d11581b",
+      "integrity": "sha256:a86f0bcae6473bdc4df43bf68fc57c2ce42e88790d32fed2e1c10aee1d11581b"
+    },
+    "ghcr.io/rails/devcontainer/features/postgres-client": {
+      "version": "1.1.3",
+      "resolved": "ghcr.io/rails/devcontainer/features/postgres-client@sha256:dc995acf6d691de8fc2dcc88fede02c55df608aa9de17cfa4b38de06903d7715",
+      "integrity": "sha256:dc995acf6d691de8fc2dcc88fede02c55df608aa9de17cfa4b38de06903d7715"
+    },
+    "ghcr.io/rails/devcontainer/features/ruby:2": {
+      "version": "2.1.2",
+      "resolved": "ghcr.io/rails/devcontainer/features/ruby@sha256:4616b023b374d03a0ce17d0b68e463641cfd1c46f0615ad8530f5687a294e079",
+      "integrity": "sha256:4616b023b374d03a0ce17d0b68e463641cfd1c46f0615ad8530f5687a294e079"
+    },
+    "ghcr.io/roul/devcontainer-features/mise-bun:1": {
+      "version": "1.0.2",
+      "resolved": "ghcr.io/roul/devcontainer-features/mise-bun@sha256:f6966c1bf1ea3b620e20501fc3129a02eaf097cb490456c08fbb838cff6d679e",
+      "integrity": "sha256:f6966c1bf1ea3b620e20501fc3129a02eaf097cb490456c08fbb838cff6d679e",
+      "dependsOn": [
+        "ghcr.io/roul/devcontainer-features/mise:latest"
+      ]
+    },
+    "ghcr.io/roul/devcontainer-features/mise-node:1": {
+      "version": "1.0.3",
+      "resolved": "ghcr.io/roul/devcontainer-features/mise-node@sha256:60470630f6acd1f775118c9bfe92580b0f289d7b339716421010f825d1e3518b",
+      "integrity": "sha256:60470630f6acd1f775118c9bfe92580b0f289d7b339716421010f825d1e3518b",
+      "dependsOn": [
+        "ghcr.io/roul/devcontainer-features/mise:latest"
+      ]
+    },
+    "ghcr.io/roul/devcontainer-features/mise-python:1": {
+      "version": "1.0.5",
+      "resolved": "ghcr.io/roul/devcontainer-features/mise-python@sha256:06ef2a6afa08da8bfd8403217c9fdcf63f1fb0dfeefe1b4c9f1047ec2379e5cb",
+      "integrity": "sha256:06ef2a6afa08da8bfd8403217c9fdcf63f1fb0dfeefe1b4c9f1047ec2379e5cb",
+      "dependsOn": [
+        "ghcr.io/roul/devcontainer-features/mise:latest"
+      ]
+    },
+    "ghcr.io/roul/devcontainer-features/mise:latest": {
+      "version": "1.0.6",
+      "resolved": "ghcr.io/roul/devcontainer-features/mise@sha256:bcbd34b34176b6255d5aa5b881f1addc99bb3eed6049c841cb201f63fca132e4",
+      "integrity": "sha256:bcbd34b34176b6255d5aa5b881f1addc99bb3eed6049c841cb201f63fca132e4"
+    }
+  }
+}
