@@ -76,11 +76,19 @@ class TaskAssignmentService
 
       # If no task was found and this is a higher-priority attack, try preemption
       if should_attempt_preemption?(attack)
-        preempted = TaskPreemptionService.new(attack).preempt_if_needed
-        if preempted
-          # Retry finding/creating a task after successful preemption
-          task = find_or_create_task_for_attack(attack)
-          return task if task
+        begin
+          preempted = TaskPreemptionService.new(attack).preempt_if_needed
+          if preempted
+            # Retry finding/creating a task after successful preemption
+            task = find_or_create_task_for_attack(attack)
+            return task if task
+          end
+        rescue StandardError => e
+          Rails.logger.error(
+            "[TaskAssignmentService] Preemption failed for attack #{attack.id}: " \
+            "#{e.class} - #{e.message}"
+          )
+          # Continue to next attack if preemption fails
         end
       end
     end

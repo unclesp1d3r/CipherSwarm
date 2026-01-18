@@ -498,15 +498,20 @@ class Campaign < ApplicationRecord
     incomplete_attacks = attacks.without_states(:completed, :exhausted)
     return nil if incomplete_attacks.empty?
 
-    # Sum ETAs of running attacks + estimate pending attacks
+    # Get estimated finish times for running attacks
     running_etas = incomplete_attacks.with_state(:running).map(&:estimated_finish_time).compact
     pending_count = incomplete_attacks.with_state(:pending).count
 
-    # If we have running attacks, use their average ETA for pending attacks
+    # If we have running attacks, convert ETAs to durations (seconds remaining)
     if running_etas.any?
-      avg_eta = running_etas.sum / running_etas.size
-      total_seconds = running_etas.max.to_i + (pending_count * avg_eta.to_i)
-      Time.current + total_seconds
+      # Convert Time objects to durations (seconds from now)
+      running_durations = running_etas.map { |t| (t - Time.current).to_f }.compact
+      avg_duration = running_durations.sum / running_durations.size
+      running_max_seconds = running_durations.max.to_f
+
+      # Total = max running duration + estimated time for all pending attacks
+      total_seconds = running_max_seconds + (pending_count * avg_duration)
+      Time.current + total_seconds.seconds
     else
       nil # Can't estimate without running attacks
     end

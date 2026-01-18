@@ -31,8 +31,9 @@ module CampaignsHelper
     project_id = campaign.project_id || campaign.hash_list&.project_id
     return base_priorities unless project_id
 
-    is_project_admin = user.projects.joins(:project_users).exists?(
-      project_users: { project_id: project_id, role: %i[admin owner] }
+    is_project_admin = user.project_users.exists?(
+      project_id: project_id,
+      role: %i[admin owner]
     )
 
     is_project_admin ? base_priorities + [:high] : base_priorities
