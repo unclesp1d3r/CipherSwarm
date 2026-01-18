@@ -4,10 +4,32 @@
   "service": "rails-app",
   "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
   "features": {
-    "ghcr.io/devcontainers/features/github-cli:1": {},
-    "ghcr.io/rails/devcontainer/features/activestorage": {},
-    "ghcr.io/devcontainers/features/node:1": {},
-    "ghcr.io/rails/devcontainer/features/postgres-client": {}
+    "ghcr.io/devcontainers-extra/features/claude-code:1": {},
+    "ghcr.io/joshuanianji/devcontainer-features/aws-cli-persistence:1": {},
+    "ghcr.io/joshuanianji/devcontainer-features/github-cli-persistence:1": {},
+    "ghcr.io/nikobockerman/devcontainer-features/yarn-persistent-cache:1": {},
+    "ghcr.io/rails/devcontainer/features/bundler-cache:1": {},
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+      "installDockerBuildx": true,
+      "version": "latest",
+      "dockerDashComposeVersion": "v2",
+      "moby": "false"
+    },
+    "ghcr.io/guiyomh/features/just:0": {
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers-extra/features/mise:1": {
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers-extra/features/markdownlint-cli2:1": {},
+    "ghcr.io/rails/devcontainer/features/activestorage:1": {
+      "variantProcessor": "vips"
+    },
+    "ghcr.io/rails/devcontainer/features/postgres-client:1": {},
+    "ghcr.io/rails/devcontainer/features/ruby:2": {
+      "versionManager": "mise",
+      "version": "3.4.5"
+    }
   },
   "containerEnv": {
     "REDIS_URL": "redis://redis:6379/1",
@@ -35,6 +57,5 @@
         "DavidAnson.vscode-markdownlint"
       ]
     }
-  },
-  "postCreateCommand": "bin/setup"
+  }
 }

@@ -82,6 +82,7 @@
 #  last_error                                                                                             :text
 #  lock_version                                                                                           :integer          default(0), not null
 #  max_retries                                                                                            :integer          default(3), not null
+#  preemption_count                                                                                       :integer          default(0), not null, indexed
 #  retry_count                                                                                            :integer          default(0), not null
 #  stale(If new cracks since the last check, the task is stale and the new cracks need to be downloaded.) :boolean          default(FALSE), not null
 #  start_date(The date and time that the task was started.)                                               :datetime         not null
@@ -100,6 +101,7 @@
 #  index_tasks_on_attack_id                      (attack_id)
 #  index_tasks_on_claimed_by_agent_id            (claimed_by_agent_id)
 #  index_tasks_on_expires_at                     (expires_at)
+#  index_tasks_on_preemption_count               (preemption_count)
 #  index_tasks_on_state                          (state)
 #  index_tasks_on_state_and_claimed_by_agent_id  (state,claimed_by_agent_id)
 #
@@ -206,6 +208,19 @@ class Task < ApplicationRecord
     after_transition on: :abandon do |task|
       Rails.logger.info("[Task #{task.id}] Agent #{task.agent_id} - Attack #{task.attack_id} - State change: #{task.state_was} -> abandoned - Triggering attack abandonment")
       task.attack.abandon
+      # Mark task as stale to indicate new cracks may have been discovered
+      # Use update_columns to avoid stale object errors from optimistic locking
+      # rubocop:disable Rails/SkipsModelValidations
+      begin
+        task.update_columns(stale: true)
+      rescue StandardError => e
+        Rails.logger.error(
+          "[Task #{task.id}] Error updating stale flag in abandon callback - " \
+          "Error: #{e.class} - #{e.message} - #{Time.current}"
+        )
+        # Don't re-raise - this is a non-critical update
+      end
+      # rubocop:enable Rails/SkipsModelValidations
     end
 
     after_transition on: :resume do |task|
@@ -283,11 +298,49 @@ class Task < ApplicationRecord
   # @return [Float] the progress percentage of the task, ranging from 0 to 100.
   #
   # @note The current implementation works well for dictionary attacks, but may need adjustments
-  #       for other types of attacks.
+  ##
+  # The task's current progress percentage.
+  # @return [Float] The progress percentage between 0.0 and 100.0; `0.0` if no latest status is available.
   def progress_percentage
     latest_status&.progress_percentage || 0.0
   end
 
+  # Determines if a task can be preempted.
+  #
+  # A task is not preemptable if:
+  # - It is more than 90% complete (avoid preempting nearly-done work)
+  # - It has been preempted 2 or more times (prevent starvation)
+  #
+  ##
+  # Determine whether the task is eligible to be preempted.
+  # This returns `false` if the task's progress is greater than 90%, or if the task's
+  # `preemption_count` is greater than or equal to 2. If `preemption_count` is `nil`,
+  # it is treated as 0 (a warning is logged). If an error occurs while computing
+  # progress, the method assumes the task is not preemptable.
+  # @return [Boolean] `true` if the task can be preempted, `false` otherwise.
+  def preemptable?
+    begin
+      return false if progress_percentage > 90.0
+    rescue StandardError => e
+      Rails.logger.error(
+        "[Task #{id}] Error calculating progress percentage in preemptable? check - " \
+        "Error: #{e.class} - #{e.message} - Assuming not preemptable - #{Time.current}"
+      )
+      return false
+    end
+
+    if preemption_count.nil?
+      Rails.logger.warn("[Task #{id}] preemption_count is nil - assuming 0")
+    end
+
+    return false if preemption_count.to_i >= 2
+
+    true
+  end
+
+  ##
+  # Human-readable progress text for the task's current running status.
+  # @return [String, nil] The progress text from the latest running hashcat status, or `nil` if no running status exists.
   def progress_text
     latest_status&.progress_text
   end

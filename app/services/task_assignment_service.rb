@@ -55,7 +55,16 @@ class TaskAssignmentService
 
   # Searches available attacks for a task to assign.
   #
-  # @return [Task, nil] a task from available attacks, or nil
+  # This method is the core of the priority-based scheduling system:
+  # 1. Iterates attacks in priority order (high → normal → deferred)
+  # 2. For each attack, tries to find/create a task
+  # 3. If no task available and attack is high priority, attempts preemption
+  # 4. Preemption allows high-priority work to interrupt lower-priority tasks
+  #
+  ##
+  # Searches the agent's available attacks in priority order and returns the first assignable task.
+  # May attempt preemption on higher-priority attacks when no immediate task is found, and will retry after successful preemption.
+  # @return [Task, nil] The found or newly created task for the agent, or `nil` if no task could be assigned.
   def find_task_from_available_attacks
     return nil if agent.project_ids.blank?
 
@@ -64,9 +73,54 @@ class TaskAssignmentService
 
       task = find_or_create_task_for_attack(attack)
       return task if task
+
+      # If no task was found and this is a higher-priority attack, try preemption
+      if should_attempt_preemption?(attack)
+        begin
+          preempted = TaskPreemptionService.new(attack).preempt_if_needed
+          if preempted
+            # Retry finding/creating a task after successful preemption
+            task = find_or_create_task_for_attack(attack)
+            return task if task
+          end
+        rescue StandardError => e
+          Rails.logger.error(
+            "[TaskAssignmentService] Preemption failed for attack #{attack.id}: " \
+            "#{e.class} - #{e.message}"
+          )
+          # Continue to next attack if preemption fails
+        end
+      end
     end
 
     nil
+  end
+
+  # Checks if preemption should be attempted for an attack.
+  #
+  # Preemption is only considered for normal and high priority attacks.
+  # Deferred attacks wait naturally and never trigger preemption.
+  #
+  # The defensive nil checks and error handling ensure the assignment
+  # process continues even if campaign data is malformed or missing.
+  #
+  # @param attack [Attack] the attack to check
+  ##
+  # Determines whether preemption should be attempted for the given attack.
+  # @param [Attack] attack - The attack to evaluate; may be nil.
+  # @return [Boolean] `true` if the attack's campaign exists and its priority is not `:deferred` (for example normal or high), `false` otherwise or on error.
+  def should_attempt_preemption?(attack)
+    # Only attempt preemption for normal or high priority attacks
+    # Deferred attacks wait naturally
+    return false if attack.nil? || attack.campaign.nil?
+
+    attack.campaign.priority.present? && attack.campaign.priority.to_sym != :deferred
+  rescue StandardError => e
+    Rails.logger.error(
+      "[TaskAssignmentService] Error checking preemption eligibility for attack #{attack&.id} - " \
+      "Error: #{e.class} - #{e.message} - #{Time.current}"
+    )
+    false
   end
 
   # Finds or creates a task for a specific attack.
@@ -122,13 +176,23 @@ class TaskAssignmentService
 
   # Returns attacks available for the agent based on projects and hash types.
   #
-  # @return [ActiveRecord::Relation<Attack>] available attacks ordered by complexity
+  # Ordering strategy:
+  # 1. campaigns.priority DESC: High priority attacks first (high=2, normal=0, deferred=-1)
+  # 2. attacks.complexity_value: Within same priority, simpler attacks first
+  # 3. attacks.created_at: Tie-breaker for same priority and complexity
+  #
+  # This ordering ensures high-priority campaigns get resources first,
+  # while still respecting attack complexity within each priority level.
+  #
+  ##
+  # Retrieves attacks that are not complete for campaigns associated with the agent, filtered by the agent's allowed hash types and ordered by campaign priority, attack complexity, then creation time.
+  # @return [ActiveRecord::Relation<Attack>] An ActiveRecord relation of matching Attack records ordered by campaigns.priority DESC, attacks.complexity_value, and attacks.created_at.
   def available_attacks
     Attack.incomplete
           .joins(campaign: { hash_list: :hash_type })
           .where(campaigns: { project_id: agent.project_ids })
           .where(hash_lists: { hash_type_id: allowed_hash_type_ids })
-          .order(:complexity_value, :created_at)
+          .order("campaigns.priority DESC, attacks.complexity_value, attacks.created_at")
   end
 
   # Returns hash type IDs the agent can work on, cached for performance.

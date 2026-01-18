@@ -7,16 +7,16 @@
 #
 # Table name: campaigns
 #
-#  id                                                                                                     :bigint           not null, primary key
-#  attacks_count                                                                                          :integer          default(0), not null
-#  deleted_at                                                                                             :datetime         indexed
-#  description                                                                                            :text
-#  name                                                                                                   :string           not null
-#  priority( -1: Deferred, 0: Routine, 1: Priority, 2: Urgent, 3: Immediate, 4: Flash, 5: Flash Override) :integer          default("routine"), not null
-#  created_at                                                                                             :datetime         not null
-#  updated_at                                                                                             :datetime         not null
-#  hash_list_id                                                                                           :bigint           not null, indexed
-#  project_id                                                                                             :bigint           not null, indexed
+#  id                                         :bigint           not null, primary key
+#  attacks_count                              :integer          default(0), not null
+#  deleted_at                                 :datetime         indexed
+#  description                                :text
+#  name                                       :string           not null
+#  priority(-1: Deferred, 0: Normal, 2: High) :integer          default("normal"), not null
+#  created_at                                 :datetime         not null
+#  updated_at                                 :datetime         not null
+#  hash_list_id                               :bigint           not null, indexed
+#  project_id                                 :bigint           not null, indexed
 #
 # Indexes
 #
@@ -95,20 +95,12 @@ RSpec.describe Campaign do
     end
 
     describe "#priority_to_emoji" do
-      it "returns the correct emoji for each priority" do # rubocop:disable RSpec/MultipleExpectations
-        expect(campaign.priority_to_emoji).to eq("🔄") # routine
+      it "returns the correct emoji for each priority" do
+        expect(campaign.priority_to_emoji).to eq("🔄") # normal
         campaign.update(priority: :deferred)
         expect(campaign.priority_to_emoji).to eq("🕰")
-        campaign.update(priority: :priority)
-        expect(campaign.priority_to_emoji).to eq("🔵")
-        campaign.update(priority: :urgent)
-        expect(campaign.priority_to_emoji).to eq("🟠")
-        campaign.update(priority: :immediate)
+        campaign.update(priority: :high)
         expect(campaign.priority_to_emoji).to eq("🔴")
-        campaign.update(priority: :flash)
-        expect(campaign.priority_to_emoji).to eq("🟡")
-        campaign.update(priority: :flash_override)
-        expect(campaign.priority_to_emoji).to eq("🔒")
       end
     end
 
@@ -183,76 +175,27 @@ RSpec.describe Campaign do
     end
   end
 
-  describe ".pause_lower_priority_campaigns" do
-    context "when no campaigns exist" do
-      it "completes without raising errors" do
-        expect { described_class.pause_lower_priority_campaigns }.not_to raise_error
+  # Tests for manual pause/resume functionality
+  describe "manual campaign control" do
+    context "when pausing a campaign" do
+      it "pauses all active attacks" do
+        campaign = create(:campaign, priority: :normal)
+        attack = create(:dictionary_attack, campaign: campaign, state: "running")
+
+        campaign.pause
+        attack.reload
+        expect(attack.state).to eq("paused")
       end
     end
 
-    context "when no active campaigns exist" do
-      it "completes without raising errors when all campaigns are completed" do
-        campaign = create(:campaign)
-        create(:dictionary_attack, campaign: campaign, state: "completed")
-        expect { described_class.pause_lower_priority_campaigns }.not_to raise_error
-      end
-    end
-
-    context "when a single active campaign exists" do
-      it "resumes the campaign" do
-        campaign = create(:campaign, priority: :routine)
+    context "when resuming a campaign" do
+      it "resumes all paused attacks" do
+        campaign = create(:campaign, priority: :normal)
         attack = create(:dictionary_attack, campaign: campaign, state: "paused")
 
-        described_class.pause_lower_priority_campaigns
+        campaign.resume
         attack.reload
         expect(attack.state).to eq("pending")
-      end
-    end
-
-    context "when multiple campaigns with same priority exist" do
-      it "resumes all campaigns with max priority" do
-        campaign1 = create(:campaign, priority: :routine)
-        campaign2 = create(:campaign, priority: :routine)
-        attack1 = create(:dictionary_attack, campaign: campaign1, state: "paused")
-        attack2 = create(:dictionary_attack, campaign: campaign2, state: "paused")
-
-        described_class.pause_lower_priority_campaigns
-        attack1.reload
-        attack2.reload
-        expect(attack1.state).to eq("pending")
-        expect(attack2.state).to eq("pending")
-      end
-    end
-
-    context "when multiple campaigns with different priorities exist" do
-      it "pauses lower priority campaigns and resumes highest priority" do
-        low_priority = create(:campaign, priority: :routine)
-        high_priority = create(:campaign, priority: :urgent)
-        low_attack = create(:dictionary_attack, campaign: low_priority, state: "running")
-        high_attack = create(:dictionary_attack, campaign: high_priority, state: "paused")
-
-        described_class.pause_lower_priority_campaigns
-        low_attack.reload
-        high_attack.reload
-        expect(low_attack.state).to eq("paused")
-        expect(high_attack.state).to eq("pending")
-      end
-
-      it "pauses all campaigns below highest priority" do
-        deferred = create(:campaign, priority: :deferred)
-        routine = create(:campaign, priority: :routine)
-        urgent = create(:campaign, priority: :urgent)
-        deferred_attack = create(:dictionary_attack, campaign: deferred, state: "running")
-        routine_attack = create(:dictionary_attack, campaign: routine, state: "running")
-        urgent_attack = create(:dictionary_attack, campaign: urgent, state: "paused")
-
-        described_class.pause_lower_priority_campaigns
-        deferred_attack.reload
-        routine_attack.reload
-        urgent_attack.reload
-        expect(deferred_attack.state).to eq("paused")
-        expect(routine_attack.state).to eq("paused")
-        expect(urgent_attack.state).to eq("pending")
       end
     end
   end

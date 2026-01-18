@@ -1,0 +1,51 @@
+name: "Copilot Setup Steps"
+
+# Automatically run the setup steps when they are changed to allow for easy validation,
+# and allow manual testing through the repository's "Actions" tab.
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+  pull_request:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+
+jobs:
+  # The job MUST be called `copilot-setup-steps` or it will not be picked up by Copilot.
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+
+    # Minimal permissions needed for these steps.
+    permissions:
+      contents: read
+
+    # Must be <= 59 according to Copilot setup docs.
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: .ruby-version
+          bundler-cache: true
+
+      - name: Set up Node.js (from .node-version)
+        uses: actions/setup-node@v4
+        with:
+          # Keeps Copilot's Node version in sync with the repo.
+          node-version-file: ".node-version"
+          cache: yarn
+          cache-dependency-path: "yarn.lock"
+
+      - name: Install just
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y just
+
+      # Use your canonical install recipe so this stays in sync with dev/CI.
+      - name: Install project dependencies
+        run: just install
