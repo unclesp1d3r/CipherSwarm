@@ -194,3 +194,4 @@ modules.xml
 .claude/skills/repomix-reference-cipher-swarm/
 repomix-output.xml
 .playwright-mcp/
+.devcontainer/.devpod-internal/
