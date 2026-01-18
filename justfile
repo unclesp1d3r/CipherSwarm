@@ -11,7 +11,7 @@ default:
 
 # Install all dependencies (bundler, yarn, etc.)
 install:
-    bundle install
+    bin/bundle install
     yarn install
 
 # Setup database and initial configuration
@@ -33,7 +33,7 @@ console:
 
 # Start Sidekiq worker
 sidekiq:
-    bundle exec sidekiq
+    bin/bundle exec sidekiq
 
 # === Code Quality ===
 
@@ -47,18 +47,17 @@ check: pre-commit security
 
 # Auto-format all code (RuboCop, ERB)
 format:
-    bundle exec rubocop -A
-    bundle exec erb_lint --lint-all --autocorrect
+    bin/bundle exec rubocop -A
+    bin/bundle exec erb_lint --lint-all --autocorrect
     @echo "✓ Code formatted"
 
 # Run RuboCop linting only
 lint:
-    bundle exec rubocop
+    bin/bundle exec rubocop
 
 # Run Brakeman security scanner
 security:
-    bundle exec brakeman -q --no-pager
-
+    bin/bundle exec brakeman -q --no-pager
 # Run all quality checks (lint + security + formatting)
 quality: lint security format
 
@@ -70,27 +69,27 @@ test-js:
 
 # Run all tests (JS + RSpec with coverage)
 test-all: test-js
-    COVERAGE=true bundle exec rspec
+    COVERAGE=true bin/bundle exec rspec
 
 # Run RSpec tests with coverage
 test:
-    COVERAGE=true bundle exec rspec
+    COVERAGE=true bin/bundle exec rspec
 
 # Run specific test file
 test-file FILE:
-    bundle exec rspec {{FILE}}
+    bin/bundle exec rspec {{FILE}}
 
 # Run system tests with visible browser
 test-system:
-    bundle exec rspec spec/system
+    bin/bundle exec rspec spec/system
 
 # Run tests in parallel
 test-parallel:
-    bundle exec rspec --parallel
+    bin/bundle exec rspec --parallel
 
 # Run API integration tests
 test-api:
-    bundle exec rspec spec/requests
+    bin/bundle exec rspec spec/requests
 
 # === Database Management ===
 
@@ -180,7 +179,7 @@ assets-precompile:
 
 # Monitor Sidekiq stats
 sidekiq-monitor:
-    bundle exec sidekiqmon
+    bin/bundle exec sidekiqmon
 
 # Clear Sidekiq queues
 sidekiq-clear:
@@ -195,11 +194,11 @@ sidekiq-web:
 
 # Generate Swagger/OpenAPI documentation
 docs-api:
-    RAILS_ENV=test rails rswag
+    RAILS_ENV=test bin/rails rswag
 
 # Regenerates Swagger/OpenAPI documentation with examples
 docs-api-full:
-    RSWAG_DRY_RUN=0 RAILS_ENV=test rails rswag
+    RSWAG_DRY_RUN=0 RAILS_ENV=test bin/rails rswag
 
 # Serve documentation locally (placeholder - implement based on your docs setup)
 docs-serve:
@@ -217,7 +216,7 @@ docs-generate: test-api docs-api
 
 # Update all dependencies
 update:
-    bundle update
+    bin/bundle update
     yarn upgrade
     @echo "✓ Dependencies updated"
 
@@ -235,7 +234,7 @@ routes:
 
 # Annotate models with schema info
 annotate:
-    bundle exec annotate --models --routes
+    bin/bundle exec annotate --models --routes
 
 # Generate changelog (requires git-cliff)
 changelog:
