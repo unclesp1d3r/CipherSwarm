@@ -64,14 +64,23 @@ class TaskPreemptionService
 
   private
 
-  # Checks if there are available nodes (active agents > running tasks).
+  # Checks if there are available nodes for the attack's project.
+  # Scoped to the project to match find_preemptable_task filtering.
   #
   ##
-  # Determine whether there are more active agents than running tasks.
-  # @return [Boolean] `true` if there are more active agents than running tasks, `false` otherwise.
+  # Determine whether there are more active agents assigned to the project than running tasks for that project.
+  # @return [Boolean] `true` if there are more active agents than running tasks for the project, `false` otherwise.
   def nodes_available?
-    active_agent_count = Agent.with_state(:active).count
-    running_task_count = Task.with_state(:running).count
+    project_id = attack.campaign.project_id
+    active_agent_count = Agent.joins(:projects)
+                              .where(projects: { id: project_id })
+                              .with_state(:active)
+                              .distinct
+                              .count
+    running_task_count = Task.joins(attack: :campaign)
+                             .where(campaigns: { project_id: project_id })
+                             .with_state(:running)
+                             .count
     active_agent_count > running_task_count
   end
 
@@ -96,6 +105,7 @@ class TaskPreemptionService
                                .where("campaigns.priority < ?", priority_value)
                                # rubocop:enable Rails/WhereRange
                                .includes(attack: :campaign)
+                               .includes(:hashcat_statuses)
 
     # Filter out tasks that shouldn't be preempted
     preemptable_tasks = lower_priority_tasks.select do |task|

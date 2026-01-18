@@ -52,6 +52,26 @@ RSpec.describe CampaignsHelper do
       end
     end
 
+    context "when user is a project editor" do
+      it "returns only deferred and normal priorities" do
+        project.project_users.create!(user: user, role: :editor)
+
+        result = helper.available_priorities_for(campaign, user)
+
+        expect(result).to eq(%i[deferred normal])
+      end
+    end
+
+    context "when user is a project contributor" do
+      it "returns only deferred and normal priorities" do
+        project.project_users.create!(user: user, role: :contributor)
+
+        result = helper.available_priorities_for(campaign, user)
+
+        expect(result).to eq(%i[deferred normal])
+      end
+    end
+
     context "when campaign does not have a project_id" do
       it "uses hash_list project_id if available" do
         campaign_without_project = build(:campaign, project: nil, hash_list: hash_list)
