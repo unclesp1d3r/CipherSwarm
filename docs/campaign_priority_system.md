@@ -306,6 +306,6 @@ GET /campaigns/{id}
 ## Further Reading
 
 - [System Tests Guide](testing/system-tests-guide.md)
-- [API Documentation](/api-docs)
+- [API Documentation](api-reference-agent-auth.md)
 - [Task Assignment Algorithm](../app/services/task_assignment_service.rb)
 - [Preemption Service](../app/services/task_preemption_service.rb)
