@@ -1,7 +1,5 @@
 # Tech Plan: Operational Excellence Implementation
 
-# Tech Plan: Operational Excellence Implementation
-
 This technical plan defines the implementation approach for the CipherSwarm V2 Operational Excellence Epic. The plan extends the existing Rails 8 + Hotwire + ViewComponent architecture without introducing new frameworks, ensuring maintainability for a solo part-time developer.
 
 ## Architectural Approach
@@ -72,7 +70,7 @@ Implement structured logging to improve debuggability and enable log parsing/ana
 Rails.application.configure do
   config.lograge.enabled = true
   config.lograge.formatter = Lograge::Formatters::Json.new
-  
+
   config.lograge.custom_options = lambda do |event|
     {
       user_id: event.payload[:user_id],
@@ -203,26 +201,26 @@ Implement tabbed agent detail page using Stimulus controller for fast tab switch
 // app/javascript/controllers/tabs_controller.js
 import {
     Controller
-} from "@hotwired/stimulus"
+} from "@hotwired/stimulus";
 
 export default class extends Controller {
-    static targets = ["tab", "panel"]
+    static targets = ["tab", "panel"];
 
     switch (event) {
-        const tabName = event.currentTarget.dataset.tabName
+        const tabName = event.currentTarget.dataset.tabName;
 
         // Hide all panels
-        this.panelTargets.forEach(panel => panel.classList.add("d-none"))
+        this.panelTargets.forEach((panel) => panel.classList.add("d-none"));
 
         // Show selected panel
         const selectedPanel = this.panelTargets.find(
-            panel => panel.dataset.tabPanel === tabName
-        )
-        selectedPanel.classList.remove("d-none")
+            (panel) => panel.dataset.tabPanel === tabName,
+        );
+        selectedPanel.classList.remove("d-none");
 
         // Update active tab styling
-        this.tabTargets.forEach(tab => tab.classList.remove("active"))
-        event.currentTarget.classList.add("active")
+        this.tabTargets.forEach((tab) => tab.classList.remove("active"));
+        event.currentTarget.classList.add("active");
     }
 }
 ```
@@ -249,18 +247,18 @@ Implement toast notifications using Stimulus controller to trigger Bootstrap 5 t
 // app/javascript/controllers/toast_controller.js
 import {
     Controller
-} from "@hotwired/stimulus"
+} from "@hotwired/stimulus";
 import {
     Toast
-} from "bootstrap"
+} from "bootstrap";
 
 export default class extends Controller {
     connect() {
         const toast = new Toast(this.element, {
             autohide: true,
-            delay: 5000
-        })
-        toast.show()
+            delay: 5000,
+        });
+        toast.show();
     }
 }
 ```
@@ -304,15 +302,15 @@ Implement system health monitoring without database persistence, using Rails.cac
 def index
   @health_status = fetch_health_status_with_lock
 end
-  
+
 def fetch_health_status_with_lock
   # Use Redis lock to prevent cache stampede
   lock_key = "system_health_check_lock"
-    
+
   # Try to get cached value first
   cached = Rails.cache.read("system_health")
   return cached if cached
-    
+
   # Acquire lock to run health checks
   Redis.current.set(lock_key, "locked", nx: true, ex: 10) do
     # Run health checks
@@ -322,12 +320,12 @@ def fetch_health_status_with_lock
       minio: check_minio,
       sidekiq: check_sidekiq
     }
-      
+
     # Cache results for 1 minute
     Rails.cache.write("system_health", status, expires_in: 1.minute)
     status
   end
-    
+
   # If we couldn't get lock, return cached value or wait briefly and retry
   Rails.cache.read("system_health") || {
     postgresql: { status: :checking },
@@ -343,7 +341,7 @@ def check_postgresql
   start_time = Time.current
   ActiveRecord::Base.connection.execute("SELECT 1")
   latency = ((Time.current - start_time) * 1000).round(2)
-    
+
   { status: :healthy, latency: latency }
 rescue => e
   Rails.logger.error("PostgreSQL health check failed: #{e.message}")
@@ -375,13 +373,13 @@ class AddPerformanceIndexes < ActiveRecord::Migration[8.0]
   def change
     # Index for recent cracks query
     add_index :hash_items, :cracked_time
-    
+
     # Index for recent errors query
     add_index :agent_errors, :created_at
-    
+
     # Index for latest status query
     add_index :hashcat_statuses, :time
-    
+
     # Composite index for agent task lookup
     add_index :tasks, [:agent_id, :state]
   end
@@ -400,7 +398,7 @@ class AddCachedMetricsToAgents < ActiveRecord::Migration[8.0]
     add_column :agents, :current_temperature, :integer
     add_column :agents, :current_utilization, :integer
     add_column :agents, :metrics_updated_at, :datetime
-    
+
     add_index :agents, :metrics_updated_at
   end
 end
@@ -418,7 +416,7 @@ Add methods to update and retrieve cached performance metrics.
 # app/models/agent.rb
 class Agent < ApplicationRecord
   # ... existing code ...
-  
+
   def hash_rate_display
     return "—" unless current_hash_rate
     return "0 H/s" if current_hash_rate.zero?
@@ -435,19 +433,19 @@ Add callback to update agent metrics when status is created.
 # app/models/hashcat_status.rb
 class HashcatStatus < ApplicationRecord
   belongs_to :task
-  
+
   after_create_commit :update_agent_metrics
-  
+
   private
-  
+
   def update_agent_metrics
     agent = task.agent
     return unless agent
     return unless status == :running
-    
+
     # Only update if metrics are stale (30 seconds)
     return if agent.metrics_updated_at && agent.metrics_updated_at > 30.seconds.ago
-    
+
     agent.update_columns(
       current_hash_rate: hash_rate,
       current_temperature: device_temperature,
@@ -470,40 +468,40 @@ Add methods to calculate campaign estimated finish time (both current and total)
 # app/models/campaign.rb
 class Campaign < ApplicationRecord
   # ... existing code ...
-  
+
   # Current attack ETA (only running attacks)
   def current_eta
     Rails.cache.fetch("#{cache_key_with_version}/current_eta", expires_in: 1.minute) do
       calculate_current_eta
     end
   end
-  
+
   # Total campaign ETA (all incomplete attacks)
   def total_eta
     Rails.cache.fetch("#{cache_key_with_version}/total_eta", expires_in: 1.minute) do
       calculate_total_eta
     end
   end
-  
+
   private
-  
+
   def calculate_current_eta
     running_attacks = attacks.with_state(:running)
     return nil if running_attacks.empty?
-    
+
     # Return the maximum ETA of all running attacks
     etas = running_attacks.map(&:estimated_finish_time).compact
     etas.max
   end
-  
+
   def calculate_total_eta
     incomplete_attacks = attacks.without_states(:completed, :exhausted)
     return nil if incomplete_attacks.empty?
-    
+
     # Sum ETAs of running attacks + estimate pending attacks
     running_etas = incomplete_attacks.with_state(:running).map(&:estimated_finish_time).compact
     pending_count = incomplete_attacks.with_state(:pending).count
-    
+
     # If we have running attacks, use their average ETA for pending attacks
     if running_etas.any?
       avg_eta = running_etas.sum / running_etas.size
@@ -526,7 +524,7 @@ Add method to retrieve recently cracked hashes (last 24 hours).
 # app/models/hash_list.rb
 class HashList < ApplicationRecord
   # ... existing code ...
-  
+
   def recent_cracks(limit: 100)
     Rails.cache.fetch("#{cache_key_with_version}/recent_cracks", expires_in: 1.minute) do
       hash_items
@@ -535,7 +533,7 @@ class HashList < ApplicationRecord
         .limit(limit)
     end
   end
-  
+
   def recent_cracks_count
     Rails.cache.fetch("#{cache_key_with_version}/recent_cracks_count", expires_in: 1.minute) do
       hash_items.where("cracked_time > ?", 24.hours.ago).count
@@ -556,15 +554,15 @@ Add retry event to Task state machine for proper failed → pending transition.
 # app/models/task.rb
 class Task < ApplicationRecord
   # ... existing code ...
-  
+
   state_machine :state, initial: :pending do
     # ... existing events ...
-    
+
     # New retry event for manual task retry
     event :retry do
       transition failed: :pending
     end
-    
+
     after_transition on: :retry do |task|
       Rails.logger.info("[Task #{task.id}] Agent #{task.agent_id} - Attack #{task.attack_id} - State change: failed -> pending - Task manually retried")
       task.increment!(:retry_count)
@@ -588,17 +586,17 @@ Add project-based authorization for task management actions.
 # app/models/ability.rb
 class Ability
   include CanCan::Ability
-  
+
   def initialize(user)
     # ... existing code ...
-    
+
     # Task management (project-based)
     can :read, Task, attack: { campaign: { project_id: user.project_ids } }
     can :cancel, Task, attack: { campaign: { project_id: user.project_ids } }
     can :retry, Task, attack: { campaign: { project_id: user.project_ids } }
     can :reassign, Task, attack: { campaign: { project_id: user.project_ids } }
     can :download_results, Task, attack: { campaign: { project_id: user.project_ids } }
-    
+
     # Admins can manage all tasks
     can :manage, Task if user.admin?
   end
@@ -619,7 +617,7 @@ Displays agent status in list view with real-time updates.
 # app/components/agent_status_card_component.rb
 class AgentStatusCardComponent < ApplicationViewComponent
   option :agent, required: true
-  
+
   def status_badge_variant
     case agent.state
     when "active" then "success"
@@ -628,7 +626,7 @@ class AgentStatusCardComponent < ApplicationViewComponent
     else "secondary"
     end
   end
-  
+
   def error_count
     agent.agent_errors.where("created_at > ?", 24.hours.ago).count
   end
@@ -643,7 +641,7 @@ Tabbed interface for agent detail page.
 # app/components/agent_detail_tabs_component.rb
 class AgentDetailTabsComponent < ApplicationViewComponent
   option :agent, required: true
-  
+
   renders_one :overview_tab
   renders_one :errors_tab
   renders_one :configuration_tab
@@ -659,11 +657,11 @@ Progress bar with ETA for campaign attacks.
 # app/components/campaign_progress_component.rb
 class CampaignProgressComponent < ApplicationViewComponent
   option :attack, required: true
-  
+
   def progress_percentage
     attack.percentage_complete
   end
-  
+
   def eta_text
     return "Calculating..." unless attack.estimated_finish_time
     "ETA: #{distance_of_time_in_words_to_now(attack.estimated_finish_time)}"
@@ -680,7 +678,7 @@ Modal dialog for displaying error details.
 class ErrorModalComponent < ApplicationViewComponent
   option :error, required: true
   option :modal_id, required: true
-  
+
   def severity_badge_variant
     case error.severity
     when "fatal" then "danger"
@@ -704,11 +702,11 @@ class SystemHealthCardComponent < ApplicationViewComponent
   option :status, required: true
   option :latency, default: proc { nil }
   option :error, default: proc { nil }
-  
+
   def status_variant
     status == :healthy ? "success" : "danger"
   end
-  
+
   def status_icon
     status == :healthy ? "check-circle" : "x-circle"
   end
@@ -723,15 +721,15 @@ Action buttons for task management.
 # app/components/task_actions_component.rb
 class TaskActionsComponent < ApplicationViewComponent
   option :task, required: true
-  
+
   def can_cancel?
     task.pending? || task.running?
   end
-  
+
   def can_retry?
     task.failed?
   end
-  
+
   def can_reassign?
     task.pending? || task.failed?
   end
@@ -759,7 +757,7 @@ Toast notification for success/error feedback.
 class ToastNotificationComponent < ApplicationViewComponent
   option :message, required: true
   option :variant, default: proc { "success" } # success, danger, warning, info
-  
+
   def toast_class
     "toast-#{variant}"
   end
@@ -778,36 +776,36 @@ Manages tabbed interface for agent detail page.
 // app/javascript/controllers/tabs_controller.js
 import {
     Controller
-} from "@hotwired/stimulus"
+} from "@hotwired/stimulus";
 
 export default class extends Controller {
-    static targets = ["tab", "panel"]
+    static targets = ["tab", "panel"];
 
     connect() {
         // Show first tab by default
-        this.showTab(0)
+        this.showTab(0);
     }
 
     switch (event) {
-        event.preventDefault()
-        const index = this.tabTargets.indexOf(event.currentTarget)
-        this.showTab(index)
+        event.preventDefault();
+        const index = this.tabTargets.indexOf(event.currentTarget);
+        this.showTab(index);
     }
 
     showTab(index) {
         // Hide all panels
-        this.panelTargets.forEach(panel => {
-            panel.classList.add("d-none")
-        })
+        this.panelTargets.forEach((panel) => {
+            panel.classList.add("d-none");
+        });
 
         // Show selected panel
-        this.panelTargets[index].classList.remove("d-none")
+        this.panelTargets[index].classList.remove("d-none");
 
         // Update active tab
-        this.tabTargets.forEach(tab => {
-            tab.classList.remove("active")
-        })
-        this.tabTargets[index].classList.add("active")
+        this.tabTargets.forEach((tab) => {
+            tab.classList.remove("active");
+        });
+        this.tabTargets[index].classList.add("active");
     }
 }
 ```
@@ -820,34 +818,34 @@ Triggers Bootstrap toast notifications.
 // app/javascript/controllers/toast_controller.js
 import {
     Controller
-} from "@hotwired/stimulus"
+} from "@hotwired/stimulus";
 import {
     Toast
-} from "bootstrap"
+} from "bootstrap";
 
 export default class extends Controller {
     static values = {
         autohide: {
             type: Boolean,
-            default: true
+            default: true,
         },
         delay: {
             type: Number,
-            default: 5000
-        }
-    }
+            default: 5000,
+        },
+    };
 
     connect() {
         const toast = new Toast(this.element, {
             autohide: this.autohideValue,
-            delay: this.delayValue
-        })
-        toast.show()
+            delay: this.delayValue,
+        });
+        toast.show();
 
         // Remove from DOM after hidden
         this.element.addEventListener("hidden.bs.toast", () => {
-            this.element.remove()
-        })
+            this.element.remove();
+        });
     }
 }
 ```
@@ -864,22 +862,22 @@ Displays system health dashboard.
 # app/controllers/system_health_controller.rb
 class SystemHealthController < ApplicationController
   before_action :authenticate_user!
-  
+
   def index
     authorize! :read, :system_health
-    
+
     @health_status = fetch_health_status_with_lock
   end
-  
+
   def fetch_health_status_with_lock
     # Try to get cached value first
     cached = Rails.cache.read("system_health")
     return cached if cached
-    
+
     # Use Redis lock to prevent cache stampede
     lock_key = "system_health_check_lock"
     lock_acquired = Redis.current.set(lock_key, "locked", nx: true, ex: 10)
-    
+
     if lock_acquired
       # Run health checks
       status = {
@@ -888,13 +886,13 @@ class SystemHealthController < ApplicationController
         minio: check_minio,
         sidekiq: check_sidekiq
       }
-      
+
       # Cache results for 1 minute
       Rails.cache.write("system_health", status, expires_in: 1.minute)
-      
+
       # Release lock
       Redis.current.del(lock_key)
-      
+
       status
     else
       # Another request is running checks, wait briefly and return cached value
@@ -907,46 +905,46 @@ class SystemHealthController < ApplicationController
       }
     end
   end
-  
+
   private
-  
+
   def check_postgresql
     start_time = Time.current
     ActiveRecord::Base.connection.execute("SELECT 1")
     latency = ((Time.current - start_time) * 1000).round(2)
-    
+
     { status: :healthy, latency: latency }
   rescue => e
     Rails.logger.error("PostgreSQL health check failed: #{e.message}")
     { status: :unhealthy, error: e.message }
   end
-  
+
   def check_redis
     start_time = Time.current
     Redis.current.ping
     latency = ((Time.current - start_time) * 1000).round(2)
-    
+
     { status: :healthy, latency: latency }
   rescue => e
     Rails.logger.error("Redis health check failed: #{e.message}")
     { status: :unhealthy, error: e.message }
   end
-  
+
   def check_minio
     # Check S3 bucket access
     start_time = Time.current
     ActiveStorage::Blob.service.exist?("health_check")
     latency = ((Time.current - start_time) * 1000).round(2)
-    
+
     { status: :healthy, latency: latency }
   rescue => e
     Rails.logger.error("MinIO health check failed: #{e.message}")
     { status: :unhealthy, error: e.message }
   end
-  
+
   def check_sidekiq
     stats = Sidekiq::Stats.new
-    
+
     {
       status: :healthy,
       workers: stats.workers_size,
@@ -969,15 +967,15 @@ Manages task lifecycle actions.
 class TasksController < ApplicationController
   before_action :authenticate_user!
   load_and_authorize_resource
-  
+
   def show
     @task = Task.includes(:agent, :attack, :hashcat_statuses).find(params[:id])
   end
-  
+
   def cancel
     @task = Task.find(params[:id])
     authorize! :cancel, @task
-    
+
     if @task.cancel
       respond_to do |format|
         format.turbo_stream do
@@ -997,11 +995,11 @@ class TasksController < ApplicationController
       end
     end
   end
-  
+
   def retry
     @task = Task.find(params[:id])
     authorize! :retry, @task
-    
+
     # Use state machine event for proper transition
     if @task.retry
       respond_to do |format|
@@ -1022,13 +1020,13 @@ class TasksController < ApplicationController
       end
     end
   end
-  
+
   def reassign
     @task = Task.find(params[:id])
     authorize! :reassign, @task
-    
+
     new_agent = Agent.find(params[:agent_id])
-    
+
     # Validate agent can handle this task
     unless agent_compatible_with_task?(new_agent, @task)
       respond_to do |format|
@@ -1039,7 +1037,7 @@ class TasksController < ApplicationController
       end
       return
     end
-    
+
     if @task.update(agent: new_agent, state: :pending)
       respond_to do |format|
         format.turbo_stream do
@@ -1059,52 +1057,52 @@ class TasksController < ApplicationController
       end
     end
   end
-  
+
   def logs
     @task = Task.find(params[:id])
     authorize! :read, @task
-    
+
     @logs = @task.hashcat_statuses.order(time: :desc).limit(100)
   end
-  
+
   def download_results
     @task = Task.find(params[:id])
     authorize! :download_results, @task
-    
+
     # Generate CSV of cracked hashes for this task
     csv_data = generate_results_csv(@task)
-    
+
     send_data csv_data,
       filename: "task_#{@task.id}_results_#{Time.current.to_i}.csv",
       type: "text/csv"
   end
-  
+
   private
-  
+
   def generate_results_csv(task)
     require "csv"
-    
+
     CSV.generate do |csv|
       csv << ["Hash", "Plaintext", "Cracked At"]
-      
+
       task.attack.hash_list.hash_items.where.not(cracked_time: nil).find_each do |item|
         csv << [item.hash_value, item.plain_text, item.cracked_time]
       end
     end
   end
-  
+
   def agent_compatible_with_task?(agent, task)
     hash_type = task.attack.hash_type
-    
+
     # Check if agent supports this hash type
     return false unless agent.allowed_hash_types.include?(hash_type)
-    
+
     # Check if agent meets performance threshold
     return false unless agent.meets_performance_threshold?(hash_type)
-    
+
     # Check if agent has access to task's project
     return false unless agent.project_ids.include?(task.attack.campaign.project_id)
-    
+
     true
   end
 end
@@ -1130,7 +1128,7 @@ def broadcast_status_update
 end
 
 def should_broadcast_status?
-  saved_change_to_state? || 
+  saved_change_to_state? ||
   saved_change_to_last_seen_at? ||
   saved_change_to_current_hash_rate?
 end
@@ -1163,10 +1161,10 @@ Add routes for new controllers and actions.
 # config/routes.rb
 Rails.application.routes.draw do
   # ... existing routes ...
-  
+
   # System Health
   resource :system_health, only: [:index]
-  
+
   # Tasks
   resources :tasks, only: [:show] do
     member do
@@ -1190,7 +1188,7 @@ end
 <!-- app/views/agents/index.html.erb -->
 <div id="agents_list">
   <%= turbo_stream_from "agents" %>
-  
+
   <div class="row">
     <% @agents.each do |agent| %>
       <div id="<%= dom_id(agent, :status) %>" class="col-md-4 mb-3">
@@ -1220,7 +1218,7 @@ end
       <a class="nav-link" data-tabs-target="tab" data-action="click->tabs#switch" href="#">Capabilities</a>
     </li>
   </ul>
-  
+
   <div class="tab-content">
     <div data-tabs-target="panel" class="tab-pane">
       <div id="<%= dom_id(@agent, :overview_content) %>">
@@ -1289,7 +1287,7 @@ broadcast_replace_to agent,
   <button class="btn btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#recent_cracks">
     View Recent Cracks (<%= @campaign.hash_list.recent_cracks_count %>)
   </button>
-  
+
   <div id="recent_cracks" class="collapse mt-3">
     <table class="table table-sm">
       <thead>
