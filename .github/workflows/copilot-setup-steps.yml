@@ -34,7 +34,7 @@ jobs:
           bundler-cache: true
 
       - name: Set up Node.js (from .node-version)
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           # Keeps Copilot's Node version in sync with the repo.
           node-version-file: ".node-version"
