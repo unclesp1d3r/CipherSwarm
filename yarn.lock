@@ -118,8 +118,8 @@
     "@rails/actioncable" ">=7.0"
 
 "@hotwired/turbo@^8.0.20":
-  version "8.0.20"
-  resolved "https://registry.yarnpkg.com/@hotwired/turbo/-/turbo-8.0.20.tgz#068ede648c4db09fed4cf0ac0266788056673f2f"
+  version "8.0.21"
+  resolved "https://registry.yarnpkg.com/@hotwired/turbo/-/turbo-8.0.21.tgz#a3e80c01d70048200f64bbe3582b84f9bfac034e"
 
 "@parcel/watcher-android-arm64@2.5.1":
   version "2.5.1"
