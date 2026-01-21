@@ -37,5 +37,17 @@ FactoryBot.define do
     cracked { false }
     hash_value { Faker::Crypto.md5 }
     hash_list
+
+    trait :cracked_recently do
+      cracked { true }
+      cracked_time { 1.hour.ago }
+      plain_text { "password123" }
+    end
+
+    trait :cracked_old do
+      cracked { true }
+      cracked_time { 2.days.ago }
+      plain_text { "oldpassword" }
+    end
   end
 end

@@ -62,6 +62,10 @@ class HashItem < ApplicationRecord
   scope :cracked, -> { where(cracked: true) }
   scope :uncracked, -> { where(cracked: false) }
 
+  include SafeBroadcasting
+
+  after_commit :broadcast_recent_cracks_update, on: [:update], if: :just_cracked?, unless: -> { Rails.env.test? }
+
   # Returns a string representation of the hash item.
   # If the salt is present, the format will be "hash_value:salt:plain_text".
   # Otherwise, the format will be "hash_value:plain_text".
@@ -73,5 +77,31 @@ class HashItem < ApplicationRecord
     else
       "#{hash_value}:#{plain_text}"
     end
+  end
+
+  private
+
+  # Returns true if cracked transitioned from false to true in this commit.
+  #
+  # @return [Boolean] true if just cracked, false otherwise.
+  def just_cracked?
+    saved_change_to_cracked? && cracked?
+  end
+
+  def broadcast_recent_cracks_update
+    return if Rails.env.test?
+
+    Rails.logger.info("[BroadcastUpdate] HashItem #{id} - Broadcasting recent cracks update for hash_list #{hash_list_id}")
+
+    hash_list.campaigns.find_each do |campaign|
+      broadcast_replace_to(
+        campaign,
+        target: "recent_cracks",
+        partial: "campaigns/recent_cracks",
+        locals: { campaign: campaign }
+      )
+    end
+  rescue StandardError => e
+    Rails.logger.error("[BroadcastUpdate] HashItem #{id} - Failed to broadcast recent cracks update: #{e.message}")
   end
 end

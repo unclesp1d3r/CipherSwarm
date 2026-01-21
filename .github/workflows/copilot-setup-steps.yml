@@ -25,27 +25,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
+        uses: actions/checkout@v6
+      - uses: jdx/mise-action@v2
         with:
-          ruby-version: .ruby-version
-          bundler-cache: true
-
-      - name: Set up Node.js (from .node-version)
-        uses: actions/setup-node@v4
-        with:
-          # Keeps Copilot's Node version in sync with the repo.
-          node-version-file: ".node-version"
-          cache: yarn
-          cache-dependency-path: "yarn.lock"
-
-      - name: Install just
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y just
-
-      # Use your canonical install recipe so this stays in sync with dev/CI.
-      - name: Install project dependencies
-        run: just install
+          install: true
+          cache: true
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+      - run: just install

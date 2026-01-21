@@ -95,5 +95,29 @@ FactoryBot.define do
       mask { "?a?a?a?a?a?a?a?a" }
       word_list
     end
+
+    trait :running do
+      state { :running }
+      start_time { Time.current }
+    end
+
+    trait :completed do
+      state { :completed }
+      start_time { 1.hour.ago }
+      end_time { Time.current }
+    end
+
+    trait :failed do
+      state { :failed }
+      start_time { 1.hour.ago }
+      end_time { Time.current }
+    end
+
+    trait :with_progress do
+      after(:create) do |attack|
+        task = create(:task, attack: attack, state: :running)
+        create(:hashcat_status, task: task, progress: [5000, 10000])
+      end
+    end
   end
 end

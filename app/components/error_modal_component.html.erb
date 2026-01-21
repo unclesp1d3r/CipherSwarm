@@ -1,0 +1,46 @@
+<%= render(Railsboot::ModalComponent.new(id: modal_id, size: size, fade: true, "aria-labelledby": "#{modal_id}-title")) do |modal| %>
+  <% modal.with_header do %>
+    <div class="d-flex align-items-center justify-content-between w-100">
+      <h5 class="modal-title" id="<%= "#{modal_id}-title" %>"><%= t("components.error_modal.title") %></h5>
+      <span class="badge <%= severity_badge_class %> d-inline-flex align-items-center gap-1" aria-label="<%= t("components.error_modal.severity_aria", severity: @error.severity.humanize) %>">
+        <%= icon(severity_icon) %>
+        <span><%= @error.severity.humanize %></span>
+      </span>
+    </div>
+  <% end %>
+
+  <% modal.with_body do %>
+    <div class="row mb-2">
+      <div class="col-12 d-flex align-items-center gap-2 text-muted" aria-label="<%= t("components.error_modal.timestamp_aria") %>">
+        <%= icon("clock") %>
+        <span><%= formatted_timestamp %></span>
+      </div>
+    </div>
+    <div class="row mb-2">
+      <div class="col-12 d-flex align-items-start gap-2" aria-label="<%= t("components.error_modal.error_message_aria") %>">
+        <%= icon("exclamation-circle") %>
+        <span><%= @error.message %></span>
+      </div>
+    </div>
+    <% if @error.metadata.present? %>
+      <div class="row mb-2">
+        <div class="col-12" aria-label="<%= t("components.error_modal.metadata_aria") %>">
+          <div class="fw-semibold mb-1"><%= t("components.error_modal.metadata") %></div>
+          <pre class="code mb-0"><%= JSON.pretty_generate(@error.metadata) %></pre>
+        </div>
+      </div>
+    <% end %>
+    <% if @error.task_id.present? %>
+      <div class="row">
+        <div class="col-12 d-flex align-items-center gap-2" aria-label="<%= t("components.error_modal.task_link_aria") %>">
+          <%= icon("link-45deg") %>
+          <%= task_link %>
+        </div>
+      </div>
+    <% end %>
+  <% end %>
+
+  <% modal.with_footer do %>
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><%= t("components.error_modal.close") %></button>
+  <% end %>
+<% end %>

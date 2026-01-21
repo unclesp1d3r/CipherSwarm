@@ -50,7 +50,7 @@ RSpec.describe HashList do
   end
 
   describe "callbacks" do
-    it { is_expected.to callback(:process_hash_list).after(:save) }
+    it { is_expected.to callback(:process_hash_list).after(:commit) }
   end
 
   describe "scopes" do

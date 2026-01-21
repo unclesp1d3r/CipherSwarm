@@ -12,7 +12,9 @@
 #
 # The job is configured to retry on specific errors:
 # - ActiveStorage::FileNotFoundError: Retries with a polynomially increasing wait time, up to 10 attempts.
-# - ActiveRecord::RecordNotFound: Retries with a polynomially increasing wait time, up to 3 attempts.
+#
+# Discards:
+# - ActiveRecord::RecordNotFound: Discards the job if the record no longer exists.
 #
 # @param id [Integer] the ID of the HashList to be processed
 # @return [void]
@@ -20,7 +22,7 @@
 class ProcessHashListJob < ApplicationJob
   queue_as :ingest
   retry_on ActiveStorage::FileNotFoundError, wait: :polynomially_longer, attempts: 10
-  retry_on ActiveRecord::RecordNotFound, wait: :polynomially_longer, attempts: 3
+  discard_on ActiveRecord::RecordNotFound
 
   # Performs the processing of a HashList identified by the given ID.
   #

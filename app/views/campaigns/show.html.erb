@@ -7,25 +7,21 @@
       <%= render Railsboot::Button::LinkComponent.new(href: new_campaign_attack_path(@campaign, attack_mode: :dictionary), size: "sm", title: "Add Dictionary Attack") do %>
         <%= inline_svg_tag "dictionary_attack_icon.svg",
                            size: "20px",
-                           preserve_aspect_ratio: true,
                            title: "Add Dictionary Attack" %>
       <% end %>
       <%= render Railsboot::Button::LinkComponent.new(href: new_campaign_attack_path(@campaign, attack_mode: :mask), size: "sm", title: "Add Mask Attack") do %>
         <%= inline_svg_tag "mask_attack_icon.svg",
                            size: "20px",
-                           preserve_aspect_ratio: true,
                            title: "Add Mask Attack" %>
       <% end %>
       <%= render Railsboot::Button::LinkComponent.new(href: new_campaign_attack_path(@campaign, attack_mode: :hybrid_dictionary), size: "sm", title: "Add Hybrid Attack") do %>
         <%= inline_svg_tag "hybrid_attack_icon.svg",
                            size: "20px",
-                           preserve_aspect_ratio: true,
                            title: "Add Hybrid Dictionary Attack" %>
       <% end %>
       <%= render Railsboot::Button::LinkComponent.new(href: new_campaign_attack_path(@campaign, attack_mode: :hybrid_mask), size: "sm", title: "Add Hybrid Attack") do %>
         <%= inline_svg_tag "hybrid_attack_icon.svg",
                            size: "20px",
-                           preserve_aspect_ratio: true,
                            title: "Add Hybrid Mask Attack" %>
       <% end %>
       <% if can? :edit, @campaign %>
@@ -42,6 +38,14 @@
      ]) %>
 <% end %>
 <%= turbo_stream_from @campaign %>
+
+<%# ETA Summary Alert %>
+<%= turbo_frame_tag "eta_summary", src: eta_summary_campaign_path(@campaign), loading: "lazy" do %>
+  <div class="d-flex justify-content-center py-3">
+    <%= render Railsboot::SpinnerComponent.new %>
+  </div>
+<% end %>
+
 <small class="text-muted">Created <%= time_ago_in_words(@campaign.created_at) %> ago</small>
 <h4><%= @campaign.priority.humanize %></h4>
 <p><%= @campaign.description %></p>
@@ -60,6 +64,35 @@
   <% end %>
 <% else %>
   <%= render Railsboot::StepperComponent.new do |stepper| %>
-    <%= render partial: "attack_stepper_line", collection: @campaign.attacks, as: :attack, locals: { campaign: @campaign, stepper: } %>
+    <%= render partial: "attack_stepper_line", collection: @campaign.attacks, as: :attack, locals: { campaign: @campaign, stepper: stepper, failed_attack_error_map: @failed_attack_error_map } %>
   <% end %>
+<% end %>
+
+<%# Error Modals for Failed Attacks %>
+<% @campaign.attacks.select { |a| a.state == "failed" }.each do |attack| %>
+  <% error = @failed_attack_error_map[attack.id] %>
+  <% if error %>
+    <%= render(ErrorModalComponent.new(
+      error: error,
+      modal_id: "error-modal-attack-#{attack.id}"
+    )) %>
+  <% end %>
+<% end %>
+
+<%# Recent Cracks Section %>
+<%= turbo_frame_tag "recent_cracks", src: recent_cracks_campaign_path(@campaign), loading: "lazy" do %>
+  <div class="card mt-4 mb-3">
+    <div class="card-body d-flex justify-content-center py-5">
+      <%= render Railsboot::SpinnerComponent.new %>
+    </div>
+  </div>
+<% end %>
+
+<%# Campaign Error Log Section %>
+<%= turbo_frame_tag "error_log", src: error_log_campaign_path(@campaign), loading: "lazy" do %>
+  <div class="card mb-3">
+    <div class="card-body d-flex justify-content-center py-5">
+      <%= render Railsboot::SpinnerComponent.new %>
+    </div>
+  </div>
 <% end %>
