@@ -82,7 +82,6 @@ See the [V2 Upgrade Overview](docs/v2-upgrade-overview.md) for complete feature 
    Using Just (recommended):
 
    ```bash
-   just install
    just setup
    ```
 
@@ -90,7 +89,7 @@ See the [V2 Upgrade Overview](docs/v2-upgrade-overview.md) for complete feature 
 
    ```bash
    bundle install
-   yarn install
+   bun install
    rails db:create
    rails db:migrate
    ```
@@ -123,8 +122,7 @@ just --list
 
 Common commands:
 
-- `just install` - Install all dependencies
-- `just setup` - Setup database and configuration
+- `just setup` - Install dependencies and setup database
 - `just dev` - Start full development environment
 - `just test` - Run all tests with coverage
 - `just check` - Run linters and security checks

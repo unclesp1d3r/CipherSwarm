@@ -29,3 +29,32 @@
 
 en:
   hello: "Hello world"
+
+  components:
+    error_modal:
+      title: "Error Details"
+      severity_aria: "Severity: %{severity}"
+      timestamp_aria: "Timestamp"
+      error_message_aria: "Error message"
+      metadata: "Metadata"
+      metadata_aria: "Metadata"
+      task_link_aria: "Task link"
+      close: "Close"
+
+  campaigns:
+    attack_progress:
+      view_error_details: "View error details for %{name}"
+      attack_actions: "Attack Actions for %{name}"
+      view_attack: "View attack details"
+      edit_attack: "Edit attack"
+      delete_attack: "Delete attack"
+      confirm_delete: "Are you sure?"
+      attack_progress_label: "Attack Progress for %{name}"
+    eta_summary:
+      region_aria: "Campaign ETA summary"
+      current_attack_aria: "Current attack estimated completion time"
+      current_attack: "Current Attack:"
+      total_campaign_aria: "Total campaign estimated completion time"
+      total_campaign: "Total Campaign:"
+      calculating: "Calculating..."
+      not_available: "N/A"

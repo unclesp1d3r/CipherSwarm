@@ -1,0 +1,64 @@
+<%= turbo_frame_tag "recent_cracks" do %>
+  <div class="card mt-4 mb-3" role="region" aria-label="Recent cracks section">
+    <div class="card-header">
+      <button class="btn btn-link text-decoration-none p-0 d-flex align-items-center gap-2"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#recent-cracks-section"
+              aria-expanded="false"
+              aria-controls="recent-cracks-section">
+        <%= icon("chevron-down") %>
+        <span>Recent Cracks (Last 24 Hours)</span>
+        <span class="badge text-bg-success"><%= campaign.hash_list.recent_cracks_count %></span>
+      </button>
+    </div>
+    <div class="collapse" id="recent-cracks-section">
+      <div class="card-body">
+        <% recent_cracks = campaign.hash_list.recent_cracks(limit: 100) %>
+        <% if recent_cracks.empty? %>
+          <%= render Railsboot::BlankSlateComponent.new do |blankslate| %>
+            <% blankslate.with_icon do %>
+              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-check-circle" viewBox="0 0 16 16">
+                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+                <path d="m10.97 4.97-.02.022-3.473 4.425-2.093-2.094a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05"/>
+              </svg>
+            <% end %>
+            <% blankslate.with_heading(tag: "h4").with_content("No Recent Cracks") %>
+            <% blankslate.with_description.with_content("No hashes have been cracked in the last 24 hours.") %>
+          <% end %>
+        <% else %>
+          <%= render Railsboot::TableComponent.new(responsive: true) do |table| %>
+            <% table.with_head do %>
+              <tr>
+                <th scope="col">Hash</th>
+                <th scope="col">Plaintext</th>
+                <th scope="col">Cracked At</th>
+                <th scope="col">Attack</th>
+              </tr>
+            <% end %>
+            <% table.with_body do %>
+              <% recent_cracks.each do |hash_item| %>
+                <tr>
+                  <td>
+                    <span data-bs-toggle="tooltip" data-bs-title="<%= hash_item.hash_value %>" aria-label="Hash value">
+                      <%= truncate(hash_item.hash_value, length: 20) %>
+                    </span>
+                  </td>
+                  <td><code><%= hash_item.plain_text %></code></td>
+                  <td><%= time_ago_in_words(hash_item.cracked_time) %> ago</td>
+                  <td>
+                    <% if hash_item.attack.present? %>
+                      <%= link_to "View Attack", campaign_attack_path(campaign, hash_item.attack), class: "btn btn-sm btn-outline-primary" %>
+                    <% else %>
+                      <span class="text-muted">N/A</span>
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
+            <% end %>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+<% end %>

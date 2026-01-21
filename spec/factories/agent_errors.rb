@@ -33,5 +33,13 @@ FactoryBot.define do
     metadata { { key: Faker::Lorem.word } }
     severity { :warning }
     agent
+
+    trait :critical do
+      severity { :critical }
+    end
+
+    trait :with_task do
+      task
+    end
   end
 end

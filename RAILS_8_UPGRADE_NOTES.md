@@ -107,7 +107,7 @@ Successfully upgraded CipherSwarm from Rails 7.2 to Rails 8.0.4 as part of GitHu
    - SCSS uses `~bootstrap-icons/font/fonts` to reference node_modules fonts
    - Compatible with dartsass-rails `--load-path=node_modules` setting
    - No asset copying required - fonts served directly from node_modules
-   - To update: `yarn upgrade bootstrap-icons` and recompile CSS
+   - To update: `bun update bootstrap-icons` and recompile CSS
 
 ### For Deployment
 

@@ -6,62 +6,82 @@
 require "rails_helper"
 
 RSpec.describe ProcessHashListJob do
-  include ActiveJob::TestHelper
-
-  ActiveJob::Base.queue_adapter = :test
-  let(:hash_list) { create(:hash_list, file: nil) }
-
-  describe "queuing" do
-    subject(:job) { described_class.perform_later(1) }
-
-    after do
-      clear_enqueued_jobs
-      clear_performed_jobs
-    end
-
-    it "queues the job" do
-      expect { job }.to change(ActiveJob::Base.queue_adapter.enqueued_jobs, :size).by(1)
-    end
-
-    it "is in ingest queue" do
+  describe "job configuration" do
+    it "uses the ingest queue" do
       expect(described_class.new.queue_name).to eq("ingest")
     end
 
-    it "executes the queued job" do
-      expect { job }.to have_enqueued_job(described_class)
-      perform_enqueued_jobs { job }
+    it "is configured to discard on RecordNotFound" do
+      expect(described_class.rescue_handlers).to include(
+        have_attributes(first: "ActiveRecord::RecordNotFound")
+      )
+    end
+
+    it "is configured to retry on FileNotFoundError" do
+      expect(described_class.rescue_handlers).to include(
+        have_attributes(first: "ActiveStorage::FileNotFoundError")
+      )
+    end
+  end
+
+  describe "queuing", :perform_enqueued do
+    it "enqueues the job on the ingest queue" do
+      ActiveJob::Base.queue_adapter = :test
+      expect { described_class.perform_later(1) }
+        .to have_enqueued_job(described_class)
+        .with(1)
+        .on_queue("ingest")
     end
   end
 
   describe "#perform" do
-    before do
-      allow(hash_list).to receive(:file).and_return(File.open("spec/fixtures/hash_lists/example_hashes.txt"))
+    context "when the hash list does not exist" do
+      it "discards the job without raising an error" do
+        expect { described_class.perform_now(-1) }.not_to raise_error
+      end
     end
 
-    it "creates hash items from the hash list file" do
-      expect {
-        described_class.new.perform(hash_list.id)
-        hash_list.reload
-      }.to change(HashItem, :count).by(1024)
+    context "when the hash list exists with a file" do
+      let(:hash_list) do
+        # Create hash_list as already processed to prevent callback from running
+        # Then we'll reset it and test the job directly
+        hl = create(:hash_list, processed: true)
+        # Reset state for testing - use update_column to bypass callbacks
+        hl.update_column(:processed, false) # rubocop:disable Rails/SkipsModelValidations
+        HashItem.where(hash_list_id: hl.id).delete_all
+        hl.reload
+      end
 
-      expect(hash_list.reload.processed).to be true
-    end
+      it "creates hash items from the file" do
+        expect(hash_list.file).to be_attached
+        expect(hash_list.processed).to be false
 
-    it "sets hash_items_count correctly after processing" do
-      expect(hash_list.hash_items_count).to be_zero
+        expect { described_class.perform_now(hash_list.id) }
+          .to change(HashItem, :count).by(1024)
+      end
 
-      described_class.new.perform(hash_list.id)
-      hash_list.reload
+      it "marks the hash list as processed" do
+        described_class.perform_now(hash_list.id)
 
-      expect(hash_list.hash_items_count).to eq(1024)
-      expect(hash_list.processed).to be true
+        expect(hash_list.reload.processed).to be true
+      end
+
+      it "updates the hash_items_count" do
+        described_class.perform_now(hash_list.id)
+
+        expect(hash_list.reload.hash_items_count).to eq(1024)
+      end
     end
 
     context "when the hash list is already processed" do
       let(:hash_list) { create(:hash_list, processed: true) }
 
-      it "does not create hash items if the hash list is already processed" do
-        expect { described_class.new.perform(hash_list.id) }.not_to change(HashItem, :count)
+      it "does not create additional hash items" do
+        initial_count = HashItem.count
+
+        described_class.perform_now(hash_list.id)
+
+        expect(HashItem.count).to eq(initial_count)
       end
     end
   end

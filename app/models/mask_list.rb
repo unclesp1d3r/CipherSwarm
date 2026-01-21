@@ -8,7 +8,7 @@
 # such as file attachments, validations, and relationships with other models like `Project`.
 #
 # === Callbacks
-# - After saving, the `update_complexity_value` method is triggered if the `complexity_value` is blank (i.e., equals 0.0).
+# - After commit, the `update_complexity_value` method is triggered if the `complexity_value` is blank (i.e., equals 0.0).
 #
 # === Relationships
 # - Belongs to a creator (User).
@@ -65,7 +65,7 @@
 class MaskList < ApplicationRecord
   include AttackResource
 
-  after_save :update_complexity_value, if: :blank_complexity_value
+  after_commit :update_complexity_value, if: :blank_complexity_value, on: %i[create update]
 
   def blank_complexity_value
     complexity_value == 0.0

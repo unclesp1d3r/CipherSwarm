@@ -1,0 +1,9 @@
+[tools]
+bun = "latest"
+docker-compose = "latest"
+git-cliff = "latest"
+just = "latest"
+oxlint = "latest"
+pre-commit = "latest"
+ruby = "3.4.5"
+vale = "latest"

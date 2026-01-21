@@ -54,7 +54,9 @@
         "rubocop.vscode-rubocop",
         "karunamurti.haml",
         "ms-vscode-remote.remote-containers",
-        "DavidAnson.vscode-markdownlint"
+        "DavidAnson.vscode-markdownlint",
+        "tamasfe.even-better-toml",
+        "hverlin.mise-vscode"
       ]
     }
   }

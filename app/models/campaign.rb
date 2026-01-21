@@ -120,13 +120,12 @@ class Campaign < ApplicationRecord
   # Delegations
   delegate :uncracked_count, :cracked_count, :hash_item_count, to: :hash_list
 
-  # Broadcasts a refresh to the client when the campaign is updated unless running in test environment
+  # Broadcasts targeted updates to the client when the campaign is updated unless running in test environment
   include SafeBroadcasting
-
-  broadcasts_refreshes unless Rails.env.test?
 
   # Callbacks
   after_commit :mark_attacks_complete, on: [:update]
+  after_commit :broadcast_eta_update, on: [:update], unless: -> { Rails.env.test? }
 
   # Provides a label indicating the number of incomplete attacks out of the total number of attacks.
   #
@@ -315,6 +314,30 @@ class Campaign < ApplicationRecord
     Rails.cache.fetch("#{cache_key_with_version}/total_eta", expires_in: 1.minute) do
       calculate_total_eta
     end
+  end
+
+  def broadcast_eta_update
+    return if Rails.env.test?
+
+    Rails.logger.info("[BroadcastUpdate] Campaign #{id} - Broadcasting ETA update")
+    broadcast_replace_to(
+      self,
+      target: "eta_summary",
+      partial: "campaigns/eta_summary",
+      locals: { campaign: self }
+    )
+  end
+
+  def broadcast_recent_cracks_update
+    return if Rails.env.test?
+
+    Rails.logger.info("[BroadcastUpdate] Campaign #{id} - Broadcasting recent cracks update")
+    broadcast_replace_to(
+      self,
+      target: "recent_cracks",
+      partial: "campaigns/recent_cracks",
+      locals: { campaign: self }
+    )
   end
 
   private

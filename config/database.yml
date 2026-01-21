@@ -39,11 +39,11 @@ production:
     # sslmode: require
   cache:
     <<: *default
-    database: cipher_swarm_cache
+    url: <%= ENV["DATABASE_URL"]&.sub(/\/[^\/]*$/, '/cipher_swarm_cache') %>
     migrations_paths: db/cache_migrate
     schema_dump: db/cache_schema.rb
   cable:
     <<: *default
-    database: cipher_swarm_cable
+    url: <%= ENV["DATABASE_URL"]&.sub(/\/[^\/]*$/, '/cipher_swarm_cable') %>
     migrations_paths: db/cable_migrate
     schema_dump: db/cable_schema.rb

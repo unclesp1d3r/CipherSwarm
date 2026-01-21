@@ -29,11 +29,44 @@ To get started with contributing to CipherSwarm, you'll need to:
    git clone https://github.com/your-username/CipherSwarm.git
    ```
 
-3. Set up the project dependencies:
+3. Install [mise](https://mise.jdx.dev/) for development tool management:
 
    ```sh
-   bundle install
+   # macOS
+   brew install mise
+
+   # Or via curl
+   curl https://mise.run | sh
    ```
+
+4. Install all development tools (Ruby, Bun, Just, etc.):
+
+   ```sh
+   mise install
+   ```
+
+5. Set up the project (installs dependencies and prepares database):
+
+   ```sh
+   just setup
+   ```
+
+### Development Tools
+
+This project uses [mise](https://mise.jdx.dev/) to manage all development tools via `.mise.toml`:
+
+| Tool           | Purpose                                                  |
+| -------------- | -------------------------------------------------------- |
+| Ruby           | Application runtime                                      |
+| Bun            | JavaScript runtime & package manager (replaces npm/yarn) |
+| Just           | Task runner for common commands                          |
+| Pre-commit     | Git hooks for code quality                               |
+| Docker Compose | Container orchestration                                  |
+| Git-cliff      | Changelog generation                                     |
+| Oxlint         | JavaScript/TypeScript linting                            |
+| Vale           | Prose linting for docs                                   |
+
+Run `just --list` to see all available commands.
 
 ## Gitflow Workflow
 
@@ -181,13 +214,18 @@ Here are the title maps we use for conventional commits, along with their meanin
 
 ## Running Tests
 
-All contributions must pass the rspec tests before they can be merged. You can run the tests using the `rake` command:
+All contributions must pass tests before they can be merged:
 
-1. Run the tests:
+```sh
+# Run all tests with coverage
+just test
 
-   ```sh
-   rake
-   ```
+# Run specific test file
+just test-file spec/models/your_model_spec.rb
+
+# Run all linters and security checks
+just check
+```
 
 Make sure all tests pass before submitting your contribution.
 

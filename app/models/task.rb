@@ -127,7 +127,7 @@ class Task < ApplicationRecord
 
   include SafeBroadcasting
 
-  broadcasts_refreshes unless Rails.env.test?
+
 
   state_machine :state, initial: :pending do
     event :accept do
@@ -190,18 +190,21 @@ class Task < ApplicationRecord
     after_transition on: :running do |task|
       Rails.logger.info("[Task #{task.id}] Agent #{task.agent_id} - Attack #{task.attack_id} - State change: #{task.state_was} -> running - Task accepted and running")
       task.attack.accept
+      task.safe_broadcast_attack_progress_update
     end
 
     after_transition on: :completed do |task|
       uncracked = task.hash_list.uncracked_count
       Rails.logger.info("[Task #{task.id}] Agent #{task.agent_id} - Attack #{task.attack_id} - State change: #{task.state_was} -> completed - Uncracked hashes: #{uncracked}")
       task.attack.complete if task.attack.can_complete?
+      task.safe_broadcast_attack_progress_update
       task.hashcat_statuses.destroy_all
     end
 
     after_transition on: :exhausted do |task|
       Rails.logger.info("[Task #{task.id}] Agent #{task.agent_id} - Attack #{task.attack_id} - State change: #{task.state_was} -> exhausted - Keyspace exhausted")
       task.attack.exhaust if task.attack.can_exhaust?
+      task.safe_broadcast_attack_progress_update
       task.hashcat_statuses.destroy_all
     end
 
@@ -230,6 +233,7 @@ class Task < ApplicationRecord
 
     after_transition on: :paused do |task|
       Rails.logger.info("[Task #{task.id}] Agent #{task.agent_id} - Attack #{task.attack_id} - State change: #{task.state_was} -> paused - Task execution paused")
+      task.safe_broadcast_attack_progress_update
     end
 
     after_transition on: :retry do |task|
@@ -370,5 +374,15 @@ class Task < ApplicationRecord
   # @return [Boolean] true if the timestamp was successfully updated, false otherwise.
   def update_activity_timestamp
     update(activity_timestamp: Time.zone.now) if state_changed?
+  end
+
+  private
+
+  def safe_broadcast_attack_progress_update
+    return if Rails.env.test?
+
+    attack.broadcast_attack_progress_update
+  rescue StandardError => e
+    Rails.logger.error("[BroadcastUpdate] Task #{id} - Failed to broadcast attack progress update: #{e.message}")
   end
 end

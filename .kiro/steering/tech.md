@@ -45,28 +45,26 @@ inclusion: always
 ```bash
 # Install dependencies
 bundle install
-yarn install
+bun install
 
 # Database setup
 rails db:create db:migrate db:seed
 
-# Start development server
-rails server
-# or with Procfile.dev
-foreman start -f Procfile.dev
+# Start development server (uses Procfile.dev)
+bin/dev
 ```
 
 ### Asset Building
 
 ```bash
 # Build CSS
-yarn build:css
+bun run build:css
 
 # Watch CSS changes
-yarn watch:css
+bun run watch:css
 
 # Build JavaScript
-yarn build
+bun run build
 ```
 
 ### Testing

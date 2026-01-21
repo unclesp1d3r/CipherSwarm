@@ -100,6 +100,8 @@ RSpec.describe "HashLists" do
   end
 
   describe "PATCH /update" do
+    before { allow(ProcessHashListJob).to receive(:perform_now) }
+
     let(:new_file) { fixture_file_upload("spec/fixtures/hash_lists/example_hashes.txt", "text/plain") }
 
     context "when user is not logged in" do

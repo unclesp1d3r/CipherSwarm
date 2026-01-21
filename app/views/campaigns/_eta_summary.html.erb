@@ -1,0 +1,35 @@
+<%= turbo_frame_tag "eta_summary" do %>
+  <% has_running_attacks = campaign.attacks.exists?(state: "running") %>
+  <% show_eta_summary = campaign.current_eta.present? || campaign.total_eta.present? || has_running_attacks %>
+  <% if show_eta_summary %>
+    <div id="campaign-eta-summary" role="region" aria-label="<%= t("campaigns.eta_summary.region_aria") %>">
+      <%= render Railsboot::AlertComponent.new(color: "info", class: "mb-3") do %>
+        <div class="d-flex align-items-center gap-3">
+          <%= icon("clock") %>
+          <div class="d-flex flex-wrap gap-3">
+            <span aria-label="<%= t("campaigns.eta_summary.current_attack_aria") %>">
+              <strong><%= t("campaigns.eta_summary.current_attack") %></strong>
+              <% if campaign.current_eta.present? %>
+                ~<%= distance_of_time_in_words(Time.current, campaign.current_eta) %>
+              <% elsif has_running_attacks %>
+                <em class="text-muted"><%= t("campaigns.eta_summary.calculating") %></em>
+              <% else %>
+                <span class="text-muted"><%= t("campaigns.eta_summary.not_available") %></span>
+              <% end %>
+            </span>
+            <span aria-label="<%= t("campaigns.eta_summary.total_campaign_aria") %>">
+              <strong><%= t("campaigns.eta_summary.total_campaign") %></strong>
+              <% if campaign.total_eta.present? %>
+                ~<%= distance_of_time_in_words(Time.current, campaign.total_eta) %>
+              <% elsif has_running_attacks %>
+                <em class="text-muted"><%= t("campaigns.eta_summary.calculating") %></em>
+              <% else %>
+                <span class="text-muted"><%= t("campaigns.eta_summary.not_available") %></span>
+              <% end %>
+            </span>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+<% end %>

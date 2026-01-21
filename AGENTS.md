@@ -8,20 +8,34 @@ CipherSwarm is a distributed hash cracking system built on Rails 8.0+ inspired b
 
 **Current Status**: Undergoing V2 upgrade (see docs/v2-upgrade-overview.md)
 
+## Development Tools
+
+This project uses [mise](https://mise.jdx.dev/) for development tool version management. All tool versions are defined in `.mise.toml`:
+
+- **Ruby** - Application runtime (pinned version)
+- **Bun** - JavaScript runtime and package manager (replaces Node.js + npm/yarn)
+- **Just** - Task runner (like make, but simpler)
+- **Pre-commit** - Git hooks for code quality
+- **Docker Compose** - Container orchestration
+- **Git-cliff** - Changelog generator
+- **Oxlint** - Fast JavaScript/TypeScript linter
+- **Vale** - Prose linter for documentation
+
+Install mise first, then run `mise install` to get all tools at the correct versions.
+
+**Bun** is used instead of npm/yarn for JavaScript dependency management. It's faster and provides a compatible API. Use `bun install`, `bun run`, `bun add`, etc.
+
 ## Common Development Commands
 
 ### Setup and Installation
 
 ```bash
-# Install dependencies
-just install
-# or manually
-bundle install && yarn install
-
-# Setup database
+# Setup project (install deps + prepare database)
 just setup
-# or manually
-bin/rails db:create db:migrate
+
+# Or manually
+bun install
+bin/setup --skip-server
 
 # Start development server (Rails + assets + Sidekiq)
 just dev
@@ -259,7 +273,7 @@ To set up JavaScript testing in the project, we use Vitest. Follow the steps bel
 1. Install Vitest and dependencies:
 
    ```bash
-   yarn add -D vitest jsdom @testing-library/dom @hotwired/stimulus
+   bun add -D vitest jsdom @testing-library/dom @hotwired/stimulus
    ```
 
 2. Create a Vitest configuration file `vitest.config.js` in the project root:
@@ -280,7 +294,7 @@ To set up JavaScript testing in the project, we use Vitest. Follow the steps bel
 4. Run tests using:
 
    ```bash
-   yarn test:js
+   bun test:js
    ```
 
 Both unit tests for Stimulus controllers and integration tests via system tests are included in the project.

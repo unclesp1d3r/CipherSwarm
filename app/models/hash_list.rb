@@ -77,7 +77,7 @@ class HashList < ApplicationRecord
 
   delegate :hash_mode, to: :hash_type
 
-  after_save :process_hash_list, if: :file_attached?
+  after_commit :process_hash_list, if: :file_attached?
 
   # Returns a string representing the completion status of the hash list.
   #

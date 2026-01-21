@@ -10,8 +10,10 @@
 # This job is queued with high priority and will retry on specific errors.
 #
 # Retries:
-# - ActiveStorage::FileNotFoundError: Retries up to 10 times with exponentially increasing wait times.
-# - ActiveRecord::RecordNotFound: Retries up to 2 times with exponentially increasing wait times.
+# - ActiveStorage::FileNotFoundError: Retries up to 3 times with exponentially increasing wait times.
+#
+# Discards:
+# - ActiveRecord::RecordNotFound: Discards the job if the record no longer exists.
 #
 # @example Enqueue the job
 #   CountFileLinesJob.perform_later(record_id, 'RecordClassName')
@@ -21,7 +23,7 @@
 class CountFileLinesJob < ApplicationJob
   queue_as :ingest
   retry_on ActiveStorage::FileNotFoundError, wait: :polynomially_longer, attempts: 3
-  retry_on ActiveRecord::RecordNotFound, wait: :polynomially_longer, attempts: 2
+  discard_on ActiveRecord::RecordNotFound
 
   # Performs the job to count the number of lines in a file associated with a given record.
   #

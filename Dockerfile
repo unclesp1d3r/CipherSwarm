@@ -26,24 +26,20 @@ ENV BUNDLE_DEPLOYMENT="1" \
 FROM base AS prebuild
 
 # Install packages needed to build gems and node modules
-RUN apk add --no-cache build-base gyp git libffi-dev postgresql-dev pkgconfig python3 yaml-dev
+RUN apk add --no-cache bash build-base gyp git libffi-dev postgresql-dev pkgconfig python3 yaml-dev
 
 
 FROM prebuild AS node
 
-# Install JavaScript dependencies
-ARG NODE_VERSION=21.6.2
-ARG YARN_VERSION=1.22.21
-ENV PATH=/usr/local/node/bin:$PATH
-RUN curl -sL https://unofficial-builds.nodejs.org/download/release/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64-musl.tar.gz | tar xz -C /tmp/ && \
-    mkdir /usr/local/node && \
-    cp -rp /tmp/node-v${NODE_VERSION}-linux-x64-musl/* /usr/local/node/ && \
-    npm install -g yarn@$YARN_VERSION && \
-    rm -rf /tmp/node-v${NODE_VERSION}-linux-x64-musl
+# Install Bun directly (standalone JavaScript runtime)
+ARG BUN_VERSION=1.3.6
+ENV BUN_INSTALL=/usr/local
+RUN curl -fsSL https://bun.sh/install | bash -s "bun-v${BUN_VERSION}"
+ENV PATH=/usr/local/bin:$PATH
 
 # Install node modules
-COPY package.json yarn.lock ./
-RUN yarn install --frozen-lockfile
+COPY package.json bun.lockb ./
+RUN bun install --frozen-lockfile
 
 
 FROM prebuild AS build
@@ -53,10 +49,10 @@ COPY Gemfile Gemfile.lock ./
 RUN bundle install --jobs 4 --retry 3 --verbose && \
     rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git
 
-# Copy node modules
+# Copy node modules and bun
 COPY --from=node /rails/node_modules /rails/node_modules
-COPY --from=node /usr/local/node /usr/local/node
-ENV PATH=/usr/local/node/bin:$PATH
+COPY --from=node /usr/local/bin/bun /usr/local/bin/bun
+ENV PATH=/usr/local/bin:$PATH
 
 # Copy application code
 COPY . .
@@ -71,7 +67,7 @@ RUN chmod +x bin/* && \
     grep -l '#!/usr/bin/env ruby' /rails/bin/* | xargs sed -i '/^#!/aDir.chdir File.expand_path("..", __dir__)'
 
 # Precompiling assets for production without requiring secret RAILS_MASTER_KEY
-RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
+RUN SECRET_KEY_BASE_DUMMY=1 APPLICATION_HOST=localhost ./bin/rails assets:precompile
 
 
 # Final stage for app image

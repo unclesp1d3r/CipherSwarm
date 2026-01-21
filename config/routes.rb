@@ -309,6 +309,11 @@ Rails.application.routes.draw do
   resources :campaigns do
     resources :attacks, only: %i[ create new edit show update destroy ]
     post "toggle_paused"
+    member do
+      get :eta_summary
+      get :recent_cracks
+      get :error_log
+    end
   end
   get "toggle_hide_completed_activities" => "campaigns#toggle_hide_completed_activities"
 

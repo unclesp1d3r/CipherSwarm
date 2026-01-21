@@ -11,11 +11,11 @@ RSpec.describe "Edit agent" do
   let(:agents_page) { AgentsIndexPage.new(page) }
   let(:agent_form) { AgentFormPage.new(page) }
   let!(:agent) { create(:agent, user: user, custom_label: "Original Label") }
-  let(:project) { create(:project) }
 
   describe "edit agent successfully" do
     before do
-      user.projects << project
+      agent_project = agent.projects.first
+      user.projects << agent_project unless user.projects.include?(agent_project)
     end
 
     it "updates agent and reflects changes in list" do
@@ -38,7 +38,8 @@ RSpec.describe "Edit agent" do
     # rubocop:enable RSpec/LetSetup
 
     before do
-      user.projects << project
+      agent_project = agent.projects.first
+      user.projects << agent_project unless user.projects.include?(agent_project)
     end
 
     it "shows validation errors for duplicate custom label" do
@@ -73,7 +74,8 @@ RSpec.describe "Edit agent - admin" do
   before do
     admin = create_and_sign_in_admin
     # Ensure admin is part of the project to see the agent
-    admin.projects << other_agent.projects.first
+    agent_project = other_agent.projects.first || create(:project).tap { |project| other_agent.projects << project }
+    admin.projects << agent_project
   end
 
   it "allows admin to edit any agent" do

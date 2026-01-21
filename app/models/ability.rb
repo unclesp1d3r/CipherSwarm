@@ -79,7 +79,7 @@ class Ability
     # Attack Resource permissions
     can %i[read create view_file view_file_content], [WordList, RuleList, MaskList], sensitive: false # Public lists
     can :manage, [WordList, RuleList, MaskList], projects: { id: user.all_project_ids }
-    can %i[read create update destroy view_file view_file_content], [WordList, RuleList, MaskList], creator: user
+    can :manage, [WordList, RuleList, MaskList], creator: user
 
     # Attack  permissions
     can :manage, Attack, campaign: { project_id: user.all_project_ids }

@@ -27,6 +27,7 @@ require_relative "support/page_objects/campaign_show_page"
 require_relative "support/page_objects/campaigns_index_page"
 require_relative "support/page_objects/hash_list_form_page"
 require "capybara/rspec"
+require "warden/test/helpers"
 require "view_component/test_helpers"
 require "view_component/test_helpers"
 require "view_component/system_test_helpers"
@@ -61,7 +62,16 @@ RSpec.configure do |config|
   config.include SystemHelpers, type: :system
   config.include FormLabelsHelper, type: :system
   config.include Devise::Test::IntegrationHelpers, type: :system
+  config.include Warden::Test::Helpers, type: :system
   config.include ActiveJob::TestHelper, type: :system
+
+  config.before(:suite) do
+    Warden.test_mode!
+  end
+
+  config.after(:suite) do
+    Warden.test_reset!
+  end
 
   # Tag everything under spec/system as type: :system
   config.define_derived_metadata(file_path: %r{/spec/system}) do |metadata|

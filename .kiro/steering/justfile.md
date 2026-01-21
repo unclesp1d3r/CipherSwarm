@@ -5,10 +5,7 @@
 ### Development Setup
 
 ```bash
-# Install all dependencies (bundler, yarn, etc.)
-just install
-
-# Setup database and initial configuration
+# Setup project (install deps, prepare database)
 just setup
 
 # Start full development server (Rails + assets + Sidekiq)
