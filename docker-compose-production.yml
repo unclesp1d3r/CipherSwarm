@@ -75,18 +75,18 @@ services:
         <<: *resource-limits
 
   minio:
-    image: bitnami/minio
+    image: minio/minio
+    command: server /data --console-address ":9001"
     ports:
       - '9000:9000'
       - '9001:9001'
     volumes:
-      - minio:/bitnami/minio/data
+      - minio:/data
     networks:
       - frontend
     environment:
       - MINIO_ROOT_USER=minioadmin
       - MINIO_ROOT_PASSWORD=minioadmin
-      - MINIO_DEFAULT_BUCKETS=application
     deploy:
       resources:
         <<: *resource-limits

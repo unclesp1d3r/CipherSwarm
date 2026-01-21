@@ -1,0 +1,16 @@
+<div class="d-flex align-items-start gap-3" aria-label="Campaign progress">
+  <div style="flex: 0 0 60%;">
+    <%= render(ProgressBarComponent.new(percentage: @percentage, label: @label)) %>
+  </div>
+  <div style="flex: 0 0 40%;" class="d-flex flex-column gap-1">
+    <span class="badge <%= status_class %> d-inline-flex align-items-center gap-1" aria-label="Status: <%= @status.humanize %>">
+      <%= icon(status_icon) %>
+      <span><%= @status.humanize %></span>
+    </span>
+    <span class="d-flex align-items-center gap-1 text-muted" aria-label="Estimated time of arrival">
+      <%= icon("clock") %>
+      <span><%= formatted_eta %></span>
+    </span>
+    <small class="text-muted" aria-label="Completion percentage"><%= formatted_percentage %></small>
+  </div>
+</div>

@@ -156,6 +156,7 @@ RSpec.describe TaskAssignmentService do
 
       before do
         attack # ensure attack is created
+        hash_list.hash_items.delete_all
         # All hashes are cracked
         create(:hash_item, hash_list: hash_list, cracked: true)
       end

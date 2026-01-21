@@ -2,6 +2,7 @@
 
 # SystemHelpers module provides common helper methods for system tests
 # These helpers leverage Capybara, Devise, and FactoryBot for UI interactions
+# rubocop:disable Metrics/ModuleLength -- Helper modules benefit from cohesion over arbitrary length limits
 module SystemHelpers
   # Authentication Helpers
 
@@ -11,10 +12,25 @@ module SystemHelpers
   # @param name_field [String] the locator for the login identifier field
   # @param password_field [String] the locator for the password field
   def sign_in_as(user, password: "password", name_field: "Name", password_field: "Password")
-    visit new_user_session_path
-    fill_in name_field, with: user.name
-    fill_in password_field, with: password
-    click_button "Log in"
+    if respond_to?(:login_as) && Capybara.current_driver == :rack_test
+      login_as(user, scope: :user)
+      visit root_path
+    else
+      visit new_user_session_path
+      expect(page).to have_field(name_field, wait: 5)
+      if page.has_field?(name_field)
+        fill_in name_field, with: user.name
+      else
+        fill_in "user_name", with: user.name
+      end
+
+      if page.has_field?(password_field)
+        fill_in password_field, with: password
+      else
+        fill_in "user_password", with: password
+      end
+      click_button "Log in"
+    end
 
     expect(page).to have_no_current_path(new_user_session_path, wait: 5)
     expect(page).to have_css("a.nav-link.dropdown-toggle", text: user.name, wait: 5)
@@ -141,4 +157,48 @@ module SystemHelpers
     # Wait for Active Storage direct upload to complete
     expect(page).to have_no_css(".direct-upload--pending", wait: 10)
   end
+
+  # UI Interaction Helpers
+
+  # Wait for a Bootstrap modal to be visible
+  # @param modal_id [String] the ID of the modal
+  # @param timeout [Integer] timeout in seconds (default: 5)
+  def wait_for_modal(modal_id, timeout: 5)
+    expect(page).to have_css("##{modal_id}.show", wait: timeout)
+    expect(page).to have_css(".modal-backdrop.show", wait: timeout)
+  end
+
+  # Close a Bootstrap modal programmatically
+  # @param modal_id [String] the ID of the modal
+  def close_modal(modal_id)
+    within("##{modal_id}") do
+      if has_button?("Close")
+        click_button "Close"
+      elsif has_css?("button.btn-close")
+        click_button(class: "btn-close")
+      else
+        # Fallback to escape key
+        find(".modal-content").send_keys(:escape)
+      end
+    end
+    expect(page).to have_no_css("##{modal_id}.show")
+    expect(page).to have_no_css(".modal-backdrop.show")
+  end
+
+  # Expand a Bootstrap collapse section
+  # @param section_id [String] ID of the collapsible element
+  def expand_collapse_section(section_id)
+    # Find the toggle button associated with this collapse
+    toggle = find("button[data-bs-target='##{section_id}']")
+    toggle.click
+    expect(page).to have_css("##{section_id}.show")
+  end
+
+  # Verify ARIA label on element
+  # @param selector [String] CSS selector for the element
+  # @param expected_label [String] expected text of aria-label
+  def verify_aria_label(selector, expected_label)
+    expect(page).to have_css("#{selector}[aria-label='#{expected_label}']")
+  end
 end
+# rubocop:enable Metrics/ModuleLength

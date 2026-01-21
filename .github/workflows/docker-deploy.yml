@@ -4,7 +4,7 @@ name: Docker Deploy
 
 on:
   push:
-    tags: [ v* ]
+    tags: [v*]
 
 env:
   REGISTRY: ghcr.io
@@ -15,7 +15,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
+      - uses: jdx/mise-action@v2
+        with:
+          install: true
+          cache: true
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+      - run: just install
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
         with: { platforms: "amd64,arm64" }
@@ -29,7 +35,7 @@ jobs:
           password: ${{ secrets.DOCKER_PUSH_TOKEN }}
       - name: Extract metadata for the Docker image
         id: meta
-        uses: docker/metadata-action@v5.8.0
+        uses: docker/metadata-action@v5.10.0
         with: { images: "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}" }
 
       - name: Build and push the Docker image

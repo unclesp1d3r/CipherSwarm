@@ -5,7 +5,7 @@
 
 class CalculateMaskComplexityJob < ApplicationJob
   queue_as :ingest
-  retry_on ActiveRecord::RecordNotFound, wait: :polynomially_longer, attempts: 3
+  discard_on ActiveRecord::RecordNotFound
 
   # Performs the calculation of mask complexity for a given MaskList.
   #

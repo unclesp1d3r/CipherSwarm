@@ -58,10 +58,9 @@ node_modules/
 /public/packs-test
 /public/assets
 
-# Ignore yarn files
-/yarn-error.log
-yarn-debug.log*
-.yarn-integrity
+# Ignore bun files
+bun.log
+.bun
 
 # Ignore uploaded files in development
 /storage/*

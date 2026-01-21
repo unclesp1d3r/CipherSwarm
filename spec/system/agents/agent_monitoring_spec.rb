@@ -253,10 +253,12 @@ RSpec.describe "Agent monitoring" do
   describe "authorization" do
     let(:other_user) { create(:user) }
     let!(:other_agent) { create(:agent, user: other_user) }
+    let(:shared_project) { create(:project) }
 
     before do
-      other_user.projects << other_agent.projects.first
-      user.projects << other_agent.projects.first unless user.projects.include?(other_agent.projects.first)
+      other_agent.projects << shared_project unless other_agent.projects.include?(shared_project)
+      other_user.projects << shared_project
+      user.projects << shared_project unless user.projects.include?(shared_project)
     end
 
     it "hides edit button for non-admin on other agents" do
@@ -271,7 +273,7 @@ RSpec.describe "Agent monitoring" do
       agents_index.visit_page
       sign_out_via_ui(user)
       admin = create_and_sign_in_admin
-      admin.projects << other_agent.projects.first
+      admin.projects << shared_project
 
       agent_page.visit_page(other_agent)
       agent_page.click_tab("Configuration")
@@ -348,10 +350,12 @@ RSpec.describe "Agent monitoring" do
     context "when user lacks permissions" do
       let(:other_user) { create(:user) }
       let!(:other_agent) { create(:agent, user: other_user) }
+      let(:shared_project) { create(:project) }
 
       before do
-        other_user.projects << other_agent.projects.first
-        user.projects << other_agent.projects.first unless user.projects.include?(other_agent.projects.first)
+        other_agent.projects << shared_project unless other_agent.projects.include?(shared_project)
+        other_user.projects << shared_project
+        user.projects << shared_project unless user.projects.include?(shared_project)
       end
 
       it "hides edit and delete buttons but shows view button with icon" do

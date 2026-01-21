@@ -1,8 +1,10 @@
 x-common-env-vars: &common-env-vars
   RAILS_MASTER_KEY: ${RAILS_MASTER_KEY}
   REDIS_URL: redis://redis-db:6379
-  DATABASE_URL: postgres://root:${POSTGRES_PASSWORD:-password}@postgres-db/
-  MINIO_ENDPOINT: http://${MINIO_PUBLIC_IP:-127.0.0.1}:9000
+  DATABASE_URL: postgres://root:${POSTGRES_PASSWORD:-password}@postgres-db/cipherswarm
+  MINIO_ENDPOINT: http://minio:9000
+  APPLICATION_HOST: ${APPLICATION_HOST:-localhost}
+  DISABLE_SSL: ${DISABLE_SSL:-true}
 
 services:
   web:
@@ -29,9 +31,29 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+    develop:
+      watch:
+        - path: ./app
+          action: sync
+          target: /rails/app
+        - path: ./config
+          action: sync
+          target: /rails/config
+        - path: ./lib
+          action: sync
+          target: /rails/lib
+        - path: ./db
+          action: sync
+          target: /rails/db
+        - path: ./Gemfile
+          action: rebuild
+        - path: ./Gemfile.lock
+          action: rebuild
+        - path: ./Dockerfile
+          action: rebuild
 
   postgres-db:
-    image: postgres
+    image: postgres:17
     environment:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
@@ -48,18 +70,19 @@ services:
       - backend
 
   minio:
-    image: bitnami/minio
+    image: minio/minio
+    command: server /data --console-address ":9001"
     ports:
       - '9000:9000'
       - '9001:9001'
     volumes:
-      - minio:/bitnami/minio/data
+      - minio-data:/data
     networks:
       - frontend
+      - backend
     environment:
       - MINIO_ROOT_USER=minioadmin
       - MINIO_ROOT_PASSWORD=minioadmin
-      - MINIO_DEFAULT_BUCKETS=application
     healthcheck:
       test: [ "CMD-SHELL", "curl --fail http://localhost:9000/minio/health/live || exit 1" ]
       interval: 30s
@@ -74,7 +97,7 @@ services:
       restart_policy:
         condition: on-failure
     volumes:
-      - redis:/data
+      - redis-data:/data
     healthcheck:
       test: [ "CMD-SHELL", "redis-cli ping | grep PONG" ]
       interval: 1s
@@ -99,6 +122,23 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+    develop:
+      watch:
+        - path: ./app
+          action: sync
+          target: /rails/app
+        - path: ./config
+          action: sync
+          target: /rails/config
+        - path: ./lib
+          action: sync
+          target: /rails/lib
+        - path: ./Gemfile
+          action: rebuild
+        - path: ./Gemfile.lock
+          action: rebuild
+        - path: ./Dockerfile
+          action: rebuild
 
 networks:
   backend:
@@ -107,6 +147,5 @@ networks:
 volumes:
   storage:
   postgres:
-  redis:
-  minio:
-    driver: local
+  redis-data:
+  minio-data:

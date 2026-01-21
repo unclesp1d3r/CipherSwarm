@@ -23,7 +23,44 @@ class CampaignsController < ApplicationController
   # GET /campaigns/1 or /campaigns/1.json
   def show
     fresh_when(@campaign)
+
+    # Precompute map for failed attacks to their latest error
+    failed_attack_ids = @campaign.attacks.where(state: "failed").pluck(:id)
+    if failed_attack_ids.any?
+      # Use raw SQL for PostgreSQL DISTINCT ON which requires ORDER BY to start with DISTINCT ON columns
+      latest_errors = AgentError.find_by_sql([<<-SQL.squish, failed_attack_ids])
+        SELECT DISTINCT ON (tasks.attack_id)
+               agent_errors.*,
+               tasks.attack_id AS associated_attack_id
+        FROM agent_errors
+        INNER JOIN tasks ON tasks.id = agent_errors.task_id
+        WHERE tasks.attack_id IN (?)
+        ORDER BY tasks.attack_id, agent_errors.created_at DESC
+      SQL
+
+      @failed_attack_error_map = latest_errors.index_by(&:associated_attack_id)
+    else
+      @failed_attack_error_map = {}
+    end
   end
+
+  def eta_summary
+    render partial: "eta_summary", locals: { campaign: @campaign }
+  end
+
+  def recent_cracks
+    render partial: "recent_cracks", locals: { campaign: @campaign }
+  end
+
+  def error_log
+    errors_query = AgentError.joins(task: :attack)
+                             .where(attacks: { campaign_id: @campaign.id })
+                             .includes(task: :attack)
+                             .order(created_at: :desc)
+    @pagy, @campaign_errors = pagy(errors_query, limit: 50)
+    render partial: "error_log", locals: { campaign: @campaign, campaign_errors: @campaign_errors, pagy: @pagy }
+  end
+
 
   # GET /campaigns/new
   def new; end

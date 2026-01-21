@@ -1,4 +1,6 @@
 update_status_job:
   cron: "*/3 * * * *"  # every 3 minutes
   class: "UpdateStatusJob"
-  queue: "high"
+  active_job: true
+  # Note: queue is defined in the job class itself (queue_as :high)
+  # Do not specify queue here as it causes issues with ActiveJob + sidekiq-cron

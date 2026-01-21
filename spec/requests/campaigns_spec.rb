@@ -13,12 +13,8 @@ RSpec.describe "Campaigns" do
     user
   }
   let!(:non_project_user) { create(:user) }
-  let!(:project_user) do
-    user = create(:user)
-    create(:project_user, project: project, user: user, role: :viewer)
-    user
-  end
-  let!(:campaign) { create(:campaign) }
+  let!(:project_user) { create(:user, projects: [project]) }
+  let!(:campaign) { create(:campaign, project: project) }
 
   describe "GET /index" do
     context "when user is not logged in" do
@@ -84,6 +80,28 @@ RSpec.describe "Campaigns" do
 
     context "when a project user is logged in" do
       it "returns http success" do
+        sign_in(project_user)
+        get campaign_path(campaign)
+        expect(response).to have_http_status(:success)
+        expect(response).to render_template(:show)
+      end
+    end
+
+    context "when campaign has failed attacks with errors" do
+      let!(:agent) { create(:agent, projects: [project]) }
+      let!(:failed_attack) do
+        attack = create(:dictionary_attack, campaign: campaign)
+        attack.run! if attack.can_run?
+        attack.error! if attack.can_error?
+        attack
+      end
+      let!(:task) { create(:task, attack: failed_attack, agent: agent) }
+
+      before do
+        create(:agent_error, agent: agent, task: task, severity: :critical)
+      end
+
+      it "returns http success and loads error map" do
         sign_in(project_user)
         get campaign_path(campaign)
         expect(response).to have_http_status(:success)
