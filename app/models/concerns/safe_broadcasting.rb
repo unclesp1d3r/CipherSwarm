@@ -18,44 +18,18 @@
 module SafeBroadcasting
   extend ActiveSupport::Concern
 
-  # List of Turbo broadcast methods to wrap with error handling
+  # Only wrap broadcast methods that are actually used in the codebase:
+  # - broadcast_replace_to: used by Campaign, Attack, Agent, HashItem
+  # - broadcast_replace_later_to: used by Agent
+  # - broadcast_refresh_to/broadcast_refresh: used via broadcasts_refreshes
   BROADCAST_METHODS = %i[
-    broadcast_remove_to
-    broadcast_remove
     broadcast_replace_to
-    broadcast_replace
-    broadcast_update_to
-    broadcast_update
-    broadcast_before_to
-    broadcast_after_to
-    broadcast_append_to
-    broadcast_append
-    broadcast_prepend_to
-    broadcast_prepend
+    broadcast_replace_later_to
     broadcast_refresh_to
     broadcast_refresh
-    broadcast_action_to
-    broadcast_action
-    broadcast_replace_later_to
-    broadcast_replace_later
-    broadcast_update_later_to
-    broadcast_update_later
-    broadcast_append_later_to
-    broadcast_append_later
-    broadcast_prepend_later_to
-    broadcast_prepend_later
-    broadcast_refresh_later_to
-    broadcast_refresh_later
-    broadcast_action_later_to
-    broadcast_action_later
-    broadcast_render
-    broadcast_render_to
-    broadcast_render_later
-    broadcast_render_later_to
   ].freeze
 
   included do
-    # Override each broadcast method with a safe wrapper
     BROADCAST_METHODS.each do |method_name|
       define_method(method_name) do |*args, **kwargs, &block|
         super(*args, **kwargs, &block)
