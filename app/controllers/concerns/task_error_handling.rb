@@ -9,44 +9,27 @@
 module TaskErrorHandling
   extend ActiveSupport::Concern
 
-  # Handles task not found errors with enhanced diagnostics and logging.
-  #
-  # This method provides detailed error responses based on different scenarios:
-  # - Task never existed
-  # - Task exists but is assigned to another agent
-  # - Task was recently deleted
-  # - Task was completed and removed
+  # Handles task not found errors with diagnostics and logging.
   #
   # @param task_id [String, Integer] The ID of the task that was not found
   # @param agent [Agent] The agent attempting to access the task
-  # @return [Hash] Enhanced error response with reason code and optional details
+  # @return [Hash] Error response with reason code
   def handle_task_not_found(task_id, agent)
-    # Check if task exists globally
     task = Task.find_by(id: task_id)
 
     if task.present?
-      # Task exists but not assigned to this agent
       log_task_not_assigned(task_id, agent.id, task.agent_id)
       {
         error: "Record not found",
         reason: "task_not_assigned",
         details: "Task belongs to another agent"
       }
-    elsif task_deleted_recently?(task_id)
-      # Task was recently deleted
-      log_task_deleted(task_id, agent.id)
-      {
-        error: "Record not found",
-        reason: "task_deleted",
-        details: "Task was removed when attack was abandoned or completed"
-      }
     else
-      # Task never existed or ID is invalid
-      log_task_never_existed(task_id, agent.id)
+      log_task_not_found(task_id, agent.id)
       {
         error: "Record not found",
-        reason: "task_invalid",
-        details: "Task ID does not exist"
+        reason: "task_not_found",
+        details: "Task does not exist or was removed"
       }
     end
   end
@@ -64,29 +47,6 @@ module TaskErrorHandling
     Rails.logger.info(
       "[TaskAccess] Agent #{agent_id} - Task #{task_id} - #{method} #{path} - #{outcome} - #{Time.zone.now}"
     )
-  end
-
-  # Checks if a task ID likely belonged to a recently deleted task.
-  #
-  # Uses heuristics to determine if the task ID falls within the range of
-  # recently created tasks, indicating it was likely deleted rather than
-  # never having existed.
-  #
-  # @param task_id [String, Integer] The ID of the task to check
-  # @param time_window_hours [Integer] Hours to look back for recent tasks (default: 24)
-  # @return [Boolean] true if the task was likely recently deleted
-  def task_deleted_recently?(task_id, time_window_hours: 24)
-    return false if task_id.blank? || task_id.to_i <= 0
-
-    # Check if task ID is within range of recently created tasks
-    recent_task_ids = Task.where("created_at > ?", time_window_hours.hours.ago).pluck(:id)
-    return false if recent_task_ids.empty?
-
-    min_recent_id = recent_task_ids.min
-    max_recent_id = recent_task_ids.max
-
-    # If task_id falls within the range of recent task IDs, it was likely recently deleted
-    task_id.to_i.between?(min_recent_id, max_recent_id)
   end
 
   # Logs task state transitions with context.
@@ -117,19 +77,10 @@ module TaskErrorHandling
     )
   end
 
-  # Logs when a task was deleted.
-  def log_task_deleted(task_id, agent_id)
+  # Logs when a task is not found.
+  def log_task_not_found(task_id, agent_id)
     Rails.logger.warn(
-      "[TaskNotFound] Task #{task_id} - Agent #{agent_id} - Reason: task_deleted - " \
-      "Task was removed when attack was abandoned or completed - #{Time.zone.now}"
-    )
-  end
-
-  # Logs when a task never existed.
-  def log_task_never_existed(task_id, agent_id)
-    Rails.logger.warn(
-      "[TaskNotFound] Task #{task_id} - Agent #{agent_id} - Reason: task_invalid - " \
-      "Task ID does not exist - #{Time.zone.now}"
+      "[TaskNotFound] Task #{task_id} - Agent #{agent_id} - Task does not exist or was removed - #{Time.zone.now}"
     )
   end
 end
