@@ -101,6 +101,7 @@ RSpec.configure do |config|
                        enum: %w[pending active stopped error] },
               operating_system: { type: :string, description: "The operating system of the agent" },
               devices: { type: :array, items: { type: :string, description: "The descriptive name of a GPU or CPU device." } },
+              current_activity: { type: :string, nullable: true, description: "Current agent activity state" },
               advanced_configuration: {
                 "$ref" => "#/components/schemas/AdvancedAgentConfiguration"
               }

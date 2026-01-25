@@ -8,7 +8,8 @@ json.extract! agent, :id,
               :client_signature,
               :operating_system,
               :state,
-              :devices
+              :devices,
+              :current_activity
 json.advanced_configuration do
   json.partial! "api/v1/client/agents/advanced_configuration", agent: agent
 end

@@ -8,9 +8,15 @@ CipherSwarm is a distributed hash cracking system built on Rails 8.0+ inspired b
 
 **Current Status**: Undergoing V2 upgrade (see docs/v2-upgrade-overview.md)
 
+## Privacy in Documentation
+
+- Never include actual usernames, real names, or PII in code/documentation/examples
+- Use `$USER`, `unclesp1d3r` (public pseudonym), or generic placeholders instead
+- Applies to all files: code, docs, comments, examples, commit messages
+
 ## Development Tools
 
-This project uses [mise](https://mise.jdx.dev/) for development tool version management. All tool versions are defined in `.mise.toml`:
+This project uses [mise](https://mise.jdx.dev/) for development tool version management. All tool versions are defined in `mise.toml`:
 
 - **Ruby** - Application runtime (pinned version)
 - **Bun** - JavaScript runtime and package manager (replaces Node.js + npm/yarn)
@@ -24,6 +30,13 @@ This project uses [mise](https://mise.jdx.dev/) for development tool version man
 Install mise first, then run `mise install` to get all tools at the correct versions.
 
 **Bun** is used instead of npm/yarn for JavaScript dependency management. It's faster and provides a compatible API. Use `bun install`, `bun run`, `bun add`, etc.
+
+**Environment Isolation:**
+
+- `.envrc` file ensures clean environment isolation between projects
+- Automatically unsets `TEST_DATABASE_URL` from other projects (e.g., Ouroboros)
+- direnv integration via mise or oh-my-zsh activates on `cd` into directory
+- Rails uses system user (`$USER`) for local PostgreSQL when no DATABASE_URL is set
 
 ## Common Development Commands
 
@@ -383,6 +396,9 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 - ALWAYS use Rails generators for migrations
 - Never create migration files manually
 - Use `bin/rails generate migration` or `just db-migration`
+- **Why this is critical:** Running `db:migrate` regenerates `schema.rb` from actual DATABASE state, not from migrations
+- Manual migration creation causes schema drift: unrelated DB changes get committed
+- Schema drift example: Local DB has dropped tables → manual migration → `db:migrate` → schema.rb shows deletions
 
 ### Important Configuration Files
 
@@ -467,6 +483,12 @@ just docker-shell
 # PostgreSQL service is named 'postgres-db' not 'db'
 docker compose up -d postgres-db
 ```
+
+**Environment Files:**
+
+- `.env` - Contains secrets (gitignored, not committed)
+- `.envrc` - Environment isolation config (committed to repo)
+- `.envrc` auto-loads via direnv when entering directory
 
 ### Resources
 
