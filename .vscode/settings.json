@@ -1,5 +1,9 @@
 {
   "yaml.schemas": {
     "https://json.schemastore.org/dependabot-2.0.json": "file:///workspaces/CipherSwarm/.github/dependabot.yml"
-  }
+  },
+  "debug.javascript.defaultRuntimeExecutable": {
+    "pwa-node": "${workspaceFolder}/.vscode/mise-tools/node"
+  },
+  "python.defaultInterpreterPath": "${workspaceFolder}/.vscode/mise-tools/python"
 }
