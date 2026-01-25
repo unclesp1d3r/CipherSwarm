@@ -111,5 +111,162 @@ RSpec.describe UpdateStatusJob do
         expect { described_class.new.perform }.to change { completed_task.hashcat_statuses.count }.from(50).to(0)
       end
     end
+
+    context "when managing campaign priorities" do
+      it "completes successfully with no active campaigns" do
+        campaign = create(:campaign)
+        create(:dictionary_attack, campaign: campaign, state: "completed")
+
+        expect { described_class.new.perform }.not_to raise_error
+      end
+
+      it "completes successfully with no campaigns at all" do
+        expect { described_class.new.perform }.not_to raise_error
+      end
+    end
+
+    context "when rebalancing task assignments for high-priority campaigns" do
+      let!(:project) { create(:project) }
+      let!(:agents) { create_list(:agent, 2, state: :active) }
+
+      it "triggers preemption for pending high-priority attacks with no running tasks" do
+        high_campaign = create(:campaign, project: project, priority: :high)
+        normal_campaign = create(:campaign, project: project, priority: :normal)
+
+        # Create running tasks from normal-priority campaign to fill capacity (both agents)
+        normal_attack_1 = create(:dictionary_attack, campaign: normal_campaign)
+        normal_attack_2 = create(:dictionary_attack, campaign: normal_campaign)
+        running_task_1 = create(:task, attack: normal_attack_1, agent: agents[0], state: :running)
+        running_task_2 = create(:task, attack: normal_attack_2, agent: agents[1], state: :running)
+        create(:hashcat_status, task: running_task_1, progress: [25, 100], status: :running)
+        create(:hashcat_status, task: running_task_2, progress: [50, 100], status: :running)
+
+        # Create high-priority attack with no running tasks but remaining work
+        high_attack = create(:dictionary_attack, campaign: high_campaign)
+        create(:hash_item, hash_list: high_campaign.hash_list, plain_text: nil)
+
+        # Before running the job, verify the task is running
+        expect(running_task_1.reload.state).to eq("running")
+
+        # Run the job
+        described_class.new.perform
+
+        # After running, task should be preempted (pending) and stale
+        expect(running_task_1.reload.state).to eq("pending")
+        expect(running_task_1.reload.stale).to be true
+      end
+
+      it "does not preempt when nodes are available" do
+        high_campaign = create(:campaign, project: project, priority: :high)
+        normal_campaign = create(:campaign, project: project, priority: :normal)
+
+        normal_attack = create(:dictionary_attack, campaign: normal_campaign)
+        running_task = create(:task, attack: normal_attack, agent: agents[0], state: :running)
+
+        # Create high-priority attack (second node is available)
+        high_attack = create(:dictionary_attack, campaign: high_campaign)
+
+        expect {
+          described_class.new.perform
+        }.not_to change { running_task.reload.state }
+      end
+
+      it "does not preempt for deferred-priority attacks" do
+        deferred_campaign = create(:campaign, project: project, priority: :deferred)
+        normal_campaign = create(:campaign, project: project, priority: :normal)
+
+        normal_attack = create(:dictionary_attack, campaign: normal_campaign)
+        running_task_1 = create(:task, attack: normal_attack, agent: agents[0], state: :running)
+        create(:hashcat_status, task: running_task_1, progress: [25, 100], status: :running)
+
+        # Fill second node
+        normal_attack_2 = create(:dictionary_attack, campaign: normal_campaign)
+        running_task_2 = create(:task, attack: normal_attack_2, agent: agents[1], state: :running)
+
+        # Create deferred attack (should not trigger preemption)
+        deferred_attack = create(:dictionary_attack, campaign: deferred_campaign)
+
+        expect {
+          described_class.new.perform
+        }.not_to change { running_task_1.reload.state }
+      end
+
+      it "handles individual preemption errors gracefully" do
+        high_campaign = create(:campaign, project: project, priority: :high)
+        normal_campaign = create(:campaign, project: project, priority: :normal)
+
+        # Fill both nodes
+        normal_attack_1 = create(:dictionary_attack, campaign: normal_campaign)
+        normal_attack_2 = create(:dictionary_attack, campaign: normal_campaign)
+        running_task_1 = create(:task, attack: normal_attack_1, agent: agents[0], state: :running)
+        running_task_2 = create(:task, attack: normal_attack_2, agent: agents[1], state: :running)
+        create(:hashcat_status, task: running_task_1, progress: [25, 100], status: :running)
+        create(:hashcat_status, task: running_task_2, progress: [50, 100], status: :running)
+
+        # Create high-priority attack with uncracked hashes
+        high_attack = create(:dictionary_attack, campaign: high_campaign)
+        create(:hash_item, hash_list: high_campaign.hash_list, plain_text: nil)
+
+        # Simulate error for preemption
+        service_double = instance_double(TaskPreemptionService)
+        allow(TaskPreemptionService).to receive(:new).and_return(service_double)
+        allow(service_double).to receive(:preempt_if_needed)
+          .and_raise(StandardError.new("Preemption failed"))
+
+        allow(Rails.logger).to receive(:error)
+
+        # Should not raise error and should log
+        expect { described_class.new.perform }.not_to raise_error
+        expect(Rails.logger).to have_received(:error).with(/Error preempting tasks for attack/)
+      end
+
+      it "handles database errors in query gracefully" do
+        high_campaign = create(:campaign, project: project, priority: :high)
+
+        # Simulate database error
+        allow(Attack).to receive(:incomplete).and_raise(ActiveRecord::StatementInvalid.new("Database connection lost"))
+        allow(Rails.logger).to receive(:error)
+
+        expect { described_class.new.perform }.not_to raise_error
+        expect(Rails.logger).to have_received(:error).with(/Error in rebalance_task_assignments/)
+      end
+
+      it "logs errors with backtrace for debugging" do
+        high_campaign = create(:campaign, project: project, priority: :high)
+
+        allow(Attack).to receive(:incomplete).and_raise(StandardError.new("Test error"))
+        allow(Rails.logger).to receive(:error)
+
+        described_class.new.perform
+
+        expect(Rails.logger).to have_received(:error).with(/Backtrace:/)
+      end
+
+      it "avoids N+1 queries when checking multiple high-priority attacks" do
+        # Create 3 high-priority attacks to detect N+1 queries
+        3.times do
+          campaign = create(:campaign, project: project, priority: :high)
+          attack = create(:dictionary_attack, campaign: campaign)
+          create(:hash_item, hash_list: campaign.hash_list, plain_text: nil)
+        end
+
+        # Track queries - without includes, this would generate N queries for campaign and hash_list
+        queries = []
+        query_counter = lambda do |_name, _started, _finished, _unique_id, payload|
+          queries << payload[:sql] if payload[:name] == "SQL" && payload[:sql] !~ /^(BEGIN|COMMIT|SAVEPOINT|RELEASE)/
+        end
+
+        ActiveSupport::Notifications.subscribed(query_counter, "sql.active_record") do
+          described_class.new.send(:rebalance_task_assignments)
+        end
+
+        # Should only have:
+        # 1. Query to load attacks with includes (campaign and hash_list)
+        # 2. Query to check for running tasks
+        # Without includes, there would be 3 queries per attack (1 for campaign, 1 for hash_list for each attack.uncracked_count call)
+        # With 3 attacks, that would be 9+ queries. With includes, should be ~2-3 queries total.
+        expect(queries.count).to be <= 5
+      end
+    end
   end
 end

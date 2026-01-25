@@ -219,7 +219,7 @@ class Attack < ApplicationRecord
   # Broadcasts a refresh to the client when the attack is updated unless running in test environment
   include SafeBroadcasting
 
-  broadcasts_refreshes unless Rails.env.test?
+
 
   ##
   # Delegations
@@ -230,6 +230,7 @@ class Attack < ApplicationRecord
 
   # Callbacks
   after_create_commit :update_stored_complexity # Updates the stored complexity value after the attack is created
+  after_commit :broadcast_attack_progress_update, on: [:update], unless: -> { Rails.env.test? }
 
   ##
   # State Machine
@@ -337,6 +338,27 @@ class Attack < ApplicationRecord
 
     # Executed after an attack is being resumed. This resumes all tasks associated with the attack.
     after_transition paused: any, do: :resume_tasks
+
+    # Broadcast progress updates for state changes.
+    after_transition any => :running do |attack|
+      attack.broadcast_attack_progress_update
+    end
+
+    after_transition any => :completed do |attack|
+      attack.broadcast_attack_progress_update
+    end
+
+    after_transition any => :exhausted do |attack|
+      attack.broadcast_attack_progress_update
+    end
+
+    after_transition any => :failed do |attack|
+      attack.broadcast_attack_progress_update
+    end
+
+    after_transition any => :paused do |attack|
+      attack.broadcast_attack_progress_update
+    end
 
     # Executed after an attack has been completed. This completes the hash list for the campaign and updates the campaign's updated_at timestamp.
     after_transition any => :completed, :do => :complete_hash_list
@@ -472,6 +494,42 @@ class Attack < ApplicationRecord
   # @return [String] a formatted string in the form of "name (attack_mode) - complexity"
   def to_label_with_complexity
     "#{to_label} #{complexity_as_words}"
+  end
+
+  # Returns the latest agent error for this attack via its tasks.
+  #
+  # @return [AgentError, nil] the most recent agent error, or nil if none exist.
+  def latest_agent_error
+    AgentError.joins(:task).where(tasks: { attack_id: id }).order(created_at: :desc).first
+  end
+
+  def broadcast_attack_progress_update
+    return if Rails.env.test?
+
+    Rails.logger.info("[BroadcastUpdate] Attack #{id} - Broadcasting progress update to campaign #{campaign_id}")
+    broadcast_replace_to(
+      campaign,
+      target: "attack-progress-#{id}",
+      partial: "campaigns/attack_progress",
+      locals: {
+        attack: self,
+        campaign: campaign,
+        failed_attack_error_map: build_failed_attack_error_map
+      }
+    )
+
+    # Also broadcast the campaign's ETA summary update
+    campaign.broadcast_eta_update
+  end
+
+  # Builds a hash mapping this attack's ID to its latest error, if failed.
+  #
+  # @return [Hash] a hash with attack ID as key and error as value, or empty if not failed.
+  def build_failed_attack_error_map
+    return {} unless state == "failed"
+
+    error = latest_agent_error
+    error ? { id => error } : {}
   end
 
   private

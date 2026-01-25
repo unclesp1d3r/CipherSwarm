@@ -81,11 +81,10 @@ filter_commits = true
 # sort the tags topologically
 topo_order = true
 # sort the commits inside sections by oldest/newest order
-sort_commits = "oldest"
+sort_commits             = "oldest"
 protect_breaking_commits = true
 
 [bump]
 features_always_bump_minor = false
 breaking_always_bump_major = true
-initial_tag = "0.1.0"
-
+initial_tag                = "0.1.0"

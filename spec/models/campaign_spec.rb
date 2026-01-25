@@ -7,16 +7,16 @@
 #
 # Table name: campaigns
 #
-#  id                                                                                                     :bigint           not null, primary key
-#  attacks_count                                                                                          :integer          default(0), not null
-#  deleted_at                                                                                             :datetime         indexed
-#  description                                                                                            :text
-#  name                                                                                                   :string           not null
-#  priority( -1: Deferred, 0: Routine, 1: Priority, 2: Urgent, 3: Immediate, 4: Flash, 5: Flash Override) :integer          default("routine"), not null
-#  created_at                                                                                             :datetime         not null
-#  updated_at                                                                                             :datetime         not null
-#  hash_list_id                                                                                           :bigint           not null, indexed
-#  project_id                                                                                             :bigint           not null, indexed
+#  id                                         :bigint           not null, primary key
+#  attacks_count                              :integer          default(0), not null
+#  deleted_at                                 :datetime         indexed
+#  description                                :text
+#  name                                       :string           not null
+#  priority(-1: Deferred, 0: Normal, 2: High) :integer          default("normal"), not null
+#  created_at                                 :datetime         not null
+#  updated_at                                 :datetime         not null
+#  hash_list_id                               :bigint           not null, indexed
+#  project_id                                 :bigint           not null, indexed
 #
 # Indexes
 #
@@ -95,20 +95,12 @@ RSpec.describe Campaign do
     end
 
     describe "#priority_to_emoji" do
-      it "returns the correct emoji for each priority" do # rubocop:disable RSpec/MultipleExpectations
-        expect(campaign.priority_to_emoji).to eq("🔄") # routine
+      it "returns the correct emoji for each priority" do
+        expect(campaign.priority_to_emoji).to eq("🔄") # normal
         campaign.update(priority: :deferred)
         expect(campaign.priority_to_emoji).to eq("🕰")
-        campaign.update(priority: :priority)
-        expect(campaign.priority_to_emoji).to eq("🔵")
-        campaign.update(priority: :urgent)
-        expect(campaign.priority_to_emoji).to eq("🟠")
-        campaign.update(priority: :immediate)
+        campaign.update(priority: :high)
         expect(campaign.priority_to_emoji).to eq("🔴")
-        campaign.update(priority: :flash)
-        expect(campaign.priority_to_emoji).to eq("🟡")
-        campaign.update(priority: :flash_override)
-        expect(campaign.priority_to_emoji).to eq("🔒")
       end
     end
 
@@ -179,6 +171,31 @@ RSpec.describe Campaign do
       it "returns total ETA for all incomplete attacks" do
         attack = create(:dictionary_attack, campaign: campaign, state: "pending")
         expect(campaign.calculate_total_eta).to be_nil.or be_a(Time)
+      end
+    end
+  end
+
+  # Tests for manual pause/resume functionality
+  describe "manual campaign control" do
+    context "when pausing a campaign" do
+      it "pauses all active attacks" do
+        campaign = create(:campaign, priority: :normal)
+        attack = create(:dictionary_attack, campaign: campaign, state: "running")
+
+        campaign.pause
+        attack.reload
+        expect(attack.state).to eq("paused")
+      end
+    end
+
+    context "when resuming a campaign" do
+      it "resumes all paused attacks" do
+        campaign = create(:campaign, priority: :normal)
+        attack = create(:dictionary_attack, campaign: campaign, state: "paused")
+
+        campaign.resume
+        attack.reload
+        expect(attack.state).to eq("pending")
       end
     end
   end

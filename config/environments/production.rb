@@ -30,10 +30,12 @@ Rails.application.configure do
   config.active_storage.service = :minio
 
   # Assume all access to the app is happening through a SSL-terminating reverse proxy.
-  config.assume_ssl = true
+  # Can be disabled for local docker development via DISABLE_SSL=true
+  config.assume_ssl = ENV["DISABLE_SSL"].blank?
 
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
-  config.force_ssl = true
+  # Can be disabled for local docker development via DISABLE_SSL=true
+  config.force_ssl = ENV["DISABLE_SSL"].blank?
 
   # Skip http-to-https redirect for the default health check endpoint.
   # config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }

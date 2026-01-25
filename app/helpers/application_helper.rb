@@ -130,4 +130,45 @@ module ApplicationHelper
     decoded = HTMLEntities.new.decode(stripped)
     decoded.squish.gsub(%r{/</?[^>]*>/}, "")
   end
+
+  # Safely checks authorization, returning false if no user context is available.
+  #
+  # This helper wraps the CanCanCan `can?` method to handle cases where authorization
+  # checks are made outside of a request context (e.g., in Turbo Stream broadcasts
+  # from model callbacks). When Warden is not available, it defaults to denying access.
+  #
+  # @param action [Symbol] The action to check (e.g., :read, :edit, :destroy)
+  # @param subject [Object] The subject to check authorization against
+  # @return [Boolean] True if authorized, false if not authorized or no user context
+  def safe_can?(action, subject)
+    can?(action, subject)
+  rescue Warden::NotAuthenticated, NoMethodError => e
+    # NoMethodError can occur when current_user is called without Warden
+    # Warden::NotAuthenticated when Warden proxy is missing
+    Rails.logger.debug { "[SafeAuthorization] Authorization check skipped - no user context: #{e.message}" }
+    false
+  end
+
+  # Returns the Bootstrap badge class for an AgentError severity level.
+  #
+  # @param error [AgentError] The agent error record.
+  # @return [String] The Bootstrap badge class for the severity.
+  def severity_badge_class_for(error)
+    case error.severity
+    when "info"
+      "text-bg-info"
+    when "warning"
+      "text-bg-warning"
+    when "minor"
+      "text-bg-warning"
+    when "major"
+      "text-bg-danger"
+    when "critical"
+      "text-bg-danger"
+    when "fatal"
+      "text-bg-dark"
+    else
+      "text-bg-secondary"
+    end
+  end
 end

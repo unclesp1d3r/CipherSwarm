@@ -3,21 +3,26 @@
 
 set dotenv-load := true
 
+# Use mise to manage all dev tools (ruby, bun, pre-commit, etc.)
+# See .mise.toml for tool versions
+mise_exec := "mise exec --"
+
 # Default recipe (list all available commands)
 default:
     @just --list
 
 # === Development Setup ===
 
-# Install all dependencies (bundler, yarn, etc.)
+# Install dependencies
 install:
-    bundle install
-    yarn install
+    mise install
+    {{mise_exec}} bun install
+    {{mise_exec}} gem install bundler -v '~> 2.7'
+    {{mise_exec}} bin/bundle install
 
-# Setup database and initial configuration
+# Setup project (install deps, prepare database)
 setup: install
-    bin/rails db:setup
-    @echo "✓ Setup complete"
+    {{mise_exec}} bin/setup --skip-server
 
 # Start full development server (Rails + assets + Sidekiq)
 dev:
@@ -25,21 +30,21 @@ dev:
 
 # Start Rails server only
 server:
-    bin/rails server
+    {{mise_exec}} bin/rails server
 
 # Start Rails console
 console:
-    bin/rails console
+    {{mise_exec}} bin/rails console
 
 # Start Sidekiq worker
 sidekiq:
-    bundle exec sidekiq
+    {{mise_exec}} bundle exec sidekiq
 
 # === Code Quality ===
 
 # Run pre-commit hooks
 pre-commit:
-    pre-commit run --all-files
+    {{mise_exec}} pre-commit run --all-files
 
 # Run all linters and formatters (pre-commit equivalent)
 check: pre-commit security
@@ -47,17 +52,17 @@ check: pre-commit security
 
 # Auto-format all code (RuboCop, ERB)
 format:
-    bundle exec rubocop -A
-    bundle exec erb_lint --lint-all --autocorrect
+    {{mise_exec}} bundle exec rubocop -A
+    {{mise_exec}} bundle exec erb_lint --lint-all --autocorrect
     @echo "✓ Code formatted"
 
 # Run RuboCop linting only
 lint:
-    bundle exec rubocop
+    {{mise_exec}} bundle exec rubocop
 
 # Run Brakeman security scanner
 security:
-    bundle exec brakeman -q --no-pager
+    {{mise_exec}} bundle exec brakeman -q --no-pager
 
 # Run all quality checks (lint + security + formatting)
 quality: lint security format
@@ -66,67 +71,67 @@ quality: lint security format
 
 # Run JavaScript tests
 test-js:
-    yarn test:js
+    {{mise_exec}} bun test:js
 
 # Run all tests (JS + RSpec with coverage)
 test-all: test-js
-    COVERAGE=true bundle exec rspec
+    COVERAGE=true {{mise_exec}} bundle exec rspec
 
 # Run RSpec tests with coverage
 test:
-    COVERAGE=true bundle exec rspec
+    COVERAGE=true {{mise_exec}} bundle exec rspec
 
 # Run specific test file
 test-file FILE:
-    bundle exec rspec {{FILE}}
+    {{mise_exec}} bundle exec rspec {{FILE}}
 
 # Run system tests with visible browser
 test-system:
-    bundle exec rspec spec/system
+    {{mise_exec}} bundle exec rspec spec/system
 
 # Run tests in parallel
 test-parallel:
-    bundle exec rspec --parallel
+    {{mise_exec}} bundle exec rspec --parallel
 
 # Run API integration tests
 test-api:
-    bundle exec rspec spec/requests
+    {{mise_exec}} bundle exec rspec spec/requests
 
 # === Database Management ===
 
 # Run pending migrations
 db-migrate:
-    bin/rails db:migrate
+    {{mise_exec}} bin/rails db:migrate
 
 # Rollback last migration
 db-rollback:
-    bin/rails db:rollback
+    {{mise_exec}} bin/rails db:rollback
 
 # Reset database (drop, create, migrate, seed)
 db-reset:
-    bin/rails db:reset
+    {{mise_exec}} bin/rails db:reset
 
 # Seed database
 db-seed:
-    bin/rails db:seed
+    {{mise_exec}} bin/rails db:seed
 
 # Create new migration
 db-migration NAME:
-    bin/rails generate migration {{NAME}}
+    {{mise_exec}} bin/rails generate migration {{NAME}}
 
 # Reset test database
 db-test-reset:
-    RAILS_ENV=test bin/rails db:reset
+    RAILS_ENV=test {{mise_exec}} bin/rails db:reset
 
 # === Docker Operations ===
 
 # Build and start development environment
 docker-up:
-    docker compose up
+    docker compose -p csdev up
 
 # Build and start in watch mode (auto-reload)
 docker-dev-watch:
-    docker compose up --watch
+    docker compose -p csdev up --watch
 
 # Build and start production environment
 docker-prod-up:
@@ -134,19 +139,19 @@ docker-prod-up:
 
 # Stop and clean up development environment
 docker-down:
-    docker compose down
+    docker compose -p csdev down
 
 # View container logs
 docker-logs:
-    docker compose logs -f
+    docker compose -p csdev logs -f
 
 # Rebuild all containers
 docker-rebuild:
-    docker compose build --no-cache
+    docker compose -p csdev build --no-cache
 
 # Shell into Rails container
 docker-shell:
-    docker compose exec web bash
+    docker compose -p csdev exec web bash
 
 # === Asset Pipeline ===
 
@@ -156,35 +161,35 @@ assets-build: css-build js-build
 # Watch assets for changes
 assets-watch:
     #!/usr/bin/env bash
-    yarn watch:css &
-    yarn build --watch &
+    mise exec -- bun run watch:css &
+    mise exec -- bun run build --watch &
     wait
 
 # Build CSS only
 css-build:
-    yarn build:css
+    {{mise_exec}} bun run build:css
 
 # Watch CSS for changes
 css-watch:
-    yarn watch:css
+    {{mise_exec}} bun run watch:css
 
 # Build JavaScript only
 js-build:
-    yarn build
+    {{mise_exec}} bun run build
 
 # Precompile assets for production
 assets-precompile:
-    RAILS_ENV=production bin/rails assets:precompile
+    RAILS_ENV=production {{mise_exec}} bin/rails assets:precompile
 
 # === Background Jobs ===
 
 # Monitor Sidekiq stats
 sidekiq-monitor:
-    bundle exec sidekiqmon
+    {{mise_exec}} bundle exec sidekiqmon
 
 # Clear Sidekiq queues
 sidekiq-clear:
-    bin/rails runner 'Sidekiq.redis { |r| r.flushdb }'
+    {{mise_exec}} bin/rails runner 'Sidekiq.redis { |r| r.flushdb }'
 
 # View Sidekiq web UI (requires sidekiq-web gem mounted in routes)
 sidekiq-web:
@@ -195,11 +200,11 @@ sidekiq-web:
 
 # Generate Swagger/OpenAPI documentation
 docs-api:
-    RAILS_ENV=test rails rswag
+    RAILS_ENV=test {{mise_exec}} rails rswag
 
 # Regenerates Swagger/OpenAPI documentation with examples
 docs-api-full:
-    RSWAG_DRY_RUN=0 RAILS_ENV=test rails rswag
+    RSWAG_DRY_RUN=0 RAILS_ENV=test {{mise_exec}} rails rswag
 
 # Serve documentation locally (placeholder - implement based on your docs setup)
 docs-serve:
@@ -217,25 +222,25 @@ docs-generate: test-api docs-api
 
 # Update all dependencies
 update:
-    bundle update
-    yarn upgrade
+    {{mise_exec}} bundle update
+    {{mise_exec}} bun update
     @echo "✓ Dependencies updated"
 
 # Clean temporary files and caches
 clean:
-    bin/rails tmp:clear
-    bin/rails log:clear
+    {{mise_exec}} bin/rails tmp:clear
+    {{mise_exec}} bin/rails log:clear
     rm -rf coverage/
     rm -rf tmp/cache/
     @echo "✓ Cleaned temporary files"
 
 # View Rails routes
 routes:
-    bin/rails routes
+    {{mise_exec}} bin/rails routes
 
 # Annotate models with schema info
 annotate:
-    bundle exec annotate --models --routes
+    {{mise_exec}} bundle exec annotate --models --routes
 
 # Generate changelog (requires git-cliff)
 changelog:

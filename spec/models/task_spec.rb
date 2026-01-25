@@ -16,6 +16,7 @@
 #  last_error                                                                                             :text
 #  lock_version                                                                                           :integer          default(0), not null
 #  max_retries                                                                                            :integer          default(3), not null
+#  preemption_count                                                                                       :integer          default(0), not null, indexed
 #  retry_count                                                                                            :integer          default(0), not null
 #  stale(If new cracks since the last check, the task is stale and the new cracks need to be downloaded.) :boolean          default(FALSE), not null
 #  start_date(The date and time that the task was started.)                                               :datetime         not null
@@ -34,6 +35,7 @@
 #  index_tasks_on_attack_id                      (attack_id)
 #  index_tasks_on_claimed_by_agent_id            (claimed_by_agent_id)
 #  index_tasks_on_expires_at                     (expires_at)
+#  index_tasks_on_preemption_count               (preemption_count)
 #  index_tasks_on_state                          (state)
 #  index_tasks_on_state_and_claimed_by_agent_id  (state,claimed_by_agent_id)
 #
@@ -136,6 +138,43 @@ RSpec.describe Task do
         expect(Rails.logger).to have_received(:info).with(/State change:.*pending.*Task retried/)
       end
     end
+
+    describe "#abandon" do
+      let(:running_task) { create(:task, state: "running") }
+
+      it "transitions from running to pending" do
+        running_task.abandon
+        expect(running_task).to be_pending
+      end
+
+      it "marks the task as stale" do
+        expect(running_task.stale).to be false
+        running_task.abandon
+        expect(running_task.stale).to be true
+      end
+
+      it "triggers attack abandonment" do
+        attack = running_task.attack
+        allow(attack).to receive(:abandon)
+        running_task.abandon
+        expect(attack).to have_received(:abandon)
+      end
+
+      it "logs the abandon event" do
+        allow(Rails.logger).to receive(:info)
+        running_task.abandon
+        expect(Rails.logger).to have_received(:info).with(/State change:.*abandoned.*Triggering attack abandonment/)
+      end
+
+      it "handles stale update failure gracefully" do
+        allow(running_task).to receive(:update_columns).and_raise(ActiveRecord::RecordNotFound.new("Task destroyed"))
+        allow(Rails.logger).to receive(:error)
+
+        expect { running_task.abandon }.not_to raise_error
+        expect(running_task).to be_pending
+        expect(Rails.logger).to have_received(:error).with(/Error updating stale flag in abandon callback/)
+      end
+    end
   end
 
   describe "SafeBroadcasting integration" do
@@ -161,6 +200,87 @@ RSpec.describe Task do
         allow(Rails.logger).to receive(:error)
         task.send(:log_broadcast_error, StandardError.new("Test error"))
         expect(Rails.logger).to have_received(:error).with(/\[BroadcastError\].*Model: Task/).at_least(:once)
+      end
+    end
+  end
+
+  describe "#preemptable?" do
+    let(:task) { create(:task) }
+
+    context "when task is over 90% complete" do
+      it "returns false" do
+        create(:hashcat_status, :running, task: task, progress: [95, 100])
+        expect(task.preemptable?).to be false
+      end
+    end
+
+    context "when task has been preempted 2 or more times" do
+      it "returns false with 2 preemptions" do
+        task.update!(preemption_count: 2)
+        create(:hashcat_status, :running, task: task, progress: [50, 100])
+        expect(task.preemptable?).to be false
+      end
+
+      it "returns false with 3 preemptions" do
+        task.update!(preemption_count: 3)
+        create(:hashcat_status, :running, task: task, progress: [50, 100])
+        expect(task.preemptable?).to be false
+      end
+    end
+
+    context "when task is preemptable" do
+      it "returns true for task under 90% complete with 0 preemptions" do
+        create(:hashcat_status, :running, task: task, progress: [50, 100])
+        expect(task.preemptable?).to be true
+      end
+
+      it "returns true for task under 90% complete with 1 preemption" do
+        task.update!(preemption_count: 1)
+        create(:hashcat_status, :running, task: task, progress: [50, 100])
+        expect(task.preemptable?).to be true
+      end
+    end
+
+    context "when task has no hashcat_status" do
+      it "returns true" do
+        expect(task.preemptable?).to be true
+      end
+    end
+
+    context "with boundary conditions" do
+      it "returns true at exactly 90% complete" do
+        create(:hashcat_status, :running, task: task, progress: [90, 100])
+        expect(task.preemptable?).to be true
+      end
+
+      it "returns false at 90.01% complete" do
+        create(:hashcat_status, :running, task: task, progress: [9001, 10000])
+        expect(task.preemptable?).to be false
+      end
+
+      it "returns true with exactly 1 preemption" do
+        task.update!(preemption_count: 1)
+        create(:hashcat_status, :running, task: task, progress: [50, 100])
+        expect(task.preemptable?).to be true
+      end
+    end
+
+    context "with error handling" do
+      it "returns false and logs error when progress_percentage raises exception" do
+        allow(Rails.logger).to receive(:error)
+        allow(task).to receive(:progress_percentage).and_raise(StandardError.new("Database error"))
+
+        expect(task.preemptable?).to be false
+        expect(Rails.logger).to have_received(:error).with(/\[Task #{task.id}\].*Error calculating progress percentage/)
+      end
+
+      it "logs warning when preemption_count is nil" do
+        task = create(:task, state: :running)
+        allow(Rails.logger).to receive(:warn)
+        allow(task).to receive(:preemption_count).and_return(nil)
+
+        task.preemptable?
+        expect(Rails.logger).to have_received(:warn).with(/preemption_count is nil/)
       end
     end
   end

@@ -6,6 +6,7 @@ env:
   RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
   DATABASE_URL: postgres://postgres:postgres@localhost:5432/cipherswarm_test
   CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+  APPLICATION_HOST: localhost
 
 on:
   pull_request:
@@ -17,27 +18,35 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with: { ruby-version: .ruby-version, bundler-cache: true }
+        uses: actions/checkout@v6
+      - uses: jdx/mise-action@v2
+        with:
+          install: true
+          cache: true
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+      - run: just install
       - name: Scan for security vulnerabilities in Ruby dependencies
         run: bin/brakeman --no-pager
 
   lint:
     runs-on: ubuntu-latest
+    needs: scan_ruby
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with: { ruby-version: .ruby-version, bundler-cache: true }
+        uses: actions/checkout@v6
+      - uses: jdx/mise-action@v2
+        with:
+          install: true
+          cache: true
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
+      - run: just install
       - name: Lint code for consistent style
         run: bin/rubocop -f github
 
   test:
     runs-on: ubuntu-latest
+    needs: [scan_ruby, lint]
     services:
       postgres:
         image: postgres:17.0
@@ -54,10 +63,14 @@ jobs:
         options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with: { ruby-version: .ruby-version, bundler-cache: true }
+        uses: actions/checkout@v6
+      - uses: jdx/mise-action@v2
+        with:
+          install: true
+          cache: true
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - run: just setup
       - name: Install Chrome and dependencies
         run: |
           sudo apt-get update
@@ -77,15 +90,8 @@ jobs:
           sudo apt-get install --no-install-recommends -y google-chrome-stable
           # Verify Chrome installation
           google-chrome-stable --version || google-chrome --version
-      - uses: oven-sh/setup-bun@v2
-      - name: Setup Database
-        run: bin/bundle exec rake db:setup --trace
-      - name: Install yarn packages
-        run: yarn install
       - name: Precompile assets
-        run: bin/bundle exec rake assets:precompile
-      - name: Run Rails Setup
-        run: bin/setup --skip-server
+        run: just assets-precompile
       - name: Setup Code Climate Test Reporter
         if: env.CC_TEST_REPORTER_ID != ''
         run: |
@@ -100,7 +106,7 @@ jobs:
           CHROME_BIN: /usr/bin/google-chrome-stable
         run: bin/bundle exec rspec --profile 10 --format RspecJunitFormatter --out /tmp/test-results/rspec.xml --format progress
       - name: Upload Test Results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: always()
         with:
           name: test-results
@@ -112,14 +118,14 @@ jobs:
           ./tmp/cc-test-reporter format-coverage -t simplecov coverage/.resultset.json
           ./tmp/cc-test-reporter upload-coverage
       - name: Upload coverage artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: always()
         with:
           name: coverage
           path: coverage/
           if-no-files-found: ignore
       - name: Upload Capybara screenshots
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: always()
         with:
           name: capybara-screenshots

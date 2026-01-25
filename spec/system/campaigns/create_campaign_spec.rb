@@ -84,4 +84,19 @@ RSpec.describe "Create campaign" do
       expect(campaign.project).to eq(hash_list.project)
     end
   end
+
+  describe "campaign form renders without ERB artifacts" do
+    it "does not display raw ERB comment syntax on the form" do
+      campaigns_index_page.visit_page
+      campaigns_index_page.click_new_campaign
+
+      # Wait for form to be visible
+      expect(page).to have_field("Name", wait: 5)
+
+      # Verify no raw ERB syntax is rendered (regression test for malformed magic comments)
+      expect(page).to have_no_content("# locals:")
+      expect(page).to have_no_content("%>")
+      expect(page).to have_no_content("<%#")
+    end
+  end
 end

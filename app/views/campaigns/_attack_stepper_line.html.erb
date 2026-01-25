@@ -1,28 +1,45 @@
-# locals: stepper, campaign, attack %>
+<%# locals: (stepper:, campaign:, attack:, failed_attack_error_map:) -%>
 <% stepper.with_item(active: attack.completed?) do %>
-  <span>
-<%= render StatusPillComponent.new(status: attack.state) %>
-    &nbsp;
-    <%= attack.to_label_with_complexity %>
-    &nbsp;
-    <%= render Railsboot::ButtonGroupComponent.new(aria_label: "Attack Actions for #{attack.name}", size: "sm") do %>
-    <% if can? :read, attack %>
-      <%= render Railsboot::Button::LinkComponent.new(href: campaign_attack_path(campaign, attack)) do %>
-        <%= icon("eye") %>
-      <% end %>
-    <% end %>
-      <% if can? :edit, attack %>
-      <%= render Railsboot::Button::LinkComponent.new(href: edit_campaign_attack_path(campaign, attack), variant: "warning") do %>
-        <%= icon("pencil") %>
-      <% end %>
-    <% end %>
-      <% if can? :destroy, attack %>
-      <%= render Railsboot::Button::LinkComponent.new(href: [campaign, attack], variant: "danger", method: :delete,
-                                                      data: { turbo_method: :delete, turbo_confirm: "Are you sure?" }) do %>
-        <%= icon("trash-fill") %>
-      <% end %>
-    <% end %>
-  <% end %>
-</span>
+  <div id="attack-progress-<%= attack.id %>" class="d-flex flex-column gap-2 w-100">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <span class="fw-medium"><%= attack.to_label_with_complexity %></span>
+      <div class="d-flex align-items-center gap-2">
+        <% if attack.state == "failed" && failed_attack_error_map[attack.id] %>
+          <button type="button"
+                  class="btn btn-sm btn-outline-danger"
+                  data-bs-toggle="modal"
+                  data-bs-target="#error-modal-attack-<%= attack.id %>"
+                  aria-label="View error details for <%= attack.name %>">
+            <%= icon("exclamation-triangle-fill") %>
+          </button>
+        <% end %>
+        <%= render Railsboot::ButtonGroupComponent.new(aria_label: "Attack Actions for #{attack.name}", size: "sm") do %>
+          <% if can? :read, attack %>
+            <%= render Railsboot::Button::LinkComponent.new(href: campaign_attack_path(campaign, attack), aria_label: "View attack details") do %>
+              <%= icon("eye") %>
+            <% end %>
+          <% end %>
+          <% if can? :edit, attack %>
+            <%= render Railsboot::Button::LinkComponent.new(href: edit_campaign_attack_path(campaign, attack), variant: "warning", aria_label: "Edit attack") do %>
+              <%= icon("pencil") %>
+            <% end %>
+          <% end %>
+          <% if can? :destroy, attack %>
+            <%= render Railsboot::Button::LinkComponent.new(href: [campaign, attack], variant: "danger", method: :delete,
+                                                            data: { turbo_method: :delete, turbo_confirm: "Are you sure?" },
+                                                            aria_label: "Delete attack") do %>
+              <%= icon("trash-fill") %>
+            <% end %>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+    <%= render(CampaignProgressComponent.new(
+      percentage: attack.percentage_complete,
+      status: attack.state,
+      eta: attack.estimated_finish_time,
+      label: "Attack Progress for #{attack.name}"
+    )) %>
+  </div>
   <%= turbo_stream_from attack %>
 <% end %>

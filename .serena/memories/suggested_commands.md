@@ -2,8 +2,7 @@
 
 ## Setup
 
-- `just install` (or `bundle install && yarn install`)
-- `just setup` (or `bin/rails db:create db:migrate`)
+- `just setup` (or `bun install && bin/setup --skip-server`) (or `bin/rails db:create db:migrate`)
 
 ## Run app
 
@@ -17,7 +16,7 @@
 - System: `just test-system` or `bundle exec rspec spec/system`
 - Specific file: `just test-file spec/path/to/spec.rb`
 - API/request: `just test-api` or `bundle exec rspec spec/requests`
-- JS: `yarn test:js`
+- JS: `bun test:js`
 
 ## Quality
 

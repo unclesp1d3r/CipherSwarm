@@ -1,6 +1,6 @@
 # Task Completion Checklist
 
-- Run relevant tests (targeted specs, JS tests, or `just test` for full). For system/UI work, run `bundle exec rspec spec/system/...`. For JS controllers, run `yarn test:js`.
+- Run relevant tests (targeted specs, JS tests, or `just test` for full). For system/UI work, run `bundle exec rspec spec/system/...`. For JS controllers, run `bun test:js`.
 - If changes touch styles/components, check component specs and system specs. Ensure Turbo/Stimulus behaviors are covered.
 - Lint/format if needed: `just format`, `just lint`, `just check` before PR.
 - Ensure migrations are generated via Rails generators; verify schema and rollback path.

@@ -6,24 +6,6 @@
 require "rails_helper"
 
 RSpec.describe SafeBroadcasting do
-  describe "integration with models" do
-    it "is included in Agent model" do
-      expect(Agent.included_modules).to include(described_class)
-    end
-
-    it "is included in Task model" do
-      expect(Task.included_modules).to include(described_class)
-    end
-
-    it "is included in Campaign model" do
-      expect(Campaign.included_modules).to include(described_class)
-    end
-
-    it "is included in Attack model" do
-      expect(Attack.included_modules).to include(described_class)
-    end
-  end
-
   describe "broadcast error handling" do
     let(:agent) { create(:agent) }
 

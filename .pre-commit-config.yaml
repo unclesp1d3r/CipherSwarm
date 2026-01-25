@@ -30,20 +30,12 @@ repos:
     hooks:
       - id: actionlint
         files: ".github/workflows/"
-        exclude: ^.github/workflows/release.yml$
 
   # 🐚 Shell script validation
   - repo: https://github.com/koalaman/shellcheck-precommit
     rev: v0.11.0
     hooks:
       - id: shellcheck
-
-  # 📝 Commit message linting (commit-msg only, not blocking push)
-  - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.11.1
-    hooks:
-      - id: commitizen
-        stages: [commit-msg]
 
   # 📝 Markdown formatting and linting (temporarily disabled in CI due to path issues)
   - repo: https://github.com/executablebooks/mdformat

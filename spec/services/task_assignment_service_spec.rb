@@ -156,6 +156,7 @@ RSpec.describe TaskAssignmentService do
 
       before do
         attack # ensure attack is created
+        hash_list.hash_items.delete_all
         # All hashes are cracked
         create(:hash_item, hash_list: hash_list, cracked: true)
       end
@@ -238,6 +239,154 @@ RSpec.describe TaskAssignmentService do
       # Second call returns the same task (incomplete task takes priority)
       second_task = service.find_next_task
       expect(second_task).to eq(first_task)
+    end
+  end
+
+  describe "#should_attempt_preemption?" do
+    let(:attack) { create(:dictionary_attack, campaign: campaign) }
+
+    context "when attack has nil campaign" do
+      it "returns false without raising error" do
+        allow(attack).to receive(:campaign).and_return(nil)
+        expect(service.send(:should_attempt_preemption?, attack)).to be false
+      end
+    end
+
+    context "when attack.campaign.priority is nil" do
+      it "returns false without raising error" do
+        allow(campaign).to receive(:priority).and_return(nil)
+        expect(service.send(:should_attempt_preemption?, attack)).to be false
+      end
+    end
+
+    context "when attack.campaign raises an error" do
+      it "returns false without raising error" do
+        allow(attack).to receive(:campaign).and_raise(ActiveRecord::RecordNotFound)
+        expect(service.send(:should_attempt_preemption?, attack)).to be false
+      end
+    end
+
+    context "when attack.campaign.priority raises an error" do
+      it "returns false without raising error" do
+        allow(attack.campaign).to receive(:priority).and_raise(StandardError)
+        expect(service.send(:should_attempt_preemption?, attack)).to be false
+      end
+    end
+
+    context "when campaign priority is high" do
+      before { campaign.update!(priority: :high) }
+
+      it "returns true" do
+        expect(service.send(:should_attempt_preemption?, attack)).to be true
+      end
+    end
+
+    context "when campaign priority is deferred" do
+      before { campaign.update!(priority: :deferred) }
+
+      it "returns false" do
+        expect(service.send(:should_attempt_preemption?, attack)).to be false
+      end
+    end
+  end
+
+  describe "#find_task_from_available_attacks with preemption" do
+    let(:high_priority_campaign) { create(:campaign, hash_list: hash_list, project: project, priority: :high) }
+    let(:deferred_priority_campaign) { create(:campaign, hash_list: hash_list, project: project, priority: :deferred) }
+
+    before do
+      create(:hash_item, hash_list: hash_list, cracked: false)
+    end
+
+    context "when high-priority attack needs assignment and all nodes are busy" do
+      let(:high_attack) { create(:dictionary_attack, campaign: high_priority_campaign, state: :pending) }
+
+      # rubocop:disable RSpec/SubjectStub
+      it "calls preemption service and retries task assignment after successful preemption" do
+        # Create a new task that will be returned after preemption
+        new_task = create(:task, agent: agent, attack: high_attack, state: :pending)
+
+        # Stub find_or_create_task_for_attack to return nil first (no task available)
+        # Then return the new task after preemption succeeds
+        call_count = 0
+        allow(service).to receive(:find_or_create_task_for_attack) do |_attack|
+          call_count += 1
+          call_count == 1 ? nil : new_task
+        end
+
+        # Stub should_attempt_preemption? to return true
+        allow(service).to receive(:should_attempt_preemption?).and_return(true)
+
+        # Stub TaskPreemptionService to simulate successful preemption
+        preemption_service = instance_double(TaskPreemptionService)
+        preempted_task = instance_double(Task)
+        allow(TaskPreemptionService).to receive(:new).and_return(preemption_service)
+        allow(preemption_service).to receive(:preempt_if_needed).and_return(preempted_task)
+
+        # Call find_task_from_available_attacks
+        task = service.send(:find_task_from_available_attacks)
+
+        # Should call preemption and return task after retry
+        expect(task).to eq(new_task)
+        expect(preemption_service).to have_received(:preempt_if_needed).once
+      end
+      # rubocop:enable RSpec/SubjectStub
+    end
+
+    context "when deferred-priority attack needs assignment and all nodes are busy" do
+      let(:deferred_attack) { create(:dictionary_attack, campaign: deferred_priority_campaign, state: :pending) }
+
+      # rubocop:disable RSpec/SubjectStub
+      it "does not attempt preemption for deferred priority" do
+        # Reference deferred_attack to ensure it's created
+        expect(deferred_attack).to be_present
+
+        # Stub service methods to control behavior
+        allow(service).to receive_messages(
+          find_or_create_task_for_attack: nil,
+          should_attempt_preemption?: false
+        )
+
+        # TaskPreemptionService should not be instantiated
+        allow(TaskPreemptionService).to receive(:new).and_call_original
+
+        # Call find_task_from_available_attacks
+        task = service.send(:find_task_from_available_attacks)
+
+        # Should return nil without attempting preemption
+        expect(task).to be_nil
+        expect(TaskPreemptionService).not_to have_received(:new)
+      end
+      # rubocop:enable RSpec/SubjectStub
+    end
+
+    context "when preemption fails (no preemptable tasks)" do
+      let(:high_attack) { create(:dictionary_attack, campaign: high_priority_campaign, state: :pending) }
+
+      # rubocop:disable RSpec/SubjectStub
+      it "returns nil gracefully when preemption returns nil" do
+        # Reference high_attack to ensure it's created
+        expect(high_attack).to be_present
+
+        # Stub service methods to control behavior
+        allow(service).to receive_messages(
+          find_or_create_task_for_attack: nil,
+          should_attempt_preemption?: true
+        )
+
+        # Stub TaskPreemptionService to return nil (preemption failed)
+        preemption_service = instance_double(TaskPreemptionService)
+        allow(TaskPreemptionService).to receive(:new).and_return(preemption_service)
+        allow(preemption_service).to receive(:preempt_if_needed).and_return(nil)
+
+        # Call find_task_from_available_attacks
+        task = service.send(:find_task_from_available_attacks)
+
+        # Should return nil gracefully
+        expect(task).to be_nil
+        expect(preemption_service).to have_received(:preempt_if_needed).once
+      end
+      # rubocop:enable RSpec/SubjectStub
     end
   end
 end
