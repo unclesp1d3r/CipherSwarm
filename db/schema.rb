@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_12_052238) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_25_183929) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -74,6 +74,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_12_052238) do
     t.integer "current_temperature", default: 0, comment: "Current device temperature in Celsius, updated from HashcatStatus"
     t.integer "current_utilization", default: 0, comment: "Current device utilization percentage, updated from HashcatStatus"
     t.datetime "metrics_updated_at", comment: "Timestamp of last metrics update for throttling"
+    t.string "current_activity", comment: "Current agent activity state (e.g., cracking, waiting, benchmarking)"
+    t.index ["current_activity"], name: "index_agents_on_current_activity"
     t.index ["custom_label"], name: "index_agents_on_custom_label", unique: true
     t.index ["metrics_updated_at"], name: "index_agents_on_metrics_updated_at"
     t.index ["state", "last_seen_at"], name: "index_agents_on_state_and_last_seen_at"

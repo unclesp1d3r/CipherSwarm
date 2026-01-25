@@ -215,6 +215,18 @@ RSpec.describe "api/v1/client/agents" do
     parameter name: :id, in: :path, schema: { type: :integer, format: :int64 },
               required: true, description: "id"
 
+parameter name: :heartbeat_body, in: :body, required: false, schema: {
+  type: :object,
+  properties: {
+    activity: {
+      type: :string,
+      description: "Current agent activity state. Known values: starting, benchmarking, updating, downloading, waiting, cracking, stopping. Future versions may support additional values.",
+      example: "cracking",
+      nullable: true
+    }
+  }
+}
+
     post "Send a heartbeat for an agent" do
       tags "Agents"
       description "Send a heartbeat for an agent to keep it alive."
@@ -288,6 +300,66 @@ RSpec.describe "api/v1/client/agents" do
         end
 
         run_test!
+      end
+
+      # Activity parameter tests
+      response(204, "successful with activity parameter") do
+        let(:agent) { create(:agent, state: "active") }
+        let(:id) { agent.id }
+        let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
+        let(:heartbeat_body) { { activity: "cracking" } }
+
+        run_test! do
+          expect(response).to have_http_status(:no_content)
+          expect(agent.reload.current_activity).to eq("cracking")
+        end
+      end
+
+      response(204, "successful with null activity") do
+        let(:agent) { create(:agent, state: "active", current_activity: "waiting") }
+        let(:id) { agent.id }
+        let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
+        let(:heartbeat_body) { { activity: nil } }
+
+        run_test! do
+          expect(response).to have_http_status(:no_content)
+          expect(agent.reload.current_activity).to be_nil
+        end
+      end
+
+      response(204, "successful with empty request body") do
+        let(:agent) { create(:agent, state: "active") }
+        let(:id) { agent.id }
+        let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
+        let(:heartbeat_body) { {} }
+
+        run_test! do
+          expect(response).to have_http_status(:no_content)
+        end
+      end
+
+      response(204, "successful with unknown activity value (forward compatibility)") do
+        let(:agent) { create(:agent, state: "active") }
+        let(:id) { agent.id }
+        let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
+        let(:heartbeat_body) { { activity: "future_activity_type" } }
+
+        run_test! do
+          expect(response).to have_http_status(:no_content)
+          expect(agent.reload.current_activity).to eq("future_activity_type")
+        end
+      end
+
+      response(204, "handles excessively long activity gracefully") do
+        let(:agent) { create(:agent, state: "active") }
+        let(:id) { agent.id }
+        let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
+        let(:heartbeat_body) { { activity: "a" * 100 } }
+
+        run_test! do
+          # Heartbeat should succeed even if activity validation fails
+          expect(response).to have_http_status(:no_content)
+        end
       end
     end
   end
