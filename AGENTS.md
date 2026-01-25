@@ -68,6 +68,12 @@ HEADLESS=false bundle exec rspec spec/system
 just test-api
 # or
 bundle exec rspec spec/requests
+
+# Test database connection (if local PostgreSQL conflicts with Docker)
+# Stop local PostgreSQL: brew services stop postgresql@17
+# Start Docker PostgreSQL: docker compose up -d postgres-db
+# Run tests with explicit URL:
+TEST_DATABASE_URL=postgres://root:postgres@127.0.0.1:5432/cipher_swarm_test bundle exec rspec
 ```
 
 ### Code Quality
@@ -413,6 +419,12 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 - Project-based scoping for all resources
 - Admin users have unrestricted access
 
+**Nullable Parameters:**
+
+- Use `params.key?(:field)` to check if parameter exists (even if nil)
+- Use `params[:field].present?` to check for non-nil values only
+- Important for API endpoints that need to distinguish between missing vs null values
+
 **Logging Patterns:**
 
 - Use structured logging with `[LogType]` prefixes (`[APIRequest]`, `[APIError]`, `[AgentLifecycle]`, `[BroadcastError]`)
@@ -433,6 +445,13 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 7. Verify logs are helpful for debugging and don't contain sensitive data
 8. Ensure log volume is reasonable (not too verbose)
 
+**PreToolUse Hook:**
+
+- A PreToolUse hook protects certain files (migrations, etc.) from direct Read/Edit/Write tools
+- Always try Read/Edit/Write tools first
+- If blocked, use bash commands as fallback for that specific file only
+- Never default to bash for file operations without first attempting proper tools
+
 ### Docker Development
 
 ```bash
@@ -444,6 +463,9 @@ docker compose -f docker-compose-production.yml up
 
 # Shell into Rails container
 just docker-shell
+
+# PostgreSQL service is named 'postgres-db' not 'db'
+docker compose up -d postgres-db
 ```
 
 ### Resources
