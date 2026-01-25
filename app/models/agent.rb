@@ -39,6 +39,7 @@
 #  id                                                                                     :bigint           not null, primary key
 #  advanced_configuration(Advanced configuration for the agent.)                          :jsonb
 #  client_signature(The signature of the agent)                                           :text
+#  current_activity(Current agent activity state (e.g., cracking, waiting, benchmarking)) :string           indexed
 #  current_hash_rate(Current hash rate in H/s, updated from HashcatStatus)                :decimal(20, 2)   default(0.0)
 #  current_temperature(Current device temperature in Celsius, updated from HashcatStatus) :integer          default(0)
 #  current_utilization(Current device utilization percentage, updated from HashcatStatus) :integer          default(0)
@@ -58,6 +59,7 @@
 #
 # Indexes
 #
+#  index_agents_on_current_activity        (current_activity)
 #  index_agents_on_custom_label            (custom_label) UNIQUE
 #  index_agents_on_metrics_updated_at      (metrics_updated_at)
 #  index_agents_on_state                   (state)
@@ -99,6 +101,7 @@ class Agent < ApplicationRecord
 
   validates :host_name, presence: true, length: { maximum: 255 }
   validates :custom_label, length: { maximum: 255 }, uniqueness: true, allow_nil: true
+  validates :current_activity, length: { maximum: 50 }, allow_nil: true
 
   scope :active, -> { where(state: :active) }
   scope :inactive_for, ->(time) { where(last_seen_at: ...time.ago) }

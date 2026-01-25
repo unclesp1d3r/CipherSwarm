@@ -130,6 +130,11 @@
               "description": "The descriptive name of a GPU or CPU device."
             }
           },
+          "current_activity": {
+            "type": "string",
+            "nullable": true,
+            "description": "Current agent activity state"
+          },
           "advanced_configuration": {
             "$ref": "#/components/schemas/AdvancedAgentConfiguration"
           }
@@ -858,6 +863,22 @@
           },
           "required": true,
           "description": "id"
+        },
+        {
+          "name": "heartbeat_body",
+          "in": "body",
+          "required": false,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "activity": {
+                "type": "string",
+                "description": "Current agent activity state. Known values: starting, benchmarking, updating, downloading, waiting, cracking, stopping. Future versions may support additional values.",
+                "example": "cracking",
+                "nullable": true
+              }
+            }
+          }
         }
       ],
       "post": {
@@ -874,7 +895,7 @@
         "operationId": "sendHeartbeat",
         "responses": {
           "204": {
-            "description": "successful"
+            "description": "handles excessively long activity gracefully"
           },
           "200": {
             "description": "successful, but with server feedback",
