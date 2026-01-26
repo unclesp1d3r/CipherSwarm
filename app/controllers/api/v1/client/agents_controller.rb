@@ -49,6 +49,7 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
         )
         # Reset to previous activity on failure
         @agent.current_activity = previous_activity
+        @agent.errors.clear
       else
         # Log activity changes for audit trail
         if previous_activity != @agent.current_activity
