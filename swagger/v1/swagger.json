@@ -886,7 +886,7 @@
         "tags": [
           "Agents"
         ],
-        "description": "Send a heartbeat for an agent to keep it alive.",
+        "description": "Send a heartbeat for an agent to keep it alive. Optionally accepts an 'activity' parameter in the request body to track the agent's current activity state.",
         "security": [
           {
             "bearer_auth": []
@@ -894,9 +894,6 @@
         ],
         "operationId": "sendHeartbeat",
         "responses": {
-          "204": {
-            "description": "handles excessively long activity gracefully"
-          },
           "200": {
             "description": "successful, but with server feedback",
             "content": {
@@ -931,6 +928,9 @@
                 }
               }
             }
+          },
+          "204": {
+            "description": "successful"
           }
         }
       }
