@@ -80,14 +80,14 @@ class User < ApplicationRecord
 
   after_create :assign_default_role
 
-  default_scope { order(:created_at) }
+  self.implicit_order_column = :created_at
 
   normalizes :email, with: ->(value) { value.strip.downcase }
   normalizes :name, with: ->(value) { value.strip.downcase }
 
   include SafeBroadcasting
 
-  broadcasts_refreshes unless Rails.env.test?
+  broadcasts_refreshes
 
   kredis_boolean :hide_completed_activities, default: false
 

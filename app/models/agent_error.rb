@@ -59,7 +59,7 @@ class AgentError < ApplicationRecord
 
   include SafeBroadcasting
 
-  broadcasts_refreshes unless Rails.env.test?
+  broadcasts_refreshes
 
   # Retrieves the attack ID associated with the task.
   #

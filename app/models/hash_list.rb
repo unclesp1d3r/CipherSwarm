@@ -71,7 +71,7 @@ class HashList < ApplicationRecord
 
   include SafeBroadcasting
 
-  broadcasts_refreshes unless Rails.env.test?
+  broadcasts_refreshes
 
   scope :sensitive, -> { where(sensitive: true) }
   # create a scope for hash lists that are either not sensitive or are in a project that the user has access to
