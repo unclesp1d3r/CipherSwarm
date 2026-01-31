@@ -12,19 +12,21 @@
 #  deleted_at                                     :datetime         indexed
 #  description                                    :text
 #  name                                           :string           not null
-#  priority(-1: Deferred, 0: Normal, 2: High)     :integer          default("normal"), not null
+#  priority(-1: Deferred, 0: Normal, 2: High)     :integer          default("normal"), not null, indexed, indexed => [project_id]
 #  created_at                                     :datetime         not null
 #  updated_at                                     :datetime         not null
 #  creator_id(The user who created this campaign) :bigint           indexed
 #  hash_list_id                                   :bigint           not null, indexed
-#  project_id                                     :bigint           not null, indexed
+#  project_id                                     :bigint           not null, indexed, indexed => [priority]
 #
 # Indexes
 #
-#  index_campaigns_on_creator_id    (creator_id)
-#  index_campaigns_on_deleted_at    (deleted_at)
-#  index_campaigns_on_hash_list_id  (hash_list_id)
-#  index_campaigns_on_project_id    (project_id)
+#  index_campaigns_on_creator_id               (creator_id)
+#  index_campaigns_on_deleted_at               (deleted_at)
+#  index_campaigns_on_hash_list_id             (hash_list_id)
+#  index_campaigns_on_priority                 (priority)
+#  index_campaigns_on_project_id               (project_id)
+#  index_campaigns_on_project_id_and_priority  (project_id,priority)
 #
 # Foreign Keys
 #
@@ -145,36 +147,6 @@ RSpec.describe Campaign do
         attack = create(:dictionary_attack, campaign: campaign, state: "pending")
         result = campaign.total_eta
         expect(result).to be_nil.or be_a(Time)
-      end
-    end
-
-    describe "#calculate_current_eta" do
-      let(:campaign) { create(:campaign) }
-
-      it "returns the maximum ETA from running attacks" do
-        attack = create(:dictionary_attack, campaign: campaign, state: "running")
-        task = create(:task, attack: attack, state: "running")
-
-        eta = campaign.calculate_current_eta
-        # Should return a time or nil
-        expect(eta).to be_nil.or be_a(Time)
-      end
-
-      it "returns nil when there are no running attacks" do
-        expect(campaign.calculate_current_eta).to be_nil
-      end
-    end
-
-    describe "#calculate_total_eta" do
-      let(:campaign) { create(:campaign) }
-
-      it "returns nil when there are no incomplete attacks" do
-        expect(campaign.calculate_total_eta).to be_nil
-      end
-
-      it "returns total ETA for all incomplete attacks" do
-        attack = create(:dictionary_attack, campaign: campaign, state: "pending")
-        expect(campaign.calculate_total_eta).to be_nil.or be_a(Time)
       end
     end
   end

@@ -190,6 +190,7 @@ class TaskAssignmentService
   def available_attacks
     Attack.incomplete
           .joins(campaign: { hash_list: :hash_type })
+          .includes(campaign: %i[hash_list project])
           .where(campaigns: { project_id: agent.project_ids })
           .where(hash_lists: { hash_type_id: allowed_hash_type_ids })
           .order("campaigns.priority DESC, attacks.complexity_value, attacks.created_at")

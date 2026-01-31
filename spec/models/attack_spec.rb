@@ -31,12 +31,12 @@
 #  right_rule(Right rule)                                                                              :string           default("")
 #  slow_candidate_generators(Are slow candidate generators enabled?)                                   :boolean          default(FALSE), not null
 #  start_time(The time the attack started.)                                                            :datetime
-#  state                                                                                               :string           indexed
+#  state                                                                                               :string           indexed => [campaign_id], indexed
 #  type                                                                                                :string
 #  workload_profile(Hashcat workload profile (e.g. 1 for low, 2 for medium, 3 for high, 4 for insane)) :integer          default(3), not null
 #  created_at                                                                                          :datetime         not null
 #  updated_at                                                                                          :datetime         not null
-#  campaign_id                                                                                         :bigint           not null, indexed
+#  campaign_id                                                                                         :bigint           not null, indexed, indexed => [state]
 #  creator_id(The user who created this attack)                                                        :bigint           indexed
 #  mask_list_id(The mask list used for the attack.)                                                    :bigint           indexed
 #  rule_list_id(The rule list used for the attack.)                                                    :bigint           indexed
@@ -44,15 +44,16 @@
 #
 # Indexes
 #
-#  index_attacks_campaign_id          (campaign_id)
-#  index_attacks_on_attack_mode       (attack_mode)
-#  index_attacks_on_complexity_value  (complexity_value)
-#  index_attacks_on_creator_id        (creator_id)
-#  index_attacks_on_deleted_at        (deleted_at)
-#  index_attacks_on_mask_list_id      (mask_list_id)
-#  index_attacks_on_rule_list_id      (rule_list_id)
-#  index_attacks_on_state             (state)
-#  index_attacks_on_word_list_id      (word_list_id)
+#  index_attacks_campaign_id               (campaign_id)
+#  index_attacks_on_attack_mode            (attack_mode)
+#  index_attacks_on_campaign_id_and_state  (campaign_id,state)
+#  index_attacks_on_complexity_value       (complexity_value)
+#  index_attacks_on_creator_id             (creator_id)
+#  index_attacks_on_deleted_at             (deleted_at)
+#  index_attacks_on_mask_list_id           (mask_list_id)
+#  index_attacks_on_rule_list_id           (rule_list_id)
+#  index_attacks_on_state                  (state)
+#  index_attacks_on_word_list_id           (word_list_id)
 #
 # Foreign Keys
 #
