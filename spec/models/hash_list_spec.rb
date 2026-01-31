@@ -16,17 +16,20 @@
 #  separator(Separator used in the hash list file to separate the hash from the password or other metadata. Default is ":".) :string(1)        default(":"), not null
 #  created_at                                                                                                                :datetime         not null
 #  updated_at                                                                                                                :datetime         not null
+#  creator_id(The user who created this hash list)                                                                           :bigint           indexed
 #  hash_type_id                                                                                                              :bigint           not null, indexed
 #  project_id(Project that the hash list belongs to)                                                                         :bigint           not null, indexed
 #
 # Indexes
 #
+#  index_hash_lists_on_creator_id    (creator_id)
 #  index_hash_lists_on_hash_type_id  (hash_type_id)
 #  index_hash_lists_on_name          (name) UNIQUE
 #  index_hash_lists_on_project_id    (project_id)
 #
 # Foreign Keys
 #
+#  fk_rails_...  (creator_id => users.id)
 #  fk_rails_...  (hash_type_id => hash_types.id)
 #  fk_rails_...  (project_id => projects.id)
 #
@@ -38,6 +41,7 @@ RSpec.describe HashList do
     it { is_expected.to have_many(:hash_items) }
     it { is_expected.to have_one_attached(:file) }
     it { is_expected.to belong_to(:hash_type) }
+    it { is_expected.to belong_to(:creator).class_name("User").optional }
   end
 
   describe "validations" do

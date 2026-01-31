@@ -76,6 +76,7 @@ class CampaignsController < ApplicationController
   def create
     @hash_list = HashList.find(campaign_params[:hash_list_id])
     @campaign.project = @hash_list.project if @hash_list.present?
+    @campaign.creator = current_user
 
     # Check high priority authorization if priority is high
     if campaign_params[:priority] == "high"
