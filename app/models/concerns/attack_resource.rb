@@ -3,8 +3,6 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
-include ActiveSupport::NumberHelper
-
 # Module: AttackResource
 #
 # A concern that provides functionality for managing and validating attack resources
@@ -23,6 +21,7 @@ include ActiveSupport::NumberHelper
 module AttackResource
   extend ActiveSupport::Concern
   included do
+    include ActiveSupport::NumberHelper
     include SafeBroadcasting
     has_one_attached :file
     has_and_belongs_to_many :projects
@@ -37,11 +36,11 @@ module AttackResource
     scope :sensitive, -> { where(sensitive: true) }
     scope :shared, -> { where(sensitive: false) }
 
-    default_scope { order(:created_at) }
+    self.implicit_order_column = :created_at
 
     after_commit :update_line_count, if: :file_attached?
 
-    broadcasts_refreshes unless Rails.env.test?
+    broadcasts_refreshes
 
     delegate :attached?, to: :file, prefix: true
 

@@ -19,13 +19,19 @@ class CampaignsController < ApplicationController
   before_action :set_hash_lists, only: %i[new edit create update]
 
   # GET /campaigns or /campaigns.json
+  def index
+    @campaigns = @campaigns.by_priority
+  end
 
   # GET /campaigns/1 or /campaigns/1.json
   def show
     fresh_when(@campaign)
 
+    # Preload attacks with complexity ordering for display
+    @attacks = @campaign.attacks.by_complexity
+
     # Precompute map for failed attacks to their latest error
-    failed_attack_ids = @campaign.attacks.where(state: "failed").pluck(:id)
+    failed_attack_ids = @attacks.where(state: "failed").pluck(:id)
     if failed_attack_ids.any?
       # Use raw SQL for PostgreSQL DISTINCT ON which requires ORDER BY to start with DISTINCT ON columns
       latest_errors = AgentError.find_by_sql([<<-SQL.squish, failed_attack_ids])

@@ -4,3 +4,10 @@ update_status_job:
   active_job: true
   # Note: queue is defined in the job class itself (queue_as :high)
   # Do not specify queue here as it causes issues with ActiveJob + sidekiq-cron
+
+data_cleanup_job:
+  cron: "0 3 * * *"  # Daily at 3 AM
+  class: "DataCleanupJob"
+  active_job: true
+  # Cleans up old agent errors, audit records, and HashcatStatus records
+  # Queue defined in job class (queue_as :low)
