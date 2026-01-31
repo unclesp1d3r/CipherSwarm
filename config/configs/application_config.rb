@@ -17,6 +17,9 @@
 # - task_status_limit: Integer (default: 10)
 # - min_performance_benchmark: Integer (default: 1000)
 # - hash_list_batch_size: Integer (default: 1000)
+# - agent_error_retention: Time duration for retaining agent errors (default: 30 days)
+# - audit_retention: Time duration for retaining audit records (default: 90 days)
+# - hashcat_status_retention: Time duration for retaining completed task status (default: 7 days)
 #
 # Class Methods:
 # - instance: Returns a singleton instance of the configuration.
@@ -31,7 +34,10 @@ class ApplicationConfig < Anyway::Config
               max_offline_time: 12.hours,
               task_status_limit: 10,
               min_performance_benchmark: 1000,
-              hash_list_batch_size: 1000
+              hash_list_batch_size: 1000,
+              agent_error_retention: 30.days,
+              audit_retention: 90.days,
+              hashcat_status_retention: 7.days
 
   class << self
     # Make it possible to access a singleton config instance

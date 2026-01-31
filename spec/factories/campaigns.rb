@@ -12,19 +12,21 @@
 #  deleted_at                                     :datetime         indexed
 #  description                                    :text
 #  name                                           :string           not null
-#  priority(-1: Deferred, 0: Normal, 2: High)     :integer          default("normal"), not null
+#  priority(-1: Deferred, 0: Normal, 2: High)     :integer          default("normal"), not null, indexed, indexed => [project_id]
 #  created_at                                     :datetime         not null
 #  updated_at                                     :datetime         not null
 #  creator_id(The user who created this campaign) :bigint           indexed
 #  hash_list_id                                   :bigint           not null, indexed
-#  project_id                                     :bigint           not null, indexed
+#  project_id                                     :bigint           not null, indexed, indexed => [priority]
 #
 # Indexes
 #
-#  index_campaigns_on_creator_id    (creator_id)
-#  index_campaigns_on_deleted_at    (deleted_at)
-#  index_campaigns_on_hash_list_id  (hash_list_id)
-#  index_campaigns_on_project_id    (project_id)
+#  index_campaigns_on_creator_id               (creator_id)
+#  index_campaigns_on_deleted_at               (deleted_at)
+#  index_campaigns_on_hash_list_id             (hash_list_id)
+#  index_campaigns_on_priority                 (priority)
+#  index_campaigns_on_project_id               (project_id)
+#  index_campaigns_on_project_id_and_priority  (project_id,priority)
 #
 # Foreign Keys
 #
