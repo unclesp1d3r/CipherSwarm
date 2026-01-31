@@ -30,6 +30,7 @@ class AttacksController < ApplicationController
   # POST /attacks or /attacks.json
   def create
     @attack = @campaign.attacks.build(attack_params)
+    @attack.creator = current_user
 
     respond_to do |format|
       if @attack.save

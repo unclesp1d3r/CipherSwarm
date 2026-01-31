@@ -81,6 +81,15 @@ class Ability
     can :manage, [WordList, RuleList, MaskList], projects: { id: user.all_project_ids }
     can :manage, [WordList, RuleList, MaskList], creator: user
 
+    # Campaign creator permissions
+    can %i[read update destroy], Campaign, creator: user
+
+    # HashList creator permissions
+    can %i[read update destroy], HashList, creator: user
+
+    # Attack creator permissions
+    can %i[read update destroy], Attack, creator: user
+
     # Attack  permissions
     can :manage, Attack, campaign: { project_id: user.all_project_ids }
     can :manage, Task, campaign: { attack: { project_id: user.all_project_ids } }

@@ -38,17 +38,20 @@
 #  separator(Separator used in the hash list file to separate the hash from the password or other metadata. Default is ":".) :string(1)        default(":"), not null
 #  created_at                                                                                                                :datetime         not null
 #  updated_at                                                                                                                :datetime         not null
+#  creator_id(The user who created this hash list)                                                                           :bigint           indexed
 #  hash_type_id                                                                                                              :bigint           not null, indexed
 #  project_id(Project that the hash list belongs to)                                                                         :bigint           not null, indexed
 #
 # Indexes
 #
+#  index_hash_lists_on_creator_id    (creator_id)
 #  index_hash_lists_on_hash_type_id  (hash_type_id)
 #  index_hash_lists_on_name          (name) UNIQUE
 #  index_hash_lists_on_project_id    (project_id)
 #
 # Foreign Keys
 #
+#  fk_rails_...  (creator_id => users.id)
 #  fk_rails_...  (hash_type_id => hash_types.id)
 #  fk_rails_...  (project_id => projects.id)
 #
@@ -58,6 +61,7 @@ class HashList < ApplicationRecord
   has_many :campaigns, dependent: :destroy
   has_many :hash_items, dependent: :destroy
   belongs_to :hash_type
+  belongs_to :creator, class_name: "User", optional: true
 
   validates :name, presence: true, uniqueness: { case_sensitive: false }
   validates :file, presence: { on: :create }

@@ -90,6 +90,7 @@ class HashListsController < ApplicationController
   # POST /hash_lists or /hash_lists.json
   def create
     @hash_list = HashList.new(hash_list_params)
+    @hash_list.creator = current_user
 
     respond_to do |format|
       if @hash_list.save

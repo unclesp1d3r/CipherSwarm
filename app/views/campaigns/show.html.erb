@@ -49,6 +49,9 @@
 <small class="text-muted">Created <%= time_ago_in_words(@campaign.created_at) %> ago</small>
 <h4><%= @campaign.priority.humanize %></h4>
 <p><%= @campaign.description %></p>
+<%= show_for @campaign do |s| %>
+  <%= s.association :creator, label: "Created By" %>
+<% end %>
 <% if @campaign.attacks.empty? %>
   <%= render Railsboot::BlankSlateComponent.new do |blankslate| %>
     <% blankslate.with_icon do %>

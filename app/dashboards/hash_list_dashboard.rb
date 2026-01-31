@@ -21,6 +21,7 @@ class HashListDashboard < Administrate::BaseDashboard
     name: Field::String,
     campaigns: Field::HasMany,
     project: Field::BelongsTo,
+    creator: Field::BelongsTo,
     sensitive: Field::Boolean,
     created_at: Field::DateTime.with_options(format: :short),
     updated_at: Field::DateTime.with_options(format: :short),
@@ -39,6 +40,7 @@ class HashListDashboard < Administrate::BaseDashboard
   COLLECTION_ATTRIBUTES = %i[
     id
     name
+    creator
     description
     hash_type
     project
@@ -51,6 +53,7 @@ class HashListDashboard < Administrate::BaseDashboard
   SHOW_PAGE_ATTRIBUTES = %i[
     id
     name
+    creator
     description
     completion
     project
