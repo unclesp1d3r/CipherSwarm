@@ -5,6 +5,22 @@
 
 module Admin
   class CampaignsController < Admin::ApplicationController
+    def create
+      resource = resource_class.new(resource_params)
+      resource.creator = current_user
+
+      if resource.save
+        redirect_to(
+          [namespace, resource],
+          notice: translate_with_resource("create.success")
+        )
+      else
+        render :new, locals: {
+          page: Administrate::Page::Form.new(dashboard, resource)
+        }
+      end
+    end
+
     # Overwrite any of the RESTful controller actions to implement custom behavior
     # For example, you may want to send an email after a foo is updated.
     #

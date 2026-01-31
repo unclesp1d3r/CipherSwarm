@@ -41,6 +41,7 @@ class AttackDashboard < Administrate::BaseDashboard
     workload_profile: Field::Number,
     hashcat_parameters: Field::String,
     campaign: Field::BelongsTo,
+    creator: Field::BelongsTo,
     tasks: Field::HasMany,
     state: Field::String,
     created_at: Field::DateTime,
@@ -56,6 +57,7 @@ class AttackDashboard < Administrate::BaseDashboard
     id
     campaign
     name
+    creator
     attack_mode
     state
   ].freeze
@@ -63,7 +65,7 @@ class AttackDashboard < Administrate::BaseDashboard
   # SHOW_PAGE_ATTRIBUTES
   # an array of attributes that will be displayed on the model's show page.
   SHOW_PAGE_ATTRIBUTES = {
-    "" => %i[id name description attack_mode campaign state],
+    "" => %i[id name creator description attack_mode campaign state],
     "Dictionary & Rules" => %i[word_list rule_list],
     "Combination" => %i[left_rule right_rule],
     "Mask Attack" => %i[mask mask_list],

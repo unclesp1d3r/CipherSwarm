@@ -18,6 +18,7 @@ class CampaignDashboard < Administrate::BaseDashboard
     hash_list: Field::BelongsTo,
     name: Field::String,
     project: Field::BelongsTo,
+    creator: Field::BelongsTo,
     created_at: Field::DateTime,
     updated_at: Field::DateTime
   }.freeze
@@ -30,6 +31,7 @@ class CampaignDashboard < Administrate::BaseDashboard
   COLLECTION_ATTRIBUTES = %i[
     id
     name
+    creator
     attacks
     project
     hash_list
@@ -40,6 +42,7 @@ class CampaignDashboard < Administrate::BaseDashboard
   SHOW_PAGE_ATTRIBUTES = %i[
     id
     name
+    creator
     project
     attacks
     hash_list

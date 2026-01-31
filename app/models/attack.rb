@@ -114,6 +114,7 @@
 #  created_at                                                                                          :datetime         not null
 #  updated_at                                                                                          :datetime         not null
 #  campaign_id                                                                                         :bigint           not null, indexed
+#  creator_id(The user who created this attack)                                                        :bigint           indexed
 #  mask_list_id(The mask list used for the attack.)                                                    :bigint           indexed
 #  rule_list_id(The rule list used for the attack.)                                                    :bigint           indexed
 #  word_list_id(The word list used for the attack.)                                                    :bigint           indexed
@@ -123,6 +124,7 @@
 #  index_attacks_campaign_id          (campaign_id)
 #  index_attacks_on_attack_mode       (attack_mode)
 #  index_attacks_on_complexity_value  (complexity_value)
+#  index_attacks_on_creator_id        (creator_id)
 #  index_attacks_on_deleted_at        (deleted_at)
 #  index_attacks_on_mask_list_id      (mask_list_id)
 #  index_attacks_on_rule_list_id      (rule_list_id)
@@ -132,6 +134,7 @@
 # Foreign Keys
 #
 #  fk_rails_...  (campaign_id => campaigns.id) ON DELETE => cascade
+#  fk_rails_...  (creator_id => users.id)
 #  fk_rails_...  (mask_list_id => mask_lists.id) ON DELETE => cascade
 #  fk_rails_...  (rule_list_id => rule_lists.id) ON DELETE => cascade
 #  fk_rails_...  (word_list_id => word_lists.id) ON DELETE => cascade
@@ -149,6 +152,7 @@ class Attack < ApplicationRecord
   belongs_to :rule_list, optional: true
   belongs_to :mask_list, optional: true
   belongs_to :word_list, optional: true
+  belongs_to :creator, class_name: "User", optional: true
 
   # Validations
   validates :attack_mode, presence: true,
