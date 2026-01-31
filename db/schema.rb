@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_26_042725) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_31_024347) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -91,6 +91,15 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_26_042725) do
     t.index ["project_id"], name: "index_agents_projects_on_project_id"
   end
 
+  create_table "application_settings", force: :cascade do |t|
+    t.string "key", null: false, comment: "Unique setting key"
+    t.text "value", comment: "Setting value (JSON serialized)"
+    t.text "description", comment: "Human-readable description of the setting"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["key"], name: "index_application_settings_on_key", unique: true
+  end
+
   create_table "attacks", force: :cascade do |t|
     t.string "name", default: "", null: false, comment: "Attack name"
     t.text "description", default: "", comment: "Attack description"
@@ -126,6 +135,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_26_042725) do
     t.decimal "complexity_value", default: "0.0", null: false, comment: "Complexity value of the attack"
     t.bigint "creator_id", comment: "The user who created this attack"
     t.index ["attack_mode"], name: "index_attacks_on_attack_mode"
+    t.index ["campaign_id", "state"], name: "index_attacks_on_campaign_id_and_state"
     t.index ["campaign_id"], name: "index_attacks_campaign_id"
     t.index ["complexity_value"], name: "index_attacks_on_complexity_value"
     t.index ["creator_id"], name: "index_attacks_on_creator_id"
@@ -172,6 +182,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_26_042725) do
     t.index ["creator_id"], name: "index_campaigns_on_creator_id"
     t.index ["deleted_at"], name: "index_campaigns_on_deleted_at"
     t.index ["hash_list_id"], name: "index_campaigns_on_hash_list_id"
+    t.index ["priority"], name: "index_campaigns_on_priority"
+    t.index ["project_id", "priority"], name: "index_campaigns_on_project_id_and_priority"
     t.index ["project_id"], name: "index_campaigns_on_project_id"
   end
 
@@ -389,6 +401,19 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_26_042725) do
     t.index ["name"], name: "index_rule_lists_on_name", unique: true
   end
 
+  create_table "sessions", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "ip_address"
+    t.string "user_agent"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "last_activity_at", comment: "Last time the session was active"
+    t.datetime "expires_at", comment: "When the session expires"
+    t.index ["expires_at"], name: "index_sessions_on_expires_at"
+    t.index ["last_activity_at"], name: "index_sessions_on_last_activity_at"
+    t.index ["user_id"], name: "index_sessions_on_user_id"
+  end
+
   create_table "solid_queue_blocked_executions", force: :cascade do |t|
     t.bigint "job_id", null: false
     t.string "queue_name", null: false
@@ -531,6 +556,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_26_042725) do
     t.datetime "updated_at", null: false
     t.string "name", null: false, comment: "Unique username. Used for login."
     t.integer "role", default: 0, comment: "The role of the user, either basic or admin"
+    t.string "password_digest"
+    t.boolean "auth_migrated", default: false, null: false
+    t.index ["auth_migrated"], name: "index_users_on_auth_migrated"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["name"], name: "index_users_on_name", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
@@ -585,6 +613,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_26_042725) do
   add_foreign_key "project_users", "projects"
   add_foreign_key "project_users", "users"
   add_foreign_key "rule_lists", "users", column: "creator_id"
+  add_foreign_key "sessions", "users"
   add_foreign_key "solid_queue_blocked_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_claimed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_failed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
