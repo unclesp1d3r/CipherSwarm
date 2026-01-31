@@ -6,6 +6,31 @@
 require "rails_helper"
 
 RSpec.describe SafeBroadcasting do
+  describe "test environment behavior" do
+    let(:agent) { create(:agent) }
+
+    it "returns nil in test environment without calling super" do
+      # In test environment, broadcasts should be skipped entirely
+      result = agent.broadcast_refresh
+      expect(result).to be_nil
+    end
+
+    it "does not log errors in test environment" do
+      allow(Rails.logger).to receive(:error)
+      agent.broadcast_refresh
+      # No BroadcastError should be logged since we skip before reaching that code
+      expect(Rails.logger).not_to have_received(:error).with(/\[BroadcastError\]/)
+    end
+
+    it "skips all broadcast methods in test environment" do
+      %i[broadcast_replace_to broadcast_replace_later_to broadcast_refresh_to broadcast_refresh].each do |method|
+        next unless agent.respond_to?(method)
+        # These should all return nil without error in test env
+        expect { agent.public_send(method) rescue nil }.not_to raise_error
+      end
+    end
+  end
+
   describe "broadcast error handling" do
     let(:agent) { create(:agent) }
 

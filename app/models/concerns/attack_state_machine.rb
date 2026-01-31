@@ -104,23 +104,33 @@ module AttackStateMachine
       end
 
       # Executed after an attack has been abandoned. This removes all tasks associated with the attack.
+      # Wrapped in error handling to ensure transition completes and errors are logged.
       after_transition on: :abandon do |attack|
-        # Log the attack abandonment with task details
-        task_count = attack.tasks.count
         task_ids = attack.tasks.pluck(:id)
-        task_agent_info = attack.tasks.includes(:agent).map { |t| "Task #{t.id} (Agent #{t.agent_id})" }.join(", ")
+        task_count = task_ids.size
 
-        Rails.logger.info("[Attack #{attack.id}] Abandoning attack for campaign #{attack.campaign_id}, destroying #{task_count} tasks: [#{task_ids.join(', ')}]")
-        Rails.logger.info("[Attack #{attack.id}] Tasks with agent assignments: #{task_agent_info}") if task_agent_info.present?
+        begin
+          task_agent_info = attack.tasks.includes(:agent).map { |t| "Task #{t.id} (Agent #{t.agent_id})" }.join(", ")
 
-        # If the attack is abandoned, we should remove the tasks to free up for another agent and touch the campaign to update the updated_at timestamp
-        attack.tasks.destroy_all
+          Rails.logger.info("[Attack #{attack.id}] Abandoning attack for campaign #{attack.campaign_id}, destroying #{task_count} tasks: [#{task_ids.join(', ')}]")
+          Rails.logger.info("[Attack #{attack.id}] Tasks with agent assignments: #{task_agent_info}") if task_agent_info.present?
 
-        Rails.logger.info("[Attack #{attack.id}] Tasks destroyed: [#{task_ids.join(', ')}]")
+          # Remove tasks to free up for another agent
+          attack.tasks.destroy_all
 
-        attack.campaign.touch # rubocop:disable Rails/SkipsModelValidations
+          Rails.logger.info("[Attack #{attack.id}] Tasks destroyed: [#{task_ids.join(', ')}]")
 
-        Rails.logger.info("[Attack #{attack.id}] Attack abandoned, campaign #{attack.campaign_id} updated at #{Time.zone.now}")
+          # Update campaign timestamp
+          attack.campaign.touch # rubocop:disable Rails/SkipsModelValidations
+
+          Rails.logger.info("[Attack #{attack.id}] Attack abandoned, campaign #{attack.campaign_id} updated at #{Time.zone.now}")
+        rescue StandardError => e
+          Rails.logger.error(
+            "[Attack #{attack.id}] Error during abandon transition: #{e.class} - #{e.message}. " \
+            "Tasks targeted for destruction: [#{task_ids.join(', ')}]"
+          )
+          raise # Re-raise to rollback the transition
+        end
       end
 
       # Executed after an attack is being paused. This pauses all tasks associated with the attack.
@@ -129,26 +139,8 @@ module AttackStateMachine
       # Executed after an attack is being resumed. This resumes all tasks associated with the attack.
       after_transition paused: any, do: :resume_tasks
 
-      # Broadcast progress updates for state changes.
-      after_transition any => :running do |attack|
-        attack.broadcast_attack_progress_update
-      end
-
-      after_transition any => :completed do |attack|
-        attack.broadcast_attack_progress_update
-      end
-
-      after_transition any => :exhausted do |attack|
-        attack.broadcast_attack_progress_update
-      end
-
-      after_transition any => :failed do |attack|
-        attack.broadcast_attack_progress_update
-      end
-
-      after_transition any => :paused do |attack|
-        attack.broadcast_attack_progress_update
-      end
+      # Broadcast progress updates for state changes
+      after_transition any => %i[running completed exhausted failed paused], do: :broadcast_attack_progress_update
 
       # Executed after an attack has been completed. This completes the hash list for the campaign and updates the campaign's updated_at timestamp.
       after_transition any => :completed, :do => :complete_hash_list
@@ -168,14 +160,21 @@ module AttackStateMachine
 
   private
 
-  # Completes the hash list for the campaign if there are no uncracked hashes left.
+  # Completes other incomplete attacks for the campaign if there are no uncracked hashes left.
   #
   # This method checks if the campaign has zero uncracked hashes. If true, it iterates
-  # through all incomplete attacks associated with the campaign and marks them as complete.
+  # through all other incomplete attacks (excluding self) and marks them as complete.
+  # The exclusion of self prevents potential repeated queries when multiple attacks complete.
   #
   # @return [void]
   def complete_hash_list
-    campaign.attacks.incomplete.each(&:complete) if campaign.uncracked_count.zero?
+    return unless campaign.uncracked_count.zero?
+
+    other_incomplete = campaign.attacks.incomplete.where.not(id: id)
+    return if other_incomplete.none?
+
+    Rails.logger.info("[Attack #{id}] Completing #{other_incomplete.count} related incomplete attacks")
+    other_incomplete.each(&:complete)
   end
 
   # Pauses all tasks associated with the current object.
