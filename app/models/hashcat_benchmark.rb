@@ -126,7 +126,7 @@ class HashcatBenchmark < ApplicationRecord
 
   include SafeBroadcasting
 
-  broadcasts_refreshes unless Rails.env.test?
+  broadcasts_refreshes
 
   # Scopes
   scope :by_hash_type, ->(hash_type) { where(hash_type: hash_type) }

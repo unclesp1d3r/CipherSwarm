@@ -118,7 +118,8 @@ class Task < ApplicationRecord
   has_many :agent_errors, dependent: :destroy
   validates :start_date, presence: true
 
-  default_scope { order(:created_at) }
+  self.implicit_order_column = :created_at
+
   scope :incomplete, -> { with_states(%i[pending failed running]) }
   scope :inactive_for, ->(time) { where(activity_timestamp: ...time.ago) }
   scope :successful, -> { with_states(:completed, :exhausted) }
@@ -379,8 +380,6 @@ class Task < ApplicationRecord
   private
 
   def safe_broadcast_attack_progress_update
-    return if Rails.env.test?
-
     attack.broadcast_attack_progress_update
   rescue StandardError => e
     Rails.logger.error("[BroadcastUpdate] Task #{id} - Failed to broadcast attack progress update: #{e.message}")

@@ -32,6 +32,10 @@ module SafeBroadcasting
   included do
     BROADCAST_METHODS.each do |method_name|
       define_method(method_name) do |*args, **kwargs, &block|
+        # Skip broadcasting in test environment to avoid performance overhead
+        # The test cable adapter handles broadcasts silently, but skipping entirely is faster
+        return nil if Rails.env.test?
+
         super(*args, **kwargs, &block)
       rescue StandardError => e
         log_broadcast_error(e)

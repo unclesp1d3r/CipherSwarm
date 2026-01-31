@@ -2,8 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 
 class Attack
-  COMPLEXITY_VALUES: Hash[String, Integer]
-
   def estimated_complexity: -> BigDecimal
 
   def estimated_finish_time: -> Time?

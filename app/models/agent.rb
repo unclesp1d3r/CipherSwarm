@@ -105,11 +105,12 @@ class Agent < ApplicationRecord
 
   scope :active, -> { where(state: :active) }
   scope :inactive_for, ->(time) { where(last_seen_at: ...time.ago) }
-  default_scope { order(:created_at) }
+
+  self.implicit_order_column = :created_at
 
   # Broadcast tab-specific updates instead of full page refresh
   # This prevents resetting the active tab state when agent data changes
-  after_update_commit :broadcast_tab_updates, unless: -> { Rails.env.test? }
+  after_update_commit :broadcast_tab_updates
 
   # Broadcasts updates to individual tab streams instead of the root agent stream.
   # This allows each tab panel to update independently without affecting the active tab state.
