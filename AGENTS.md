@@ -327,7 +327,6 @@ Both unit tests for Stimulus controllers and integration tests via system tests 
 - Screenshots on failure (tmp/capybara/)
 - Key workflows: authentication, agent management, campaigns, file uploads, authorization
 - See docs/testing/system-tests-guide.md
-- Known flaky: `campaign_progress_monitoring_spec.rb:73` (timing-sensitive modal test)
 
 **Model Tests (spec/models/):**
 
