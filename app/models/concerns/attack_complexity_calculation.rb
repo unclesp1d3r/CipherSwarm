@@ -122,10 +122,10 @@ module AttackComplexityCalculation
   # @return [Integer] the length of the custom charset.
   def custom_charset_length(element)
     case element
-    when "?1" then custom_charset_1.length
-    when "?2" then custom_charset_2.length
-    when "?3" then custom_charset_3.length
-    when "?4" then custom_charset_4.length
+    when "?1" then custom_charset_1.to_s.length
+    when "?2" then custom_charset_2.to_s.length
+    when "?3" then custom_charset_3.to_s.length
+    when "?4" then custom_charset_4.to_s.length
     else
       0
     end
@@ -135,7 +135,8 @@ module AttackComplexityCalculation
   #
   # @return [Integer] the size of the increment range.
   def increment_range_size
-    (increment_minimum..increment_maximum).to_a.size
+    return 0 if increment_minimum.nil? || increment_maximum.nil?
+    [increment_maximum - increment_minimum + 1, 0].max
   end
 
   # Updates the stored complexity value of the attack.

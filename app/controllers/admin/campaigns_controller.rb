@@ -7,6 +7,7 @@ module Admin
   class CampaignsController < Admin::ApplicationController
     def create
       resource = resource_class.new(resource_params)
+      authorize! :create, resource
       resource.creator = current_user
 
       if resource.save
