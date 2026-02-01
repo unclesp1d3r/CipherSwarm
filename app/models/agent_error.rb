@@ -61,6 +61,35 @@ class AgentError < ApplicationRecord
 
   broadcasts_refreshes
 
+  # Scopes for common query patterns
+  scope :for_campaign, lambda { |campaign_id|
+    joins(task: :attack).where(attacks: { campaign_id: campaign_id })
+  }
+
+  scope :older_than, ->(date) { where(created_at: ...date) }
+
+  # Returns the latest error for each attack in the given list.
+  #
+  # Uses PostgreSQL DISTINCT ON for efficient single-query retrieval.
+  # Returns a hash mapping attack_id => AgentError.
+  #
+  # @param attack_ids [Array<Integer>] list of attack IDs to find errors for
+  # @return [Hash<Integer, AgentError>] map of attack_id to latest error
+  def self.latest_per_attack(attack_ids)
+    return {} if attack_ids.blank?
+
+    find_by_sql([<<-SQL.squish, attack_ids])
+      SELECT DISTINCT ON (tasks.attack_id)
+             agent_errors.*,
+             tasks.attack_id AS associated_attack_id
+      FROM agent_errors
+      INNER JOIN tasks ON tasks.id = agent_errors.task_id
+      WHERE tasks.attack_id IN (?)
+      ORDER BY tasks.attack_id, agent_errors.created_at DESC
+    SQL
+      .index_by(&:associated_attack_id)
+  end
+
   # Retrieves the attack ID associated with the task.
   #
   # This method first checks if the `task_id` is present. If not, it returns `nil`.

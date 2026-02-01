@@ -32,22 +32,7 @@ class CampaignsController < ApplicationController
 
     # Precompute map for failed attacks to their latest error
     failed_attack_ids = @attacks.where(state: "failed").pluck(:id)
-    if failed_attack_ids.any?
-      # Use raw SQL for PostgreSQL DISTINCT ON which requires ORDER BY to start with DISTINCT ON columns
-      latest_errors = AgentError.find_by_sql([<<-SQL.squish, failed_attack_ids])
-        SELECT DISTINCT ON (tasks.attack_id)
-               agent_errors.*,
-               tasks.attack_id AS associated_attack_id
-        FROM agent_errors
-        INNER JOIN tasks ON tasks.id = agent_errors.task_id
-        WHERE tasks.attack_id IN (?)
-        ORDER BY tasks.attack_id, agent_errors.created_at DESC
-      SQL
-
-      @failed_attack_error_map = latest_errors.index_by(&:associated_attack_id)
-    else
-      @failed_attack_error_map = {}
-    end
+    @failed_attack_error_map = AgentError.latest_per_attack(failed_attack_ids)
   end
 
   def eta_summary
