@@ -327,6 +327,7 @@ Both unit tests for Stimulus controllers and integration tests via system tests 
 - Screenshots on failure (tmp/capybara/)
 - Key workflows: authentication, agent management, campaigns, file uploads, authorization
 - See docs/testing/system-tests-guide.md
+- Known flaky: `campaign_progress_monitoring_spec.rb:73` (timing-sensitive modal test)
 
 **Model Tests (spec/models/):**
 
@@ -390,6 +391,7 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 - Maximum 5 expectations per example
 - Use FactoryBot factories, not fixtures
 - Test both happy and edge cases
+- For ActiveJob::DeserializationError tests, use `instance_double` instead of instantiating (constructor signature varies)
 
 **Migration Generation:**
 
@@ -443,7 +445,7 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 
 **Logging Patterns:**
 
-- Use structured logging with `[LogType]` prefixes (`[APIRequest]`, `[APIError]`, `[AgentLifecycle]`, `[BroadcastError]`)
+- Use structured logging with `[LogType]` prefixes (`[APIRequest]`, `[APIError]`, `[AgentLifecycle]`, `[BroadcastError]`, `[AttackAbandon]`, `[JobDiscarded]`)
 - Include relevant context (IDs, timestamps, state changes)
 - Log errors with backtrace (first 5 lines)
 - Ensure logging failures don't break application (rescue blocks)
@@ -455,6 +457,7 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 1. Use `just dev` to start the development server (Rails + assets + Sidekiq)
 2. Run tests frequently with `just test` or `just test-file spec/path/to/spec.rb`
 3. Use `just check` before committing (linting + security)
+   - Note: First run after modifying files may fail with "files were modified by this hook" - run again
 4. Always use Rails generators for migrations and models
 5. Follow conventional commits for git messages
 6. Keep PRs focused and small
