@@ -22,12 +22,10 @@ RSpec.describe SafeBroadcasting do
       expect(Rails.logger).not_to have_received(:error).with(/\[BroadcastError\]/)
     end
 
-    it "skips all broadcast methods in test environment" do
-      %i[broadcast_replace_to broadcast_replace_later_to broadcast_refresh_to broadcast_refresh].each do |method|
-        next unless agent.respond_to?(method)
-        # These should all return nil without error in test env
-        expect { agent.public_send(method) rescue nil }.not_to raise_error
-      end
+    it "skips broadcast_refresh in test environment without error" do
+      # Only test methods that don't require arguments
+      # Methods like broadcast_replace_to require stream/target arguments
+      expect { agent.broadcast_refresh }.not_to raise_error
     end
   end
 

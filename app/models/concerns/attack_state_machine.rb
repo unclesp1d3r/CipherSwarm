@@ -41,7 +41,7 @@ module AttackStateMachine
       # completed state if the hash list is fully cracked.
       event :complete do
         transition running: :completed if ->(attack) { attack.tasks.all?(&:completed?) || attack.campaign.completed? }
-        transition pending: :completed if ->(attack) { attack.hash_list.uncracked_count.zero? }
+        transition pending: :completed if ->(attack) { (attack.hash_list&.uncracked_count || 0).zero? }
         transition all - [:running] => same
       end
 
@@ -57,12 +57,12 @@ module AttackStateMachine
         transition any => same
       end
 
-      # Trigger that the attack has been exhausted. If the attack is in the running state, it will transition to the completed state
-      # if all tasks are exhausted. If the attack is in the running state, it will transition to the completed state if the hash list
+      # Trigger that the attack has been exhausted. If the attack is in the running state, it will transition to the exhausted state
+      # if all tasks are exhausted. If the attack is in the running state, it will transition to the exhausted state if the hash list
       # is fully cracked.
       event :exhaust do
-        transition running: :completed if ->(attack) { attack.tasks.all?(&:exhausted?) }
-        transition running: :completed if ->(attack) { attack.hash_list.uncracked_count.zero? }
+        transition running: :exhausted if ->(attack) { attack.tasks.all?(&:exhausted?) }
+        transition running: :exhausted if ->(attack) { (attack.hash_list&.uncracked_count || 0).zero? }
         transition any => same
       end
 
@@ -103,33 +103,16 @@ module AttackStateMachine
         attack.touch(:end_time) # rubocop:disable Rails/SkipsModelValidations
       end
 
-      # Executed after an attack has been abandoned. This removes all tasks associated with the attack.
-      # Wrapped in error handling to ensure transition completes and errors are logged.
+      # Executed after an attack has been abandoned. Removes all tasks to free up for another agent.
       after_transition on: :abandon do |attack|
         task_ids = attack.tasks.pluck(:id)
-        task_count = task_ids.size
-
         begin
-          task_agent_info = attack.tasks.includes(:agent).map { |t| "Task #{t.id} (Agent #{t.agent_id})" }.join(", ")
-
-          Rails.logger.info("[Attack #{attack.id}] Abandoning attack for campaign #{attack.campaign_id}, destroying #{task_count} tasks: [#{task_ids.join(', ')}]")
-          Rails.logger.info("[Attack #{attack.id}] Tasks with agent assignments: #{task_agent_info}") if task_agent_info.present?
-
-          # Remove tasks to free up for another agent
+          Rails.logger.info("[Attack #{attack.id}] Abandoning: destroying #{task_ids.size} tasks [#{task_ids.join(', ')}]")
           attack.tasks.destroy_all
-
-          Rails.logger.info("[Attack #{attack.id}] Tasks destroyed: [#{task_ids.join(', ')}]")
-
-          # Update campaign timestamp
           attack.campaign.touch # rubocop:disable Rails/SkipsModelValidations
-
-          Rails.logger.info("[Attack #{attack.id}] Attack abandoned, campaign #{attack.campaign_id} updated at #{Time.zone.now}")
         rescue StandardError => e
-          Rails.logger.error(
-            "[Attack #{attack.id}] Error during abandon transition: #{e.class} - #{e.message}. " \
-            "Tasks targeted for destruction: [#{task_ids.join(', ')}]"
-          )
-          raise # Re-raise to rollback the transition
+          Rails.logger.error("[Attack #{attack.id}] Abandon error: #{e.class} - #{e.message}")
+          raise
         end
       end
 
@@ -148,7 +131,7 @@ module AttackStateMachine
 
       # Executed before an attack is marked completed. This completes all remaining tasks associated with the attack if the hash list is fully cracked.
       before_transition on: :complete do |attack|
-        attack.tasks.each(&:complete!) if attack.hash_list.uncracked_count.zero?
+        attack.tasks.each(&:complete!) if (attack.hash_list&.uncracked_count || 0).zero?
       end
 
       state :paused
@@ -174,7 +157,11 @@ module AttackStateMachine
     return if other_incomplete.none?
 
     Rails.logger.info("[Attack #{id}] Completing #{other_incomplete.count} related incomplete attacks")
-    other_incomplete.each(&:complete)
+    other_incomplete.each do |attack|
+      attack.complete! if attack.can_complete?
+    rescue StandardError => e
+      Rails.logger.warn("[Attack #{id}] Failed to complete attack #{attack.id}: #{e.message}")
+    end
   end
 
   # Pauses all tasks associated with the current object.

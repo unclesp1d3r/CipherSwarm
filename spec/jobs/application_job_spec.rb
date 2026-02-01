@@ -15,7 +15,7 @@ RSpec.describe ApplicationJob do
       expect(described_class.rescue_handlers.map(&:first)).to include("ActiveJob::DeserializationError")
     end
 
-    it "has a block handler for DeserializationError that logs" do
+    it "has a block handler for DeserializationError" do
       # Find the handler for DeserializationError
       handler = described_class.rescue_handlers.find { |h| h.first == "ActiveJob::DeserializationError" }
       expect(handler).not_to be_nil
