@@ -5,8 +5,10 @@
 
 # Provides state machine functionality for Attack models.
 #
-# This concern extracts state machine logic from the Attack model to improve
-# organization and testability.
+# REASONING:
+# - Summary: Extract state machine into concern for better organization and testability
+# - Alternatives: Keep in model (monolithic), separate service object (over-engineering)
+# - Decision: Concern pattern aligns with Rails conventions and keeps Attack model focused
 #
 # States: pending, running, paused, failed, exhausted, completed
 #
@@ -16,7 +18,7 @@
 # - complete: Transitions to completed when all tasks done or hash list cracked
 # - pause: Transitions to paused
 # - error: Transitions running to failed
-# - exhaust: Transitions to completed when all tasks exhausted
+# - exhaust: Transitions to exhausted when all tasks exhausted
 # - cancel: Transitions to failed
 # - reset: Transitions to pending for re-running
 # - resume: Transitions paused to pending
@@ -107,11 +109,15 @@ module AttackStateMachine
       after_transition on: :abandon do |attack|
         task_ids = attack.tasks.pluck(:id)
         begin
-          Rails.logger.info("[Attack #{attack.id}] Abandoning: destroying #{task_ids.size} tasks [#{task_ids.join(', ')}]")
+          Rails.logger.info("[AttackAbandon] Attack #{attack.id}: destroying #{task_ids.size} tasks [#{task_ids.join(', ')}]")
           attack.tasks.destroy_all
           attack.campaign.touch # rubocop:disable Rails/SkipsModelValidations
         rescue StandardError => e
-          Rails.logger.error("[Attack #{attack.id}] Abandon error: #{e.class} - #{e.message}")
+          backtrace = e.backtrace&.first(5)&.join("\n           ") || "Not available"
+          Rails.logger.error(
+            "[AttackAbandon] Attack #{attack.id} error: #{e.class} - #{e.message}\n" \
+            "           Backtrace: #{backtrace}"
+          )
           raise
         end
       end
