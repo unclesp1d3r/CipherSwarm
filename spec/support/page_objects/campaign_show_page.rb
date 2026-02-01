@@ -126,7 +126,12 @@ class CampaignShowPage < BasePage
   # @param attack_name [String] name of the attack
   def click_error_indicator(attack_name)
     item = find(".stepper-item", text: attack_name)
-    item.find("button[aria-label^='View error details']").click
+    button = item.find("button[aria-label^='View error details']")
+    # Scroll into view and wait for interactability
+    button.scroll_to(:center)
+    # Brief pause for any animations/transitions
+    sleep 0.1
+    button.click
   end
 
   # Check if error modal is present
@@ -207,17 +212,17 @@ class CampaignShowPage < BasePage
 
   # Wait for ETA summary Turbo Frame to load
   def wait_for_eta_summary_loaded
-    wait_for_turbo_frame("campaign_eta_summary")
+    wait_for_turbo_frame("eta_summary")
   end
 
   # Wait for recent cracks Turbo Frame to load
   def wait_for_recent_cracks_loaded
-    wait_for_turbo_frame("campaign_recent_cracks")
+    wait_for_turbo_frame("recent_cracks")
   end
 
   # Wait for error log Turbo Frame to load
   def wait_for_error_log_loaded
-    wait_for_turbo_frame("campaign_error_log")
+    wait_for_turbo_frame("error_log")
   end
 
   private
