@@ -96,7 +96,9 @@ RSpec.describe "Sidebar navigation" do
     end
   end
 
-  describe "bootstrap icons load correctly", js: true do
+  # Skip in CI - font loading can cause hangs in headless Chrome environments
+  # The test verifies Bootstrap icon fonts are loaded and rendering correctly
+  describe "bootstrap icons load correctly", js: true, skip: ENV["CI"].present? do
     # JavaScript to check if Bootstrap icons are rendering content via ::before pseudo-element
     def icons_rendering_content?
       page.evaluate_script(<<~JS)

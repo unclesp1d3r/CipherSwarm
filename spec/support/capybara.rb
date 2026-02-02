@@ -28,6 +28,9 @@ Capybara.register_driver :headless_chrome do |app|
   chrome_args << "--headless=new" if headless
   chrome_args.each { |arg| options.add_argument(arg) }
 
+  # Use CHROME_BIN environment variable if set (for CI environments)
+  options.binary = ENV["CHROME_BIN"] if ENV["CHROME_BIN"].present?
+
   # Enable browser/driver logging for easier CI debugging
   # Use add_option for driver-specific options to support multiple selenium versions
   options.add_option("goog:loggingPrefs", {
