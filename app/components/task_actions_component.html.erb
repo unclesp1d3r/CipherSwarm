@@ -1,0 +1,34 @@
+<div class="d-flex flex-wrap gap-2" aria-label="Task actions">
+  <% if can_cancel? %>
+    <%= button_to cancel_path, method: :post, class: "btn btn-danger btn-sm", data: { turbo_method: :post, turbo_confirm: "Are you sure you want to cancel this task?" } do %>
+      <%= icon("x-circle") %>
+      <span>Cancel</span>
+    <% end %>
+  <% end %>
+
+  <% if can_retry? %>
+    <%= button_to retry_path, method: :post, class: "btn btn-warning btn-sm", data: { turbo_method: :post } do %>
+      <%= icon("arrow-clockwise") %>
+      <span>Retry</span>
+    <% end %>
+  <% end %>
+
+  <% if can_reassign? %>
+    <%= button_to reassign_path, method: :post, class: "btn btn-secondary btn-sm", data: { turbo_method: :post } do %>
+      <%= icon("arrow-repeat") %>
+      <span>Reassign</span>
+    <% end %>
+  <% end %>
+
+  <%= link_to logs_path, class: "btn btn-outline-secondary btn-sm" do %>
+    <%= icon("file-text") %>
+    <span>Logs</span>
+  <% end %>
+
+  <% if can_download_results? %>
+    <%= link_to download_results_path, class: "btn btn-outline-primary btn-sm" do %>
+      <%= icon("download") %>
+      <span>Download Results</span>
+    <% end %>
+  <% end %>
+</div>
