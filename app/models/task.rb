@@ -377,6 +377,27 @@ class Task < ApplicationRecord
     update(activity_timestamp: Time.zone.now) if state_changed?
   end
 
+  # Checks if an agent is compatible with this task.
+  #
+  # An agent is compatible if:
+  # 1. Agent has no project restrictions (agent.projects.empty?) - can work on any project
+  # 2. Agent is assigned to this specific project
+  #
+  # REASONING:
+  # - This method is used for task reassignment validation
+  # - Ensures agents can only be assigned tasks from projects they have access to
+  # - Agents with no project restrictions are considered "global" and can work on any project
+  # - Alternatives considered: Using CanCanCan abilities, but this is simpler and more focused
+  #
+  # @param agent [Agent] the agent to check for compatibility
+  # @return [Boolean] true if agent can work on this task, false otherwise
+  def compatible_agent?(agent)
+    project = attack&.campaign&.project
+    return false unless project
+
+    agent.projects.empty? || agent.projects.include?(project)
+  end
+
   private
 
   def safe_broadcast_attack_progress_update

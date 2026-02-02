@@ -110,9 +110,12 @@ class TasksController < ApplicationController
       return
     end
 
-    # If task is running, abandon it first (resets to pending)
-    if @task.running? && @task.can_abandon?
-      @task.abandon
+    # If task is running, pause it then resume to reset to pending
+    # Note: We don't use abandon here because abandon triggers attack.abandon which destroys all tasks
+    if @task.running?
+      @task.pause if @task.can_pause?
+      @task.resume if @task.can_resume?
+      @task.update_columns(stale: true) # rubocop:disable Rails/SkipsModelValidations
     end
 
     # Reassign the task to the new agent

@@ -62,6 +62,27 @@ class TaskActionsComponent < ApplicationViewComponent
     @current_ability.can?(:download_results, @task)
   end
 
+  # Returns agents that are compatible with the task's project.
+  # Used for the reassign agent dropdown.
+  #
+  # @return [ActiveRecord::Relation<Agent>] compatible agents
+  def compatible_agents
+    @compatible_agents ||= begin
+      project = @task.attack&.campaign&.project
+      if project
+        # Agents with no projects (global) or assigned to this project
+        Agent.left_joins(:projects)
+             .where("agents_projects.project_id IS NULL OR agents_projects.project_id = ?", project.id)
+             .where.not(id: @task.agent_id)
+             .where(enabled: true)
+             .distinct
+             .order(:host_name)
+      else
+        Agent.none
+      end
+    end
+  end
+
   # URL helpers
   def cancel_path
     cancel_task_path(@task)
