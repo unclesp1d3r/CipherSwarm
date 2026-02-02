@@ -1,0 +1,43 @@
+<%= render Railsboot::HeaderComponent.new do |header| %>
+  <% header.with_heading do %>
+    <%= title "Task ##{@task.id}" %>
+  <% end %>
+  <% header.with_breadcrumb.with_items([
+       { text: "Dashboard", href: root_path },
+       { text: "Activity", href: campaigns_path },
+       { text: @task.attack.campaign.name, href: @task.attack.campaign },
+       { text: @task.attack.name, href: campaign_attack_path(@task.attack.campaign, @task.attack) },
+       { text: "Task ##{@task.id}", href: @task, active: true }
+     ]) %>
+<% end %>
+
+<div class="row">
+  <div class="col-md-6">
+    <div class="card mb-3">
+      <div class="card-header">
+        <h5 class="card-title mb-0">Task Details</h5>
+      </div>
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-sm-4">ID</dt>
+          <dd class="col-sm-8"><%= @task.id %></dd>
+
+          <dt class="col-sm-4">State</dt>
+          <dd class="col-sm-8"><%= @task.state.humanize %></dd>
+
+          <dt class="col-sm-4">Attack</dt>
+          <dd class="col-sm-8"><%= link_to @task.attack.name, campaign_attack_path(@task.attack.campaign, @task.attack) %></dd>
+
+          <dt class="col-sm-4">Agent</dt>
+          <dd class="col-sm-8"><%= link_to @task.agent.host_name, @task.agent %></dd>
+
+          <dt class="col-sm-4">Started</dt>
+          <dd class="col-sm-8"><%= @task.start_date.present? ? time_ago_in_words(@task.start_date) + " ago" : "Not started" %></dd>
+
+          <dt class="col-sm-4">Progress</dt>
+          <dd class="col-sm-8"><%= number_to_percentage(@task.progress_percentage, precision: 2) %></dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</div>

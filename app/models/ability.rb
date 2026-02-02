@@ -90,9 +90,16 @@ class Ability
     # Attack creator permissions
     can %i[read update destroy], Attack, creator: user
 
-    # Attack  permissions
+    # Attack permissions
     can :manage, Attack, campaign: { project_id: user.all_project_ids }
-    can :manage, Task, campaign: { attack: { project_id: user.all_project_ids } }
+
+    # Task permissions (Task -> attack -> campaign -> project)
+    can :manage, Task, attack: { campaign: { project_id: user.all_project_ids } }
+    can :read, Task, attack: { campaign: { project_id: user.all_project_ids } }
+    can :cancel, Task, attack: { campaign: { project_id: user.all_project_ids } }
+    can :retry, Task, attack: { campaign: { project_id: user.all_project_ids } }
+    can :reassign, Task, attack: { campaign: { project_id: user.all_project_ids } }
+    can :download_results, Task, attack: { campaign: { project_id: user.all_project_ids } }
 
     # HashList permissions
     can :manage, HashList, project: { id: user.all_project_ids }
