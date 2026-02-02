@@ -11,6 +11,23 @@
 # - Updating task activity timestamps
 # - Handling task state transitions based on status
 #
+# REASONING:
+# - Extracted ~60 lines of nested object creation from TasksController for clarity.
+# - Complex param handling and state transitions benefit from isolated testing.
+# Alternatives Considered:
+# - Keep in controller: Makes submit_status action too complex with nested builds.
+# - Use accepts_nested_attributes_for: Less control over error handling and validation order.
+# - Form object: Would still need service for state transition logic.
+# Decision:
+# - Service object with Result Struct provides clear success/failure contract.
+# - Uses transaction to ensure atomicity between status save and task state transition.
+# Performance Implications:
+# - Single transaction wraps status save and task accept for consistency.
+# - Device statuses are built in-memory before save to minimize DB round-trips.
+# Future Considerations:
+# - Could batch status submissions for high-frequency updates.
+# - Consider extracting device status handling if it becomes complex.
+#
 # @example Basic usage
 #   result = StatusSubmissionService.new(
 #     task: task,
@@ -135,20 +152,27 @@ class StatusSubmissionService
     end
   end
 
-  # Saves the status and accepts it on the task.
+  # Saves the status and accepts it on the task within a transaction.
+  # This ensures atomicity: if accept_status fails, the status save is rolled back.
   #
   # @param status [HashcatStatus] the status to save
   # @return [Result] the result of the operation
   def save_and_accept_status(status)
-    unless status.save
-      return Result.new(
-        status: :error,
-        error: status.errors.full_messages.join(", "),
-        error_type: :save_failed
-      )
+    accept_result = nil
+
+    Task.transaction do
+      status.save!
+      accept_result = accept_status_on_task
+      raise ActiveRecord::Rollback if accept_result.status == :error
     end
 
-    accept_status_on_task
+    accept_result
+  rescue ActiveRecord::RecordInvalid => e
+    Result.new(
+      status: :error,
+      error: e.record.errors.full_messages.join(", "),
+      error_type: :save_failed
+    )
   end
 
   # Accepts the status on the task and determines the response status.
