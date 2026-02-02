@@ -29,10 +29,19 @@ RSpec.describe TaskActionsComponent, type: :component do
         expect(page).to have_css("form[action='#{cancel_task_path(task)}']")
       end
 
-      it "renders reassign button" do
+      it "renders reassign form when compatible agents exist" do
+        # Create a compatible agent (no project restrictions)
+        create(:agent)
         render_inline(described_class.new(task: task, current_ability: ability))
 
         expect(page).to have_button("Reassign")
+      end
+
+      it "shows no compatible agents message when none available" do
+        # All agents are incompatible (different projects)
+        render_inline(described_class.new(task: task, current_ability: ability))
+
+        expect(page).to have_content("No compatible agents available")
       end
 
       it "does not render retry button" do
@@ -86,7 +95,9 @@ RSpec.describe TaskActionsComponent, type: :component do
         expect(page).to have_css("form[action='#{retry_task_path(task)}']")
       end
 
-      it "renders reassign button" do
+      it "renders reassign form when compatible agents exist" do
+        # Create a compatible agent (no project restrictions)
+        create(:agent)
         render_inline(described_class.new(task: task, current_ability: ability))
 
         expect(page).to have_button("Reassign")
