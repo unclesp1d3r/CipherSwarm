@@ -158,6 +158,7 @@ GEM
     crass (1.0.6)
     cssbundling-rails (1.4.3)
       railties (>= 6.0.0)
+    csv (3.3.5)
     database_cleaner-active_record (2.2.2)
       activerecord (>= 5.a)
       database_cleaner-core (~> 2.0)
@@ -615,6 +616,7 @@ DEPENDENCIES
   cancancan (~> 3.5)
   capybara (~> 3.40)
   cssbundling-rails (~> 1.4)
+  csv (~> 3.3)
   database_cleaner-active_record (~> 2.1)
   debug
   devise (~> 4.9)
