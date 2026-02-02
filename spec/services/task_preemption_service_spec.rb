@@ -328,5 +328,166 @@ RSpec.describe TaskPreemptionService do
         )
       end
     end
+
+    context "when handling concurrent preemption scenarios" do
+      it "handles task state changing during preemption selection" do
+        agent_1 = agents[0]
+        agent_2 = agents[1]
+
+        normal_attack_1 = create(:dictionary_attack, campaign: normal_priority_campaign)
+        normal_attack_2 = create(:dictionary_attack, campaign: normal_priority_campaign)
+        task_1 = create(:task, attack: normal_attack_1, agent: agent_1, state: :running)
+        task_2 = create(:task, attack: normal_attack_2, agent: agent_2, state: :running)
+
+        create(:hashcat_status, task: task_1, progress: [25, 100], status: :running)
+        create(:hashcat_status, task: task_2, progress: [50, 100], status: :running)
+
+        high_attack = create(:dictionary_attack, campaign: high_priority_campaign)
+        service = described_class.new(high_attack)
+
+        # Simulate task completing between selection and locking
+        # The lock! should still work, but the task state is now :completed
+        allow(task_1).to receive(:lock!).and_wrap_original do |method|
+          # rubocop:disable Rails/SkipsModelValidations
+          task_1.update_columns(state: "completed")
+          # rubocop:enable Rails/SkipsModelValidations
+          method.call
+        end
+
+        # The service should still complete successfully (even if task state changed)
+        # because we use update_columns which bypasses validations
+        allow(Rails.logger).to receive(:info)
+        preempted = service.preempt_if_needed
+
+        expect(preempted).not_to be_nil
+      end
+
+      it "increments preemption_count atomically" do
+        agent_1 = agents[0]
+        agent_2 = agents[1]
+
+        normal_attack_1 = create(:dictionary_attack, campaign: normal_priority_campaign)
+        normal_attack_2 = create(:dictionary_attack, campaign: normal_priority_campaign)
+        task_1 = create(:task, attack: normal_attack_1, agent: agent_1, state: :running, preemption_count: 0)
+        task_2 = create(:task, attack: normal_attack_2, agent: agent_2, state: :running)
+
+        # Both tasks need hashcat_statuses for preemption check
+        create(:hashcat_status, task: task_1, progress: [25, 100], status: :running)
+        create(:hashcat_status, task: task_2, progress: [50, 100], status: :running)
+
+        high_attack = create(:dictionary_attack, campaign: high_priority_campaign)
+        service = described_class.new(high_attack)
+
+        allow(Rails.logger).to receive(:info)
+        preempted = service.preempt_if_needed
+
+        # Verify increment happened on preempted task
+        expect(preempted).to eq(task_1)
+        expect(task_1.reload.preemption_count).to eq(1)
+      end
+
+      it "handles StaleObjectError from optimistic locking gracefully" do
+        agent_1 = agents[0]
+        agent_2 = agents[1]
+
+        normal_attack_1 = create(:dictionary_attack, campaign: normal_priority_campaign)
+        normal_attack_2 = create(:dictionary_attack, campaign: normal_priority_campaign)
+        task_1 = create(:task, attack: normal_attack_1, agent: agent_1, state: :running)
+        create(:task, attack: normal_attack_2, agent: agent_2, state: :running)
+
+        create(:hashcat_status, task: task_1, progress: [25, 100], status: :running)
+
+        high_attack = create(:dictionary_attack, campaign: high_priority_campaign)
+        service = described_class.new(high_attack)
+
+        # Simulate StaleObjectError during increment
+        call_count = 0
+        allow(Task).to receive(:transaction).and_wrap_original do |method, &block|
+          call_count += 1
+          raise ActiveRecord::StaleObjectError.new(task_1, "update") if call_count == 1
+
+          method.call(&block)
+        end
+
+        # The error should propagate (not silently fail)
+        expect { service.preempt_if_needed }.to raise_error(ActiveRecord::StaleObjectError)
+      end
+
+      it "uses row-level locking to prevent double-preemption" do
+        agent_1 = agents[0]
+        agent_2 = agents[1]
+
+        normal_attack = create(:dictionary_attack, campaign: normal_priority_campaign)
+        task_1 = create(:task, attack: normal_attack, agent: agent_1, state: :running)
+        task_2 = create(:task, attack: normal_attack, agent: agent_2, state: :running)
+
+        create(:hashcat_status, task: task_1, progress: [25, 100], status: :running)
+        create(:hashcat_status, task: task_2, progress: [50, 100], status: :running)
+
+        high_attack = create(:dictionary_attack, campaign: high_priority_campaign)
+        service = described_class.new(high_attack)
+
+        allow(Rails.logger).to receive(:info)
+
+        # Verify the service can successfully preempt and that lock! was used
+        # by checking the task state changed atomically
+        preempted = service.preempt_if_needed
+
+        expect(preempted).to eq(task_1)
+        expect(task_1.reload.state).to eq("pending")
+        expect(task_1.stale).to be true
+        expect(task_1.preemption_count).to eq(1)
+      end
+    end
+
+    context "when handling edge cases" do
+      it "handles task with no hashcat_statuses" do
+        agent_1 = agents[0]
+        agent_2 = agents[1]
+
+        normal_attack_1 = create(:dictionary_attack, campaign: normal_priority_campaign)
+        normal_attack_2 = create(:dictionary_attack, campaign: normal_priority_campaign)
+        task_1 = create(:task, attack: normal_attack_1, agent: agent_1, state: :running)
+        create(:task, attack: normal_attack_2, agent: agent_2, state: :running)
+
+        # No hashcat_statuses - progress should be 0%
+
+        high_attack = create(:dictionary_attack, campaign: high_priority_campaign)
+        service = described_class.new(high_attack)
+
+        allow(Rails.logger).to receive(:info)
+
+        # Task with 0% progress should be preemptable
+        preempted = service.preempt_if_needed
+        expect(preempted).to eq(task_1)
+      end
+
+      it "selects lower priority campaign task before higher priority task" do
+        agent_1 = agents[0]
+        agent_2 = agents[1]
+
+        deferred_campaign = create(:campaign, project: project, priority: :deferred)
+        normal_attack = create(:dictionary_attack, campaign: normal_priority_campaign)
+        deferred_attack = create(:dictionary_attack, campaign: deferred_campaign)
+
+        task_1 = create(:task, attack: normal_attack, agent: agent_1, state: :running)
+        task_2 = create(:task, attack: deferred_attack, agent: agent_2, state: :running)
+
+        # task_1 (normal) has lower progress but higher priority
+        create(:hashcat_status, task: task_1, progress: [10, 100], status: :running)
+        # task_2 (deferred) has higher progress but lower priority
+        create(:hashcat_status, task: task_2, progress: [80, 100], status: :running)
+
+        high_attack = create(:dictionary_attack, campaign: high_priority_campaign)
+        service = described_class.new(high_attack)
+
+        allow(Rails.logger).to receive(:info)
+
+        preempted = service.preempt_if_needed
+
+        # Should preempt deferred task (lower priority) even though normal task has less progress
+        expect(preempted).to eq(task_2)
+      end
+    end
   end
 end

@@ -6,6 +6,48 @@
 require "rails_helper"
 
 RSpec.describe SafeBroadcasting do
+  describe "constants" do
+    it "defines BROADCAST_METHODS with expected methods" do
+      expect(SafeBroadcasting::BROADCAST_METHODS).to contain_exactly(
+        :broadcast_replace_to,
+        :broadcast_replace_later_to,
+        :broadcast_refresh_to,
+        :broadcast_refresh
+      )
+    end
+
+    it "defines EXPECTED_BROADCAST_ERRORS with connection errors" do
+      expect(SafeBroadcasting::EXPECTED_BROADCAST_ERRORS).to include(
+        IOError,
+        Errno::ECONNREFUSED,
+        Errno::ECONNRESET,
+        Errno::EPIPE
+      )
+    end
+  end
+
+  describe "model inclusion" do
+    it "is included in Agent" do
+      expect(Agent.ancestors).to include(described_class)
+    end
+
+    it "is included in Campaign" do
+      expect(Campaign.ancestors).to include(described_class)
+    end
+
+    it "is included in Attack" do
+      expect(Attack.ancestors).to include(described_class)
+    end
+
+    it "is included in AgentError" do
+      expect(AgentError.ancestors).to include(described_class)
+    end
+
+    it "is included in HashItem" do
+      expect(HashItem.ancestors).to include(described_class)
+    end
+  end
+
   describe "test environment behavior" do
     let(:agent) { create(:agent) }
 
