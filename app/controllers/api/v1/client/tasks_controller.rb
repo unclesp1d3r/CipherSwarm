@@ -269,6 +269,12 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
         "Hash: #{hash[0..15]}... - Errors: #{result.error} - #{Time.current}"
       )
       render json: { error: result.error }, status: :unprocessable_content
+    else
+      Rails.logger.error(
+        "[APIError] UNKNOWN_CRACK_ERROR - Agent #{@agent.id} - Task #{@task.id} - " \
+        "Hash: #{hash[0..15]}... - Type: #{result.error_type} - Errors: #{result.error} - #{Time.current}"
+      )
+      render json: { error: result.error || "An unexpected error occurred" }, status: :internal_server_error
     end
   end
 
