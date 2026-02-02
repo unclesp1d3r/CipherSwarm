@@ -113,6 +113,7 @@ RSpec.describe "Sidebar navigation" do
     it "renders bootstrap icons with visible content" do
       user = create_and_sign_in_user
       expect(user).to be_present
+      visit root_path
 
       expect(page).to have_css("aside.sidebar", wait: 10)
       expect(page).to have_css("i.bi", minimum: 1)

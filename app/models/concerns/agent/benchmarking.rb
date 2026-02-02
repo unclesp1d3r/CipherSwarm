@@ -8,6 +8,22 @@
 # This concern encapsulates methods for managing and querying hashcat benchmark data,
 # including performance threshold checks, benchmark aggregation, and staleness detection.
 #
+# REASONING:
+# - Extracted benchmark logic from Agent model to improve code organization and reduce model complexity.
+# - Benchmarking is a cohesive set of functionality that operates on hashcat_benchmarks association.
+# Alternatives Considered:
+# - Keep methods in Agent model: Would increase model size (~80 lines) and mix concerns.
+# - Use a service object: Overkill for query/formatting methods that don't involve complex business logic.
+# - Use a PORO decorator: Adds complexity without benefit since methods are tightly coupled to Agent.
+# Decision:
+# - ActiveSupport::Concern provides clean extraction with access to Agent associations and validations.
+# Performance Implications:
+# - Caching hash_type lookups with 1-week expiry reduces database queries.
+# - Uses efficient ActiveRecord queries (group, sum, pluck) rather than Ruby iteration.
+# Future Considerations:
+# - Could add benchmark comparison methods between agents.
+# - Consider moving to background job if aggregation becomes slow for agents with many benchmarks.
+#
 # @example Basic usage
 #   agent.needs_benchmark?
 #   # => true if benchmarks are older than max_benchmark_age
@@ -49,7 +65,7 @@ module Agent::Benchmarking
   # This method queries the associated `hashcat_benchmarks` for unique hash types.
   # It returns a list of distinct hash types supported by the agent, based on its stored benchmark data.
   #
-  # @return [Array<String>] An array containing distinct hash types supported by the agent.
+  # @return [Array<Integer>] An array containing distinct hashcat mode identifiers supported by the agent.
   def allowed_hash_types
     hashcat_benchmarks.distinct.pluck(:hash_type)
   end
@@ -92,7 +108,9 @@ module Agent::Benchmarking
   def last_benchmark_date
     if hashcat_benchmarks.empty?
       # If there are no benchmarks, we'll just return the date from a year ago.
-      created_at - 365.days
+      # Guard against nil created_at for unsaved agents.
+      base_time = created_at || Time.zone.now
+      base_time - 365.days
     else
       hashcat_benchmarks.order(benchmark_date: :desc).first.benchmark_date
     end

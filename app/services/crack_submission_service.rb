@@ -12,6 +12,23 @@
 # - Propagating the crack to other hash items with the same value
 # - Marking related tasks as stale
 #
+# REASONING:
+# - Extracted ~50 lines of complex logic from TasksController#submit_crack for better testability.
+# - Multiple database operations and cross-model updates warrant a dedicated service object.
+# Alternatives Considered:
+# - Keep in controller: Makes controller fat (~100+ lines) and hard to test in isolation.
+# - Model callback: Would create hidden side effects and tight coupling between models.
+# - Interactor gem: Adds dependency for simple use case; Struct-based Result is sufficient.
+# Decision:
+# - Plain Ruby service class with Result Struct provides testability and clear interface.
+# - Uses database transaction to ensure atomicity of crack propagation.
+# Performance Implications:
+# - Batch update for propagating cracks to matching hashes (single query vs N+1).
+# - Transaction overhead is acceptable given data consistency requirements.
+# Future Considerations:
+# - Could add async crack propagation for very large hash lists.
+# - Consider caching uncracked_count if called frequently.
+#
 # @example Basic usage
 #   result = CrackSubmissionService.new(
 #     task: task,

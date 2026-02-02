@@ -23,9 +23,8 @@ RSpec.describe ProcessHashListJob do
       )
     end
 
-    it "retries up to 10 times on FileNotFoundError" do
+    it "has a retry handler for FileNotFoundError" do
       handler = described_class.rescue_handlers.find { |h| h.first == "ActiveStorage::FileNotFoundError" }
-      # The handler config should include attempts: 10
       expect(handler).not_to be_nil
     end
   end
@@ -44,7 +43,7 @@ RSpec.describe ProcessHashListJob do
   end
 
   describe "retry behavior" do
-    it "is configured to retry with polynomially longer wait times" do
+    it "is configured to handle FileNotFoundError retries" do
       # Verify retry configuration exists for FileNotFoundError
       handler = described_class.rescue_handlers.find { |h| h.first == "ActiveStorage::FileNotFoundError" }
       expect(handler).not_to be_nil
