@@ -55,10 +55,10 @@
       "resolved": "ghcr.io/rails/devcontainer/features/postgres-client@sha256:dc995acf6d691de8fc2dcc88fede02c55df608aa9de17cfa4b38de06903d7715",
       "integrity": "sha256:dc995acf6d691de8fc2dcc88fede02c55df608aa9de17cfa4b38de06903d7715"
     },
-    "ghcr.io/rails/devcontainer/features/ruby:2": {
-      "version": "2.1.2",
-      "resolved": "ghcr.io/rails/devcontainer/features/ruby@sha256:4616b023b374d03a0ce17d0b68e463641cfd1c46f0615ad8530f5687a294e079",
-      "integrity": "sha256:4616b023b374d03a0ce17d0b68e463641cfd1c46f0615ad8530f5687a294e079"
+    "ghcr.io/rails/devcontainer/features/ruby:": {
+      "version": "2.1.3",
+      "resolved": "ghcr.io/rails/devcontainer/features/ruby@sha256:396f72fb79d47814baefce6246d59722118b4640560a95188da579a9b51d55d3",
+      "integrity": "sha256:396f72fb79d47814baefce6246d59722118b4640560a95188da579a9b51d55d3"
     }
   }
 }

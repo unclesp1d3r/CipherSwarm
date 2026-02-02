@@ -26,7 +26,7 @@
       "variantProcessor": "vips"
     },
     "ghcr.io/rails/devcontainer/features/postgres-client:1": {},
-    "ghcr.io/rails/devcontainer/features/ruby:2": {
+    "ghcr.io/rails/devcontainer/features/ruby:": {
       "versionManager": "mise",
       "version": "3.4.5"
     }
