@@ -186,125 +186,41 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
   #
   # @return [nil] if any error occurs or when completing the process successfully. Renders appropriate responses.
   def submit_crack
-    timestamp = params[:timestamp]
     hash = params[:hash]
-    plain_text = params[:plain_text]
-
     Rails.logger.info("[Agent #{@agent.id}] Task #{@task.id} - Submitting crack for hash: #{hash[0..15]}...")
 
-    hash_list = @task.hash_list
-    hash_item = hash_list.hash_items.where(hash_value: hash).first
-    if hash_item.blank?
-      Rails.logger.error("[APIError] HASH_NOT_FOUND - Agent #{@agent.id} - Task #{@task.id} - Hash: #{hash[0..15]}... - #{Time.current}")
-      render json: { error: "Hash not found" }, status: :not_found
-      return
+    result = CrackSubmissionService.new(
+      task: @task,
+      hash_value: hash,
+      plain_text: params[:plain_text],
+      timestamp: params[:timestamp]
+    ).call
+
+    if result.success?
+      handle_successful_crack(result)
+    else
+      handle_failed_crack(hash, result)
     end
-
-    HashItem.transaction do
-      unless hash_item.update(plain_text: plain_text, cracked: true, cracked_time: timestamp, attack: @task.attack)
-        Rails.logger.error("[APIError] HASH_UPDATE_FAILED - Agent #{@agent.id} - Task #{@task.id} - Hash: #{hash[0..15]}... - Errors: #{hash_item.errors.full_messages.join(', ')} - #{Time.current}")
-        render json: hash_item.errors, status: :unprocessable_content
-        return
-      end
-
-      unless @task.accept_crack
-        Rails.logger.error("[APIError] TASK_ACCEPT_CRACK_FAILED - Agent #{@agent.id} - Task #{@task.id} - Errors: #{@task.errors.full_messages.join(', ')} - #{Time.current}")
-        render json: @task.errors, status: :unprocessable_content
-        return
-      end
-
-      # Update any other hash items with the same hash value that are not cracked
-      HashItem.includes(:hash_list).where(hash_value: hash_item.hash_value, cracked: false, hash_list: { hash_type_id: hash_list.hash_type_id }).
-        update!(plain_text: plain_text, cracked: true, cracked_time: timestamp, attack: @task.attack)
-
-      # If there is another task for the same hash list, they should be made stale.
-      @task.hash_list.campaigns.each { |c| c.attacks.each { |a| a.tasks.where.not(id: @task.id).update(stale: true) } }
-    end
-
-    uncracked_count = hash_list.uncracked_count
-    Rails.logger.info("[Agent #{@agent.id}] Task #{@task.id} - Hash cracked successfully, #{uncracked_count} hashes remaining, task state: #{@task.state}")
-    @message = "Hash cracked successfully, #{uncracked_count} hashes remaining, task #{@task.state}."
-    @task.attack.campaign.touch # rubocop: disable Rails/SkipsModelValidations
-    return unless @task.completed?
-    render status: :no_content
   end
 
   # Handles the submission of the current task's status.
   # Task lookup and error handling is performed by the set_task before_action.
   #
-  # This method updates the task's activity timestamp and creates a new status with the provided parameters.
-  # If provided, the method processes hashcat guesses and device statuses to associate with the status.
-  # The task's state is further updated based on the submitted status. If validation errors occur
-  # during processing, appropriate error responses are returned.
+  # This method delegates to StatusSubmissionService to create HashcatStatus with associated
+  # guesses and device statuses. The task's state is updated based on the submitted status.
   #
-  # @return [nil] if the task's state is updated successfully, indicated by HTTP status codes: 204 (No Content),
-  #   202 (Accepted) for stale tasks, or 410 (Gone) for paused tasks.
-  # @return [Hash] an error response with validation messages and an HTTP status code of 422
-  #   (Unprocessable Entity), if the creation of hashcat guesses or device statuses fails.
+  # @return [nil] HTTP status codes: 204 (No Content), 202 (Accepted) for stale, 410 (Gone) for paused
+  # @return [Hash] error response with 422 (Unprocessable Entity) on validation failures
   def submit_status
     Rails.logger.debug { "[Agent #{@agent.id}] Task #{@task.id} - Submitting status update" }
-    @task.update(activity_timestamp: Time.zone.now)
-    status = @task.hashcat_statuses.build({
-                                            original_line: params[:original_line],
-                                            session: params[:session],
-                                            time: params[:time],
-                                            status: params[:status],
-                                            target: params[:target],
-                                            progress: params[:progress],
-                                            restore_point: params[:restore_point],
-                                            recovered_hashes: params[:recovered_hashes],
-                                            recovered_salts: params[:recovered_salts],
-                                            rejected: params[:rejected],
-                                            time_start: params[:time_start],
-                                            estimated_stop: params[:estimated_stop]
-                                          })
 
-    # Get the guess from the status and create it if it exists
-    guess_params = status_params[:hashcat_guess]
-    if guess_params.present?
-      status.hashcat_guess = HashcatGuess.new(guess_params)
+    result = StatusSubmissionService.new(task: @task, status_params: status_params).call
+
+    if result.success?
+      handle_successful_status(result)
     else
-      Rails.logger.error("[APIError] GUESS_NOT_FOUND - Agent #{@agent.id} - Task #{@task.id} - #{Time.current}")
-      render json: { error: "Guess not found" }, status: :unprocessable_content
-      return
+      handle_failed_status(result)
     end
-
-    # Get the device statuses from the status and create them if they exist
-    device_statuses = status_params[:device_statuses] || status_params[:devices] # Support old and new names
-    if device_statuses.present?
-      device_statuses.each do |device_status_params|
-        device_status = DeviceStatus.new(device_status_params)
-        status.device_statuses << device_status
-      end
-    else
-      Rails.logger.error("[APIError] DEVICE_STATUSES_NOT_FOUND - Agent #{@agent.id} - Task #{@task.id} - #{Time.current}")
-      render json: { error: "Device Statuses not found" }, status: :unprocessable_content
-      return
-    end
-
-    unless status.save
-      Rails.logger.error("[APIError] STATUS_SAVE_FAILED - Agent #{@agent.id} - Task #{@task.id} - Errors: #{status.errors.full_messages.join(', ')} - #{Time.current}")
-      render json: status.errors, status: :unprocessable_content
-      return
-    end
-
-    # Update the task's state based on the status and return no_content if the state was updated
-    if @task.accept_status
-      if @task.stale
-        Rails.logger.info("[Agent #{@agent.id}] Task #{@task.id} - Status accepted, task is stale")
-        return head :accepted
-      end
-      if @task.paused?
-        Rails.logger.info("[Agent #{@agent.id}] Task #{@task.id} - Status accepted, task is paused")
-        return head :gone
-      end
-      Rails.logger.debug { "[Agent #{@agent.id}] Task #{@task.id} - Status update successful" }
-      return head :no_content
-    end
-
-    # If the state was not updated, return the task's errors
-    Rails.logger.error("[APIError] TASK_ACCEPT_STATUS_FAILED - Agent #{@agent.id} - Task #{@task.id} - Errors: #{@task.errors.full_messages.join(', ')} - #{Time.current}")
-    render json: @task.errors, status: :unprocessable_content
   end
 
   private
@@ -321,6 +237,68 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
     log_task_access(@agent.id, params[:id], { method: request.method, path: request.path }, false)
     error_response = handle_task_not_found(params[:id], @agent)
     render json: error_response, status: :not_found
+  end
+
+  # Handles successful crack submission.
+  #
+  # @param result [CrackSubmissionService::Result] the service result
+  def handle_successful_crack(result)
+    Rails.logger.info(
+      "[Agent #{@agent.id}] Task #{@task.id} - Hash cracked successfully, " \
+      "#{result.uncracked_count} hashes remaining, task state: #{@task.state}"
+    )
+    @message = "Hash cracked successfully, #{result.uncracked_count} hashes remaining, task #{@task.state}."
+    return unless @task.completed?
+    render status: :no_content
+  end
+
+  # Handles failed crack submission.
+  #
+  # @param hash [String] the hash value that failed
+  # @param result [CrackSubmissionService::Result] the service result
+  def handle_failed_crack(hash, result)
+    case result.error_type
+    when :not_found
+      Rails.logger.error(
+        "[APIError] HASH_NOT_FOUND - Agent #{@agent.id} - Task #{@task.id} - Hash: #{hash[0..15]}... - #{Time.current}"
+      )
+      render json: { error: result.error }, status: :not_found
+    when :validation_error
+      Rails.logger.error(
+        "[APIError] CRACK_SUBMISSION_FAILED - Agent #{@agent.id} - Task #{@task.id} - " \
+        "Hash: #{hash[0..15]}... - Errors: #{result.error} - #{Time.current}"
+      )
+      render json: { error: result.error }, status: :unprocessable_content
+    end
+  end
+
+  # Handles successful status submission.
+  #
+  # @param result [StatusSubmissionService::Result] the service result
+  def handle_successful_status(result)
+    case result.status
+    when :stale
+      Rails.logger.info("[Agent #{@agent.id}] Task #{@task.id} - Status accepted, task is stale")
+      head :accepted
+    when :paused
+      Rails.logger.info("[Agent #{@agent.id}] Task #{@task.id} - Status accepted, task is paused")
+      head :gone
+    else
+      Rails.logger.debug { "[Agent #{@agent.id}] Task #{@task.id} - Status update successful" }
+      head :no_content
+    end
+  end
+
+  # Handles failed status submission.
+  #
+  # @param result [StatusSubmissionService::Result] the service result
+  def handle_failed_status(result)
+    error_code = result.error_type.to_s.upcase
+    Rails.logger.error(
+      "[APIError] #{error_code} - Agent #{@agent.id} - Task #{@task.id} - " \
+      "Errors: #{result.error} - #{Time.current}"
+    )
+    render json: { error: result.error }, status: :unprocessable_content
   end
 
   # Strong parameters for status submission

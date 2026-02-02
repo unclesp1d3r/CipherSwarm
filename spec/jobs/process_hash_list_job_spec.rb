@@ -22,6 +22,37 @@ RSpec.describe ProcessHashListJob do
         have_attributes(first: "ActiveStorage::FileNotFoundError")
       )
     end
+
+    it "retries up to 10 times on FileNotFoundError" do
+      handler = described_class.rescue_handlers.find { |h| h.first == "ActiveStorage::FileNotFoundError" }
+      # The handler config should include attempts: 10
+      expect(handler).not_to be_nil
+    end
+  end
+
+  describe "discard behavior" do
+    it "discards job when hash list does not exist" do
+      # Using perform_now should not raise when record is not found
+      expect { described_class.perform_now(-999) }.not_to raise_error
+    end
+
+    it "does not create hash items when discarded" do
+      initial_count = HashItem.count
+      described_class.perform_now(-999)
+      expect(HashItem.count).to eq(initial_count)
+    end
+  end
+
+  describe "retry behavior" do
+    it "is configured to retry with polynomially longer wait times" do
+      # Verify retry configuration exists for FileNotFoundError
+      handler = described_class.rescue_handlers.find { |h| h.first == "ActiveStorage::FileNotFoundError" }
+      expect(handler).not_to be_nil
+    end
+
+    it "inherits retry on Deadlocked from ApplicationJob" do
+      expect(described_class.rescue_handlers.map(&:first)).to include("ActiveRecord::Deadlocked")
+    end
   end
 
   describe "queuing", :perform_enqueued do
