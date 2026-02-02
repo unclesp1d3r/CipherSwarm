@@ -328,6 +328,12 @@ Both unit tests for Stimulus controllers and integration tests via system tests 
 - Key workflows: authentication, agent management, campaigns, file uploads, authorization
 - See docs/testing/system-tests-guide.md
 
+**CI System Tests:**
+
+- Tests with font-loading (e.g., Bootstrap icons) can hang in headless Chrome - skip with `skip: ENV["CI"].present?`
+- Selenium requires explicit Chrome binary path: `options.binary = ENV["CHROME_BIN"]` in `spec/support/capybara.rb`
+- If CI hangs after "Capybara starting Puma...", check for tests that load external resources
+
 **Model Tests (spec/models/):**
 
 - FactoryBot factories (spec/factories/)
@@ -367,6 +373,15 @@ Both unit tests for Stimulus controllers and integration tests via system tests 
 ### Code Organization Standards
 
 From .cursor/rules/core-principals.mdc and rails.mdc:
+
+**Service Objects and Concerns:**
+
+- All service objects and concerns require a REASONING block in comments explaining:
+  - Why this extraction was made
+  - Alternatives considered
+  - Decision rationale
+  - Performance implications (if any)
+  - Future considerations (if any)
 
 **File Structure:**
 
@@ -450,6 +465,12 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 - Ensure logging failures don't break application (rescue blocks)
 - Always test that important events are logged correctly
 - Verify sensitive data is filtered (see docs/development/logging-guide.md)
+
+**Database Transactions:**
+
+- Wrap related operations in `Model.transaction do ... end` when they must succeed/fail together
+- Use `save!` (bang) inside transactions to trigger rollback on failure
+- Handle `ActiveRecord::RecordInvalid` outside the transaction block
 
 ### Development Workflow
 
