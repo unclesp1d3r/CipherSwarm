@@ -284,4 +284,55 @@ RSpec.describe Task do
       end
     end
   end
+
+  describe "#compatible_agent?" do
+    let(:project) { create(:project) }
+    let(:campaign) { create(:campaign, project: project) }
+    let(:attack) { create(:dictionary_attack, campaign: campaign) }
+    let(:original_agent) { create(:agent, projects: [project]) }
+    let(:task) { create(:task, attack: attack, agent: original_agent) }
+
+    context "when agent has no project restrictions" do
+      let(:unrestricted_agent) { create(:agent, projects: []) }
+
+      it "returns true for agent with no projects" do
+        expect(task.compatible_agent?(unrestricted_agent)).to be true
+      end
+    end
+
+    context "when agent is assigned to the task's project" do
+      let(:same_project_agent) { create(:agent, projects: [project]) }
+
+      it "returns true" do
+        expect(task.compatible_agent?(same_project_agent)).to be true
+      end
+    end
+
+    context "when agent is assigned to a different project" do
+      let(:other_project) { create(:project) }
+      let(:different_project_agent) { create(:agent, projects: [other_project]) }
+
+      it "returns false" do
+        expect(task.compatible_agent?(different_project_agent)).to be false
+      end
+    end
+
+    context "when agent is assigned to multiple projects including the task's project" do
+      let(:other_project) { create(:project) }
+      let(:multi_project_agent) { create(:agent, projects: [other_project, project]) }
+
+      it "returns true" do
+        expect(task.compatible_agent?(multi_project_agent)).to be true
+      end
+    end
+
+    context "when task has no associated project" do
+      let(:task_without_project) { build(:task, attack: nil) }
+
+      it "returns false" do
+        allow(task_without_project).to receive(:attack).and_return(nil)
+        expect(task_without_project.compatible_agent?(original_agent)).to be false
+      end
+    end
+  end
 end

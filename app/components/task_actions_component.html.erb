@@ -13,11 +13,18 @@
     <% end %>
   <% end %>
 
-  <% if can_reassign? %>
-    <%= button_to reassign_path, method: :post, class: "btn btn-secondary btn-sm", data: { turbo_method: :post } do %>
-      <%= icon("arrow-repeat") %>
-      <span>Reassign</span>
+  <% if can_reassign? && compatible_agents.any? %>
+    <%= form_with url: reassign_path, method: :post, class: "d-inline-flex align-items-center gap-1" do |f| %>
+      <%= f.select :agent_id,
+                   options_from_collection_for_select(compatible_agents, :id, :host_name),
+                   { include_blank: "Select agent..." },
+                   class: "form-select form-select-sm",
+                   style: "min-width: 150px;",
+                   "aria-label": "Select agent for reassignment" %>
+      <%= f.submit "Reassign", class: "btn btn-secondary btn-sm" %>
     <% end %>
+  <% elsif can_reassign? %>
+    <span class="text-muted small">No compatible agents available</span>
   <% end %>
 
   <%= link_to logs_path, class: "btn btn-outline-secondary btn-sm" do %>
