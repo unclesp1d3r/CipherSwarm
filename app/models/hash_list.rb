@@ -99,7 +99,9 @@ class HashList < ApplicationRecord
   # @return [Integer]
   def cracked_count
     Rails.cache.fetch("#{cache_key_with_version}/cracked_count", expires_in: 20.minutes) do
-      hash_items.where.not(plain_text: nil).size
+      # PERFORMANCE: Use .count for SQL COUNT aggregation instead of .size
+      # which loads all records into memory when the relation isn't already loaded
+      hash_items.where.not(plain_text: nil).count
     end
   end
 
@@ -125,14 +127,16 @@ class HashList < ApplicationRecord
   #
   # @return [Integer] the number of items in the hash
   def hash_item_count
-    hash_items.size
+    # PERFORMANCE: Use .count for SQL COUNT aggregation instead of .size
+    hash_items.count
   end
 
   # Returns the count of uncracked hash items.
   #
   # @return [Integer] the number of uncracked hash items
   def uncracked_count
-    hash_items.uncracked.size
+    # PERFORMANCE: Use .count for SQL COUNT aggregation instead of .size
+    hash_items.uncracked.count
   end
 
   # Returns a collection of hash items that are uncracked.

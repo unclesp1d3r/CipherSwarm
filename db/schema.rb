@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_31_024347) do
+ActiveRecord::Schema[8.0].define(version: 2026_02_02_151637) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -312,6 +312,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_31_024347) do
     t.datetime "estimated_stop", comment: "The estimated time of completion"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["task_id", "status", "time"], name: "index_hashcat_statuses_on_task_status_time", order: { time: :desc }
     t.index ["task_id"], name: "index_hashcat_statuses_on_task_id"
     t.index ["time"], name: "index_hashcat_statuses_on_time"
   end
