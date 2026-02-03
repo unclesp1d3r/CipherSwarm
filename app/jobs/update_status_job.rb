@@ -66,14 +66,51 @@ class UpdateStatusJob < ApplicationJob
   ##
   # Removes all hashcat_status records associated with tasks that are in the finished state.
   def remove_finished_tasks_status
-    Task.finished.each { |task| task.hashcat_statuses.destroy_all }
+    # PERFORMANCE: Use batch deletion with a single SQL query instead of loading
+    # all finished tasks into memory and deleting statuses one by one.
+    # This changes from O(n) DELETE queries to a single DELETE with subquery.
+    deleted_count = HashcatStatus.where(task_id: Task.finished.select(:id)).delete_all
+    Rails.logger.info("[UpdateStatusJob] Removed #{deleted_count} hashcat_statuses for finished tasks") if deleted_count.positive?
   end
 
   ##
   # Removes outdated status entries for tasks that are currently in the incomplete state.
   # For each incomplete task, purges any stale or expired status data associated with that task.
   def remove_incomplete_tasks_status
-    Task.incomplete.each { |task| task.remove_old_status }
+    # PERFORMANCE: Use batch deletion to remove old statuses for incomplete tasks.
+    # Instead of O(n) queries where n = number of incomplete tasks, we use a single
+    # SQL query with a subquery that selects statuses beyond the limit per task.
+    limit = ApplicationConfig.task_status_limit
+    return unless limit.is_a?(Integer) && limit.positive?
+
+    # Find task IDs that have more than the limit of statuses
+    tasks_with_excess = Task.incomplete
+                            .joins(:hashcat_statuses)
+                            .group(:id)
+                            .having("COUNT(hashcat_statuses.id) > ?", limit)
+                            .pluck(:id)
+
+    return if tasks_with_excess.empty?
+
+    # For each task with excess statuses, delete the oldest ones beyond the limit
+    # Use a more efficient approach by finding statuses to keep and deleting the rest
+    tasks_with_excess.each_slice(100) do |task_ids|
+      task_ids.each do |task_id|
+        # Get the ID of the Nth newest status (the cutoff point)
+        cutoff_status = HashcatStatus.where(task_id: task_id)
+                                     .order(created_at: :desc)
+                                     .offset(limit)
+                                     .limit(1)
+                                     .pick(:id)
+
+        next unless cutoff_status
+
+        # Delete all statuses older than the cutoff
+        HashcatStatus.where(task_id: task_id)
+                     .where("created_at <= (SELECT created_at FROM hashcat_statuses WHERE id = ?)", cutoff_status)
+                     .delete_all
+      end
+    end
   end
 
   # Rebalances task assignments by checking for pending high-priority attacks
