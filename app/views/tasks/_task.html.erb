@@ -1,5 +1,5 @@
-<%= turbo_frame_tag task do %>
-  <div class="card mb-3">
+<%= turbo_frame_tag task, data: { "aria-live": "polite" } do %>
+  <div class="card mb-3" aria-label="Task details">
     <div class="card-header">
       <h5 class="card-title mb-0">Task Details</h5>
     </div>
@@ -30,7 +30,7 @@
 
         <% if task.last_error.present? %>
           <dt class="col-sm-4">Last Error</dt>
-          <dd class="col-sm-8 text-danger"><%= task.last_error %></dd>
+          <dd class="col-sm-8 text-danger" role="alert"><%= task.last_error %></dd>
         <% end %>
       </dl>
     </div>
