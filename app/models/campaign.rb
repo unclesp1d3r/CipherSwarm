@@ -148,12 +148,12 @@ class Campaign < ApplicationRecord
   #
   # @return [Boolean] true if the campaign is completed, false otherwise.
   def completed?
-    # PERFORMANCE: Use .exists? with negation instead of .empty? which loads records
+    # PERFORMANCE: Use .exists? with negation and preserve short-circuit evaluation
+    # to avoid running the second query if the first condition is already true.
     # .exists? returns boolean directly, .empty? must check for presence
-    no_uncracked_items = !hash_list.uncracked_items.exists?
-    all_attacks_completed = !attacks.without_state(:completed).exists?
+    return true unless hash_list.uncracked_items.exists?
 
-    no_uncracked_items || all_attacks_completed
+    !attacks.without_state(:completed).exists?
   end
 
   # Provides a label indicating the number of cracked hashes out of the total number of hash items.
