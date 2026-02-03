@@ -19,10 +19,15 @@ repos:
         args: [--fix=auto]
       - id: check-vcs-permalinks
 
-  - repo: https://github.com/mattlqx/pre-commit-ruby
-    rev: v1.3.6
+  # Use local rubocop via bundle exec to ensure all gems are available
+  - repo: local
     hooks:
       - id: rubocop
+        name: Check Ruby style with rubocop
+        entry: bundle exec rubocop --force-exclusion
+        language: system
+        types: [ruby]
+        require_serial: true
 
   # 🧪 GitHub Actions validation
   - repo: https://github.com/rhysd/actionlint
