@@ -51,7 +51,8 @@ class TaskActionsComponent < ApplicationViewComponent
   #
   # @return [Boolean]
   def can_reassign?
-    (@task.pending? || @task.failed?) && @current_ability.can?(:reassign, @task)
+    # Task can be reassigned when pending, running, failed, or paused (matches controller logic)
+    (@task.pending? || @task.running? || @task.failed? || @task.paused?) && @current_ability.can?(:reassign, @task)
   end
 
   # Returns true if the download results button should be displayed.

@@ -70,16 +70,28 @@ class UpdateStatusJob < ApplicationJob
     # all finished tasks into memory and deleting statuses one by one.
     # This changes from O(n) DELETE queries to a single DELETE with subquery.
     deleted_count = HashcatStatus.where(task_id: Task.finished.select(:id)).delete_all
-    Rails.logger.info("[UpdateStatusJob] Removed #{deleted_count} hashcat_statuses for finished tasks") if deleted_count.positive?
+    if deleted_count.positive?
+      Rails.logger.info("[StatusCleanup] Removed #{deleted_count} hashcat_statuses for finished tasks")
+    end
+  rescue StandardError => e
+    Rails.logger.error("[StatusCleanup] Error removing finished task statuses: #{e.message}")
   end
 
   ##
   # Removes outdated status entries for tasks that are currently in the incomplete state.
   # For each incomplete task, purges any stale or expired status data associated with that task.
   def remove_incomplete_tasks_status
-    # PERFORMANCE: Use batch deletion to remove old statuses for incomplete tasks.
-    # Instead of O(n) queries where n = number of incomplete tasks, we use a single
-    # SQL query with a subquery that selects statuses beyond the limit per task.
+    # REASONING:
+    # - Why: The previous O(n) approach loaded all incomplete tasks and called remove_old_status on each,
+    #   resulting in n separate DELETE queries. With hundreds of tasks, this caused significant DB load.
+    # - Alternatives considered:
+    #   1. Single DELETE with window function (PostgreSQL-specific, complex)
+    #   2. Batch processing in chunks (chosen - portable and efficient)
+    #   3. Background job per task (overhead of job scheduling)
+    # - Decision: Batch processing in chunks of 100 tasks balances memory usage with query efficiency.
+    #   First query identifies tasks with excess statuses, then processes in batches.
+    # - Performance: Reduces from O(n) queries to O(n/100) + O(tasks_with_excess) queries.
+    # - Future: Consider PostgreSQL-specific optimization if this becomes a bottleneck.
     limit = ApplicationConfig.task_status_limit
     return unless limit.is_a?(Integer) && limit.positive?
 
@@ -111,6 +123,8 @@ class UpdateStatusJob < ApplicationJob
                      .delete_all
       end
     end
+  rescue StandardError => e
+    Rails.logger.error("[StatusCleanup] Error removing incomplete task statuses: #{e.message}")
   end
 
   # Rebalances task assignments by checking for pending high-priority attacks
@@ -137,16 +151,16 @@ class UpdateStatusJob < ApplicationJob
           TaskPreemptionService.new(attack).preempt_if_needed
         rescue StandardError => e
           Rails.logger.error(
-            "[UpdateStatusJob] Error preempting tasks for attack #{attack.id} - " \
-            "Error: #{e.class} - #{e.message} - #{Time.current}"
+            "[TaskRebalance] Error preempting tasks for attack #{attack.id} - " \
+            "Error: #{e.class} - #{e.message}"
           )
           # Continue with next attack
         end
       end
     rescue StandardError => e
       Rails.logger.error(
-        "[UpdateStatusJob] Error in rebalance_task_assignments - " \
-        "Error: #{e.class} - #{e.message} - Backtrace: #{e.backtrace.first(5).join(' | ')} - #{Time.current}"
+        "[TaskRebalance] Error in rebalance_task_assignments - " \
+        "Error: #{e.class} - #{e.message} - Backtrace: #{e.backtrace.first(5).join(' | ')}"
       )
       # Don't re-raise - this is a background job that should complete
     end
