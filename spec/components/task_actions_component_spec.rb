@@ -253,8 +253,22 @@ RSpec.describe TaskActionsComponent, type: :component do
       expect(component.can_reassign?).to be true
     end
 
-    it "returns false when running" do
+    it "returns true when running and has permission" do
       task.update!(state: "running")
+      component = described_class.new(task: task, current_ability: ability)
+
+      expect(component.can_reassign?).to be true
+    end
+
+    it "returns true when paused and has permission" do
+      task.update!(state: "paused")
+      component = described_class.new(task: task, current_ability: ability)
+
+      expect(component.can_reassign?).to be true
+    end
+
+    it "returns false when completed" do
+      task.update!(state: "completed")
       component = described_class.new(task: task, current_ability: ability)
 
       expect(component.can_reassign?).to be false
