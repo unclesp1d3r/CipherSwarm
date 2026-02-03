@@ -149,6 +149,29 @@ module ApplicationHelper
     false
   end
 
+  # Returns the Bootstrap badge class for a HashcatStatus status.
+  #
+  # @param status [String] The hashcat status string.
+  # @return [String] The Bootstrap badge class for the status.
+  def status_badge_class(status)
+    case status.to_s
+    when "running"
+      "text-bg-primary"
+    when "completed", "cracked", "exhausted"
+      "text-bg-success"
+    when "paused"
+      "text-bg-warning"
+    when "failed", "aborted", "aborted_session_checkpoint", "aborted_runtime_limit", "aborted_finish", "error"
+      "text-bg-danger"
+    when "initializing", "autotuning", "self_testing", "autodetecting"
+      "text-bg-info"
+    when "pending", "bypassed", "quit"
+      "text-bg-secondary"
+    else
+      "text-bg-secondary"
+    end
+  end
+
   # Returns the Bootstrap badge class for an AgentError severity level.
   #
   # @param error [AgentError] The agent error record.

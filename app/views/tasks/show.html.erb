@@ -1,0 +1,208 @@
+<%= render Railsboot::HeaderComponent.new do |header| %>
+  <% header.with_heading do %>
+    <%= title "Task ##{@task.id}" %>
+  <% end %>
+  <% header.with_breadcrumb.with_items([
+       { text: "Dashboard", href: root_path },
+       { text: "Activity", href: campaigns_path },
+       { text: @task.attack.campaign.name, href: @task.attack.campaign },
+       { text: @task.attack.name, href: campaign_attack_path(@task.attack.campaign, @task.attack) },
+       { text: "Task ##{@task.id}", href: @task, active: true }
+     ]) %>
+<% end %>
+
+<div class="row">
+  <%# Task Details Card %>
+  <div class="col-lg-6">
+    <div class="card mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">Task Details</h5>
+        <%= render StatusPillComponent.new(status: @task.state) %>
+      </div>
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-sm-4">ID</dt>
+          <dd class="col-sm-8"><%= @task.id %></dd>
+
+          <dt class="col-sm-4">Attack</dt>
+          <dd class="col-sm-8"><%= link_to @task.attack.name, campaign_attack_path(@task.attack.campaign, @task.attack) %></dd>
+
+          <dt class="col-sm-4">Campaign</dt>
+          <dd class="col-sm-8"><%= link_to @task.attack.campaign.name, @task.attack.campaign %></dd>
+
+          <dt class="col-sm-4">Agent</dt>
+          <dd class="col-sm-8"><%= link_to @task.agent.host_name, @task.agent %></dd>
+
+          <dt class="col-sm-4">Keyspace Offset</dt>
+          <dd class="col-sm-8"><%= number_with_delimiter(@task.keyspace_offset) %></dd>
+
+          <dt class="col-sm-4">Keyspace Limit</dt>
+          <dd class="col-sm-8"><%= number_with_delimiter(@task.keyspace_limit) %></dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <%# Progress Card %>
+  <div class="col-lg-6">
+    <div class="card mb-3">
+      <div class="card-header">
+        <h5 class="card-title mb-0">Progress</h5>
+      </div>
+      <div class="card-body">
+        <div class="mb-3">
+          <%= render ProgressBarComponent.new(percentage: @task.progress_percentage, label: "Task Progress") %>
+        </div>
+        <dl class="row mb-0">
+          <dt class="col-sm-4">Percentage</dt>
+          <dd class="col-sm-8"><%= number_to_percentage(@task.progress_percentage, precision: 2) %></dd>
+
+          <dt class="col-sm-4">Status</dt>
+          <dd class="col-sm-8"><%= @task.progress_text || "No status available" %></dd>
+
+          <dt class="col-sm-4">ETA</dt>
+          <dd class="col-sm-8">
+            <% if @task.estimated_finish_time.present? %>
+              <%= time_ago_in_words(@task.estimated_finish_time) %>
+              <small class="text-muted">(<%= @task.estimated_finish_time.strftime("%Y-%m-%d %H:%M") %>)</small>
+            <% else %>
+              N/A
+            <% end %>
+          </dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <%# Timestamps Card %>
+  <div class="col-lg-6">
+    <div class="card mb-3">
+      <div class="card-header">
+        <h5 class="card-title mb-0">Timestamps</h5>
+      </div>
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-sm-4">Created</dt>
+          <dd class="col-sm-8">
+            <%= @task.created_at.strftime("%Y-%m-%d %H:%M:%S") %>
+            <small class="text-muted">(<%= time_ago_in_words(@task.created_at) %> ago)</small>
+          </dd>
+
+          <dt class="col-sm-4">Updated</dt>
+          <dd class="col-sm-8">
+            <%= @task.updated_at.strftime("%Y-%m-%d %H:%M:%S") %>
+            <small class="text-muted">(<%= time_ago_in_words(@task.updated_at) %> ago)</small>
+          </dd>
+
+          <dt class="col-sm-4">Start Date</dt>
+          <dd class="col-sm-8">
+            <% if @task.start_date.present? %>
+              <%= @task.start_date.strftime("%Y-%m-%d %H:%M:%S") %>
+              <small class="text-muted">(<%= time_ago_in_words(@task.start_date) %> ago)</small>
+            <% else %>
+              Not started
+            <% end %>
+          </dd>
+
+          <dt class="col-sm-4">Last Activity</dt>
+          <dd class="col-sm-8">
+            <% if @task.activity_timestamp.present? %>
+              <%= @task.activity_timestamp.strftime("%Y-%m-%d %H:%M:%S") %>
+              <small class="text-muted">(<%= time_ago_in_words(@task.activity_timestamp) %> ago)</small>
+            <% else %>
+              No activity recorded
+            <% end %>
+          </dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <%# Error Section %>
+  <% if @task.last_error.present? %>
+    <div class="col-lg-6">
+      <div class="card mb-3 border-danger">
+        <div class="card-header bg-danger text-white">
+          <h5 class="card-title mb-0">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            Last Error
+          </h5>
+        </div>
+        <div class="card-body">
+          <pre class="mb-0 text-danger"><%= @task.last_error %></pre>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<%# Actions Card %>
+<div class="row">
+  <div class="col-12">
+    <div class="card mb-3">
+      <div class="card-header">
+        <h5 class="card-title mb-0">Actions</h5>
+      </div>
+      <div class="card-body">
+        <%= render TaskActionsComponent.new(task: @task, current_ability: current_ability) %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%# Status History Table %>
+<div class="row">
+  <div class="col-12">
+    <div class="card mb-3">
+      <div class="card-header">
+        <h5 class="card-title mb-0">Recent Status History</h5>
+      </div>
+      <div class="card-body">
+        <% recent_statuses = @task.hashcat_statuses.order(time: :desc).limit(5) %>
+        <% if recent_statuses.any? %>
+          <div class="table-responsive">
+            <table class="table table-sm table-hover mb-0">
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>Status</th>
+                  <th>Progress</th>
+                  <th>Speed</th>
+                  <th>Recovered</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% recent_statuses.each do |status| %>
+                  <tr>
+                    <td>
+                      <%= status.time.strftime("%Y-%m-%d %H:%M:%S") %>
+                      <small class="text-muted d-block"><%= time_ago_in_words(status.time) %> ago</small>
+                    </td>
+                    <td>
+                      <span class="badge <%= status_badge_class(status.status) %>">
+                        <%= status.status.humanize %>
+                      </span>
+                    </td>
+                    <td><%= number_to_percentage(status.progress_percentage, precision: 2) %></td>
+                    <td><%= number_to_human(status.device_speed, units: { unit: "H/s", thousand: "KH/s", million: "MH/s", billion: "GH/s" }) %></td>
+                    <td>
+                      <% if status.recovered_hashes.present? && status.recovered_hashes.is_a?(Array) && status.recovered_hashes.length >= 2 %>
+                        <%= status.recovered_hashes[0] %> / <%= status.recovered_hashes[1] %>
+                      <% else %>
+                        N/A
+                      <% end %>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        <% else %>
+          <p class="text-muted mb-0">No status history available.</p>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

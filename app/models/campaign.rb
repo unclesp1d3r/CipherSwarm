@@ -137,7 +137,8 @@ class Campaign < ApplicationRecord
   #
   # @return [String] the label showing incomplete and total attacks.
   def attack_count_label
-    "#{attacks.incomplete.size} / #{attacks.size}"
+    # PERFORMANCE: Use .count for SQL aggregation instead of .size which loads records into memory
+    "#{attacks.incomplete.count} / #{attacks.count}"
   end
 
   # Checks if the campaign is completed.
@@ -147,10 +148,12 @@ class Campaign < ApplicationRecord
   #
   # @return [Boolean] true if the campaign is completed, false otherwise.
   def completed?
-    uncracked_items_empty = hash_list.uncracked_items.empty?
-    all_attacks_completed = attacks.without_state(:completed).empty?
+    # PERFORMANCE: Use .exists? with negation and preserve short-circuit evaluation
+    # to avoid running the second query if the first condition is already true.
+    # .exists? returns boolean directly, .empty? must check for presence
+    return true unless hash_list.uncracked_items.exists?
 
-    uncracked_items_empty || all_attacks_completed
+    !attacks.without_state(:completed).exists?
   end
 
   # Provides a label indicating the number of cracked hashes out of the total number of hash items.

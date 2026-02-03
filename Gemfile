@@ -78,6 +78,7 @@ gem "ar_lazy_preload", "~> 2.1"
 gem "audited", "~> 5.5"
 gem "aws-sdk-s3", "~> 1.151", groups: %i[production development]
 gem "cancancan", "~> 3.5"
+gem "csv", "~> 3.3" # Required for Ruby 3.4+ (no longer in standard library)
 gem "devise", "~> 4.9"
 gem "dry-initializer", "~> 3.1"
 # gem "groupdate", "~> 6.4"  # REMOVED: Not currently used in codebase

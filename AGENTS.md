@@ -231,6 +231,12 @@ Three core models use state_machines-activerecord:
 - Transitions: accept, run, complete, pause, resume, error, exhaust, cancel, abandon
 - Tasks track progress via associated HashcatStatus records
 
+**Task State Machine Gotchas:**
+
+- `task.abandon` triggers `attack.abandon` which destroys ALL tasks for that attack
+- For reassigning running tasks, use `pause` then `resume` instead of `abandon`
+- The `retry` event already handles incrementing `retry_count` and clearing `last_error`
+
 ### Service Layer Pattern
 
 Business logic is extracted into service objects and models:
@@ -328,6 +334,12 @@ Both unit tests for Stimulus controllers and integration tests via system tests 
 - Key workflows: authentication, agent management, campaigns, file uploads, authorization
 - See docs/testing/system-tests-guide.md
 
+**CI System Tests:**
+
+- Tests with font-loading (e.g., Bootstrap icons) can hang in headless Chrome - skip with `skip: ENV["CI"].present?`
+- Selenium requires explicit Chrome binary path: `options.binary = ENV["CHROME_BIN"]` in `spec/support/capybara.rb`
+- If CI hangs after "Capybara starting Puma...", check for tests that load external resources
+
 **Model Tests (spec/models/):**
 
 - FactoryBot factories (spec/factories/)
@@ -364,9 +376,23 @@ Both unit tests for Stimulus controllers and integration tests via system tests 
 - **store_model** - JSON column typing (AdvancedConfiguration)
 - **anyway_config** - Configuration management
 
+**Ruby 3.4+ Dependencies:**
+
+- `csv` gem must be in Gemfile (removed from Ruby stdlib in 3.4)
+- Add `gem "csv", "~> 3.3"` if generating CSV files
+
 ### Code Organization Standards
 
 From .cursor/rules/core-principals.mdc and rails.mdc:
+
+**Service Objects and Concerns:**
+
+- All service objects and concerns require a REASONING block in comments explaining:
+  - Why this extraction was made
+  - Alternatives considered
+  - Decision rationale
+  - Performance implications (if any)
+  - Future considerations (if any)
 
 **File Structure:**
 
@@ -391,6 +417,11 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 - Use FactoryBot factories, not fixtures
 - Test both happy and edge cases
 - For ActiveJob::DeserializationError tests, use `instance_double` instead of instantiating (constructor signature varies)
+
+**ViewComponent Testing:**
+
+- When components query database (e.g., compatible agents), tests must create that data
+- Use `create(:factory)` in tests before `render_inline` to ensure conditional UI renders
 
 **Migration Generation:**
 
@@ -436,6 +467,12 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 - Project-based scoping for all resources
 - Admin users have unrestricted access
 
+**CanCanCan Nested Associations:**
+
+- Task abilities use: `attack: { campaign: { project_id: user.all_project_ids } }`
+- Association path follows model relationships: Task → attack → campaign → project
+- Wrong path order will silently fail authorization checks
+
 **Nullable Parameters:**
 
 - Use `params.key?(:field)` to check if parameter exists (even if nil)
@@ -450,6 +487,12 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 - Ensure logging failures don't break application (rescue blocks)
 - Always test that important events are logged correctly
 - Verify sensitive data is filtered (see docs/development/logging-guide.md)
+
+**Database Transactions:**
+
+- Wrap related operations in `Model.transaction do ... end` when they must succeed/fail together
+- Use `save!` (bang) inside transactions to trigger rollback on failure
+- Handle `ActiveRecord::RecordInvalid` outside the transaction block
 
 ### Development Workflow
 
