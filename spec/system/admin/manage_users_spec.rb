@@ -80,6 +80,26 @@ RSpec.describe "Admin user management" do
     end
   end
 
+  describe "admin edits user" do
+    let!(:user) { create(:user) }
+
+    it "successfully loads the edit form" do
+      visit edit_admin_user_path(user)
+
+      expect(page).to have_field("Name")
+      expect(page).to have_field("Email")
+    end
+
+    it "updates user information" do
+      visit edit_admin_user_path(user)
+
+      fill_in "Name", with: "updated name"
+      click_button "Update User"
+
+      expect(page).to have_content("User was successfully updated")
+    end
+  end
+
   describe "non-admin cannot access admin area" do
     let(:user) { create(:user) }
 
