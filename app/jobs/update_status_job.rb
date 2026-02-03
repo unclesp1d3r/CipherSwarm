@@ -65,11 +65,20 @@ class UpdateStatusJob < ApplicationJob
 
   ##
   # Removes all hashcat_status records associated with tasks that are in the finished state.
+  # REASONING:
+  # - Why: Use destroy_all instead of delete_all to ensure dependent callbacks fire
+  #   (device_statuses and hashcat_guess have dependent: :destroy, touch: true on task).
+  # - Alternatives considered:
+  #   1. delete_all (faster but skips callbacks, orphans dependent records)
+  #   2. destroy_all on full set (chosen - ensures data integrity)
+  #   3. in_batches.destroy_all (unnecessary complexity for typical volumes)
+  # - Decision: Use in_batches.destroy_all for memory efficiency while preserving callbacks.
+  # - Performance: Slightly slower than delete_all but maintains referential integrity.
   def remove_finished_tasks_status
-    # PERFORMANCE: Use batch deletion with a single SQL query instead of loading
-    # all finished tasks into memory and deleting statuses one by one.
-    # This changes from O(n) DELETE queries to a single DELETE with subquery.
-    deleted_count = HashcatStatus.where(task_id: Task.finished.select(:id)).delete_all
+    deleted_count = 0
+    HashcatStatus.where(task_id: Task.finished.select(:id)).in_batches(of: 1000) do |batch|
+      deleted_count += batch.destroy_all.size
+    end
     if deleted_count.positive?
       Rails.logger.info("[StatusCleanup] Removed #{deleted_count} hashcat_statuses for finished tasks")
     end
@@ -105,22 +114,30 @@ class UpdateStatusJob < ApplicationJob
     return if tasks_with_excess.empty?
 
     # For each task with excess statuses, delete the oldest ones beyond the limit
-    # Use a more efficient approach by finding statuses to keep and deleting the rest
+    # Use composite ordering (created_at, id) to handle duplicate timestamps deterministically
     tasks_with_excess.each_slice(100) do |task_ids|
       task_ids.each do |task_id|
-        # Get the ID of the Nth newest status (the cutoff point)
-        cutoff_status = HashcatStatus.where(task_id: task_id)
-                                     .order(created_at: :desc)
-                                     .offset(limit)
-                                     .limit(1)
-                                     .pick(:id)
+        # Get the cutoff point using composite ordering to handle duplicate timestamps
+        cutoff_row = HashcatStatus.where(task_id: task_id)
+                                  .order(created_at: :desc, id: :desc)
+                                  .offset(limit)
+                                  .limit(1)
+                                  .pick(:created_at, :id)
 
-        next unless cutoff_status
+        next unless cutoff_row
 
-        # Delete all statuses older than the cutoff
+        cutoff_time, cutoff_id = cutoff_row
+
+        # Delete all statuses older than the cutoff using deterministic condition
+        # This handles duplicate timestamps by also comparing IDs
         HashcatStatus.where(task_id: task_id)
-                     .where("created_at <= (SELECT created_at FROM hashcat_statuses WHERE id = ?)", cutoff_status)
-                     .delete_all
+                     .where(
+                       "created_at < ? OR (created_at = ? AND id <= ?)",
+                       cutoff_time,
+                       cutoff_time,
+                       cutoff_id
+                     )
+                     .in_batches(of: 500, &:destroy_all)
       end
     end
   rescue StandardError => e
