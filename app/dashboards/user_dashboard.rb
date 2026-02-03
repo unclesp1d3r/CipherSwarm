@@ -24,7 +24,7 @@ class UserDashboard < Administrate::BaseDashboard
     last_sign_in_ip: Field::String,
     locked_at: Field::DateTime,
     name: Field::String,
-    project_user: Field::HasMany,
+    project_users: Field::HasMany,
     projects: Field::HasMany,
     remember_created_at: Field::DateTime,
     reset_password_sent_at: Field::DateTime,
@@ -64,7 +64,7 @@ class UserDashboard < Administrate::BaseDashboard
     last_sign_in_ip
     locked_at
     name
-    project_user
+    project_users
     role
     sign_in_count
     created_at
@@ -77,9 +77,8 @@ class UserDashboard < Administrate::BaseDashboard
   FORM_ATTRIBUTES = %i[
     name
     email
-    project_user
+    project_users
     projects
-    role
     agents
   ].freeze
 
