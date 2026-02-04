@@ -527,6 +527,9 @@ just docker-shell
 
 # PostgreSQL service is named 'postgres-db' not 'db'
 docker compose up -d postgres-db
+
+# Run tests with Docker PostgreSQL (credentials: root/password)
+TEST_DATABASE_URL=postgres://root:password@127.0.0.1:5432/cipher_swarm_test bundle exec rspec
 ```
 
 **Environment Files:**
@@ -534,6 +537,12 @@ docker compose up -d postgres-db
 - `.env` - Contains secrets (gitignored, not committed)
 - `.envrc` - Environment isolation config (committed to repo)
 - `.envrc` auto-loads via direnv when entering directory
+
+### Administrate Dashboard Patterns
+
+- Association field names must match model exactly: `has_many :project_users` → `project_users: Field::HasMany`
+- `Field::Select` with `.pluralize` pattern assumes Rails enums - doesn't work with Rolify roles
+- Dashboard files: `app/dashboards/*_dashboard.rb`
 
 ### Resources
 
