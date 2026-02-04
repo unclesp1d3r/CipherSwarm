@@ -4,11 +4,10 @@
 # SPDX-License-Identifier: MPL-2.0
 
 # This file defines the routes for the client namespace in the CipherSwarm application.
-# It includes routes for various resources such as crackers, configuration, authentication,
+# It includes routes for various resources such as configuration, authentication,
 # agents, attacks, and tasks. Each route is mapped to a specific controller action.
 #
 # Routes:
-# - GET    /client/crackers/check_for_cracker_update -> crackers#check_for_cracker_update
 # - GET    /client/configuration                     -> configuration#index
 # - GET    /client/authenticate                      -> authenticate#index
 # - GET    /client/attacks/:id/hash_list             -> attacks#hash_list
@@ -28,7 +27,6 @@
 # - attacks: only allows show action
 # - tasks: only allows show, new, and update actions
 namespace :client do
-  get "crackers/check_for_cracker_update", to: "crackers#check_for_cracker_update"
   get "configuration"
   get "authenticate"
   resources :agents, only: %i[ show update ]

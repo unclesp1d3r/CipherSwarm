@@ -329,7 +329,6 @@ Rails.application.routes.draw do
 
   resources :hash_lists
   resources :word_lists, :rule_lists, :mask_lists, concerns: :downloadable
-  resources :cracker_binaries
   namespace :api, defaults: { format: :json } do
     namespace :v1 do
       draw(:client_api)

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_02_02_151637) do
+ActiveRecord::Schema[8.0].define(version: 2026_02_04_031743) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -187,25 +187,6 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_02_151637) do
     t.index ["project_id"], name: "index_campaigns_on_project_id"
   end
 
-  create_table "cracker_binaries", force: :cascade do |t|
-    t.string "version", null: false, comment: "Version of the cracker binary, e.g. 6.0.0 or 6.0.0-rc1"
-    t.boolean "active", default: true, null: false, comment: "Is the cracker binary active?"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.integer "major_version", comment: "The major version of the cracker binary."
-    t.integer "minor_version", comment: "The minor version of the cracker binary."
-    t.integer "patch_version", comment: "The patch version of the cracker binary."
-    t.string "prerelease_version", default: "", comment: "The prerelease version of the cracker binary."
-    t.index ["version"], name: "index_cracker_binaries_on_version"
-  end
-
-  create_table "cracker_binaries_operating_systems", id: false, force: :cascade do |t|
-    t.bigint "cracker_binary_id", null: false
-    t.bigint "operating_system_id", null: false
-    t.index ["cracker_binary_id"], name: "index_cracker_binaries_operating_systems_on_cracker_binary_id"
-    t.index ["operating_system_id"], name: "idx_on_operating_system_id_ee00451fea"
-  end
-
   create_table "device_statuses", force: :cascade do |t|
     t.bigint "hashcat_status_id", null: false
     t.integer "device_id", null: false, comment: "Device ID"
@@ -337,14 +318,6 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_02_151637) do
     t.bigint "project_id"
     t.index ["mask_list_id"], name: "index_mask_lists_projects_on_mask_list_id"
     t.index ["project_id"], name: "index_mask_lists_projects_on_project_id"
-  end
-
-  create_table "operating_systems", force: :cascade do |t|
-    t.string "name", null: false, comment: "Name of the operating system"
-    t.string "cracker_command", null: false, comment: "Command to run the cracker on this OS"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["name"], name: "index_operating_systems_on_name", unique: true
   end
 
   create_table "project_users", force: :cascade do |t|

@@ -16,18 +16,19 @@
 #  rejected(The number of rejected hashes)                  :bigint
 #  restore_point(The restore point)                         :bigint
 #  session(The session name)                                :string           not null
-#  status(The status code)                                  :integer          not null
+#  status(The status code)                                  :integer          not null, indexed => [task_id, time]
 #  target(The target file)                                  :string           not null
-#  time(The time of the status)                             :datetime         not null, indexed
+#  time(The time of the status)                             :datetime         not null, indexed => [task_id, status], indexed
 #  time_start(The time the task started)                    :datetime         not null
 #  created_at                                               :datetime         not null
 #  updated_at                                               :datetime         not null
-#  task_id                                                  :bigint           not null, indexed
+#  task_id                                                  :bigint           not null, indexed, indexed => [status, time]
 #
 # Indexes
 #
-#  index_hashcat_statuses_on_task_id  (task_id)
-#  index_hashcat_statuses_on_time     (time)
+#  index_hashcat_statuses_on_task_id           (task_id)
+#  index_hashcat_statuses_on_task_status_time  (task_id,status,time DESC)
+#  index_hashcat_statuses_on_time              (time)
 #
 # Foreign Keys
 #

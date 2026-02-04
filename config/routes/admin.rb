@@ -10,11 +10,9 @@ namespace :admin do
   resources :agents
   resources :attacks
   resources :campaigns
-  resources :cracker_binaries
   resources :hash_items
   resources :hash_lists
   resources :mask_lists
-  resources :operating_systems
   resources :projects
   resources :project_users
   resources :rule_lists
