@@ -9,6 +9,13 @@
 #
 # Note: This does NOT affect the Agent.operating_system enum which
 # tracks which OS an agent is running on - that is a separate feature.
+#
+# REASONING
+# - Summary: Remove unused cracker binaries/operating systems tables to reduce maintenance surface.
+# - Alternatives Considered: Keep tables and deprecate; soft-delete rows only.
+# - Decision: Drop tables because feature and routes are removed, no data to preserve.
+# - Performance: Minor DB size reduction; no runtime impact.
+# - Future: Reintroduce via a new migration if the feature returns.
 class DropCrackerBinariesAndOperatingSystems < ActiveRecord::Migration[8.0]
   def up
     # Drop join table first (depends on both other tables)
