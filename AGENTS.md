@@ -432,6 +432,13 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 - Manual migration creation causes schema drift: unrelated DB changes get committed
 - Schema drift example: Local DB has dropped tables → manual migration → `db:migrate` → schema.rb shows deletions
 
+**Feature Removal Checklist:**
+
+- `db/seeds.rb` - Remove any model creation calls
+- `spec/swagger_helper.rb` - Remove API tags and schema definitions
+- `swagger/v1/swagger.json` - Regenerate with `RAILS_ENV=test rails rswag`
+- Migration `down` method - Add comment if simplified (won't restore full functionality)
+
 ### Important Configuration Files
 
 - **justfile** - Task runner with common commands (see `just --list`)
