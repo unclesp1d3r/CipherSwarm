@@ -18,7 +18,7 @@
 # - Future: Reintroduce via a new migration if the feature returns.
 class DropCrackerBinariesAndOperatingSystems < ActiveRecord::Migration[8.0]
   def up
-    # Drop join table first (depends on both other tables)
+    # Drop join table first (logically depends on both other tables)
     drop_table :cracker_binaries_operating_systems, if_exists: true
 
     # Drop the main tables
@@ -26,6 +26,9 @@ class DropCrackerBinariesAndOperatingSystems < ActiveRecord::Migration[8.0]
     drop_table :operating_systems, if_exists: true
   end
 
+  # Note: This down migration provides a simplified table recreation.
+  # If this feature is truly needed again, create a fresh migration
+  # with the full schema requirements rather than rolling back.
   def down
     create_table :operating_systems do |t|
       t.string :name, null: false
@@ -36,10 +39,10 @@ class DropCrackerBinariesAndOperatingSystems < ActiveRecord::Migration[8.0]
 
     create_table :cracker_binaries do |t|
       t.string :version, null: false
-      t.boolean :active, default: false, null: false
-      t.bigint :major_version
-      t.bigint :minor_version
-      t.bigint :patch_version
+      t.boolean :active, default: true, null: false
+      t.integer :major_version
+      t.integer :minor_version
+      t.integer :patch_version
       t.timestamps
       t.index :version
     end
@@ -48,6 +51,7 @@ class DropCrackerBinariesAndOperatingSystems < ActiveRecord::Migration[8.0]
       t.bigint :cracker_binary_id, null: false
       t.bigint :operating_system_id, null: false
       t.index :cracker_binary_id
+      t.index :operating_system_id
     end
   end
 end
