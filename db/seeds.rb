@@ -38,10 +38,6 @@ unless Project.exists?(name: "Default Project")
   project.save!
 end
 
-OperatingSystem.create(name: "windows", cracker_command: "hashcat.exe") unless OperatingSystem.exists?(name: "windows")
-OperatingSystem.create(name: "linux", cracker_command: "hashcat.bin") unless OperatingSystem.exists?(name: "linux")
-OperatingSystem.create(name: "darwin", cracker_command: "hashcat.bin") unless OperatingSystem.exists?(name: "darwin")
-
 if Rails.env.local? && !Agent.count.positive?
   agent = Agent.new
   agent.host_name = "Agent 1"
