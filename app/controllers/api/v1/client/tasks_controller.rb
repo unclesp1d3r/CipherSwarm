@@ -242,14 +242,17 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
   # Handles successful crack submission.
   #
   # @param result [CrackSubmissionService::Result] the service result
+  # @return [void] Renders 204 No Content if task completed, 200 OK with JSON otherwise
   def handle_successful_crack(result)
     Rails.logger.info(
       "[Agent #{@agent.id}] Task #{@task.id} - Hash cracked successfully, " \
       "#{result.uncracked_count} hashes remaining, task state: #{@task.state}"
     )
-    @message = "Hash cracked successfully, #{result.uncracked_count} hashes remaining, task #{@task.state}."
-    return unless @task.completed?
-    render status: :no_content
+    if @task.completed?
+      head :no_content
+    else
+      render json: { message: "Hash cracked successfully", uncracked_count: result.uncracked_count, task_state: @task.state }, status: :ok
+    end
   end
 
   # Handles failed crack submission.
