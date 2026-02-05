@@ -32,13 +32,30 @@ Welcome to the CipherSwarm documentation. This directory contains comprehensive 
 
 ### API Documentation
 
-- [Agent API Reference](api-reference-agent-auth.md) - Agent authentication and API endpoints
+- [Agent API Reference](api-reference-agent-auth.md) - Agent authentication overview
+- [**Agent API Complete Reference**](api/agent-api-complete-reference.md) - Full API documentation with examples
 
 The API documentation is automatically generated using Rswag from RSpec request tests. Use the following commands to generate and update API documentation:
 
 - `just docs-api` - Generate basic Swagger/OpenAPI documentation
 - `just docs-api-full` - Generate comprehensive documentation with examples
 - `just docs-generate` - Run integration tests and generate API docs
+
+### Architecture Documentation
+
+- [**Architecture Diagrams**](architecture/diagrams.md) - System, domain, and sequence diagrams (Mermaid)
+- [Architecture Analysis](architecture-analysis.md) - Detailed architecture review and recommendations
+
+### Development Documentation
+
+- [**Developer Guide**](development/developer-guide.md) - Comprehensive developer onboarding guide
+- [Style Guide](development/style-guide.md) - Code style and conventions
+- [Logging Guide](development/logging-guide.md) - Logging patterns and best practices
+- [User Journey Flowchart](development/user_journey_flowchart.mmd) - User workflow visualization
+
+### Quick Reference
+
+- [**Quick Reference Card**](quick-reference.md) - Commands, patterns, and common operations
 
 ### Technical Reference
 
