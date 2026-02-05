@@ -42,9 +42,8 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
   # If the task is nil, it renders a no content status.
   def new
     @task = @agent.new_task
-    return unless @task.nil?
-    render status: :no_content
-    nil
+    head :no_content if @task.nil?
+    # When @task exists, Jbuilder template (new.json.jbuilder) renders automatically
   end
 
   # Abandons a task assigned to the current agent.
