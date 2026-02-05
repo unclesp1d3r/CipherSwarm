@@ -1267,61 +1267,6 @@
         }
       }
     },
-    "/api/v1/client/crackers/check_for_cracker_update": {
-      "get": {
-        "summary": "Check for Cracker Update",
-        "tags": [
-          "Crackers"
-        ],
-        "description": "Check for a cracker update, based on the operating system and version.",
-        "security": [
-          {
-            "bearer_auth": []
-          }
-        ],
-        "operationId": "checkForCrackerUpdate",
-        "parameters": [
-          {
-            "name": "operating_system",
-            "in": "query",
-            "description": "operating_system",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "version",
-            "in": "query",
-            "description": "version",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "operating system not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CrackerUpdate"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "operating system parameter invalid",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorObject"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/client/tasks/new": {
       "get": {
         "summary": "Request a new task from server",
