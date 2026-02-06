@@ -160,7 +160,7 @@ Project (tenant boundary)
 
 Three models use state machines (via `state_machines-activerecord`):
 
-**Agent States**: `pending → active → benchmarked → error/stopped`
+**Agent States**: `pending`, `active`, `stopped`, `error`, `offline` (note: `benchmarked` is an event that transitions `pending → active`, not a state)
 
 **Attack States**: `pending → running → completed/exhausted/failed/paused`
 

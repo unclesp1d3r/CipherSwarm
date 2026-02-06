@@ -42,7 +42,7 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
   # If the task is nil, it renders a no content status.
   def new
     @task = @agent.new_task
-    head :no_content if @task.nil?
+    head(:no_content) if @task.nil?
     # When @task exists, Jbuilder template (new.json.jbuilder) renders automatically
   end
 
@@ -122,7 +122,7 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
   #
   # This action marks a task as exhausted.
   # If the task cannot be exhausted, it responds with a 422 Unprocessable Entity status and the task's errors.
-  # If the task's associated attack cannot be exhausted, it also responds with a 422 Unprocessable Entity status and the task's errors.
+  # If the task's associated attack cannot be exhausted, it responds with a 422 Unprocessable Entity status and the attack's errors.
   #
   # @return [void]
   def exhausted
@@ -130,7 +130,7 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
 
     unless @task.exhaust
       Rails.logger.error("[APIError] TASK_EXHAUST_FAILED - Agent #{@agent.id} - Task #{@task.id} - Errors: #{@task.errors.full_messages.join(', ')} - #{Time.current}")
-      render json: @task.errors, status: :unprocessable_content
+      render json: { error: "Failed to exhaust task", details: @task.errors.full_messages }, status: :unprocessable_content
       return
     end
 
@@ -144,8 +144,8 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
     )
 
     unless @task.attack.exhaust
-      Rails.logger.error("[APIError] ATTACK_EXHAUST_FAILED - Agent #{@agent.id} - Task #{@task.id} - Attack #{@task.attack.id} - Errors: #{@task.errors.full_messages.join(', ')} - #{Time.current}")
-      render json: @task.errors, status: :unprocessable_content
+      Rails.logger.error("[APIError] ATTACK_EXHAUST_FAILED - Agent #{@agent.id} - Task #{@task.id} - Attack #{@task.attack.id} - Errors: #{@task.attack.errors.full_messages.join(', ')} - #{Time.current}")
+      render json: { error: "Failed to exhaust attack", details: @task.attack.errors.full_messages }, status: :unprocessable_content
       return
     end
 

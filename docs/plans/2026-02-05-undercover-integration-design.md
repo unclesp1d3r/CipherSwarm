@@ -83,7 +83,7 @@ Add step to `.github/workflows/CI.yml` after "Run tests":
 - Existing HTML coverage report still generated
 - Code Climate upload still works
 - No changes to test suite or application code
-- `just ci-check` unaffected
+- `just ci-check` extended to include `undercover` step
 
 ## Risk
 

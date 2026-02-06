@@ -165,20 +165,16 @@ erDiagram
 stateDiagram-v2
     [*] --> pending: Agent Created
 
-    pending --> active: activate
-    active --> benchmarked: benchmarked
-    active --> error: error
-    active --> stopped: stop
+    pending --> active: activate / benchmarked
+    active --> stopped: deactivate
+    active --> pending: check_benchmark_age (stale)
+    active --> offline: check_online (timeout) / shutdown
 
-    benchmarked --> active: "needs rebenchmark"
-    benchmarked --> error: error
-    benchmarked --> stopped: stop
+    offline --> active: heartbeat
+    offline --> pending: heartbeat (needs benchmark)
 
-    error --> pending: reset
-    stopped --> pending: restart
-
-    error --> [*]: delete
     stopped --> [*]: delete
+    error --> [*]: delete
 ```
 
 ### Attack State Machine
