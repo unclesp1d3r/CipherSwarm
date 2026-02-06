@@ -44,6 +44,8 @@ group :development, :test do
   gem "shoulda-callback-matchers", "~> 1.1"
   gem "shoulda-matchers", "~> 6.2"
   gem "simplecov", "~> 0.22", require: false
+  gem "simplecov-lcov", "~> 0.3", require: false
+  gem "undercover", "~> 0.5", require: false
 
   # Rubocop extensions
   gem "rswag-specs", "~> 2.13", require: false

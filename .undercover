@@ -1,0 +1,2 @@
+--compare origin/main
+--lcov coverage/lcov.info

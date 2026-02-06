@@ -4,7 +4,20 @@
 # SPDX-License-Identifier: MPL-2.0
 
 require "simplecov"
-SimpleCov.start "rails"
+require "simplecov-lcov"
+
+SimpleCov::Formatter::LcovFormatter.config do |c|
+  c.report_with_single_file = true
+  c.single_report_path = "coverage/lcov.info"
+end
+
+SimpleCov.start "rails" do
+  enable_coverage(:branch)
+  formatter SimpleCov::Formatter::MultiFormatter.new([
+    SimpleCov::Formatter::HTMLFormatter,
+    SimpleCov::Formatter::LcovFormatter
+  ])
+end
 
 RSpec.configure do |config|
   # rspec-expectations config goes here. You can use an alternate

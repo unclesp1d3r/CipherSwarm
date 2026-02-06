@@ -97,6 +97,14 @@ test-parallel:
 test-api:
     {{mise_exec}} bundle exec rspec spec/requests
 
+# Check test coverage for changed code
+undercover:
+    {{mise_exec}} bundle exec undercover
+
+# Check test coverage against a specific branch
+undercover-compare ref="origin/main":
+    {{mise_exec}} bundle exec undercover --compare {{ref}}
+
 # === Database Management ===
 
 # Run pending migrations
