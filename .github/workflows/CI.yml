@@ -112,6 +112,10 @@ jobs:
           name: test-results
           path: /tmp/test-results
           if-no-files-found: ignore
+      - name: Check coverage of changed code
+        env:
+          BASE_REF: ${{ github.base_ref || 'main' }}
+        run: bin/bundle exec undercover --compare "origin/$BASE_REF"
       - name: Upload coverage results to Code Climate
         if: env.CC_TEST_REPORTER_ID != ''
         run: |
