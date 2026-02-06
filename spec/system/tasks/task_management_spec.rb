@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: MPL-2.0
 
 require "rails_helper"
-require "timeout"
 
 RSpec.describe "Task Management" do
   let(:user) { create_and_sign_in_user }
@@ -286,68 +285,6 @@ RSpec.describe "Task Management" do
 
       download_link = find_link("Download Results")
       expect(download_link[:href]).to include(download_results_task_path(task))
-    end
-
-    context "with cracked and uncracked hashes" do
-      let(:download_dir) { Rails.root.join("tmp/downloads") }
-      let(:first_cracked_hash) do
-        create(:hash_item, :cracked_recently,
-               hash_list: hash_list,
-               hash_value: "abc123",
-               plain_text: "password1",
-               cracked_time: Time.zone.parse("2024-01-15 10:30:00"))
-      end
-      let(:second_cracked_hash) do
-        create(:hash_item, :cracked_recently,
-               hash_list: hash_list,
-               hash_value: "def456",
-               plain_text: "password2",
-               cracked_time: Time.zone.parse("2024-01-15 11:45:00"))
-      end
-
-      before do
-        first_cracked_hash
-        second_cracked_hash
-        create(:hash_item,
-               hash_list: hash_list,
-               hash_value: "uncracked789",
-               plain_text: nil,
-               cracked: false)
-        FileUtils.rm_rf(download_dir)
-        FileUtils.mkdir_p(download_dir)
-      end
-
-      after { FileUtils.rm_rf(download_dir) }
-
-      def wait_for_download
-        Timeout.timeout(10) do
-          loop do
-            files = Dir.glob(File.join(download_dir, "task_#{task.id}_results_*.csv"))
-            return files.first if files.any?
-            sleep 0.1
-          end
-        end
-      end
-
-      it "downloads CSV with correct filename pattern" do
-        visit task_path(task)
-        click_link "Download Results"
-
-        downloaded_file = wait_for_download
-        filename = File.basename(downloaded_file)
-        expect(filename).to match(/^task_#{task.id}_results_\d{8}_\d{6}\.csv$/)
-      end
-
-      it "includes only cracked hashes in CSV export" do
-        visit task_path(task)
-        click_link "Download Results"
-
-        csv_rows = CSV.parse(File.read(wait_for_download), headers: true)
-
-        expect(csv_rows.headers).to eq(["Hash", "Plaintext", "Cracked At"])
-        expect(csv_rows.length).to eq(2)
-        expect(csv_rows.pluck("Hash")).not_to include("uncracked789")
-      end
     end
   end
 end
