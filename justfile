@@ -254,5 +254,5 @@ annotate:
 changelog:
     git cliff -o CHANGELOG.md
 
-ci-check: check test docs-generate
+ci-check: check test undercover docs-generate
     @echo "✓ CI checks passed"
