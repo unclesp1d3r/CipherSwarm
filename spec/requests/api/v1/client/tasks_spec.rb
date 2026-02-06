@@ -138,6 +138,45 @@ RSpec.describe "api/v1/client/tasks" do
     end
   end
 
+  describe "Exhausted endpoint error handling" do
+    let(:agent) { create(:agent) }
+    let(:attack) { create(:dictionary_attack, state: :running) }
+    let(:headers) { { "Authorization" => "Bearer #{agent.token}" } }
+
+    context "when task exhaust fails" do
+      let(:pending_task) { create(:task, agent: agent, attack: attack, state: "pending") }
+
+      it "returns 422 with error details when task cannot be exhausted" do
+        allow(Rails.logger).to receive(:info)
+        allow(Rails.logger).to receive(:error)
+
+        post "/api/v1/client/tasks/#{pending_task.id}/exhausted", headers: headers
+
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(response.parsed_body["error"]).to eq("Failed to exhaust task")
+        expect(response.parsed_body).to have_key("details")
+      end
+    end
+
+    context "when attack exhaust fails" do
+      let(:running_task) { create(:task, agent: agent, attack: attack, state: "running") }
+
+      it "returns 422 with error details when attack cannot be exhausted" do
+        allow(Rails.logger).to receive(:info)
+        allow(Rails.logger).to receive(:error)
+
+        # Set an invalid workload_profile (must be 1-4) so save fails during exhaust
+        running_task.attack.update_column(:workload_profile, 99) # rubocop:disable Rails/SkipsModelValidations
+
+        post "/api/v1/client/tasks/#{running_task.id}/exhausted", headers: headers
+
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(response.parsed_body["error"]).to eq("Failed to exhaust attack")
+        expect(response.parsed_body).to have_key("details")
+      end
+    end
+  end
+
   path "/api/v1/client/tasks/new" do
     get("Request a new task from server") do
       tags "Tasks"
