@@ -124,6 +124,28 @@ RSpec.describe "Tasks" do
           expect(failed_task.reload.state).to eq("failed")
         end
       end
+
+      context "when requesting turbo_stream format" do
+        it "returns turbo_stream response on successful cancellation" do
+          sign_in(project_user)
+          post cancel_task_path(task), as: :turbo_stream
+          expect(response).to have_http_status(:success)
+          expect(response.media_type).to eq("text/vnd.turbo-stream.html")
+          expect(response.body).to include("turbo-stream")
+          expect(response.body).to include('action="replace"')
+          expect(task.reload.state).to eq("failed")
+        end
+
+        it "returns turbo_stream response on failed cancellation" do
+          completed_task = create(:task, attack: attack, agent: agent, state: "completed")
+          sign_in(project_user)
+          post cancel_task_path(completed_task), as: :turbo_stream
+          expect(response).to have_http_status(:success)
+          expect(response.media_type).to eq("text/vnd.turbo-stream.html")
+          expect(response.body).to include("turbo-stream")
+          expect(completed_task.reload.state).to eq("completed")
+        end
+      end
     end
 
     context "when an admin user is logged in" do
@@ -199,6 +221,28 @@ RSpec.describe "Tasks" do
           expect(response).to redirect_to(task_path(completed_task))
           expect(flash[:alert]).to include("could not be retried")
           expect(completed_task.reload.state).to eq("completed")
+        end
+      end
+
+      context "when requesting turbo_stream format" do
+        it "returns turbo_stream response on successful retry" do
+          failed_task = create(:task, attack: attack, agent: agent, state: "failed", last_error: "Some error")
+          sign_in(project_user)
+          post retry_task_path(failed_task), as: :turbo_stream
+          expect(response).to have_http_status(:success)
+          expect(response.media_type).to eq("text/vnd.turbo-stream.html")
+          expect(response.body).to include("turbo-stream")
+          expect(response.body).to include('action="replace"')
+          expect(failed_task.reload.state).to eq("pending")
+        end
+
+        it "returns turbo_stream response on failed retry" do
+          sign_in(project_user)
+          post retry_task_path(task), as: :turbo_stream
+          expect(response).to have_http_status(:success)
+          expect(response.media_type).to eq("text/vnd.turbo-stream.html")
+          expect(response.body).to include("turbo-stream")
+          expect(task.reload.state).to eq("pending")
         end
       end
     end
@@ -527,6 +571,35 @@ RSpec.describe "Tasks" do
           sign_in(project_user)
           post reassign_task_path(task), params: { agent_id: 999_999 }
           expect(response).to have_http_status(:not_found)
+        end
+      end
+
+      context "when requesting turbo_stream format" do
+        it "returns turbo_stream response on successful reassignment" do
+          sign_in(project_user)
+          post reassign_task_path(task), params: { agent_id: compatible_agent.id }, as: :turbo_stream
+          expect(response).to have_http_status(:success)
+          expect(response.media_type).to eq("text/vnd.turbo-stream.html")
+          expect(response.body).to include("turbo-stream")
+          expect(response.body).to include('action="replace"')
+          expect(task.reload.agent_id).to eq(compatible_agent.id)
+        end
+
+        it "returns turbo_stream response for incompatible agent" do
+          sign_in(project_user)
+          post reassign_task_path(task), params: { agent_id: incompatible_agent.id }, as: :turbo_stream
+          expect(response).to have_http_status(:success)
+          expect(response.media_type).to eq("text/vnd.turbo-stream.html")
+          expect(response.body).to include("turbo-stream")
+          expect(task.reload.agent_id).to eq(agent.id)
+        end
+
+        it "returns turbo_stream response when agent_id is missing" do
+          sign_in(project_user)
+          post reassign_task_path(task), params: {}, as: :turbo_stream
+          expect(response).to have_http_status(:success)
+          expect(response.media_type).to eq("text/vnd.turbo-stream.html")
+          expect(response.body).to include("turbo-stream")
         end
       end
     end
