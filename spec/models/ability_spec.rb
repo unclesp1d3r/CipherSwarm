@@ -184,6 +184,43 @@ RSpec.describe Ability do
     end
   end
 
+  describe "Task permissions" do
+    let(:project_campaign) { create(:campaign, project: project) }
+    let(:other_campaign) { create(:campaign, project: other_project) }
+    let(:project_attack) { create(:attack, campaign: project_campaign) }
+    let(:other_attack) { create(:attack, campaign: other_campaign) }
+    let(:project_task) { create(:task, attack: project_attack) }
+    let(:other_task) { create(:task, attack: other_attack) }
+
+    before do
+      create(:project_user, user: user, project: project)
+    end
+
+    context "when user is regular user" do
+      it { is_expected.to be_able_to(:read, project_task) }
+      it { is_expected.to be_able_to(:cancel, project_task) }
+      it { is_expected.to be_able_to(:retry, project_task) }
+      it { is_expected.to be_able_to(:reassign, project_task) }
+      it { is_expected.to be_able_to(:download_results, project_task) }
+      it { is_expected.not_to be_able_to(:read, other_task) }
+      it { is_expected.not_to be_able_to(:cancel, other_task) }
+      it { is_expected.not_to be_able_to(:retry, other_task) }
+      it { is_expected.not_to be_able_to(:reassign, other_task) }
+      it { is_expected.not_to be_able_to(:download_results, other_task) }
+    end
+
+    context "when user is admin" do
+      subject(:ability) { described_class.new(admin) }
+
+      it { is_expected.to be_able_to(:manage, project_task) }
+      it { is_expected.to be_able_to(:manage, other_task) }
+      it { is_expected.to be_able_to(:cancel, project_task) }
+      it { is_expected.to be_able_to(:retry, other_task) }
+      it { is_expected.to be_able_to(:reassign, project_task) }
+      it { is_expected.to be_able_to(:download_results, other_task) }
+    end
+  end
+
   describe "User permissions" do
     context "when user is regular user" do
       it { is_expected.to be_able_to(:read, user) }

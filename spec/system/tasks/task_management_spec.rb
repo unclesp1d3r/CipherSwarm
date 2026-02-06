@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: MPL-2.0
 
 require "rails_helper"
+require "timeout"
 
 RSpec.describe "Task Management" do
   let(:user) { create_and_sign_in_user }
@@ -213,6 +214,140 @@ RSpec.describe "Task Management" do
       # When only the currently assigned agent is available (or no agents),
       # the component shows a message
       expect(page).to have_content("No compatible agents available").or have_select(id: /.+/)
+    end
+
+    it "reassigns task to compatible agent successfully" do
+      compatible_agent
+
+      visit task_path(task)
+
+      find("select[aria-label='Select agent for reassignment']").select(compatible_agent.host_name)
+      click_button "Reassign"
+
+      # Wait for redirect and verify state change
+      sleep 0.5
+      page.refresh
+
+      task.reload
+      expect(task.agent_id).to eq(compatible_agent.id)
+      expect(page).to have_content(compatible_agent.host_name)
+    end
+
+    it "prevents reassignment to incompatible agent" do
+      incompatible_agent = create(:agent, projects: [create(:project)])
+
+      visit task_path(task)
+
+      # Incompatible agent should not appear in the dropdown
+      if page.has_css?("select[aria-label='Select agent for reassignment']")
+        select_element = find("select[aria-label='Select agent for reassignment']")
+        expect(select_element).to have_no_css("option", text: incompatible_agent.host_name)
+      end
+    end
+
+    it "reassigns running task and resets to pending" do
+      running_task = create(:task, attack: attack, agent: agent, state: :running)
+      compatible_agent
+
+      visit task_path(running_task)
+
+      find("select[aria-label='Select agent for reassignment']").select(compatible_agent.host_name)
+      click_button "Reassign"
+
+      # Wait for redirect and verify state change
+      sleep 0.5
+      page.refresh
+
+      running_task.reload
+      expect(running_task.agent_id).to eq(compatible_agent.id)
+      expect(running_task.state).to eq("pending")
+    end
+  end
+
+  describe "download results" do
+    it "has download results link" do
+      create(:hash_item, :cracked_recently,
+        hash_list: hash_list,
+        hash_value: "abc123",
+        plain_text: "password1")
+
+      visit task_path(task)
+
+      expect(page).to have_link("Download Results")
+    end
+
+    it "download results link points to correct path" do
+      create(:hash_item, :cracked_recently,
+        hash_list: hash_list,
+        hash_value: "abc123",
+        plain_text: "password1")
+
+      visit task_path(task)
+
+      download_link = find_link("Download Results")
+      expect(download_link[:href]).to include(download_results_task_path(task))
+    end
+
+    context "with cracked and uncracked hashes" do
+      let(:download_dir) { Rails.root.join("tmp/downloads") }
+      let(:first_cracked_hash) do
+        create(:hash_item, :cracked_recently,
+               hash_list: hash_list,
+               hash_value: "abc123",
+               plain_text: "password1",
+               cracked_time: Time.zone.parse("2024-01-15 10:30:00"))
+      end
+      let(:second_cracked_hash) do
+        create(:hash_item, :cracked_recently,
+               hash_list: hash_list,
+               hash_value: "def456",
+               plain_text: "password2",
+               cracked_time: Time.zone.parse("2024-01-15 11:45:00"))
+      end
+
+      before do
+        first_cracked_hash
+        second_cracked_hash
+        create(:hash_item,
+               hash_list: hash_list,
+               hash_value: "uncracked789",
+               plain_text: nil,
+               cracked: false)
+        FileUtils.rm_rf(download_dir)
+        FileUtils.mkdir_p(download_dir)
+      end
+
+      after { FileUtils.rm_rf(download_dir) }
+
+      def wait_for_download
+        Timeout.timeout(10) do
+          loop do
+            files = Dir.glob(File.join(download_dir, "task_#{task.id}_results_*.csv"))
+            return files.first if files.any?
+            sleep 0.1
+          end
+        end
+      end
+
+      it "downloads CSV with correct filename pattern" do
+        visit task_path(task)
+        click_link "Download Results"
+
+        downloaded_file = wait_for_download
+        filename = File.basename(downloaded_file)
+        expect(filename).to match(/^task_#{task.id}_results_\d{8}_\d{6}\.csv$/)
+      end
+
+      it "includes only cracked hashes in CSV export" do
+        visit task_path(task)
+        click_link "Download Results"
+
+        csv_rows = CSV.parse(File.read(wait_for_download), headers: true)
+
+        expect(csv_rows.headers).to eq(["Hash", "Plaintext", "Cracked At"])
+        expect(csv_rows.length).to eq(2)
+        expect(csv_rows.pluck("Hash")).not_to include("uncracked789")
+      end
     end
   end
 end
