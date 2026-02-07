@@ -138,7 +138,7 @@ class TaskAssignmentService
   # @param attack [Attack] the attack to search in
   # @return [Task, nil] a retryable failed task, or nil
   def find_retryable_failed_task(attack)
-    attack.tasks.with_state(:failed).find do |task|
+    attack.tasks.with_state(:failed).where(agent: agent).find do |task|
       !has_fatal_error?(task)
     end
   end
@@ -148,7 +148,7 @@ class TaskAssignmentService
   # @param attack [Attack] the attack to search in
   # @return [Task, nil] a pending task, or nil
   def find_pending_task(attack)
-    attack.tasks.with_state(:pending).first
+    attack.tasks.with_state(:pending).where(agent: agent).first
   end
 
   # Creates a new task if the agent meets performance requirements and no pending tasks exist.

@@ -197,6 +197,27 @@ RSpec.describe "api/v1/client/tasks" do
         run_test!
       end
 
+      context "when only another agent's tasks exist for the attack", :skip_swagger do
+        let(:hash_list) do
+          hash_list = create(:hash_list, project: project)
+          create(:hash_item, hash_list: hash_list, cracked: false)
+          hash_list.update!(processed: true)
+          hash_list
+        end
+        let!(:campaign) { create(:campaign, project: project, hash_list: hash_list) }
+        let!(:attack) { create(:dictionary_attack, state: "running", campaign: campaign) }
+        let(:other_agent) { create(:agent, projects: [project], hashcat_benchmarks: build_list(:hashcat_benchmark, 1)) }
+
+        before { create(:task, agent: other_agent, attack: attack, state: :failed) }
+
+        it "returns 204 and does not return another agent's task" do
+          get "/api/v1/client/tasks/new",
+              headers: { "Authorization" => "Bearer #{agent.token}" }
+
+          expect(response).to have_http_status(:no_content)
+        end
+      end
+
       response(200, "new task available") do
         let(:hash_list) do
           hash_list = create(:hash_list, project: project)
