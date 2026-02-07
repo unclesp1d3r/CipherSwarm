@@ -105,6 +105,20 @@ just lint
 just security
 ```
 
+### Undercover (Change-Based Coverage)
+
+```bash
+# Check test coverage for changed code vs origin/main
+just undercover
+
+# Full CI pipeline: pre-commit → brakeman → rspec (with coverage) → undercover → API tests → rswag
+just ci-check
+```
+
+- Undercover requires `COVERAGE=true` RSpec run first to generate `coverage/lcov.info`
+- CI needs `fetch-depth: 0` in checkout for undercover to access origin/main
+- To fix undercover failures: add tests covering the flagged lines, then re-run `just ci-check`
+
 ### Database Operations
 
 ```bash
@@ -217,8 +231,8 @@ Three core models use state_machines-activerecord:
 
 **Agent States:**
 
-- pending → active → benchmarked → error/stopped
-- Transitions: activate, benchmarked, error, stop
+- States: pending, active, stopped, error, offline
+- Transitions: activate, benchmarked (pending→active), deactivate, shutdown, check_online, check_benchmark_age, heartbeat
 
 **Attack States:**
 
@@ -339,12 +353,25 @@ Both unit tests for Stimulus controllers and integration tests via system tests 
 - Tests with font-loading (e.g., Bootstrap icons) can hang in headless Chrome - skip with `skip: ENV["CI"].present?`
 - Selenium requires explicit Chrome binary path: `options.binary = ENV["CHROME_BIN"]` in `spec/support/capybara.rb`
 - If CI hangs after "Capybara starting Puma...", check for tests that load external resources
+- File downloads don't work in CI headless Chrome; test download content via request specs instead
+
+**Turbo Stream System Test Pattern:**
+
+- Turbo Stream partial replacements do NOT trigger flash messages or update elements outside the replaced partial
+- Do NOT wait for flash messages or CSS badges after Turbo Stream actions (cancel, retry, reassign)
+- Use `sleep 1` + direct DB verification: `task.reload; expect(task.state).to eq("pending")`
 
 **Model Tests (spec/models/):**
 
 - FactoryBot factories (spec/factories/)
 - Comprehensive validation and association testing
 - State machine transition testing
+
+**State Machine Testing:**
+
+- `transition any => same` always succeeds unless the save fails
+- To test failure paths: invalidate the model via `update_column` (bypassing validations) so save fails during transition
+- Beware DB NOT NULL constraints - use columns with only Rails-level validations (e.g., `workload_profile` numericality)
 
 **Request Tests (spec/requests/):**
 
