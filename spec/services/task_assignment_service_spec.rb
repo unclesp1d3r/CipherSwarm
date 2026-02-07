@@ -227,6 +227,68 @@ RSpec.describe TaskAssignmentService do
     end
   end
 
+  describe "#find_next_task cross-agent isolation" do
+    let(:other_agent) { create(:agent, user: user, projects: [project]) }
+
+    before do
+      create(:hashcat_benchmark, agent: other_agent, hash_type: 0, hash_speed: 10_000_000)
+    end
+
+    context "when another agent has a failed task for the same attack" do
+      let!(:attack) { create(:dictionary_attack, campaign: campaign, state: :running) }
+
+      before do
+        create(:task, agent: other_agent, attack: attack, state: :failed)
+        create(:hash_item, hash_list: hash_list, cracked: false)
+      end
+
+      it "does not return a task belonging to another agent" do
+        expect(service.find_next_task&.agent).not_to eq(other_agent)
+      end
+    end
+
+    context "when another agent has a pending task for the same attack" do
+      let!(:attack) { create(:dictionary_attack, campaign: campaign, state: :pending) }
+
+      before do
+        create(:task, agent: other_agent, attack: attack, state: :pending)
+        create(:hash_item, hash_list: hash_list, cracked: false)
+      end
+
+      it "does not return a task belonging to another agent" do
+        expect(service.find_next_task&.agent).not_to eq(other_agent)
+      end
+    end
+
+    context "when agent has its own failed task alongside another agent's failed task" do
+      let!(:attack) { create(:dictionary_attack, campaign: campaign, state: :running) }
+      let!(:own_failed_task) { create(:task, agent: agent, attack: attack, state: :failed) }
+
+      before do
+        create(:task, agent: other_agent, attack: attack, state: :failed)
+        create(:hash_item, hash_list: hash_list, cracked: false)
+      end
+
+      it "returns only the agent's own failed task" do
+        expect(service.find_next_task).to eq(own_failed_task)
+      end
+    end
+
+    context "when agent has its own pending task alongside another agent's pending task" do
+      let!(:attack) { create(:dictionary_attack, campaign: campaign, state: :pending) }
+      let!(:own_pending_task) { create(:task, agent: agent, attack: attack, state: :pending) }
+
+      before do
+        create(:task, agent: other_agent, attack: attack, state: :pending)
+        create(:hash_item, hash_list: hash_list, cracked: false)
+      end
+
+      it "returns only the agent's own pending task" do
+        expect(service.find_next_task).to eq(own_pending_task)
+      end
+    end
+  end
+
   describe "#find_next_task integration" do
     it "handles multiple consecutive calls correctly" do
       create(:hash_item, hash_list: hash_list, cracked: false)
