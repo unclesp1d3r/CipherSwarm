@@ -47,7 +47,7 @@ RSpec.describe DeviceStatus do
       device_status = create(:device_status)
       hashcat_status = device_status.hashcat_status
 
-      hashcat_status.destroy
+      hashcat_status.delete
 
       expect(described_class.exists?(device_status.id)).to be false
     end
