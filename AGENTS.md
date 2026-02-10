@@ -378,6 +378,10 @@ Both unit tests for Stimulus controllers and integration tests via system tests 
 - When using `min_by`, `sort_by`, or `ORDER BY` with columns that can tie, always add a tiebreaker (typically `.id`)
 - Example: `tasks.min_by { |t| [t.priority, t.progress, t.id] }` — without `t.id`, CI may return different results than local
 
+**DB Constraint Testing:**
+
+- Use `record.delete` (not `destroy`) when testing DB-level FK cascades — `destroy` fires Rails callbacks that mask missing constraints
+
 **Request Tests (spec/requests/):**
 
 - API endpoint testing
@@ -533,6 +537,14 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 - Wrap related operations in `Model.transaction do ... end` when they must succeed/fail together
 - Use `save!` (bang) inside transactions to trigger rollback on failure
 - Handle `ActiveRecord::RecordInvalid` outside the transaction block
+
+**Foreign Key Cascade Strategy:**
+
+- Prefer DB-level `on_delete: :cascade` / `:nullify` over relying solely on Rails `dependent:` callbacks
+- `delete_all` and DB-level cascades bypass Rails callbacks — without DB rules, orphans or FK violations result
+- Ephemeral child tables (telemetry, statuses) should cascade with their parent
+- When a table has multiple FKs to the same parent, always specify `column:` explicitly in `remove_foreign_key`/`add_foreign_key`
+- Test DB cascades with `delete` (not `destroy`) to verify the FK constraint, not Rails callbacks
 
 ### Development Workflow
 
