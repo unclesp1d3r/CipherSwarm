@@ -40,6 +40,7 @@
 #
 class DeviceStatus < ApplicationRecord
   belongs_to :hashcat_status
+
   validates :device_name, presence: true
   validates :device_type, presence: true
   validates :device_id, presence: true, numericality: { only_integer: true }
