@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_02_10_150555) do
+ActiveRecord::Schema[8.0].define(version: 2026_02_10_151611) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -576,16 +576,16 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_10_150555) do
   add_foreign_key "campaigns", "users", column: "creator_id"
   add_foreign_key "device_statuses", "hashcat_statuses", on_delete: :cascade
   add_foreign_key "hash_items", "attacks", on_delete: :nullify
-  add_foreign_key "hash_items", "hash_lists"
+  add_foreign_key "hash_items", "hash_lists", on_delete: :cascade
   add_foreign_key "hash_lists", "hash_types"
-  add_foreign_key "hash_lists", "projects"
+  add_foreign_key "hash_lists", "projects", on_delete: :cascade
   add_foreign_key "hash_lists", "users", column: "creator_id"
   add_foreign_key "hashcat_benchmarks", "agents", on_delete: :cascade
   add_foreign_key "hashcat_guesses", "hashcat_statuses", on_delete: :cascade
   add_foreign_key "hashcat_statuses", "tasks", on_delete: :cascade
   add_foreign_key "mask_lists", "users", column: "creator_id"
-  add_foreign_key "project_users", "projects"
-  add_foreign_key "project_users", "users"
+  add_foreign_key "project_users", "projects", on_delete: :cascade
+  add_foreign_key "project_users", "users", on_delete: :cascade
   add_foreign_key "rule_lists", "users", column: "creator_id"
   add_foreign_key "sessions", "users"
   add_foreign_key "solid_queue_blocked_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
