@@ -8,7 +8,7 @@
 # This job runs daily to:
 # - Remove old agent error records beyond the configured retention period
 # - Remove old audit records beyond the configured retention period
-# - Archive old HashcatStatus records for completed tasks
+# - Archive old HashcatStatus records for completed tasks (cascades to DeviceStatus)
 #
 # @example Scheduling (in config/schedule.yml)
 #   data_cleanup_job:
@@ -85,6 +85,7 @@ class DataCleanupJob < ApplicationJob
   end
 
   # Removes HashcatStatus records for completed tasks beyond retention period.
+  # Associated DeviceStatus records are cascade-deleted by the database FK constraint.
   #
   # @return [void]
   def cleanup_old_hashcat_statuses

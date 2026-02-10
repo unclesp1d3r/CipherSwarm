@@ -10,7 +10,8 @@ RSpec.describe DataCleanupJob do
     let(:job) { described_class.new }
 
     before do
-      allow(ApplicationConfig).to receive_messages(agent_error_retention: 30.days, audit_retention: 90.days, hashcat_status_retention: 7.days)
+      allow(ApplicationConfig).to receive_messages(agent_error_retention: 30.days, audit_retention: 90.days,
+                                                   hashcat_status_retention: 7.days)
     end
 
     describe "agent error cleanup" do
@@ -133,6 +134,34 @@ RSpec.describe DataCleanupJob do
         job.perform
 
         expect(Rails.logger).to have_received(:info).with(/Deleted 1 HashcatStatus records/)
+      end
+    end
+
+    describe "DeviceStatus cascade cleanup" do
+      it "cascade-deletes associated DeviceStatus when HashcatStatus is cleaned up" do
+        completed_task = create(:task, state: "completed")
+        hashcat_status = create(:hashcat_status, task: completed_task, created_at: 8.days.ago)
+        device_status_ids = hashcat_status.device_statuses.pluck(:id)
+
+        expect(device_status_ids).not_to be_empty
+
+        job.perform
+
+        device_status_ids.each do |id|
+          expect(DeviceStatus.exists?(id)).to be false
+        end
+      end
+
+      it "preserves DeviceStatus for running tasks" do
+        running_task = create(:task, state: "running")
+        hashcat_status = create(:hashcat_status, task: running_task, created_at: 8.days.ago)
+        device_status_ids = hashcat_status.device_statuses.pluck(:id)
+
+        job.perform
+
+        device_status_ids.each do |id|
+          expect(DeviceStatus.exists?(id)).to be true
+        end
       end
     end
 

@@ -42,6 +42,17 @@ RSpec.describe DeviceStatus do
     it { is_expected.to validate_presence_of(:device_id) }
   end
 
+  describe "cascade deletion" do
+    it "is deleted when its parent hashcat_status is deleted" do
+      device_status = create(:device_status)
+      hashcat_status = device_status.hashcat_status
+
+      hashcat_status.destroy
+
+      expect(described_class.exists?(device_status.id)).to be false
+    end
+  end
+
   describe "factory" do
     it "is expected to have valid DeviceStatus factory" do
       expect(create(:device_status)).to be_valid
