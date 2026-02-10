@@ -86,7 +86,7 @@ bundle exec rspec spec/requests
 # Stop local PostgreSQL: brew services stop postgresql@17
 # Start Docker PostgreSQL: docker compose up -d postgres-db
 # Run tests with explicit URL:
-TEST_DATABASE_URL=postgres://root:postgres@127.0.0.1:5432/cipher_swarm_test bundle exec rspec
+TEST_DATABASE_URL=postgres://root:password@127.0.0.1:5432/cipher_swarm_test bundle exec rspec
 ```
 
 ### Code Quality
@@ -373,6 +373,11 @@ Both unit tests for Stimulus controllers and integration tests via system tests 
 - To test failure paths: invalidate the model via `update_column` (bypassing validations) so save fails during transition
 - Beware DB NOT NULL constraints - use columns with only Rails-level validations (e.g., `workload_profile` numericality)
 
+**Deterministic Ordering:**
+
+- When using `min_by`, `sort_by`, or `ORDER BY` with columns that can tie, always add a tiebreaker (typically `.id`)
+- Example: `tasks.min_by { |t| [t.priority, t.progress, t.id] }` — without `t.id`, CI may return different results than local
+
 **Request Tests (spec/requests/):**
 
 - API endpoint testing
@@ -423,7 +428,7 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 
 **File Structure:**
 
-- Business logic: app/models/ (no app/services/ directory)
+- Business logic: app/models/ and app/services/ (6 service objects)
 - API endpoints: app/controllers/api/v1/
 - View components: app/components/
 - Custom validations: app/validators/
@@ -490,6 +495,7 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 **Agent Task Assignment:**
 
 - Agents request tasks via `GET /api/v1/client/tasks/new`
+- **Security:** Task queries in service objects must be scoped to the current agent (`.where(agent: agent)`) to prevent authorization bypass
 - Tasks claimed with `claimed_by_agent_id` and `expires_at`
 - Agents submit status updates via `POST /api/v1/client/tasks/:id/submit_status`
 - Agents submit cracks via `POST /api/v1/client/tasks/:id/submit_crack`
