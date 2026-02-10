@@ -30,6 +30,8 @@
 require "rails_helper"
 
 RSpec.describe AgentError do
+  include ActiveSupport::Testing::TimeHelpers
+
   describe "validations" do
     it { is_expected.to validate_presence_of(:message) }
     it { is_expected.to validate_presence_of(:metadata) }
@@ -45,5 +47,34 @@ RSpec.describe AgentError do
     it { is_expected.to have_db_column(:message).of_type(:string).with_options(null: false) }
     it { is_expected.to have_db_column(:metadata).of_type(:jsonb).with_options(null: false) }
     it { is_expected.to have_db_column(:severity).of_type(:integer).with_options(null: false) }
+  end
+
+  describe ".remove_old_errors" do
+    let(:agent) { create(:agent) }
+
+    it "deletes errors older than the retention period" do
+      old_error = travel_to(31.days.ago) { create(:agent_error, agent: agent) }
+      recent_error = travel_to(29.days.ago) { create(:agent_error, agent: agent) }
+
+      expect { described_class.remove_old_errors }.to change(described_class, :count).by(-1)
+      expect(described_class.unscoped.exists?(old_error.id)).to be false
+      expect(described_class.unscoped.exists?(recent_error.id)).to be true
+    end
+
+    it "preserves errors within the retention period" do
+      travel_to(1.day.ago) { create(:agent_error, agent: agent) }
+
+      expect { described_class.remove_old_errors }.not_to change(described_class, :count)
+    end
+
+    it "returns the count of deleted records" do
+      travel_to(31.days.ago) { 3.times { create(:agent_error, agent: agent) } }
+
+      expect(described_class.remove_old_errors).to eq(3)
+    end
+
+    it "returns zero when no records to delete" do
+      expect(described_class.remove_old_errors).to eq(0)
+    end
   end
 end

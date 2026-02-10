@@ -68,6 +68,14 @@ class AgentError < ApplicationRecord
 
   scope :older_than, ->(date) { where(created_at: ...date) }
 
+  # Removes agent error records older than the configured retention period.
+  # Uses the `older_than` scope with `ApplicationConfig.agent_error_retention`.
+  #
+  # @return [Integer] the number of deleted records
+  def self.remove_old_errors
+    older_than(ApplicationConfig.agent_error_retention.ago).delete_all
+  end
+
   # Returns the latest error for each attack in the given list.
   #
   # Uses PostgreSQL DISTINCT ON for efficient single-query retrieval.

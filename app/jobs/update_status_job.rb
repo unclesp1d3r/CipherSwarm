@@ -8,6 +8,7 @@
 # - Checks the online status of agents that have been offline for more than a configurable amount of time.
 # - Removes old status for tasks that are in a finished state.
 # - Removes running status for incomplete tasks.
+# - Cleans up agent error records older than the configured retention period.
 # - Abandons tasks that have been running for more than a configurable amount of time without activity.
 #
 # The job is executed with a high priority queue.
@@ -22,18 +23,20 @@ class UpdateStatusJob < ApplicationJob
   # 1. Checks the online status of agents that have been offline for more than a configurable amount of time.
   # 2. Removes old status for tasks in a finished state.
   # 3. Removes running status for incomplete tasks.
-  # 4. Abandons tasks that have been running for more than a configurable amount of time without activity.
-  # 5. Rebalances task assignments for high-priority campaigns.
+  # 4. Cleans up agent error records older than the configured retention period.
+  # 5. Abandons tasks that have been running for more than a configurable amount of time without activity.
+  # 6. Rebalances task assignments for high-priority campaigns.
   #
   ##
   # Executes periodic status maintenance tasks (agent heartbeats, task status cleanup, task abandonment, and assignment rebalancing)
   #
-  # Runs the sequence of status-update operations: check agents' online status, remove status records for finished and incomplete tasks, abandon inactive running tasks, and rebalance task assignments for high-priority campaigns. Ensures the ActiveRecord connection pool is cleared of active connections after execution to avoid connection leaks.
+  # Runs the sequence of status-update operations: check agents' online status, remove status records for finished and incomplete tasks, clean up old agent errors, abandon inactive running tasks, and rebalance task assignments for high-priority campaigns. Ensures the ActiveRecord connection pool is cleared of active connections after execution to avoid connection leaks.
   def perform(*_args)
     ActiveRecord::Base.connection_pool.with_connection do
       check_agents_online_status
       remove_finished_tasks_status
       remove_incomplete_tasks_status
+      cleanup_old_agent_errors
       abandon_inactive_tasks
       rebalance_task_assignments
     end
@@ -45,6 +48,18 @@ class UpdateStatusJob < ApplicationJob
 
   def abandon_inactive_tasks
     Task.with_state(:running).inactive_for(ApplicationConfig.task_considered_abandoned_age).each { |task| task.abandon }
+  end
+
+  ##
+  # Removes agent error records older than the configured retention period.
+  # Uses ApplicationConfig.agent_error_retention (default: 30 days).
+  def cleanup_old_agent_errors
+    deleted_count = AgentError.remove_old_errors
+    if deleted_count.positive?
+      Rails.logger.info("[AgentErrorCleanup] Removed #{deleted_count} agent errors older than #{ApplicationConfig.agent_error_retention}")
+    end
+  rescue StandardError => e
+    Rails.logger.error("[AgentErrorCleanup] Error cleaning up old agent errors: #{e.message}")
   end
 
   ##
