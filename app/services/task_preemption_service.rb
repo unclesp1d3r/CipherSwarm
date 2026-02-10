@@ -122,8 +122,9 @@ class TaskPreemptionService
     return nil if preemptable_tasks.empty?
 
     # Sort by priority (lowest first, using numeric enum value) then by progress (least complete first)
+    # Use task id as tiebreaker for deterministic selection when priority and progress are equal
     preemptable_tasks.min_by do |task|
-      [task.attack.campaign[:priority], task.progress_percentage]
+      [task.attack.campaign[:priority], task.progress_percentage, task.id]
     end
   rescue StandardError => e
     Rails.logger.error(
