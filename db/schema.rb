@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_02_04_031743) do
+ActiveRecord::Schema[8.0].define(version: 2026_02_10_150555) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -563,8 +563,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_04_031743) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
-  add_foreign_key "agent_errors", "agents"
-  add_foreign_key "agent_errors", "tasks"
+  add_foreign_key "agent_errors", "agents", on_delete: :cascade
+  add_foreign_key "agent_errors", "tasks", on_delete: :nullify
   add_foreign_key "agents", "users"
   add_foreign_key "attacks", "campaigns", on_delete: :cascade
   add_foreign_key "attacks", "mask_lists", on_delete: :cascade
@@ -575,12 +575,12 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_04_031743) do
   add_foreign_key "campaigns", "projects", on_delete: :cascade
   add_foreign_key "campaigns", "users", column: "creator_id"
   add_foreign_key "device_statuses", "hashcat_statuses", on_delete: :cascade
-  add_foreign_key "hash_items", "attacks"
+  add_foreign_key "hash_items", "attacks", on_delete: :nullify
   add_foreign_key "hash_items", "hash_lists"
   add_foreign_key "hash_lists", "hash_types"
   add_foreign_key "hash_lists", "projects"
   add_foreign_key "hash_lists", "users", column: "creator_id"
-  add_foreign_key "hashcat_benchmarks", "agents"
+  add_foreign_key "hashcat_benchmarks", "agents", on_delete: :cascade
   add_foreign_key "hashcat_guesses", "hashcat_statuses", on_delete: :cascade
   add_foreign_key "hashcat_statuses", "tasks", on_delete: :cascade
   add_foreign_key "mask_lists", "users", column: "creator_id"
@@ -593,8 +593,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_04_031743) do
   add_foreign_key "solid_queue_failed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_ready_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_scheduled_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
-  add_foreign_key "tasks", "agents"
-  add_foreign_key "tasks", "agents", column: "claimed_by_agent_id"
+  add_foreign_key "tasks", "agents", column: "claimed_by_agent_id", on_delete: :nullify
+  add_foreign_key "tasks", "agents", on_delete: :cascade
   add_foreign_key "tasks", "attacks", on_delete: :cascade
   add_foreign_key "word_lists", "users", column: "creator_id"
 end

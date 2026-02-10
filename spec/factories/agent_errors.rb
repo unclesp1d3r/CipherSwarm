@@ -24,8 +24,8 @@
 #
 # Foreign Keys
 #
-#  fk_rails_...  (agent_id => agents.id)
-#  fk_rails_...  (task_id => tasks.id)
+#  fk_rails_...  (agent_id => agents.id) ON DELETE => cascade
+#  fk_rails_...  (task_id => tasks.id) ON DELETE => nullify
 #
 FactoryBot.define do
   factory :agent_error do

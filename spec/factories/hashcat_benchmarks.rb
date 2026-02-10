@@ -23,7 +23,7 @@
 #
 # Foreign Keys
 #
-#  fk_rails_...  (agent_id => agents.id)
+#  fk_rails_...  (agent_id => agents.id) ON DELETE => cascade
 #
 FactoryBot.define do
   sequence(:benchmark_timestamp) { |n| Time.current - n.seconds }

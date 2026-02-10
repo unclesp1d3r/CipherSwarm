@@ -42,8 +42,8 @@
 #
 # Foreign Keys
 #
-#  fk_rails_...  (agent_id => agents.id)
-#  fk_rails_...  (task_id => tasks.id)
+#  fk_rails_...  (agent_id => agents.id) ON DELETE => cascade
+#  fk_rails_...  (task_id => tasks.id) ON DELETE => nullify
 #
 class AgentError < ApplicationRecord
   belongs_to :agent, touch: true
