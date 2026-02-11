@@ -187,4 +187,19 @@ RSpec.describe User do
       end
     end
   end
+
+  describe "#toggle_hide_completed_activities" do
+    it "toggles from false to true" do
+      user = create(:user)
+      expect(user.hide_completed_activities).to be false
+      user.toggle_hide_completed_activities
+      expect(user.reload.hide_completed_activities).to be true
+    end
+
+    it "toggles from true to false" do
+      user = create(:user, hide_completed_activities: true)
+      user.toggle_hide_completed_activities
+      expect(user.reload.hide_completed_activities).to be false
+    end
+  end
 end

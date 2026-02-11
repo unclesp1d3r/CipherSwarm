@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_02_10_151611) do
+ActiveRecord::Schema[8.0].define(version: 2026_02_11_015927) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -532,6 +532,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_10_151611) do
     t.integer "role", default: 0, comment: "The role of the user, either basic or admin"
     t.string "password_digest"
     t.boolean "auth_migrated", default: false, null: false
+    t.boolean "hide_completed_activities", default: false, null: false
     t.index ["auth_migrated"], name: "index_users_on_auth_migrated"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["name"], name: "index_users_on_name", unique: true
