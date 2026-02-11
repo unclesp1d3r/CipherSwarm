@@ -227,6 +227,29 @@ class Campaign < ApplicationRecord
   # @see CampaignEtaCalculator#total_eta
   delegate :total_eta, to: :eta_calculator
 
+  # Calculates the current ETA for running attacks without caching.
+  #
+  # Returns the maximum estimated finish time among all currently running tasks.
+  # This bypasses the cache to provide a fresh calculation.
+  #
+  # @return [Time, nil] the max ETA of running attacks, or nil if none are running
+  # @see CampaignEtaCalculator#current_eta
+  def calculate_current_eta
+    eta_calculator.send(:calculate_current_eta)
+  end
+
+  # Calculates the total ETA for all incomplete attacks without caching.
+  #
+  # Estimates total completion time by combining running attack ETAs with
+  # complexity-based estimates for pending/paused attacks.
+  # This bypasses the cache to provide a fresh calculation.
+  #
+  # @return [Time, nil] the estimated total completion time, or nil if no incomplete attacks
+  # @see CampaignEtaCalculator#total_eta
+  def calculate_total_eta
+    eta_calculator.send(:calculate_total_eta)
+  end
+
   # Returns the ETA calculator service for this campaign.
   #
   # @return [CampaignEtaCalculator] the calculator instance
