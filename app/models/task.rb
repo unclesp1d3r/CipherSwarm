@@ -244,6 +244,44 @@ class Task < ApplicationRecord
       # rubocop:enable Rails/SkipsModelValidations
     end
 
+    after_transition on: :error do |task, transition|
+      StateChangeLogger.log_task_transition(
+        task: task,
+        event: :error,
+        transition: { from: transition.from, to: transition.to },
+        context: { reason: task.last_error || "unknown" }
+      )
+    end
+
+    after_transition on: :cancel do |task, transition|
+      StateChangeLogger.log_task_transition(
+        task: task,
+        event: :cancel,
+        transition: { from: transition.from, to: transition.to },
+        context: { reason: "Task manually cancelled" }
+      )
+    end
+
+    after_transition on: :accept_status do |task, transition|
+      StateChangeLogger.log_task_transition(
+        task: task,
+        event: :accept_status,
+        transition: { from: transition.from, to: transition.to },
+        context: { reason: "Status update received" }
+      )
+    end
+
+    after_transition on: :accept_crack do |task, transition|
+      next if transition.to == "completed"
+
+      StateChangeLogger.log_task_transition(
+        task: task,
+        event: :accept_crack,
+        transition: { from: transition.from, to: transition.to },
+        context: { reason: "Crack accepted, uncracked hashes remaining" }
+      )
+    end
+
     after_transition on: :exhausted, do: :mark_attack_exhausted
 
     after_transition any - [:pending] => any, do: :update_activity_timestamp
@@ -403,6 +441,11 @@ class Task < ApplicationRecord
   def safe_broadcast_attack_progress_update
     attack.broadcast_attack_progress_update
   rescue StandardError => e
-    Rails.logger.error("[BroadcastUpdate] Task #{id} - Failed to broadcast attack progress update: #{e.message}")
+    StateChangeLogger.log_broadcast_error(
+      model_name: "Task",
+      record_id: id,
+      error: e,
+      context: { target: "attack-progress-#{attack_id}", partial: "campaigns/attack_progress" }
+    )
   end
 end

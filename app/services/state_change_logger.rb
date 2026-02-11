@@ -128,12 +128,17 @@ class StateChangeLogger
     # @param model_name [String] the model class name
     # @param record_id [Integer, String] the record ID
     # @param error [StandardError] the error that occurred
-    def log_broadcast_error(model_name:, record_id:, error:)
+    # @param context [Hash] optional broadcast context (:target, :partial)
+    def log_broadcast_error(model_name:, record_id:, error:, context: {})
       backtrace = error.backtrace&.first(5)&.join("\n           ") || "Not available"
 
+      parts = ["[BroadcastError] Model: #{model_name} - Record ID: #{record_id}"]
+      parts << "Target: #{context[:target]}" if context[:target]
+      parts << "Partial: #{context[:partial]}" if context[:partial]
+      parts << "Error: #{error.message}"
+
       Rails.logger.error(
-        "[BroadcastError] Model: #{model_name} - Record ID: #{record_id} - " \
-        "Error: #{error.message}\nBacktrace: #{backtrace}"
+        "#{parts.join(' - ')}\nBacktrace: #{backtrace}"
       )
     end
 

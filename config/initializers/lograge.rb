@@ -37,6 +37,10 @@ Rails.application.configure do
       options[:attack_id] = event.payload[:attack_id]
     end
 
+    if event.payload[:user_id].present?
+      options[:user_id] = event.payload[:user_id]
+    end
+
     # Include error context if present
     if event.payload[:exception].present?
       exception = event.payload[:exception]
