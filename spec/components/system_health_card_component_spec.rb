@@ -86,6 +86,16 @@ RSpec.describe SystemHealthCardComponent, type: :component do
       expect(component.status_variant).to eq("danger")
     end
 
+    it "returns secondary status_variant for unknown status" do
+      component = described_class.new(service_name: "Test", status: :unknown)
+      expect(component.status_variant).to eq("secondary")
+    end
+
+    it "returns question-circle icon for unknown status" do
+      component = described_class.new(service_name: "Test", status: :unknown)
+      expect(component.status_icon_name).to eq("question-circle")
+    end
+
     it "returns correct latency_text" do
       component = described_class.new(service_name: "Test", status: :healthy, latency: 5.67)
       expect(component.latency_text).to eq("5.67 ms")

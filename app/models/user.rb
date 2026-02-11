@@ -24,9 +24,6 @@
 # @normalizations
 # - name, email: stripped and downcased
 #
-# @kredis
-# - hide_completed_activities: boolean, default false
-#
 # == Schema Information
 #
 # Table name: users
@@ -92,8 +89,6 @@ class User < ApplicationRecord
 
   broadcasts_refreshes
 
-  kredis_boolean :hide_completed_activities, default: false
-
   # Checks if the user has an admin role.
   # @return [Boolean] True if the user has an admin role, false otherwise.
   def admin?
@@ -109,11 +104,11 @@ class User < ApplicationRecord
   end
 
   def hide_completed_activities?
-    !!self.hide_completed_activities.value
+    hide_completed_activities
   end
 
   def toggle_hide_completed_activities
-    self.hide_completed_activities.value = !self.hide_completed_activities.value
+    update!(hide_completed_activities: !hide_completed_activities)
   end
 
   private
