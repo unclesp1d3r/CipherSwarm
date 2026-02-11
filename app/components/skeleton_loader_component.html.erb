@@ -1,0 +1,66 @@
+<div class="placeholder-glow" aria-hidden="true" aria-label="Loading...">
+  <% case @type %>
+  <% when :agent_list %>
+    <div class="row">
+      <% @count.times do %>
+        <div class="col-md-4 mb-3">
+          <%= render Railsboot::CardComponent.new(class: "h-100 placeholder-glow") do |card| %>
+            <% card.with_header do %>
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="placeholder col-6"></span>
+                <span class="placeholder col-3 rounded-pill"></span>
+              </div>
+            <% end %>
+            <% card.with_body do %>
+              <div class="mb-2"><span class="placeholder col-8"></span></div>
+              <div class="mb-2"><span class="placeholder col-6"></span></div>
+              <div class="mb-0"><span class="placeholder col-7"></span></div>
+            <% end %>
+            <% card.with_footer do %>
+              <div class="btn-group btn-group-sm">
+                <span class="placeholder col-2 btn"></span>
+                <span class="placeholder col-2 btn"></span>
+                <span class="placeholder col-2 btn"></span>
+              </div>
+            <% end %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  <% when :campaign_list %>
+    <div class="list-group">
+      <% @count.times do %>
+        <div class="list-group-item placeholder-glow">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="placeholder col-4"></span>
+            <span class="placeholder col-2 rounded-pill"></span>
+          </div>
+          <div class="progress mb-2" style="height: 6px;">
+            <div class="progress-bar placeholder" style="width: 0%;"></div>
+          </div>
+          <div class="d-flex justify-content-between">
+            <span class="placeholder col-3"></span>
+            <span class="placeholder col-3"></span>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% when :health_dashboard %>
+    <div class="row">
+      <% @count.times do %>
+        <div class="col-md-3 mb-3">
+          <%= render Railsboot::CardComponent.new(class: "placeholder-glow") do |card| %>
+            <% card.with_body do %>
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="placeholder rounded-circle" style="width: 32px; height: 32px;"></span>
+                <span class="placeholder col-5"></span>
+              </div>
+              <div class="mb-1"><span class="placeholder col-4"></span></div>
+              <div><span class="placeholder col-6"></span></div>
+            <% end %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</div>

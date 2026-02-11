@@ -36,8 +36,12 @@ RSpec.describe AgentStatusCardComponent, type: :component do
       expect(page).to have_text("Test Agent")
     end
 
-    it "displays the status badge with correct variant" do
+    it "displays the status badge via StatusPillComponent" do
       expect(page).to have_css(".badge.rounded-pill.text-bg-success", text: "Active")
+    end
+
+    it "links the agent name to the agent detail page" do
+      expect(page).to have_link("Test Agent", href: "/agents/#{agent.id}")
     end
 
     it "displays the hash rate" do
