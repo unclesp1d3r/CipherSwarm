@@ -104,6 +104,8 @@ class Ability
     # HashList permissions
     can :manage, HashList, project: { id: user.all_project_ids }
 
+    can :read, :system_health # All authenticated users can view system health
+
     return unless user.admin?
 
     can :manage, :all
