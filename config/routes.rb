@@ -335,6 +335,8 @@ Rails.application.routes.draw do
     end
   end
 
+  get "system_health", to: "system_health#index", as: :system_health
+
   resources :agents do
     collection do
       get :cards
