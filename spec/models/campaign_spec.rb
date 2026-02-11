@@ -149,6 +149,51 @@ RSpec.describe Campaign do
         expect(result).to be_nil.or be_a(Time)
       end
     end
+
+    describe "#calculate_current_eta" do
+      let(:campaign) { create(:campaign) }
+
+      it "returns nil when there are no running attacks" do
+        create(:dictionary_attack, campaign: campaign, state: "pending")
+        expect(campaign.calculate_current_eta).to be_nil
+      end
+
+      it "returns the maximum ETA from running attack tasks" do
+        attack = create(:dictionary_attack, campaign: campaign, state: "running")
+        create(:task, attack: attack, state: "running")
+
+        result = campaign.calculate_current_eta
+        expect(result).to be_nil.or be_a(Time)
+      end
+
+      it "returns the same value as current_eta" do
+        attack = create(:dictionary_attack, campaign: campaign, state: "running")
+        create(:task, attack: attack, state: "running")
+
+        expect(campaign.calculate_current_eta).to eq(campaign.current_eta)
+      end
+    end
+
+    describe "#calculate_total_eta" do
+      let(:campaign) { create(:campaign) }
+
+      it "returns nil when there are no incomplete attacks" do
+        create(:dictionary_attack, campaign: campaign, state: "completed")
+        expect(campaign.calculate_total_eta).to be_nil
+      end
+
+      it "returns estimated total completion time for incomplete attacks" do
+        create(:dictionary_attack, campaign: campaign, state: "pending")
+        result = campaign.calculate_total_eta
+        expect(result).to be_nil.or be_a(Time)
+      end
+
+      it "returns the same value as total_eta" do
+        create(:dictionary_attack, campaign: campaign, state: "pending")
+
+        expect(campaign.calculate_total_eta).to eq(campaign.total_eta)
+      end
+    end
   end
 
   # Tests for manual pause/resume functionality
