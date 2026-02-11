@@ -6,28 +6,28 @@
       id: tab_id("overview"),
       active: true,
       aria: { controls: panel_id("overview") },
-      data: { tabs_target: "tab", action: "click->tabs#showTab" }
+      data: { tabs_target: "tab", action: "click->tabs#switch" }
     ) %>
     <% nav.with_item(
       text: "Errors",
       href: "##{panel_id('errors')}",
       id: tab_id("errors"),
       aria: { controls: panel_id("errors") },
-      data: { tabs_target: "tab", action: "click->tabs#showTab" }
+      data: { tabs_target: "tab", action: "click->tabs#switch" }
     ) %>
     <% nav.with_item(
       text: "Configuration",
       href: "##{panel_id('configuration')}",
       id: tab_id("configuration"),
       aria: { controls: panel_id("configuration") },
-      data: { tabs_target: "tab", action: "click->tabs#showTab" }
+      data: { tabs_target: "tab", action: "click->tabs#switch" }
     ) %>
     <% nav.with_item(
       text: "Capabilities",
       href: "##{panel_id('capabilities')}",
       id: tab_id("capabilities"),
       aria: { controls: panel_id("capabilities") },
-      data: { tabs_target: "tab", action: "click->tabs#showTab" }
+      data: { tabs_target: "tab", action: "click->tabs#switch" }
     ) %>
   <% end %>
 

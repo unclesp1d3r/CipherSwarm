@@ -44,18 +44,18 @@ class StatusPillComponent < ApplicationViewComponent
 
   def status_class
     case @status
-    when "completed"
+    when "completed", "active", "exhausted"
       "text-bg-success"
     when "running"
       "text-bg-primary"
-    when "paused"
+    when "paused", "pending"
       "text-bg-warning"
-    when "failed"
+    when "failed", "error"
       "text-bg-danger"
-    when "exhausted"
-      "text-bg-success"
-    when "pending"
+    when "stopped"
       "text-bg-secondary"
+    when "offline"
+      "text-bg-dark"
     else
       "text-bg-default"
     end
@@ -63,7 +63,7 @@ class StatusPillComponent < ApplicationViewComponent
 
   def status_icon
     case @status
-    when "completed"
+    when "completed", "active", "exhausted"
       "check-circle"
     when "running"
       "spinner"
@@ -71,10 +71,14 @@ class StatusPillComponent < ApplicationViewComponent
       "pause-circle"
     when "failed"
       "times-circle"
-    when "exhausted"
-      "check-circle"
     when "pending"
       "clock"
+    when "stopped"
+      "stop-circle"
+    when "error"
+      "exclamation-triangle"
+    when "offline"
+      "wifi-off"
     else
       "question-circle"
     end

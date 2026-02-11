@@ -60,11 +60,11 @@ class CampaignProgressComponent < ApplicationViewComponent
     when "completed"
       "check-circle"
     when "running"
-      "spinner"
+      "arrow-repeat"
     when "paused"
-      "pause-circle"
+      "pause-circle-fill"
     when "failed"
-      "times-circle"
+      "x-circle"
     when "exhausted"
       "check-circle"
     when "pending"
@@ -83,6 +83,8 @@ class CampaignProgressComponent < ApplicationViewComponent
         "Failed"
       when "exhausted"
         "Exhausted"
+      when "pending", "running", "paused"
+        "Calculating\u2026"
       else
         "N/A"
       end

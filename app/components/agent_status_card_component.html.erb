@@ -4,10 +4,12 @@
   <%= render Railsboot::CardComponent.new(class: card_classes) do |card| %>
     <% card.with_header do %>
       <div class="d-flex justify-content-between align-items-center">
-        <h5 class="mb-0"><%= agent.name %></h5>
-        <span class="badge rounded-pill text-bg-<%= status_badge_variant %>">
-          <%= agent.state.humanize %>
-        </span>
+        <h5 class="mb-0">
+          <a href="<%= helpers.agent_path(agent) %>" class="text-decoration-none text-reset" data-turbo-frame="_top">
+            <%= agent.name %>
+          </a>
+        </h5>
+        <%= render StatusPillComponent.new(status: agent.state) %>
       </div>
     <% end %>
 

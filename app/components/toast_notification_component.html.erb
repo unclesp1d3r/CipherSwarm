@@ -1,0 +1,15 @@
+<div class="toast align-items-center <%= border_class %>"
+     role="alert"
+     aria-live="assertive"
+     aria-atomic="true"
+     data-controller="toast"
+     data-toast-autohide-value="true"
+     data-toast-delay-value="5000">
+  <div class="d-flex">
+    <div class="toast-body d-flex align-items-center gap-2">
+      <i class="bi bi-<%= icon_name %> text-<%= @variant %>"></i>
+      <%= @message %>
+    </div>
+    <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+  </div>
+</div>
