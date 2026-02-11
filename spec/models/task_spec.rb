@@ -139,6 +139,42 @@ RSpec.describe Task do
       end
     end
 
+    describe "#error" do
+      let(:running_task) { create(:task, state: "running") }
+
+      it "transitions from running to failed" do
+        running_task.error
+        expect(running_task).to be_failed
+      end
+
+      it "logs the error transition via StateChangeLogger" do
+        running_task.update!(last_error: "GPU memory exhausted")
+        allow(StateChangeLogger).to receive(:log_task_transition)
+
+        running_task.error
+
+        expect(StateChangeLogger).to have_received(:log_task_transition).with(
+          task: running_task,
+          event: :error,
+          transition: { from: "running", to: "failed" },
+          context: { reason: "GPU memory exhausted" }
+        )
+      end
+
+      it "logs 'unknown' reason when last_error is nil" do
+        allow(StateChangeLogger).to receive(:log_task_transition)
+
+        running_task.error
+
+        expect(StateChangeLogger).to have_received(:log_task_transition).with(
+          task: running_task,
+          event: :error,
+          transition: { from: "running", to: "failed" },
+          context: { reason: "unknown" }
+        )
+      end
+    end
+
     describe "#abandon" do
       let(:running_task) { create(:task, state: "running") }
 
@@ -200,6 +236,29 @@ RSpec.describe Task do
         allow(Rails.logger).to receive(:error)
         task.send(:log_broadcast_error, StandardError.new("Test error"))
         expect(Rails.logger).to have_received(:error).with(/\[BroadcastError\].*Model: Task/).at_least(:once)
+      end
+    end
+
+    describe "#safe_broadcast_attack_progress_update" do
+      it "delegates to attack.broadcast_attack_progress_update" do
+        allow(task.attack).to receive(:broadcast_attack_progress_update)
+        task.send(:safe_broadcast_attack_progress_update)
+        expect(task.attack).to have_received(:broadcast_attack_progress_update)
+      end
+
+      it "logs via StateChangeLogger.log_broadcast_error with target context when broadcast raises" do
+        error = StandardError.new("Connection refused")
+        allow(task.attack).to receive(:broadcast_attack_progress_update).and_raise(error)
+        allow(StateChangeLogger).to receive(:log_broadcast_error)
+
+        task.send(:safe_broadcast_attack_progress_update)
+
+        expect(StateChangeLogger).to have_received(:log_broadcast_error).with(
+          model_name: "Task",
+          record_id: task.id,
+          error: error,
+          context: { target: "attack-progress-#{task.attack_id}", partial: "campaigns/attack_progress" }
+        )
       end
     end
   end
