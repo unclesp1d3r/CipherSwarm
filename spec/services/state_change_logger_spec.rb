@@ -284,5 +284,43 @@ RSpec.describe StateChangeLogger do
         match(/Backtrace: Not available/)
       )
     end
+
+    it "includes target when provided in context" do
+      described_class.log_broadcast_error(
+        model_name: "Task",
+        record_id: 123,
+        error: error,
+        context: { target: "attack-progress-456" }
+      )
+
+      expect(Rails.logger).to have_received(:error).with(
+        match(/Target: attack-progress-456/)
+      )
+    end
+
+    it "includes partial when provided in context" do
+      described_class.log_broadcast_error(
+        model_name: "Task",
+        record_id: 123,
+        error: error,
+        context: { partial: "campaigns/attack_progress" }
+      )
+
+      expect(Rails.logger).to have_received(:error).with(
+        match(/Partial: campaigns\/attack_progress/)
+      )
+    end
+
+    it "omits target and partial when context is empty" do
+      described_class.log_broadcast_error(
+        model_name: "Task",
+        record_id: 123,
+        error: error
+      )
+
+      expect(Rails.logger).to have_received(:error).with(
+        satisfy { |msg| msg.exclude?("Target:") && msg.exclude?("Partial:") }
+      )
+    end
   end
 end
