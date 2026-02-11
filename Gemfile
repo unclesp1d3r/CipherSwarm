@@ -85,7 +85,7 @@ gem "devise", "~> 4.9"
 gem "dry-initializer", "~> 3.1"
 # gem "groupdate", "~> 6.4"  # REMOVED: Not currently used in codebase
 gem "inline_svg", "~> 1.9"
-gem "kredis", "~> 1.7"
+
 gem "lograge", "~> 0.14"
 # gem "maruku", "~> 0.7"  # REMOVED: Not used - consider commonmarker or redcarpet if markdown needed
 gem "meta-tags", "~> 2.21"

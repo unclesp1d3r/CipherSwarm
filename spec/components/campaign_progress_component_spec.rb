@@ -16,7 +16,7 @@ RSpec.describe CampaignProgressComponent, type: :component do
 
       expect(page).to have_css(".progress-bar[style='width: 45.12%']")
       expect(page).to have_css(".badge.text-bg-primary", text: "Running")
-      expect(page).to have_css("i.bi.bi-spinner")
+      expect(page).to have_css("i.bi.bi-arrow-repeat")
       expect(page).to have_css("[aria-label='Status: Running']")
       expect(page).to have_css("[aria-label='Estimated time of arrival']")
     end
@@ -33,10 +33,22 @@ RSpec.describe CampaignProgressComponent, type: :component do
   end
 
   context "with no eta" do
-    it "renders N/A for eta when status is pending" do
+    it "renders Calculating for eta when status is pending" do
       render_inline(described_class.new(percentage: 10.0, status: "pending", eta: nil))
 
-      expect(page).to have_text("N/A")
+      expect(page).to have_text("Calculating\u2026")
+    end
+
+    it "renders Calculating for eta when status is running with no eta" do
+      render_inline(described_class.new(percentage: 10.0, status: "running", eta: nil))
+
+      expect(page).to have_text("Calculating\u2026")
+    end
+
+    it "renders Calculating for eta when status is paused with no eta" do
+      render_inline(described_class.new(percentage: 50.0, status: "paused", eta: nil))
+
+      expect(page).to have_text("Calculating\u2026")
     end
 
     it "renders Completed for completed status with no eta" do
@@ -66,7 +78,7 @@ RSpec.describe CampaignProgressComponent, type: :component do
       render_inline(described_class.new(percentage: 60.0, status: "paused", eta: 3.hours.from_now))
 
       expect(page).to have_css(".badge.text-bg-warning", text: "Paused")
-      expect(page).to have_css("i.bi.bi-pause-circle")
+      expect(page).to have_css("i.bi.bi-pause-circle-fill")
     end
   end
 
@@ -75,7 +87,7 @@ RSpec.describe CampaignProgressComponent, type: :component do
       render_inline(described_class.new(percentage: 30.0, status: "failed", eta: 1.hour.from_now))
 
       expect(page).to have_css(".badge.text-bg-danger", text: "Failed")
-      expect(page).to have_css("i.bi.bi-times-circle")
+      expect(page).to have_css("i.bi.bi-x-circle")
     end
   end
 

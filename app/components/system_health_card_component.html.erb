@@ -1,0 +1,18 @@
+<%= render Railsboot::CardComponent.new do |card| %>
+  <% card.with_body do %>
+    <div class="d-flex align-items-center gap-2 mb-2">
+      <i class="bi bi-<%= status_icon_name %> text-<%= status_variant %> fs-4"></i>
+      <h6 class="mb-0"><%= @service_name %></h6>
+    </div>
+
+    <span class="badge text-bg-<%= status_variant %>"><%= status_text %></span>
+
+    <% if latency_text %>
+      <small class="text-muted ms-2"><%= latency_text %></small>
+    <% end %>
+
+    <% if @error.present? %>
+      <div class="text-danger mt-2 small"><%= @error %></div>
+    <% end %>
+  <% end %>
+<% end %>
