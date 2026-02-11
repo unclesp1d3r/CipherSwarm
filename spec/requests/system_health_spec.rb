@@ -16,7 +16,7 @@ RSpec.describe "SystemHealth" do
 
   before do
     # Clear any leftover lock
-    Sidekiq.redis { |conn| conn.del(SystemHealthController::LOCK_KEY) }
+    Sidekiq.redis { |conn| conn.del(SystemHealthCheckService::LOCK_KEY) }
   end
 
   describe "GET /system_health" do
@@ -75,7 +75,7 @@ RSpec.describe "SystemHealth" do
         get system_health_path
         expect(response).to have_http_status(:success)
 
-        cached = memory_cache.read(SystemHealthController::CACHE_KEY)
+        cached = memory_cache.read(SystemHealthCheckService::CACHE_KEY)
         expect(cached).to be_present
         expect(cached[:postgresql][:status]).to eq(:healthy)
       end
@@ -85,7 +85,7 @@ RSpec.describe "SystemHealth" do
         expect(response).to have_http_status(:success)
 
         # Verify cache was populated after first request
-        expect(memory_cache.read(SystemHealthController::CACHE_KEY)).to be_present
+        expect(memory_cache.read(SystemHealthCheckService::CACHE_KEY)).to be_present
 
         # Second request should succeed and use cached data
         get system_health_path
@@ -104,19 +104,35 @@ RSpec.describe "SystemHealth" do
         expect(response).to have_http_status(:success)
 
         # Lock should be released after request completes
-        lock_value = Sidekiq.redis { |conn| conn.get(SystemHealthController::LOCK_KEY) }
+        lock_value = Sidekiq.redis { |conn| conn.get(SystemHealthCheckService::LOCK_KEY) }
         expect(lock_value).to be_nil
       end
 
       it "returns checking status when lock is held by another request" do
         # Simulate lock held by another request
-        Sidekiq.redis { |conn| conn.set(SystemHealthController::LOCK_KEY, "locked", nx: true, ex: 10) }
+        Sidekiq.redis { |conn| conn.set(SystemHealthCheckService::LOCK_KEY, "other-token", nx: true, ex: 10) }
 
         get system_health_path
         expect(response).to have_http_status(:success)
 
         # Clean up
-        Sidekiq.redis { |conn| conn.del(SystemHealthController::LOCK_KEY) }
+        Sidekiq.redis { |conn| conn.del(SystemHealthCheckService::LOCK_KEY) }
+      end
+
+      it "only releases lock if token matches" do
+        # Acquire lock with a different token to simulate another request
+        Sidekiq.redis { |conn| conn.set(SystemHealthCheckService::LOCK_KEY, "other-request-token", nx: true, ex: 10) }
+
+        # Service should not be able to acquire lock, so it returns checking status
+        get system_health_path
+        expect(response).to have_http_status(:success)
+
+        # Lock should still be held by the other request (not released by our request)
+        lock_value = Sidekiq.redis { |conn| conn.get(SystemHealthCheckService::LOCK_KEY) }
+        expect(lock_value).to eq("other-request-token")
+
+        # Clean up
+        Sidekiq.redis { |conn| conn.del(SystemHealthCheckService::LOCK_KEY) }
       end
     end
 
