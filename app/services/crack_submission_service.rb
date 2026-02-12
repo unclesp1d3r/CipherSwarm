@@ -147,20 +147,29 @@ class CrackSubmissionService
   # @param hash_list [HashList] the source hash list
   # @param hash_item [HashItem] the cracked hash item
   def propagate_crack_to_matching_hashes(hash_list, hash_item)
-    HashItem.includes(:hash_list)
-            .where(hash_value: hash_item.hash_value, cracked: false, hash_list: { hash_type_id: hash_list.hash_type_id })
-            .update!(plain_text: plain_text, cracked: true, cracked_time: timestamp, attack: task.attack)
+    # rubocop:disable Rails/SkipsModelValidations
+    HashItem.joins(:hash_list)
+            .where(hash_value: hash_item.hash_value, cracked: false)
+            .where(hash_lists: { hash_type_id: hash_list.hash_type_id })
+            .update_all(
+              plain_text: plain_text,
+              cracked: true,
+              cracked_time: timestamp,
+              attack_id: task.attack_id
+            )
+    # rubocop:enable Rails/SkipsModelValidations
   end
 
   # Marks tasks for other campaigns targeting this hash list as stale.
   #
   # @param hash_list [HashList] the hash list
   def mark_related_tasks_stale(hash_list)
-    hash_list.campaigns.each do |campaign|
-      campaign.attacks.each do |attack|
-        attack.tasks.where.not(id: task.id).update(stale: true)
-      end
-    end
+    # rubocop:disable Rails/SkipsModelValidations
+    Task.joins(attack: :campaign)
+        .where(campaigns: { hash_list_id: hash_list.id })
+        .where.not(id: task.id)
+        .update_all(stale: true)
+    # rubocop:enable Rails/SkipsModelValidations
   end
 
   # Touches the campaign to trigger cache invalidation.

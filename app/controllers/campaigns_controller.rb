@@ -27,8 +27,8 @@ class CampaignsController < ApplicationController
   def show
     fresh_when(@campaign)
 
-    # Preload attacks with complexity ordering for display
-    @attacks = @campaign.attacks.by_complexity
+    # Preload attacks with complexity ordering and eager-load associations used by views
+    @attacks = @campaign.attacks.by_complexity.includes(tasks: :hashcat_statuses)
 
     # Precompute map for failed attacks to their latest error
     failed_attack_ids = @attacks.where(state: "failed").pluck(:id)

@@ -115,6 +115,21 @@ RSpec.describe HashList do
       end
     end
 
+    describe "#cracked_list" do
+      before do
+        create(:hash_item, hash_list: hash_list, cracked: true, plain_text: "pass1", cracked_time: 1.hour.ago)
+        create(:hash_item, hash_list: hash_list, cracked: true, plain_text: "pass2", cracked_time: 2.hours.ago)
+        create(:hash_item, hash_list: hash_list, cracked: false)
+      end
+
+      it "returns cracked hash:plain pairs joined by newlines" do
+        result = hash_list.cracked_list
+        lines = result.split("\n")
+        expect(lines.length).to eq(2)
+        expect(lines).to all(include(hash_list.separator))
+      end
+    end
+
     describe "#recent_cracks_count" do
       before do
         create(:hash_item, hash_list: hash_list, cracked: true, cracked_time: 2.hours.ago, plain_text: "password1")

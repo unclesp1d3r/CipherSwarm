@@ -54,7 +54,6 @@
 #  fk_rails_...  (task_id => tasks.id) ON DELETE => cascade
 #
 require "date"
-include ActiveSupport::NumberHelper
 
 # This class represents the status of a Hashcat task and its associated
 # properties, such as the current progress, status, device speeds, and
@@ -62,6 +61,7 @@ include ActiveSupport::NumberHelper
 # information about related devices, and provides utility methods to calculate
 # metrics and format data for display or serialization.
 class HashcatStatus < ApplicationRecord
+  include ActiveSupport::NumberHelper
   belongs_to :task, touch: true
   has_many :device_statuses, dependent: :destroy, autosave: true
   has_one :hashcat_guess, dependent: :destroy, autosave: true

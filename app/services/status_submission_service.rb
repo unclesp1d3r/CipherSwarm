@@ -83,8 +83,11 @@ class StatusSubmissionService
   private
 
   # Updates the task's activity timestamp.
+  # Uses update_column to skip callbacks and avoid cascading touch updates.
   def update_activity_timestamp
-    task.update(activity_timestamp: Time.zone.now)
+    # rubocop:disable Rails/SkipsModelValidations
+    task.update_column(:activity_timestamp, Time.zone.now)
+    # rubocop:enable Rails/SkipsModelValidations
   end
 
   # Builds the HashcatStatus with associated records.

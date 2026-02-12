@@ -155,11 +155,12 @@ class Agent < ApplicationRecord
     end
 
     after_transition on: :shutdown do |agent|
+      running_tasks = agent.tasks.with_states(:running)
       Rails.logger.info(
         "[AgentLifecycle] shutdown: agent_id=#{agent.id} state_change=#{agent.state_was}->offline " \
-        "running_tasks_abandoned=#{agent.tasks.with_states(:running).count} timestamp=#{Time.zone.now}"
+        "running_tasks_paused=#{running_tasks.count} timestamp=#{Time.zone.now}"
       )
-      agent.tasks.with_states(:running).each { |task| task.abandon }
+      running_tasks.find_each(&:pause)
     end
 
     after_transition on: :activate do |agent|

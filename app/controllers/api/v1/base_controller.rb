@@ -81,6 +81,7 @@ class Api::V1::BaseController < ApplicationController
     authenticate_with_http_token do |token, _options|
       @agent = Agent.find_by(token: token)
       update_last_seen
+      @agent # Explicitly return agent for authenticate_with_http_token
     end
   end
 
@@ -192,6 +193,6 @@ class Api::V1::BaseController < ApplicationController
       @agent.update(last_seen_at: Time.zone.now, last_ipaddress: request.remote_ip)
     end
 
-    @agent.heartbeat # Marks the agent as active if it was previously offline.
+    @agent.heartbeat unless @agent.active? # Only fire heartbeat when agent needs state change
   end
 end
