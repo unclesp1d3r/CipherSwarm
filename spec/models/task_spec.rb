@@ -344,6 +344,57 @@ RSpec.describe Task do
     end
   end
 
+  describe "#remove_old_status" do
+    let(:project) { create(:project) }
+    let(:campaign) { create(:campaign, project: project) }
+    let(:attack) { create(:dictionary_attack, campaign: campaign) }
+    let(:agent) { create(:agent, projects: [project]) }
+    let(:task) { create(:task, attack: attack, agent: agent) }
+
+    before do
+      allow(ApplicationConfig).to receive(:task_status_limit).and_return(2)
+    end
+
+    it "removes old statuses beyond the limit" do
+      create_list(:hashcat_status, 5, task: task)
+      expect { task.remove_old_status }.to change { task.hashcat_statuses.count }.from(5).to(2)
+    end
+
+    it "does nothing when statuses are within limit" do
+      create(:hashcat_status, task: task)
+      expect { task.remove_old_status }.not_to change { task.hashcat_statuses.count }
+    end
+  end
+
+  describe "state machine callbacks" do
+    let(:project) { create(:project) }
+    let(:campaign) { create(:campaign, project: project) }
+    let(:attack) { create(:dictionary_attack, campaign: campaign) }
+    let(:agent) { create(:agent, projects: [project]) }
+
+    describe "completed callback" do
+      let(:task) { create(:task, attack: attack, agent: agent, state: "running") }
+
+      it "deletes hashcat_statuses on completion" do
+        create(:hashcat_status, task: task)
+        allow(Rails.logger).to receive(:info)
+        task.complete
+        expect(task.reload.hashcat_statuses.count).to eq(0)
+      end
+    end
+
+    describe "exhausted callback" do
+      let(:task) { create(:task, attack: attack, agent: agent, state: "running") }
+
+      it "deletes hashcat_statuses on exhaustion" do
+        create(:hashcat_status, task: task)
+        allow(Rails.logger).to receive(:info)
+        task.exhaust
+        expect(task.reload.hashcat_statuses.count).to eq(0)
+      end
+    end
+  end
+
   describe "#compatible_agent?" do
     let(:project) { create(:project) }
     let(:campaign) { create(:campaign, project: project) }

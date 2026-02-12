@@ -188,25 +188,25 @@ class Task < ApplicationRecord
       transition failed: :pending
     end
 
-    after_transition on: :running do |task|
+    after_transition to: :running do |task|
       Rails.logger.info("[Task #{task.id}] Agent #{task.agent_id} - Attack #{task.attack_id} - State change: #{task.state_was} -> running - Task accepted and running")
       task.attack.accept
-      task.safe_broadcast_attack_progress_update
+      task.send(:safe_broadcast_attack_progress_update)
     end
 
-    after_transition on: :completed do |task|
+    after_transition to: :completed do |task|
       uncracked = task.hash_list.uncracked_count
       Rails.logger.info("[Task #{task.id}] Agent #{task.agent_id} - Attack #{task.attack_id} - State change: #{task.state_was} -> completed - Uncracked hashes: #{uncracked}")
       task.attack.complete if task.attack.can_complete?
-      task.safe_broadcast_attack_progress_update
-      task.hashcat_statuses.destroy_all
+      task.send(:safe_broadcast_attack_progress_update)
+      task.hashcat_statuses.delete_all # DB cascades handle child records
     end
 
-    after_transition on: :exhausted do |task|
+    after_transition to: :exhausted do |task|
       Rails.logger.info("[Task #{task.id}] Agent #{task.agent_id} - Attack #{task.attack_id} - State change: #{task.state_was} -> exhausted - Keyspace exhausted")
       task.attack.exhaust if task.attack.can_exhaust?
-      task.safe_broadcast_attack_progress_update
-      task.hashcat_statuses.destroy_all
+      task.send(:safe_broadcast_attack_progress_update)
+      task.hashcat_statuses.delete_all # DB cascades handle child records
     end
 
     after_transition on: :abandon do |task|
@@ -232,9 +232,9 @@ class Task < ApplicationRecord
       task.update(stale: true)
     end
 
-    after_transition on: :paused do |task|
+    after_transition to: :paused do |task|
       Rails.logger.info("[Task #{task.id}] Agent #{task.agent_id} - Attack #{task.attack_id} - State change: #{task.state_was} -> paused - Task execution paused")
-      task.safe_broadcast_attack_progress_update
+      task.send(:safe_broadcast_attack_progress_update)
     end
 
     after_transition on: :retry do |task|
@@ -282,8 +282,6 @@ class Task < ApplicationRecord
       )
     end
 
-    after_transition on: :exhausted, do: :mark_attack_exhausted
-
     after_transition any - [:pending] => any, do: :update_activity_timestamp
 
     state :completed
@@ -318,18 +316,6 @@ class Task < ApplicationRecord
 
   def latest_status
     hashcat_statuses.where(status: :running).order(time: :desc).first
-  end
-
-  # Marks the attack as exhausted if it is not already exhausted.
-  # If the attack cannot be marked as exhausted, adds an error to the attack
-  # and aborts the operation.
-  #
-  # @return [void]
-  def mark_attack_exhausted
-    return if attack.exhaust
-
-    errors.add(:attack, "could not be marked exhausted")
-    throw(:abort)
   end
 
   # Calculates the progress percentage of the current task.
@@ -397,7 +383,7 @@ class Task < ApplicationRecord
     limit = ApplicationConfig.task_status_limit
     return unless limit.is_a?(Integer) && limit.positive?
 
-    hashcat_statuses.order(created_at: :desc).offset(limit).destroy_all
+    hashcat_statuses.order(created_at: :desc).offset(limit).delete_all # DB cascades handle child records
   end
 
   # Checks if there are any uncracked hashes remaining.

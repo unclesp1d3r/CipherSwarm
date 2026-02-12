@@ -42,7 +42,7 @@ module AttackStateMachine
       # if all tasks are completed or the hash list is fully cracked. If the attack is in the pending state, it will transition to the
       # completed state if the hash list is fully cracked.
       event :complete do
-        transition running: :completed if ->(attack) { attack.tasks.all?(&:completed?) || attack.campaign.completed? }
+        transition running: :completed if ->(attack) { !attack.tasks.without_state(:completed).exists? || attack.campaign.completed? }
         transition pending: :completed if ->(attack) { (attack.hash_list&.uncracked_count || 0).zero? }
         transition all - [:running] => same
       end
@@ -63,7 +63,7 @@ module AttackStateMachine
       # if all tasks are exhausted. If the attack is in the running state, it will transition to the exhausted state if the hash list
       # is fully cracked.
       event :exhaust do
-        transition running: :exhausted if ->(attack) { attack.tasks.all?(&:exhausted?) }
+        transition running: :exhausted if ->(attack) { !attack.tasks.without_state(:exhausted).exists? }
         transition running: :exhausted if ->(attack) { (attack.hash_list&.uncracked_count || 0).zero? }
         transition any => same
       end
@@ -92,52 +92,32 @@ module AttackStateMachine
         transition any => same
       end
 
-      ## Transitions
-
-      # Executed after an attack has entered the running state. This sets the start_time attribute to the current time.
       after_transition on: :run do |attack|
         attack.touch(:start_time) # rubocop:disable Rails/SkipsModelValidations
         attack.campaign.touch # rubocop:disable Rails/SkipsModelValidations
       end
-
-      # Executed after an attack has entered the completed state. This sets the end_time attribute to the current time.
       after_transition on: :complete do |attack|
         attack.touch(:end_time) # rubocop:disable Rails/SkipsModelValidations
       end
-
-      # Executed after an attack has been abandoned. Removes all tasks to free up for another agent.
       after_transition on: :abandon do |attack|
         task_ids = attack.tasks.pluck(:id)
-        begin
-          Rails.logger.info("[AttackAbandon] Attack #{attack.id}: destroying #{task_ids.size} tasks [#{task_ids.join(', ')}]")
-          attack.tasks.destroy_all
-          attack.campaign.touch # rubocop:disable Rails/SkipsModelValidations
-        rescue StandardError => e
-          backtrace = e.backtrace&.first(5)&.join("\n           ") || "Not available"
-          Rails.logger.error(
-            "[AttackAbandon] Attack #{attack.id} error: #{e.class} - #{e.message}\n" \
-            "           Backtrace: #{backtrace}"
-          )
-          raise
-        end
+        Rails.logger.info("[AttackAbandon] Attack #{attack.id}: destroying #{task_ids.size} tasks [#{task_ids.join(', ')}]")
+        attack.tasks.destroy_all
+        attack.campaign.touch # rubocop:disable Rails/SkipsModelValidations
+      rescue StandardError => e
+        backtrace = e.backtrace&.first(5)&.join("\n           ") || "Not available"
+        Rails.logger.error("[AttackAbandon] Attack #{attack.id} error: #{e.class} - #{e.message}\n           Backtrace: #{backtrace}")
+        raise
       end
-
-      # Executed after an attack is being paused. This pauses all tasks associated with the attack.
       after_transition any => :paused, :do => :pause_tasks
-
-      # Executed after an attack is being resumed. This resumes all tasks associated with the attack.
       after_transition paused: any, do: :resume_tasks
-
-      # Broadcast progress updates for state changes
       after_transition any => %i[running completed exhausted failed paused], do: :broadcast_attack_progress_update
-
-      # Executed after an attack has been completed. This completes the hash list for the campaign and updates the campaign's updated_at timestamp.
       after_transition any => :completed, :do => :complete_hash_list
       after_transition any => :completed, :do => :touch_campaign
-
-      # Executed before an attack is marked completed. This completes all remaining tasks associated with the attack if the hash list is fully cracked.
       before_transition on: :complete do |attack|
-        attack.tasks.each(&:complete!) if (attack.hash_list&.uncracked_count || 0).zero?
+        if attack.hash_list.uncracked_count.zero?
+          attack.tasks.without_state(:completed).find_each(&:complete!)
+        end
       end
 
       state :paused
@@ -146,7 +126,6 @@ module AttackStateMachine
       state :pending
     end
   end
-
   private
 
   # Completes other incomplete attacks for the campaign if there are no uncracked hashes left.
@@ -170,24 +149,14 @@ module AttackStateMachine
     end
   end
 
-  # Pauses all tasks associated with the current object.
-  # Iterates through each task and calls the `pause` method on it.
   def pause_tasks
     tasks.without_state(:paused).each(&:pause)
   end
 
-  # Resumes all tasks associated with the current object.
-  # Iterates through each task and calls the `resume` method on it.
   def resume_tasks
     tasks.find_each(&:resume)
   end
 
-  # Updates the `updated_at` timestamp of the associated campaign.
-  #
-  # This method calls the `touch` method on the campaign, which updates
-  # the `updated_at` timestamp to the current time.
-  #
-  # @return [void]
   def touch_campaign
     campaign.touch # rubocop:disable Rails/SkipsModelValidations
   end
