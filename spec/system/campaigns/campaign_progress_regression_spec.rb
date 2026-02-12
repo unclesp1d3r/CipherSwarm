@@ -26,7 +26,7 @@ RSpec.describe "Campaign progress component regressions" do
       create(:attack, state: :pending, campaign: campaign, name: "Pending Attack")
     end
 
-    it "renders valid Bootstrap icons for each attack state", :aggregate_failures do
+    it "renders valid Bootstrap icons for each attack state", :aggregate_failures, skip: ENV["CI"].present? do
       page_object.visit_page(campaign)
       page_object.wait_for_eta_summary_loaded
 

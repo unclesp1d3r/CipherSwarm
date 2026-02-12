@@ -155,7 +155,8 @@ class CrackSubmissionService
               plain_text: plain_text,
               cracked: true,
               cracked_time: timestamp,
-              attack_id: task.attack_id
+              attack_id: task.attack_id,
+              updated_at: Time.current
             )
     # rubocop:enable Rails/SkipsModelValidations
   end
@@ -168,7 +169,7 @@ class CrackSubmissionService
     Task.joins(attack: :campaign)
         .where(campaigns: { hash_list_id: hash_list.id })
         .where.not(id: task.id)
-        .update_all(stale: true)
+        .update_all(stale: true, updated_at: Time.current)
     # rubocop:enable Rails/SkipsModelValidations
   end
 

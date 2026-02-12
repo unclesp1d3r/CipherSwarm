@@ -70,7 +70,7 @@ class StatusPillComponent < ApplicationViewComponent
     when "paused"
       "pause-circle"
     when "failed"
-      "times-circle"
+      "x-circle"
     when "pending"
       "clock"
     when "stopped"
