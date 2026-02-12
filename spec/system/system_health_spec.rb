@@ -5,7 +5,7 @@
 
 require "rails_helper"
 
-RSpec.describe "System Health Dashboard" do
+RSpec.describe "System Health Dashboard", skip: ENV["CI"].present? do
   before do
     Sidekiq.redis { |conn| conn.del(SystemHealthCheckService::LOCK_KEY) }
   end

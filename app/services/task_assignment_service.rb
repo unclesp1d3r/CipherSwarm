@@ -46,6 +46,14 @@ class TaskAssignmentService
 
   # Finds an existing incomplete task assigned to the agent.
   #
+  # REASONING:
+  # - Uses NOT EXISTS subquery to filter tasks with fatal errors in SQL rather than
+  #   loading tasks then checking has_fatal_error? per-row (N+1).
+  # - Uses EXISTS to confirm uncracked hash items remain, avoiding join row multiplication.
+  # - Alternatives: INNER JOIN + DISTINCT (bloated result set), LEFT JOIN + WHERE NOT NULL
+  #   (less readable), Ruby iteration (N+1 queries on large task sets).
+  # - Decision: EXISTS subqueries are index-friendly, avoid duplicates, and push filtering to DB.
+  #
   # @return [Task, nil] an incomplete task without fatal errors, or nil
   def find_existing_incomplete_task
     agent.tasks.incomplete

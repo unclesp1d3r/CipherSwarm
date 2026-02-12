@@ -1,4 +1,4 @@
-<h1><%= title "System Health" %></h1>
+<h1><%= title t(".title") %></h1>
 
 <% if @health_checks.present? %>
   <% if @health_checks.values.all? { |c| c[:status] == :checking } %>
@@ -6,9 +6,9 @@
     <div class="row mt-3">
       <div class="col-12">
         <p class="text-muted mb-0">
-          Health checks are being performed by another request.
+          <%= t(".checks_in_progress") %>
           <%= link_to system_health_path, class: "btn btn-outline-secondary btn-sm ms-2" do %>
-            <i class="bi bi-arrow-clockwise"></i> Refresh
+            <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> <%= t(".refresh") %>
           <% end %>
         </p>
       </div>
@@ -33,18 +33,18 @@
         <div class="col-12">
           <%= render Railsboot::CardComponent.new do |card| %>
             <% card.with_header do %>
-              <h5 class="mb-0"><i class="bi bi-bar-chart"></i> Sidekiq Metrics</h5>
+              <h5 class="mb-0"><i class="bi bi-bar-chart" aria-hidden="true"></i> <%= t(".sidekiq_metrics") %></h5>
             <% end %>
             <% card.with_body do %>
               <div class="d-flex gap-4">
                 <div>
-                  <strong>Workers:</strong> <%= sidekiq_check[:workers] %>
+                  <strong><%= t(".workers") %></strong> <%= sidekiq_check[:workers] %>
                 </div>
                 <div>
-                  <strong>Queues:</strong> <%= sidekiq_check[:queues] %>
+                  <strong><%= t(".queues") %></strong> <%= sidekiq_check[:queues] %>
                 </div>
                 <div>
-                  <strong>Enqueued Jobs:</strong> <%= sidekiq_check[:enqueued] %>
+                  <strong><%= t(".enqueued_jobs") %></strong> <%= sidekiq_check[:enqueued] %>
                 </div>
               </div>
             <% end %>
@@ -57,19 +57,19 @@
       <div class="col-12">
         <%= render Railsboot::CardComponent.new do |card| %>
           <% card.with_header do %>
-            <h5 class="mb-0"><i class="bi bi-tools"></i> Diagnostics</h5>
+            <h5 class="mb-0"><i class="bi bi-tools" aria-hidden="true"></i> <%= t(".diagnostics") %></h5>
           <% end %>
           <% card.with_body do %>
             <ul class="list-unstyled mb-0">
               <% if can? :read, :admin_dashboard %>
                 <li class="mb-2">
                   <%= link_to sidekiq_web_path, class: "text-decoration-none" do %>
-                    <i class="bi bi-speedometer2"></i> Sidekiq Dashboard
+                    <i class="bi bi-speedometer2" aria-hidden="true"></i> <%= t(".sidekiq_dashboard") %>
                   <% end %>
                 </li>
               <% end %>
               <li>
-                <i class="bi bi-terminal"></i> Rails Logs <small class="text-muted">(view in terminal: <code>tail -f log/development.log</code>)</small>
+                <i class="bi bi-terminal" aria-hidden="true"></i> <%= t(".rails_logs") %> <small class="text-muted"><%= raw t(".rails_logs_hint") %></small>
               </li>
             </ul>
           <% end %>
@@ -80,14 +80,14 @@
     <div class="row">
       <div class="col-12">
         <%= link_to system_health_path, class: "btn btn-outline-secondary btn-sm" do %>
-          <i class="bi bi-arrow-clockwise"></i> Refresh
+          <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> <%= t(".refresh") %>
         <% end %>
-        <small class="text-muted ms-2">Results cached for 1 minute</small>
+        <small class="text-muted ms-2"><%= t(".cache_note") %></small>
       </div>
     </div>
   <% end %>
 <% else %>
   <%= render Railsboot::BlankSlateComponent.new do %>
-    <p class="mb-0">Unable to retrieve system health information. Please try again later.</p>
+    <p class="mb-0"><%= t(".unable_to_retrieve") %></p>
   <% end %>
 <% end %>

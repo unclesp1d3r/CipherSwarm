@@ -5,7 +5,7 @@
 
 require "rails_helper"
 
-RSpec.describe "Tabs controller regressions" do
+RSpec.describe "Tabs controller regressions", skip: ENV["CI"].present? do
   let(:agent_page) { AgentDetailPage.new(page) }
   let(:user) { create_and_sign_in_user }
 

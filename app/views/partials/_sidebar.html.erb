@@ -6,7 +6,7 @@
       <%= sidebar_link("Admin", admin_index_path, "passport") if can? :read, :admin_dashboard %>
       <%= sidebar_link("Agents", agents_path, "server") %>
       <%= sidebar_link("Hash Lists", hash_lists_path, "journal-text") if can? :read, HashList %>
-      <%= sidebar_link("System Health", system_health_path, "heart-pulse") if can? :read, :system_health %>
+      <%= sidebar_link(t("sidebar.system_health"), system_health_path, "heart-pulse") if can? :read, :system_health %>
     </ul>
   </div>
 </div>
