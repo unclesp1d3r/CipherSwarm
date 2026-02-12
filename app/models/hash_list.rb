@@ -107,15 +107,17 @@ class HashList < ApplicationRecord
 
   # Returns a string representation of the cracked hash list.
   #
-  # This method retrieves the hash items from the database that have been cracked,
-  # and constructs a string representation of each hash item in the format: "hash_value:plain_text".
+  # REASONING:
+  # - Uses in_batches to avoid loading millions of hash items into memory at once.
+  # - Alternatives: single pluck (OOM on large lists), streaming via Enumerator (more
+  #   complex, consumers must handle streaming), database-side concat (non-portable).
+  # - Decision: Batch into array parts, join at end. Balances memory safety with simplicity.
+  # - Same pattern applied to uncracked_list and uncracked_list_checksum below.
   #
-  # Example:
+  # @example
   #   hash_list.cracked_list
   #   # => "hash1:plain_text1\nhash2:plain_text2\n..."
   #
-  # Returns:
-  #   A string representation of the cracked hash list.
   # @return [String]
   def cracked_list
     parts = []

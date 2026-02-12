@@ -11,4 +11,9 @@ RSpec.describe StatusPillComponent, type: :component do
       render_inline(described_class.new(status: "completed"))
     ).to have_css(".text-bg-success", text: "Completed")
   end
+
+  it "renders x-circle icon for failed status" do
+    render_inline(described_class.new(status: "failed"))
+    expect(page).to have_css("i.bi-x-circle")
+  end
 end
