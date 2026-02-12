@@ -143,12 +143,6 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
       context: { action: "exhausted" }
     )
 
-    unless @task.attack.exhaust
-      Rails.logger.error("[APIError] ATTACK_EXHAUST_FAILED - Agent #{@agent.id} - Task #{@task.id} - Attack #{@task.attack.id} - Errors: #{@task.attack.errors.full_messages.join(', ')} - #{Time.current}")
-      render json: { error: "Failed to exhaust attack", details: @task.attack.errors.full_messages }, status: :unprocessable_content
-      return
-    end
-
     Rails.logger.info("[Agent #{@agent.id}] Task #{@task.id} - Successfully exhausted")
     head :no_content
   end

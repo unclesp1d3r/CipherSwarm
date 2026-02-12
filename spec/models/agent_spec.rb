@@ -239,11 +239,11 @@ RSpec.describe Agent do
         expect(Rails.logger).to have_received(:info).with(/\[AgentLifecycle\] shutdown:.*agent_id=#{agent.id}/)
       end
 
-      it "includes running_tasks_abandoned count in shutdown log" do
+      it "includes running_tasks_paused count in shutdown log" do
         agent = create(:agent)
         allow(Rails.logger).to receive(:info)
         agent.shutdown
-        expect(Rails.logger).to have_received(:info).with(/running_tasks_abandoned=\d+/)
+        expect(Rails.logger).to have_received(:info).with(/running_tasks_paused=\d+/)
       end
 
       it "does not raise on shutdown" do

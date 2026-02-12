@@ -161,7 +161,7 @@ RSpec.describe "api/v1/client/tasks" do
     context "when attack exhaust fails" do
       let(:running_task) { create(:task, agent: agent, attack: attack, state: "running") }
 
-      it "returns 422 with error details when attack cannot be exhausted" do
+      it "succeeds for task even when attack cannot be exhausted" do
         allow(Rails.logger).to receive(:info)
         allow(Rails.logger).to receive(:error)
 
@@ -170,9 +170,8 @@ RSpec.describe "api/v1/client/tasks" do
 
         post "/api/v1/client/tasks/#{running_task.id}/exhausted", headers: headers
 
-        expect(response).to have_http_status(:unprocessable_content)
-        expect(response.parsed_body["error"]).to eq("Failed to exhaust attack")
-        expect(response.parsed_body).to have_key("details")
+        # Task exhaustion succeeds; attack exhaustion is handled by callback with can_exhaust? guard
+        expect(response).to have_http_status(:no_content)
       end
     end
   end

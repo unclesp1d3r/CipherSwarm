@@ -48,9 +48,12 @@ class TaskAssignmentService
   #
   # @return [Task, nil] an incomplete task without fatal errors, or nil
   def find_existing_incomplete_task
-    agent.tasks.incomplete.find do |task|
-      !has_fatal_error?(task) && task.uncracked_remaining
-    end
+    agent.tasks.incomplete
+         .where.not(id: AgentError.where(agent: agent, severity: :fatal).select(:task_id))
+         .joins(attack: { campaign: :hash_list })
+         .where("EXISTS (SELECT 1 FROM hash_items WHERE hash_items.hash_list_id = hash_lists.id AND hash_items.cracked = false)")
+         .order(:id)
+         .first
   end
 
   # Searches available attacks for a task to assign.
@@ -138,9 +141,11 @@ class TaskAssignmentService
   # @param attack [Attack] the attack to search in
   # @return [Task, nil] a retryable failed task, or nil
   def find_retryable_failed_task(attack)
-    attack.tasks.with_state(:failed).where(agent: agent).find do |task|
-      !has_fatal_error?(task)
-    end
+    attack.tasks.with_state(:failed)
+         .where(agent: agent)
+         .where.not(id: AgentError.where(agent: agent, severity: :fatal).select(:task_id))
+         .order(:id)
+         .first
   end
 
   # Finds an existing pending task.

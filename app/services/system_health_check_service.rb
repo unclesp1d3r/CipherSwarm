@@ -136,12 +136,8 @@ class SystemHealthCheckService
   end
 
   def perform_all_checks
-    {
-      postgresql: check_postgresql,
-      redis: check_redis,
-      minio: check_minio,
-      sidekiq: check_sidekiq
-    }
+    checks = { postgresql: :check_postgresql, redis: :check_redis, minio: :check_minio, sidekiq: :check_sidekiq }
+    checks.transform_values { |m| send(m) }
   end
 
   def release_lock(token)

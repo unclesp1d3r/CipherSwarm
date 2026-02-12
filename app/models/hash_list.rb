@@ -118,25 +118,29 @@ class HashList < ApplicationRecord
   #   A string representation of the cracked hash list.
   # @return [String]
   def cracked_list
-    # This should output as "hash:plain_text" for each item if the separator is set to ":"
-    hash = hash_items.where.not(plain_text: nil).pluck(:hash_value, :plain_text)
-    hash.map { |h, p| "#{h}#{separator}#{p}" }.join("\n")
+    parts = []
+    hash_items.where.not(plain_text: nil).in_batches(of: 10_000) do |batch|
+      batch.pluck(:hash_value, :plain_text).each do |h, p|
+        parts << "#{h}#{separator}#{p}"
+      end
+    end
+    parts.join("\n")
   end
 
   # Returns the count of items in the hash.
   #
   # @return [Integer] the number of items in the hash
   def hash_item_count
-    # PERFORMANCE: Use .count for SQL COUNT aggregation instead of .size
-    hash_items.count
+    hash_items_count
   end
 
   # Returns the count of uncracked hash items.
   #
   # @return [Integer] the number of uncracked hash items
   def uncracked_count
-    # PERFORMANCE: Use .count for SQL COUNT aggregation instead of .size
-    hash_items.uncracked.count
+    Rails.cache.fetch("#{cache_key_with_version}/uncracked_count", expires_in: 30.seconds) do
+      hash_items.uncracked.count
+    end
   end
 
   # Returns a collection of hash items that are uncracked.
@@ -159,8 +163,11 @@ class HashList < ApplicationRecord
   #   A string representation of the uncracked hash list.
   # @return [String]
   def uncracked_list
-    # This should output as "hash" for each item - optimized version
-    uncracked_items.pluck(:hash_value).join("\n")
+    parts = []
+    uncracked_items.in_batches(of: 10_000) do |batch|
+      parts.concat(batch.pluck(:hash_value))
+    end
+    parts.join("\n")
   end
 
   # Calculates the MD5 checksum of the uncracked_list.
@@ -170,7 +177,14 @@ class HashList < ApplicationRecord
   # @return [String] The MD5 checksum of the uncracked_list as a base64-encoded string.
   def uncracked_list_checksum
     md5 = OpenSSL::Digest.new("MD5")
-    md5.update(uncracked_list)
+    first = true
+    uncracked_items.in_batches(of: 10_000) do |batch|
+      batch.pluck(:hash_value).each do |hash_value|
+        md5.update("\n") unless first
+        first = false
+        md5.update(hash_value)
+      end
+    end
     md5.base64digest
   end
 
