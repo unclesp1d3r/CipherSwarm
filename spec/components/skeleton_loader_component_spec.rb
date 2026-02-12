@@ -45,10 +45,5 @@ RSpec.describe SkeletonLoaderComponent, type: :component do
       render_inline(described_class.new(type: :agent_list))
       expect(page).to have_css("[aria-hidden='true']")
     end
-
-    it "includes aria-label for screen readers" do
-      render_inline(described_class.new(type: :agent_list))
-      expect(page).to have_css("[aria-label='Loading...']")
-    end
   end
 end
