@@ -151,4 +151,26 @@ RSpec.describe "api/v1/client/attacks" do
       end
     end
   end
+
+  describe "attack scoping to agent" do
+    let(:agent) { create(:agent) }
+    let(:other_agent) { create(:agent) }
+    let(:attack) { create(:dictionary_attack) }
+
+    before { create(:task, attack: attack, agent: other_agent) }
+
+    it "returns 404 when agent has no task for the attack" do
+      get "/api/v1/client/attacks/#{attack.id}",
+          headers: { "Authorization" => "Bearer #{agent.token}", "Accept" => "application/json" }
+
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it "returns 404 for hash_list when agent has no task for the attack" do
+      get "/api/v1/client/attacks/#{attack.id}/hash_list",
+          headers: { "Authorization" => "Bearer #{agent.token}", "Accept" => "application/json" }
+
+      expect(response).to have_http_status(:not_found)
+    end
+  end
 end

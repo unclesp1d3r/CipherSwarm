@@ -34,7 +34,12 @@ class Api::V1::Client::AttacksController < Api::V1::BaseController
       render json: { error: "Attack not found." }, status: :not_found
       return
     end
-    hash_list_model = @attack.campaign.hash_list
+    hash_list_model = @attack.campaign&.hash_list
+    if hash_list_model.nil?
+      Rails.logger.error("[APIError] HASH_LIST_NOT_FOUND - Agent #{@agent&.id || 'unknown'} - Attack ID: #{@attack.id} - #{Time.current}")
+      render json: { error: "Hash list not found." }, status: :not_found
+      return
+    end
     headers["Content-Disposition"] = "attachment; filename=\"#{hash_list_model.id}.txt\""
     headers["Content-Type"] = "text/plain"
     self.response_body = hash_list_model.uncracked_list_enum
