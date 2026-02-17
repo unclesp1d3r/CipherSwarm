@@ -22,6 +22,8 @@ RSpec.describe "api/v1/client/attacks" do
       let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
       let(:id) { attack.id }
 
+      before { create(:task, attack: attack, agent: agent) }
+
       response(200, "successful") do
         schema "$ref" => "#/components/schemas/Attack"
 
@@ -103,6 +105,8 @@ RSpec.describe "api/v1/client/attacks" do
       let(:attack) { create(:dictionary_attack) }
       let(:id) { attack.id }
       let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
+
+      before { create(:task, attack: attack, agent: agent) }
 
       response(200, "successful") do
         schema type: :string, format: :binary

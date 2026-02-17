@@ -340,6 +340,8 @@ To set up JavaScript testing in the project, we use Vitest. Follow the steps bel
 4. Run tests using:
 
    ```bash
+   just test-js
+   # or directly:
    npx vitest run
    ```
 
@@ -347,7 +349,7 @@ Both unit tests for Stimulus controllers and integration tests via system tests 
 
 **Vitest Mock Patterns:**
 
-- `bun test` uses Bun's runner (no jsdom) — always use `npx vitest run` for Vitest
+- `bun test` uses Bun's runner (no jsdom) — always use `just test-js` or `npx vitest run` for Vitest
 - `vi.mock` is hoisted to file top; use `vi.hoisted()` for mock references: `const { mockFn } = vi.hoisted(() => ({ mockFn: vi.fn() }))`
 - Turbo/Stimulus mocks: mock `@hotwired/turbo` and `@hotwired/stimulus` modules, not individual imports
 

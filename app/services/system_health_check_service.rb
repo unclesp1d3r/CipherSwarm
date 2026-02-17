@@ -58,7 +58,7 @@ class SystemHealthCheckService
       lock_acquired = acquire_lock(lock_token)
     rescue StandardError => e
       lock_error = e
-      Rails.logger.error("[SystemHealth] Lock acquisition failed: #{e.message}")
+      Rails.logger.error("[SystemHealth] Lock acquisition failed: #{e.message}\n#{e.backtrace&.first(5)&.join("\n")}")
     end
 
     if lock_acquired
@@ -71,7 +71,7 @@ class SystemHealthCheckService
         begin
           release_lock(lock_token)
         rescue StandardError => e
-          Rails.logger.error("[SystemHealth] Lock release failed: #{e.message}")
+          Rails.logger.error("[SystemHealth] Lock release failed: #{e.message}\n#{e.backtrace&.first(5)&.join("\n")}")
         end
       end
     elsif lock_error
@@ -123,7 +123,7 @@ class SystemHealthCheckService
 
     { status: :healthy, latency: latency, error: nil, storage_used: storage_used, bucket_count: bucket_count }
   rescue => e
-    Rails.logger.error("[SystemHealth] MinIO check failed: #{e.message}")
+    Rails.logger.error("[SystemHealth] MinIO check failed: #{e.message}\n#{e.backtrace&.first(5)&.join("\n")}")
     { status: :unhealthy, latency: nil, error: e.message, storage_used: nil, bucket_count: nil }
   end
 
@@ -152,7 +152,7 @@ class SystemHealthCheckService
 
     { status: :healthy, latency: latency, error: nil, connection_count: connection_count, database_size: database_size }
   rescue => e
-    Rails.logger.error("[SystemHealth] PostgreSQL check failed: #{e.message}")
+    Rails.logger.error("[SystemHealth] PostgreSQL check failed: #{e.message}\n#{e.backtrace&.first(5)&.join("\n")}")
     { status: :unhealthy, latency: nil, error: e.message, connection_count: nil, database_size: nil }
   end
 
@@ -174,7 +174,7 @@ class SystemHealthCheckService
       used_memory: used_memory, connected_clients: connected_clients, hit_rate: hit_rate
     }
   rescue => e
-    Rails.logger.error("[SystemHealth] Redis check failed: #{e.message}")
+    Rails.logger.error("[SystemHealth] Redis check failed: #{e.message}\n#{e.backtrace&.first(5)&.join("\n")}")
     { status: :unhealthy, latency: nil, error: e.message, used_memory: nil, connected_clients: nil, hit_rate: nil }
   end
 
@@ -193,7 +193,7 @@ class SystemHealthCheckService
       enqueued: stats.enqueued
     }
   rescue => e
-    Rails.logger.error("[SystemHealth] Sidekiq check failed: #{e.message}")
+    Rails.logger.error("[SystemHealth] Sidekiq check failed: #{e.message}\n#{e.backtrace&.first(5)&.join("\n")}")
     { status: :unhealthy, latency: nil, error: e.message, workers: 0, queues: 0, enqueued: 0 }
   end
 
