@@ -108,5 +108,55 @@ RSpec.describe "Coverage Verification" do # rubocop:disable RSpec/DescribeClass
     it "health_refresh_controller has JavaScript tests" do
       expect(Rails.root.join("spec/javascript/controllers/health_refresh_controller.test.js").exist?).to be(true)
     end
+
+    it "tabs_controller has JavaScript tests" do
+      expect(Rails.root.join("spec/javascript/controllers/tabs_controller.test.js").exist?).to be(true)
+    end
+
+    it "toast_controller has JavaScript tests" do
+      expect(Rails.root.join("spec/javascript/controllers/toast_controller.test.js").exist?).to be(true)
+    end
+  end
+
+  describe "performance test coverage" do
+    it "page load performance tests exist" do
+      expect(Rails.root.join("spec/performance/page_load_performance_spec.rb").exist?).to be(true)
+    end
+  end
+
+  describe "deployment test coverage" do
+    it "air-gapped deployment checklist tests exist" do
+      expect(Rails.root.join("spec/deployment/air_gapped_checklist_spec.rb").exist?).to be(true)
+    end
+  end
+
+  describe "all seven flow system tests" do
+    it "agent fleet monitoring has system tests" do
+      expect(Rails.root.join("spec/system/agent_fleet_monitoring_spec.rb").exist?).to be(true)
+    end
+
+    it "campaign progress monitoring has system tests" do
+      expect(Rails.root.join("spec/system/campaign_progress_monitoring_spec.rb").exist?).to be(true)
+    end
+
+    it "task detail investigation has system tests" do
+      expect(Rails.root.join("spec/system/task_detail_investigation_spec.rb").exist?).to be(true)
+    end
+
+    it "system health has system tests" do
+      expect(Rails.root.join("spec/system/system_health_spec.rb").exist?).to be(true)
+    end
+
+    it "campaign creation workflow has system tests" do
+      expect(Rails.root.join("spec/system/campaign_creation_workflow_spec.rb").exist?).to be(true)
+    end
+
+    it "error investigation has system tests" do
+      expect(Rails.root.join("spec/system/error_investigation_spec.rb").exist?).to be(true)
+    end
+
+    it "loading feedback patterns has system tests" do
+      expect(Rails.root.join("spec/system/loading_feedback_patterns_spec.rb").exist?).to be(true)
+    end
   end
 end

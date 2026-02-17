@@ -138,6 +138,76 @@ RSpec.describe "Page Load Performance", type: :request do
       # A reasonable upper bound - should not have excessive N+1 queries
       expect(query_count).to be < 50
     end
+
+    it "agent list query count does not grow linearly with agent count", :aggregate_failures do
+      5.times { create(:agent, projects: [project]) }
+
+      # Warm up
+      get agents_path
+
+      query_count_5 = 0
+      counter = ->(*_args) { query_count_5 += 1 }
+      ActiveSupport::Notifications.subscribed(counter, "sql.active_record") do
+        get agents_path
+      end
+      expect(response).to have_http_status(:success)
+
+      # Add more agents
+      15.times { create(:agent, projects: [project]) }
+
+      query_count_20 = 0
+      counter_20 = ->(*_args) { query_count_20 += 1 }
+      ActiveSupport::Notifications.subscribed(counter_20, "sql.active_record") do
+        get agents_path
+      end
+      expect(response).to have_http_status(:success)
+
+      # Query count should not grow proportionally (N+1 would make it ~4x)
+      expect(query_count_20).to be < (query_count_5 * 3)
+    end
+
+    it "campaign list query count does not grow linearly with campaign count", :aggregate_failures do
+      5.times { create(:campaign, project: project) }
+
+      # Warm up
+      get campaigns_path
+
+      query_count_5 = 0
+      counter = ->(*_args) { query_count_5 += 1 }
+      ActiveSupport::Notifications.subscribed(counter, "sql.active_record") do
+        get campaigns_path
+      end
+      expect(response).to have_http_status(:success)
+
+      # Add more campaigns
+      15.times { create(:campaign, project: project) }
+
+      query_count_20 = 0
+      counter_20 = ->(*_args) { query_count_20 += 1 }
+      ActiveSupport::Notifications.subscribed(counter_20, "sql.active_record") do
+        get campaigns_path
+      end
+      expect(response).to have_http_status(:success)
+
+      # Query count should not grow proportionally (N+1 would make it ~4x)
+      expect(query_count_20).to be < (query_count_5 * 3)
+    end
+
+    it "campaign show with attacks does not exceed reasonable query count" do
+      campaign = create(:campaign, project: project)
+      create_list(:dictionary_attack, 10, campaign: campaign)
+
+      query_count = 0
+      counter = ->(*_args) { query_count += 1 }
+
+      ActiveSupport::Notifications.subscribed(counter, "sql.active_record") do
+        get campaign_path(campaign)
+      end
+
+      expect(response).to have_http_status(:success)
+      # Should not have excessive queries even with 10 attacks
+      expect(query_count).to be < 80
+    end
   end
 
   private

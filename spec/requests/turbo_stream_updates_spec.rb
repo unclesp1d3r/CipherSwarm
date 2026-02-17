@@ -110,5 +110,62 @@ RSpec.describe "Turbo Stream Updates" do
       turbo_stream_count = response.body.scan("<turbo-stream").count
       expect(turbo_stream_count).to eq(4)
     end
+
+    it "includes toast notification in all task action responses", :aggregate_failures do
+      sign_in(project_user)
+      post cancel_task_path(task), as: :turbo_stream
+
+      expect(response.body).to include("toast_container")
+      expect(response.body).to include('action="append"')
+    end
+  end
+
+  describe "Turbo Stream broadcasts don't disrupt Stimulus state" do
+    it "task cancel response does not include data-controller attributes that reset tabs" do
+      sign_in(project_user)
+      post cancel_task_path(task), as: :turbo_stream
+
+      expect(response).to have_http_status(:success)
+      # The response should update specific DOM targets, not the entire page
+      expect(response.body).not_to include('data-controller="tabs"')
+    end
+
+    it "task retry response targets granular DOM elements" do
+      failed_task = create(:task, attack: attack, agent: agent, state: "failed", last_error: "Error")
+      sign_in(project_user)
+      post retry_task_path(failed_task), as: :turbo_stream
+
+      expect(response).to have_http_status(:success)
+      # Targets should be specific section IDs, not the whole page
+      expect(response.body).to include("task-details-#{failed_task.id}")
+      expect(response.body).to include("task-actions-#{failed_task.id}")
+    end
+  end
+
+  describe "task action authorization via Turbo Stream" do
+    let!(:other_project) { create(:project) }
+    let!(:other_user) { create(:user, projects: [other_project]) }
+
+    it "returns unauthorized for cross-project task cancel" do
+      sign_in(other_user)
+      post cancel_task_path(task), as: :turbo_stream
+
+      expect(response).to have_http_status(:unauthorized)
+    end
+
+    it "returns unauthorized for cross-project task retry" do
+      failed_task = create(:task, attack: attack, agent: agent, state: "failed", last_error: "Error")
+      sign_in(other_user)
+      post retry_task_path(failed_task), as: :turbo_stream
+
+      expect(response).to have_http_status(:unauthorized)
+    end
+
+    it "returns unauthorized for cross-project task reassign" do
+      sign_in(other_user)
+      post reassign_task_path(task), params: { agent_id: agent.id }, as: :turbo_stream
+
+      expect(response).to have_http_status(:unauthorized)
+    end
   end
 end

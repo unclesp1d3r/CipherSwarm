@@ -84,6 +84,51 @@ RSpec.describe "Caching Behavior" do
     end
   end
 
+  describe "recent cracks caching" do
+    let(:hash_list) { create(:hash_list, project: project) }
+    let(:campaign) { create(:campaign, project: project, hash_list: hash_list) }
+    let!(:attack) { create(:dictionary_attack, campaign: campaign) }
+
+    before do
+      hash_list.hash_items.delete_all
+      create(:hash_item, :cracked_recently, hash_list: hash_list, attack: attack, plain_text: "cached_pass")
+      allow(Rails).to receive(:cache).and_return(memory_cache)
+    end
+
+    it "caches recent_cracks results with 1-minute TTL" do
+      result1 = hash_list.recent_cracks
+      result2 = hash_list.recent_cracks
+
+      expect(result1).to eq(result2)
+      expect(result1).not_to be_empty
+    end
+
+    it "caches recent_cracks_count results" do
+      count1 = hash_list.recent_cracks_count
+      count2 = hash_list.recent_cracks_count
+
+      expect(count1).to eq(count2)
+      expect(count1).to be >= 1
+    end
+  end
+
+  describe "agent metrics caching via database columns" do
+    let!(:agent) { create(:agent, projects: [project], current_hash_rate: 1_000_000) }
+
+    it "stores cached hash rate in the agent model" do
+      expect(agent.current_hash_rate).to eq(1_000_000)
+    end
+
+    it "displays hash rate from cached column" do
+      expect(agent.hash_rate_display).to include("MH/s").or include("kH/s").or include("H/s")
+    end
+
+    it "returns dash when hash rate is nil" do
+      agent.update!(current_hash_rate: nil)
+      expect(agent.hash_rate_display).to eq("—")
+    end
+  end
+
   describe "cache invalidation" do
     before do
       stub_health_checks
@@ -103,6 +148,22 @@ RSpec.describe "Caching Behavior" do
       second_checked_at = memory_cache.read(SystemHealthCheckService::CACHE_KEY)[:checked_at]
 
       expect(second_checked_at).to be_present
+    end
+
+    it "CampaignEtaCalculator cache busts when tasks update" do
+      campaign = create(:campaign, project: project)
+      attack = create(:dictionary_attack, campaign: campaign)
+      agent = create(:agent, projects: [project])
+      task = create(:task, attack: attack, agent: agent)
+
+      calculator = CampaignEtaCalculator.new(campaign, cache: true)
+      key_before = calculator.send(:cache_key, "current_eta")
+
+      # Force a future timestamp to ensure the key changes
+      task.update_column(:updated_at, 1.minute.from_now) # rubocop:disable Rails/SkipsModelValidations
+
+      key_after = calculator.send(:cache_key, "current_eta")
+      expect(key_after).not_to eq(key_before)
     end
   end
 

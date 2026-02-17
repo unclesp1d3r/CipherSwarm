@@ -920,7 +920,7 @@ Before contacting administrators, try:
 ## Additional Resources
 
 - [API Reference Documentation](../api-reference-agent-auth.md)
-- [Agent Configuration Guide](agent-configuration.md)
-- [Server Log Format Specification](../development/logging.md)
+- [Agent Setup Guide](agent-setup.md)
+- [Server Log Format Specification](../development/logging-guide.md)
 - [CipherSwarm Community Forum](https://community.cipherswarm.org)
 - [GitHub Issues](https://github.com/unclesp1d3r/cipherswarm/issues)

@@ -179,6 +179,35 @@ RSpec.describe "Authorization" do
     end
   end
 
+  describe "hash list access control" do
+    let!(:hash_list_a) { create(:hash_list, project: project_a) }
+    let!(:hash_list_b) { create(:hash_list, project: project_b) }
+
+    context "when user accesses hash list in their project" do
+      it "returns success" do
+        sign_in(user_a)
+        get hash_list_path(hash_list_a)
+        expect(response).to have_http_status(:success)
+      end
+    end
+
+    context "when user accesses hash list outside their project" do
+      it "returns unauthorized" do
+        sign_in(user_a)
+        get hash_list_path(hash_list_b)
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
+    context "when admin accesses any hash list" do
+      it "returns success" do
+        sign_in(admin)
+        get hash_list_path(hash_list_b)
+        expect(response).to have_http_status(:success)
+      end
+    end
+  end
+
   describe "system health access control" do
     before do
       Sidekiq.redis { |conn| conn.del(SystemHealthCheckService::LOCK_KEY) }
@@ -197,6 +226,38 @@ RSpec.describe "Authorization" do
       it "redirects to login" do
         get system_health_path
         expect(response).to redirect_to(new_user_session_path)
+      end
+    end
+  end
+
+  describe "cross-resource authorization consistency" do
+    context "when user tries to access multiple resources in wrong project" do
+      it "denies access to all cross-project resources", :aggregate_failures do
+        sign_in(user_a)
+
+        get task_path(task_b)
+        expect(response).to have_http_status(:unauthorized)
+
+        get campaign_path(campaign_b)
+        expect(response).to have_http_status(:unauthorized)
+
+        get agent_path(agent_b)
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
+    context "when admin accesses all resources" do
+      it "grants access to all resources", :aggregate_failures do
+        sign_in(admin)
+
+        get task_path(task_b)
+        expect(response).to have_http_status(:success)
+
+        get campaign_path(campaign_b)
+        expect(response).to have_http_status(:success)
+
+        get agent_path(agent_b)
+        expect(response).to have_http_status(:success)
       end
     end
   end
