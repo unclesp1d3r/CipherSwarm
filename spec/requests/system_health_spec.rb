@@ -176,7 +176,7 @@ RSpec.describe "SystemHealth" do
       it "renders GB-formatted database size" do
         get system_health_path
         expect(response).to have_http_status(:success)
-        expect(response.body).to include("2.0 GB")
+        expect(response.body).to include("2 GB")
       end
 
       it "renders page without redis hit rate" do

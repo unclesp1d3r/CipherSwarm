@@ -96,6 +96,21 @@ RSpec.describe "Task Detail Investigation", skip: ENV["CI"].present? do
       expect(task.state).to eq("failed")
     end
 
+    it "shows success toast after cancelling task" do
+      task = create(:task, attack: attack, agent: agent)
+      sign_in_project_user
+
+      visit task_path(task)
+      accept_confirm("Are you sure you want to cancel this task?") do
+        click_button "Cancel"
+      end
+
+      # Turbo Stream appends toast to DOM; check with visible: :all since
+      # Bootstrap Toast may still be animating or auto-hidden
+      sleep 1
+      expect(page).to have_css(".toast-body", text: "Task was successfully cancelled", visible: :all, wait: 5)
+    end
+
     it "reflects cancelled state after page reload" do
       task = create(:task, attack: attack, agent: agent)
       sign_in_project_user
@@ -129,6 +144,20 @@ RSpec.describe "Task Detail Investigation", skip: ENV["CI"].present? do
       expect(task.last_error).to be_nil
     end
 
+    it "shows success toast after retrying task" do
+      task = create(:task, attack: attack, agent: agent)
+      task.update_columns(state: "failed", last_error: "GPU error", retry_count: 0) # rubocop:disable Rails/SkipsModelValidations
+      sign_in_project_user
+
+      visit task_path(task)
+      click_button "Retry"
+
+      # Turbo Stream appends toast to DOM; check with visible: :all since
+      # Bootstrap Toast may still be animating or auto-hidden
+      sleep 1
+      expect(page).to have_css(".toast-body", text: "Task was successfully queued for retry", visible: :all, wait: 5)
+    end
+
     it "reflects retried state after page reload" do
       task = create(:task, attack: attack, agent: agent)
       task.update_columns(state: "failed", last_error: "GPU error") # rubocop:disable Rails/SkipsModelValidations
@@ -158,6 +187,22 @@ RSpec.describe "Task Detail Investigation", skip: ENV["CI"].present? do
       sleep 1
       task.reload
       expect(task.agent_id).to eq(other_agent.id)
+    end
+
+    it "shows success toast after reassigning task" do
+      other_agent = create(:agent, projects: [project])
+      task = create(:task, attack: attack, agent: agent)
+      sign_in_project_user
+
+      visit task_path(task)
+
+      select other_agent.host_name, from: "agent_id"
+      click_button "Reassign"
+
+      # Turbo Stream appends toast to DOM; check with visible: :all since
+      # Bootstrap Toast may still be animating or auto-hidden
+      sleep 1
+      expect(page).to have_css(".toast-body", text: "Task was successfully reassigned", visible: :all, wait: 5)
     end
 
     it "shows no compatible agents message when none available" do

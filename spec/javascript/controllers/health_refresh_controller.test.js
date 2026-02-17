@@ -93,4 +93,14 @@ describe("HealthRefreshController", () => {
     const calledUrl = mockVisit.mock.calls[0][0];
     expect(calledUrl).toMatch(/\?_cb=\d+/);
   });
+
+  it("uses configured URL value, not window.location.pathname", () => {
+    // In jsdom, window.location.pathname defaults to "/"
+    // The controller should use the configured data-health-refresh-url-value ("/system_health"),
+    // not fall back to window.location.pathname ("/")
+    vi.advanceTimersByTime(30000);
+    const calledUrl = mockVisit.mock.calls[0][0];
+    expect(calledUrl).toMatch(/^\/system_health/);
+    expect(calledUrl).not.toEqual(expect.stringMatching(/^\/$|^\/\?/));
+  });
 });

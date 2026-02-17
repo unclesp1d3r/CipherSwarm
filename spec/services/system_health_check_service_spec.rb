@@ -266,11 +266,22 @@ RSpec.describe SystemHealthCheckService do
       expect(result[:application][:rails_version]).to eq(Rails.version)
       expect(result[:application][:ruby_version]).to eq(RUBY_VERSION)
     end
+
+    it "logs lock acquired when performing all checks" do
+      debug_messages = []
+      allow(Rails.logger).to receive(:debug) do |*args, &block|
+        debug_messages << (block ? block.call : args.first)
+      end
+      service.call
+      expect(debug_messages).to include(match(/Lock acquired, performing all checks/))
+    end
   end
 
   describe "Redis lock failure handling" do
     before do
       allow(Rails.logger).to receive(:error)
+      allow(Rails.logger).to receive(:warn)
+      allow(Rails.logger).to receive(:debug)
     end
 
     context "when lock acquisition fails due to Redis error" do
@@ -306,6 +317,11 @@ RSpec.describe SystemHealthCheckService do
         service.call
         expect(Rails.logger).to have_received(:error).with(/Lock acquisition failed/)
       end
+
+      it "logs that non-Redis checks are being run" do
+        service.call
+        expect(Rails.logger).to have_received(:warn).with(/Redis unavailable, running non-Redis checks only/)
+      end
     end
 
     context "when lock is contended (another request holds the lock)" do
@@ -324,6 +340,15 @@ RSpec.describe SystemHealthCheckService do
         %i[postgresql redis minio sidekiq].each do |check|
           expect(result[check][:status]).to eq(:checking)
         end
+      end
+
+      it "logs that lock is contended" do
+        debug_messages = []
+        allow(Rails.logger).to receive(:debug) do |*args, &block|
+          debug_messages << (block ? block.call : args.first)
+        end
+        service.call
+        expect(debug_messages).to include(match(/Lock contended, returning checking status/))
       end
     end
 

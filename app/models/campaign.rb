@@ -280,11 +280,9 @@ class Campaign < ApplicationRecord
   private
 
   # Marks all attacks as complete if the campaign is completed.
-  # This is skipped in test environments to avoid interfering with unit tests.
   #
   # @return [void]
   def mark_attacks_complete
-    return if Rails.env.test?
     attacks.without_state(:completed).each(&:complete) if completed?
   end
 end

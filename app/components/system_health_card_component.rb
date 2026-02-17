@@ -61,14 +61,6 @@ class SystemHealthCardComponent < ApplicationViewComponent
   def format_bytes(bytes)
     return nil unless bytes
 
-    if bytes >= 1_073_741_824
-      "#{(bytes.to_f / 1_073_741_824).round(2)} GB"
-    elsif bytes >= 1_048_576
-      "#{(bytes.to_f / 1_048_576).round(2)} MB"
-    elsif bytes >= 1024
-      "#{(bytes.to_f / 1024).round(2)} KB"
-    else
-      "#{bytes} B"
-    end
+    number_to_human_size(bytes)
   end
 end

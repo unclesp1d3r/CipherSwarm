@@ -78,31 +78,38 @@ class TaskAssignmentService
   #   (adds latency and complexity).
   # - Decision: Query by owning agent state (offline/stopped) + cleared claim fields,
   #   then reassign agent_id to the new agent atomically.
+  # - Uses FOR UPDATE SKIP LOCKED to prevent two agents from racing to claim the same task.
   #
   # @return [Task, nil] a reassigned paused task, or nil
   def find_unassigned_paused_task
-    task = Task.with_state(:paused)
-               .where(claimed_by_agent_id: nil)
-               .where.not(agent_id: agent.id)
-               .joins(:agent)
-               .where(agents: { state: %w[offline stopped] })
-               .joins(attack: { campaign: :hash_list })
-               .where(campaigns: { project_id: agent.project_ids })
-               .where(hash_lists: { hash_type_id: allowed_hash_type_ids })
-               .where("EXISTS (SELECT 1 FROM hash_items WHERE hash_items.hash_list_id = hash_lists.id AND hash_items.cracked = false)")
-               .order(:id)
-               .first
+    task = nil
 
-    return nil unless task
+    Task.transaction do
+      task = Task.with_state(:paused)
+                 .where(claimed_by_agent_id: nil)
+                 .where.not(agent_id: agent.id)
+                 .joins(:agent)
+                 .where(agents: { state: %w[offline stopped] })
+                 .joins(attack: { campaign: :hash_list })
+                 .where(campaigns: { project_id: agent.project_ids })
+                 .where(hash_lists: { hash_type_id: allowed_hash_type_ids })
+                 .where("EXISTS (SELECT 1 FROM hash_items WHERE hash_items.hash_list_id = hash_lists.id AND hash_items.cracked = false)")
+                 .order(:id)
+                 .lock("FOR UPDATE OF tasks SKIP LOCKED")
+                 .first
 
-    # Reassign ownership to the claiming agent
-    # rubocop:disable Rails/SkipsModelValidations
-    task.update_columns(agent_id: agent.id)
-    # rubocop:enable Rails/SkipsModelValidations
+      return nil unless task
 
-    # Transition to pending so the new agent can accept the task.
-    # resume! moves paused -> pending and marks stale (so the agent re-downloads cracks).
-    task.resume!
+      # Reassign ownership to the claiming agent
+      # rubocop:disable Rails/SkipsModelValidations
+      task.update_columns(agent_id: agent.id)
+      # rubocop:enable Rails/SkipsModelValidations
+
+      # Transition to pending so the new agent can accept the task.
+      # resume! moves paused -> pending and marks stale (so the agent re-downloads cracks).
+      task.resume!
+    end
+
     task
   end
 
@@ -207,18 +214,29 @@ class TaskAssignmentService
   end
 
   # Creates a new task if the agent meets performance requirements and no pending tasks exist.
+  # Uses a row lock on the attack to prevent two agents from creating duplicate tasks.
   #
   # @param attack [Attack] the attack to create a task for
   # @return [Task, nil] the newly created task, or nil if requirements not met
   def create_new_task_if_eligible(attack)
-    return nil if attack.tasks.with_state(:pending).any?
-
-    if agent.meets_performance_threshold?(attack.hash_mode)
-      agent.tasks.create(attack: attack, start_date: Time.zone.now)
-    else
+    unless agent.meets_performance_threshold?(attack.hash_mode)
       log_performance_skip(attack)
-      nil
+      return nil
     end
+
+    Task.transaction do
+      # Lock the attack row to serialize task creation per attack
+      attack.lock!
+      return nil if attack.tasks.with_state(:pending).any?
+
+      agent.tasks.create(attack: attack, start_date: Time.zone.now)
+    end
+  rescue StandardError => e
+    Rails.logger.error(
+      "[TaskAssignmentService] Error creating task for attack #{attack.id}: " \
+      "#{e.class} - #{e.message}"
+    )
+    nil
   end
 
   # Checks if the agent has a fatal error for a specific task.

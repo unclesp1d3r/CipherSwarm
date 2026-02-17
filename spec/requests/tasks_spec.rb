@@ -136,6 +136,24 @@ RSpec.describe "Tasks" do
           expect(task.reload.state).to eq("failed")
         end
 
+        it "includes toast notification in turbo_stream response" do
+          sign_in(project_user)
+          post cancel_task_path(task), as: :turbo_stream
+          expect(response.body).to include("toast_container")
+          expect(response.body).to include("Task was successfully cancelled")
+        end
+
+        it "logs and re-raises when turbo stream rendering fails" do
+          sign_in(project_user)
+          allow(Rails.logger).to receive(:error).and_call_original
+          allow(Rails.logger).to receive(:debug).and_call_original
+          allow_any_instance_of(Turbo::Streams::TagBuilder).to receive(:update).and_raise(StandardError.new("render error")) # rubocop:disable RSpec/AnyInstance
+          expect {
+            post cancel_task_path(task), as: :turbo_stream
+          }.to raise_error(ActionController::RespondToMismatchError)
+          expect(Rails.logger).to have_received(:error).with(/Failed to render Turbo Stream for task #{task.id}/)
+        end
+
         it "returns turbo_stream response on failed cancellation" do
           completed_task = create(:task, attack: attack, agent: agent, state: "completed")
           sign_in(project_user)
@@ -234,6 +252,14 @@ RSpec.describe "Tasks" do
           expect(response.body).to include("turbo-stream")
           expect(response.body).to include('action="replace"')
           expect(failed_task.reload.state).to eq("pending")
+        end
+
+        it "includes toast notification in turbo_stream response" do
+          failed_task = create(:task, attack: attack, agent: agent, state: "failed", last_error: "Some error")
+          sign_in(project_user)
+          post retry_task_path(failed_task), as: :turbo_stream
+          expect(response.body).to include("toast_container")
+          expect(response.body).to include("Task was successfully queued for retry")
         end
 
         it "returns turbo_stream response on failed retry" do
@@ -606,6 +632,13 @@ RSpec.describe "Tasks" do
           expect(response.body).to include("turbo-stream")
           expect(response.body).to include('action="replace"')
           expect(task.reload.agent_id).to eq(compatible_agent.id)
+        end
+
+        it "includes toast notification in turbo_stream response" do
+          sign_in(project_user)
+          post reassign_task_path(task), params: { agent_id: compatible_agent.id }, as: :turbo_stream
+          expect(response.body).to include("toast_container")
+          expect(response.body).to include("Task was successfully reassigned")
         end
 
         it "returns turbo_stream response for incompatible agent" do

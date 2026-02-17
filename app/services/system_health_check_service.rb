@@ -62,6 +62,7 @@ class SystemHealthCheckService
     end
 
     if lock_acquired
+      Rails.logger.debug { "[SystemHealth] Lock acquired, performing all checks" }
       begin
         results = perform_all_checks
         Rails.cache.write(CACHE_KEY, results, expires_in: CACHE_TTL)
@@ -75,6 +76,7 @@ class SystemHealthCheckService
       end
     elsif lock_error
       # Redis is down — still run non-Redis checks, skip caching
+      Rails.logger.warn("[SystemHealth] Redis unavailable, running non-Redis checks only: #{lock_error.message}")
       {
         postgresql: check_postgresql,
         redis: {
@@ -92,6 +94,7 @@ class SystemHealthCheckService
       }
     else
       # Lock contention — another request is performing checks
+      Rails.logger.debug { "[SystemHealth] Lock contended, returning checking status" }
       checking_status
     end
   end

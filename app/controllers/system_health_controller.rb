@@ -8,6 +8,8 @@
 # Delegates health check execution to SystemHealthCheckService, which handles
 # caching and lock-based stampede prevention.
 class SystemHealthController < ApplicationController
+  include ActionView::Helpers::NumberHelper
+
   SERVICE_NAMES = {
     postgresql: "PostgreSQL",
     redis: "Redis",
@@ -39,30 +41,16 @@ class SystemHealthController < ApplicationController
     when :postgresql
       {
         "Connections" => check[:connection_count],
-        "Database Size" => format_bytes(check[:database_size])
+        "Database Size" => check[:database_size] ? number_to_human_size(check[:database_size]) : nil
       }
     when :redis
       details = { "Memory" => check[:used_memory], "Clients" => check[:connected_clients] }
       details["Hit Rate"] = "#{check[:hit_rate]}%" if check[:hit_rate]
       details
     when :minio
-      { "Storage Used" => format_bytes(check[:storage_used]), "Buckets" => check[:bucket_count] }
+      { "Storage Used" => check[:storage_used] ? number_to_human_size(check[:storage_used]) : nil, "Buckets" => check[:bucket_count] }
     else
       {}
-    end
-  end
-
-  def format_bytes(bytes)
-    return nil unless bytes
-
-    if bytes >= 1_073_741_824
-      "#{(bytes.to_f / 1_073_741_824).round(2)} GB"
-    elsif bytes >= 1_048_576
-      "#{(bytes.to_f / 1_048_576).round(2)} MB"
-    elsif bytes >= 1024
-      "#{(bytes.to_f / 1024).round(2)} KB"
-    else
-      "#{bytes} B"
     end
   end
 

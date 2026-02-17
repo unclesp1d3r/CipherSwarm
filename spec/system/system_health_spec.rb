@@ -107,6 +107,26 @@ RSpec.describe "System Health Dashboard", skip: ENV["CI"].present? do
     end
   end
 
+  describe "auto-refresh controller" do
+    it "renders the health-refresh stimulus controller with correct attributes", :aggregate_failures do
+      create_and_sign_in_user
+      visit system_health_path
+
+      controller_element = find("[data-controller='health-refresh']", visible: :all)
+      expect(controller_element["data-health-refresh-url-value"]).to eq(system_health_path)
+      expect(controller_element["data-health-refresh-interval-value"]).to be_present
+    end
+
+    it "configures the refresh URL to the system health path, not the current page" do
+      create_and_sign_in_user
+      visit system_health_path
+
+      controller_element = find("[data-controller='health-refresh']", visible: :all)
+      # Verify the configured URL is the system_health endpoint, not a generic page URL
+      expect(controller_element["data-health-refresh-url-value"]).to eq("/system_health")
+    end
+  end
+
   describe "health check response time" do
     it "loads the page within a reasonable time" do
       create_and_sign_in_user

@@ -83,19 +83,19 @@ RSpec.describe SystemHealthCardComponent, type: :component do
     end
 
     it "formats bytes" do
-      expect(component.format_bytes(500)).to eq("500 B")
+      expect(component.format_bytes(500)).to eq("500 Bytes")
     end
 
     it "formats kilobytes" do
-      expect(component.format_bytes(2048)).to eq("2.0 KB")
+      expect(component.format_bytes(2048)).to eq("2 KB")
     end
 
     it "formats megabytes" do
-      expect(component.format_bytes(5_242_880)).to eq("5.0 MB")
+      expect(component.format_bytes(5_242_880)).to eq("5 MB")
     end
 
     it "formats gigabytes" do
-      expect(component.format_bytes(2_147_483_648)).to eq("2.0 GB")
+      expect(component.format_bytes(2_147_483_648)).to eq("2 GB")
     end
   end
 

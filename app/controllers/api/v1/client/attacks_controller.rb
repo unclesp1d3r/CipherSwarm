@@ -34,7 +34,9 @@ class Api::V1::Client::AttacksController < Api::V1::BaseController
       render json: { error: "Attack not found." }, status: :not_found
       return
     end
-    send_data @attack.campaign.hash_list.uncracked_list,
-              filename: "#{@attack.campaign.hash_list.id}.txt"
+    hash_list_model = @attack.campaign.hash_list
+    headers["Content-Disposition"] = "attachment; filename=\"#{hash_list_model.id}.txt\""
+    headers["Content-Type"] = "text/plain"
+    self.response_body = hash_list_model.uncracked_list_enum
   end
 end

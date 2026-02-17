@@ -184,12 +184,16 @@ class TasksController < ApplicationController
   # toast notification so Turbo Stream users receive visual feedback
   # without a full page reload.
   def task_turbo_streams(message:, variant: "success")
+    Rails.logger.debug { "[TaskAction] Rendering Turbo Stream for task #{@task.id}: #{message} (#{variant})" }
     [
       turbo_stream.update("task-details-#{@task.id}", partial: "tasks/task", locals: { task: @task }),
       turbo_stream.replace("task-actions-#{@task.id}", partial: "tasks/task_actions", locals: { task: @task }),
       turbo_stream.replace("task-error-#{@task.id}", partial: "tasks/task_error", locals: { task: @task }),
       turbo_stream.append("toast_container", partial: "shared/toast", locals: { message: message, variant: variant })
     ]
+  rescue StandardError => e
+    Rails.logger.error("[TaskAction] Failed to render Turbo Stream for task #{@task.id}: #{e.message}")
+    raise
   end
 
   # Use callbacks to share common setup or constraints between actions.
