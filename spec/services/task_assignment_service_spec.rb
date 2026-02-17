@@ -425,6 +425,14 @@ RSpec.describe TaskAssignmentService do
         other_service.find_next_task
         expect(running_task.reload.agent_id).to eq(other_agent.id)
       end
+
+      it "allows the new agent to accept the reassigned task" do
+        task = other_service.find_next_task
+        expect(task.state).to eq("pending")
+
+        # Verify the new agent can successfully accept the task
+        expect { task.accept! }.to change { task.reload.state }.from("pending").to("running")
+      end
     end
   end
 
