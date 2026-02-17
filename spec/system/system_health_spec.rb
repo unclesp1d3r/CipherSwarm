@@ -127,6 +127,27 @@ RSpec.describe "System Health Dashboard", skip: ENV["CI"].present? do
     end
   end
 
+  describe "simulated service failure" do
+    it "displays unhealthy status when a service check fails" do
+      # Stub the service to return a failure for PostgreSQL
+      unhealthy_result = {
+        postgresql: { status: :unhealthy, latency: nil, error: "connection refused", connection_count: nil, database_size: nil },
+        redis: { status: :healthy, latency: 0.5, error: nil, used_memory: "10MB", connected_clients: 5, hit_rate: nil },
+        minio: { status: :healthy, latency: 2.0, error: nil, storage_used: 1024, bucket_count: 1 },
+        sidekiq: { status: :healthy, latency: 0.3, error: nil, workers: 2, queues: 1, enqueued: 0 },
+        application: { rails_version: Rails.version, ruby_version: RUBY_VERSION, uptime: "1h", workers_running: true, worker_count: 2 },
+        checked_at: Time.current.iso8601
+      }
+      allow(SystemHealthCheckService).to receive(:call).and_return(unhealthy_result)
+
+      create_and_sign_in_user
+      visit system_health_path
+
+      expect(page).to have_content("System Health")
+      expect(page).to have_content("connection refused")
+    end
+  end
+
   describe "health check response time" do
     it "loads the page within a reasonable time" do
       create_and_sign_in_user

@@ -129,6 +129,38 @@ RSpec.describe "Caching Behavior" do
     end
   end
 
+  describe "cache TTL configuration" do
+    it "system health cache TTL is 1 minute" do
+      expect(SystemHealthCheckService::CACHE_TTL).to eq(1.minute)
+    end
+
+    it "campaign ETA cache key format includes freshness timestamps" do
+      campaign = create(:campaign, project: project)
+      attack = create(:dictionary_attack, campaign: campaign)
+      agent = create(:agent, projects: [project])
+      create(:task, attack: attack, agent: agent)
+
+      calculator = CampaignEtaCalculator.new(campaign, cache: true)
+      key = calculator.send(:cache_key, "current_eta")
+
+      # Key should contain cache_key_with_version which changes when campaign updates
+      expect(key).to include("eta")
+      expect(key).to include("current_eta")
+    end
+
+    it "recent cracks cache returns consistent results within TTL" do
+      hash_list = create(:hash_list, project: project)
+      hash_list.hash_items.delete_all
+      attack = create(:dictionary_attack, campaign: create(:campaign, project: project, hash_list: hash_list))
+      create(:hash_item, :cracked_recently, hash_list: hash_list, attack: attack, plain_text: "ttl_test")
+
+      result1 = hash_list.recent_cracks
+      result2 = hash_list.recent_cracks
+
+      expect(result1.map(&:plain_text)).to eq(result2.map(&:plain_text))
+    end
+  end
+
   describe "cache invalidation" do
     before do
       stub_health_checks

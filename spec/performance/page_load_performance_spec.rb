@@ -210,6 +210,62 @@ RSpec.describe "Page Load Performance", type: :request do
     end
   end
 
+  describe "database index verification" do
+    it "tasks table has index on agent_id and state for task queries" do
+      indexes = ActiveRecord::Base.connection.indexes(:tasks).map(&:columns)
+      expect(indexes).to include(["agent_id"])
+      expect(indexes).to include(["agent_id", "state"])
+      expect(indexes).to include(["attack_id"])
+      expect(indexes).to include(["state"])
+    end
+
+    it "attacks table has index on campaign_id and state" do
+      indexes = ActiveRecord::Base.connection.indexes(:attacks).map(&:columns)
+      expect(indexes).to include(["campaign_id"])
+      expect(indexes).to include(["campaign_id", "state"])
+      expect(indexes).to include(["state"])
+    end
+
+    it "agents table has index on state for fleet queries" do
+      indexes = ActiveRecord::Base.connection.indexes(:agents).map(&:columns)
+      expect(indexes).to include(["state"])
+      expect(indexes).to include(["state", "last_seen_at"])
+    end
+
+    it "hash_items table has index on hash_list_id for crack lookups" do
+      indexes = ActiveRecord::Base.connection.indexes(:hash_items).map(&:columns)
+      expect(indexes).to include(["hash_list_id"])
+      expect(indexes).to include(["cracked_time"])
+    end
+
+    it "hashcat_statuses table has index on task_id for status queries" do
+      indexes = ActiveRecord::Base.connection.indexes(:hashcat_statuses).map(&:columns)
+      expect(indexes).to include(["task_id"])
+    end
+
+    it "agent_errors table has index on agent_id for error queries" do
+      indexes = ActiveRecord::Base.connection.indexes(:agent_errors).map(&:columns)
+      expect(indexes).to include(["agent_id"])
+      expect(indexes).to include(["task_id"])
+    end
+
+    it "task show query uses index on tasks primary key (EXPLAIN check)" do
+      campaign = create(:campaign, project: project)
+      attack = create(:dictionary_attack, campaign: campaign)
+      agent = create(:agent, projects: [project])
+      task = create(:task, attack: attack, agent: agent)
+
+      # Use exec_query to avoid interference with any message expectations on execute
+      result = ActiveRecord::Base.connection.exec_query(
+        "EXPLAIN SELECT * FROM tasks WHERE id = #{task.id}"
+      )
+      plan = result.rows.flatten.join(" ")
+
+      # Should use an index scan, not a sequential scan
+      expect(plan).to match(/Index Scan|Index Only Scan|Bitmap/)
+    end
+  end
+
   private
 
   def stub_health_checks

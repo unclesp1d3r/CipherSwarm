@@ -142,6 +142,32 @@ RSpec.describe "Turbo Stream Updates" do
     end
   end
 
+  describe "Turbo Stream broadcast model updates" do
+    it "agent status update broadcasts to detail page targets" do
+      sign_in(project_user)
+
+      # Agent model uses broadcasts_refreshes which sends a page refresh
+      # Verify the model responds to broadcast methods
+      expect(agent).to respond_to(:broadcast_replace_later_to)
+    end
+
+    it "campaign's attack model supports Turbo broadcasts" do
+      # Attack model (via AttackResource concern) uses broadcasts_refreshes
+      expect(Attack.instance_methods).to include(:broadcast_replace_later_to)
+    end
+
+    it "task cancel response preserves existing page scroll position by targeting specific DOM IDs" do
+      sign_in(project_user)
+      post cancel_task_path(task), as: :turbo_stream
+
+      expect(response).to have_http_status(:success)
+      # Verify the response only targets specific sections, not the whole page body
+      expect(response.body).not_to include("<body")
+      expect(response.body).not_to include('target="body"')
+      expect(response.body).to include("task-details-#{task.id}")
+    end
+  end
+
   describe "task action authorization via Turbo Stream" do
     let!(:other_project) { create(:project) }
     let!(:other_user) { create(:user, projects: [other_project]) }

@@ -374,6 +374,7 @@ Both unit tests for Stimulus controllers and integration tests via system tests 
 - Turbo Stream partial replacements do NOT trigger flash messages or update elements outside the replaced partial
 - Do NOT wait for flash messages or CSS badges after Turbo Stream actions (cancel, retry, reassign)
 - Use `sleep 1` + direct DB verification: `task.reload; expect(task.state).to eq("pending")`
+- Bootstrap toasts: use `have_css(".toast-body", text: "...", visible: :all, wait: 5)` — the `.toast` wrapper has no visible text content
 - Task actions use granular Turbo Streams (`turbo_stream.update`/`replace` with named DOM IDs like `task-details-{id}`, `task-actions-{id}`, `task-error-{id}`), not model-based replacement
 - To verify button removal after Turbo actions, reload the page with `visit task_path(task)` then assert
 
@@ -406,6 +407,17 @@ Both unit tests for Stimulus controllers and integration tests via system tests 
 - When using `min_by`, `sort_by`, or `ORDER BY` with columns that can tie, always add a tiebreaker (typically `.id`)
 - Example: `tasks.min_by { |t| [t.priority, t.progress, t.id] }` — without `t.id`, CI may return different results than local
 
+**Database Deadlock in Tests:**
+
+- `DatabaseCleaner.clean_with(:truncation)` can deadlock if concurrent PG connections exist
+- Retry the test command — deadlocks are transient and resolve on second run
+- Some tests fail intermittently in full suite but pass in isolation — use `git stash` to verify if failures are pre-existing vs introduced
+
+**Cache Key Testing:**
+
+- `touch` may not change `updated_at` within the same second — use `update_column(:updated_at, 1.minute.from_now)` to force cache key changes in tests
+- CampaignEtaCalculator cache keys include `attacks.maximum(:updated_at)` and `tasks.maximum(:updated_at)` — both must change to bust cache
+
 **Hash Item Test Setup:**
 
 - When testing "no uncracked hashes" scenarios, call `hash_list.hash_items.delete_all` before creating test hash_items — factories or callbacks may create default items
@@ -417,6 +429,7 @@ Both unit tests for Stimulus controllers and integration tests via system tests 
 **Request Tests (spec/requests/):**
 
 - API endpoint testing
+- Turbo Stream error rescue in controllers with `rescue_from StandardError` causes `ActionController::RespondToMismatchError` (double `respond_to`) — test with `expect { post ... }.to raise_error(ActionController::RespondToMismatchError)`
 - Generates Swagger documentation via RSwag
 - Authentication and authorization testing
 - When service methods add new SQL queries, stubs like `allow(...).to receive(:execute).with("SELECT 1")` reject other queries — add `and_call_original` as default first
@@ -477,6 +490,12 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 - View components: app/components/
 - Custom validations: app/validators/
 - Background jobs: app/jobs/
+
+**Documentation Indexes:**
+
+- When adding new files to `docs/user-guide/`, update BOTH `docs/user-guide/README.md` (user guide index) AND `docs/README.md` (top-level docs index) with links to the new files
+- `docs/user-guide/README.md` includes a "What's New in V2" section and a Quick Navigation table that also need updating for new features
+- `docs/deployment/air-gapped-deployment.md` is the DevOps-focused guide; `docs/user-guide/air-gapped-deployment.md` is the user-focused version with the 10-item validation checklist
 
 **Ruby Style:**
 
@@ -586,6 +605,7 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 **Logging Patterns:**
 
 - Use structured logging with `[LogType]` prefixes (`[APIRequest]`, `[APIError]`, `[AgentLifecycle]`, `[BroadcastError]`, `[AttackAbandon]`, `[JobDiscarded]`)
+- `Rails.logger.debug { block }` (block-form) cannot be tested with `have_received(:debug).with(/pattern/)` — use block-capture: `debug_messages = []; allow(Rails.logger).to receive(:debug) { |*args, &block| debug_messages << (block ? block.call : args.first) }; expect(debug_messages).to include(match(/pattern/))`
 - Include relevant context (IDs, timestamps, state changes)
 - Log errors with backtrace (first 5 lines)
 - Ensure logging failures don't break application (rescue blocks)

@@ -262,6 +262,33 @@ RSpec.describe "Authorization" do
     end
   end
 
+  describe "admin bypass for all task actions" do
+    let!(:failed_task_a) { create(:task, attack: attack_a, agent: agent_a, state: "failed", last_error: "Error") }
+
+    it "admin can cancel tasks in any project" do
+      sign_in(admin)
+      post cancel_task_path(task_b)
+      expect(response).to redirect_to(task_path(task_b))
+      expect(task_b.reload.state).to eq("failed")
+    end
+
+    it "admin can retry failed tasks in any project" do
+      sign_in(admin)
+      post retry_task_path(failed_task_a)
+      expect(response).to redirect_to(task_path(failed_task_a))
+      expect(failed_task_a.reload.state).to eq("pending")
+    end
+
+    it "admin can view agents in any project" do
+      sign_in(admin)
+      get agent_path(agent_a)
+      expect(response).to have_http_status(:success)
+
+      get agent_path(agent_b)
+      expect(response).to have_http_status(:success)
+    end
+  end
+
   private
 
   def stub_health_checks

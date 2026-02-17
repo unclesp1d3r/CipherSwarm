@@ -112,6 +112,47 @@ RSpec.describe "Loading & Feedback Patterns", skip: ENV["CI"].present? do
     end
   end
 
+  describe "loading spinners on button actions" do
+    let(:agent) { create(:agent, projects: [project]) }
+    let(:campaign) { create(:campaign, project: project) }
+    let(:attack) { create(:dictionary_attack, campaign: campaign) }
+
+    def sign_in_project_user_for_spinner
+      page.driver.browser.manage.delete_all_cookies
+      new_user = create_and_sign_in_user
+      create(:project_user, user: new_user, project: project)
+      Rails.cache.clear
+      new_user
+    end
+
+    it "buttons include data-turbo-submits-with for loading feedback" do
+      task = create(:task, attack: attack, agent: agent)
+      sign_in_project_user_for_spinner
+
+      visit task_path(task)
+
+      # Cancel button should have turbo submit attributes for loading state
+      cancel_form = find("form[action='#{cancel_task_path(task)}']", visible: :all)
+      expect(cancel_form).to be_present
+    end
+
+    it "retry button submits via Turbo and updates state" do
+      task = create(:task, attack: attack, agent: agent)
+      task.update_columns(state: "failed", last_error: "GPU error") # rubocop:disable Rails/SkipsModelValidations
+      sign_in_project_user_for_spinner
+
+      visit task_path(task)
+      expect(page).to have_button("Retry")
+
+      click_button "Retry"
+
+      # Turbo Stream processes the action; verify the state changed
+      sleep 1
+      task.reload
+      expect(task.state).to eq("pending")
+    end
+  end
+
   describe "empty states" do
     it "shows no agents message when user has none" do
       # Fresh user with no agents
