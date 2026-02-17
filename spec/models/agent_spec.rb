@@ -250,6 +250,66 @@ RSpec.describe Agent do
         agent = create(:agent)
         expect { agent.shutdown }.not_to raise_error
       end
+
+      it "pauses running tasks instead of destroying them" do
+        agent = create(:agent, state: :active)
+        attack = create(:dictionary_attack, :running)
+        running_task = create(:task, attack: attack, agent: agent, state: :running)
+        allow(Rails.logger).to receive(:info)
+
+        agent.shutdown
+
+        expect(running_task.reload.state).to eq("paused")
+      end
+
+      it "clears claim fields on paused tasks" do
+        agent = create(:agent, state: :active)
+        attack = create(:dictionary_attack, :running)
+        running_task = create(
+          :task,
+          attack: attack, agent: agent, state: :running,
+          claimed_by_agent_id: agent.id, claimed_at: Time.zone.now, expires_at: 1.hour.from_now
+        )
+        allow(Rails.logger).to receive(:info)
+
+        agent.shutdown
+
+        running_task.reload
+        expect(running_task.claimed_by_agent_id).to be_nil
+        expect(running_task.claimed_at).to be_nil
+        expect(running_task.expires_at).to be_nil
+      end
+
+      it "keeps agent_id populated on paused tasks" do
+        agent = create(:agent, state: :active)
+        attack = create(:dictionary_attack, :running)
+        running_task = create(:task, attack: attack, agent: agent, state: :running)
+        allow(Rails.logger).to receive(:info)
+
+        agent.shutdown
+
+        expect(running_task.reload.agent_id).to eq(agent.id)
+      end
+
+      it "preserves task count after shutdown" do
+        agent = create(:agent, state: :active)
+        attack = create(:dictionary_attack, :running)
+        create(:task, attack: attack, agent: agent, state: :running)
+        allow(Rails.logger).to receive(:info)
+
+        expect { agent.shutdown }.not_to change(Task, :count)
+      end
+
+      it "does not force-reset attack state" do
+        agent = create(:agent, state: :active)
+        attack = create(:dictionary_attack, :running)
+        create(:task, attack: attack, agent: agent, state: :running)
+        allow(Rails.logger).to receive(:info)
+
+        agent.shutdown
+
+        expect(attack.reload.state).to eq("running")
+      end
     end
 
     describe "#activate" do

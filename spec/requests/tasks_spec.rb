@@ -355,6 +355,8 @@ RSpec.describe "Tasks" do
   describe "GET /download_results" do
     let!(:hash_list) { campaign.hash_list }
 
+    before { task.update_columns(state: "completed") } # rubocop:disable Rails/SkipsModelValidations
+
     context "when user is not logged in" do
       it "returns unauthorized for CSV request" do
         get download_results_task_path(task, format: :csv)
@@ -381,11 +383,13 @@ RSpec.describe "Tasks" do
         before do
           create(:hash_item, :cracked_recently,
             hash_list: hash_list,
+            attack: attack,
             hash_value: "abc123",
             plain_text: "password1",
             cracked_time: Time.zone.parse("2025-01-15 10:30:00"))
           create(:hash_item, :cracked_recently,
             hash_list: hash_list,
+            attack: attack,
             hash_value: "def456",
             plain_text: "password2",
             cracked_time: Time.zone.parse("2025-01-16 14:45:00"))
@@ -447,6 +451,25 @@ RSpec.describe "Tasks" do
           expect(response).to redirect_to(task_path(task))
           expect(flash[:alert]).to eq("CSV format required")
         end
+      end
+    end
+
+    context "when task is not completed or exhausted" do
+      before do
+        sign_in(project_user)
+        task.update_columns(state: "pending") # rubocop:disable Rails/SkipsModelValidations
+      end
+
+      it "redirects with alert for CSV format" do
+        get download_results_task_path(task, format: :csv)
+        expect(response).to redirect_to(task_path(task))
+        expect(flash[:alert]).to include("Results can only be downloaded")
+      end
+
+      it "redirects with alert for HTML format" do
+        get download_results_task_path(task, format: :html)
+        expect(response).to redirect_to(task_path(task))
+        expect(flash[:alert]).to include("Results can only be downloaded")
       end
     end
 
@@ -600,6 +623,15 @@ RSpec.describe "Tasks" do
           expect(response).to have_http_status(:success)
           expect(response.media_type).to eq("text/vnd.turbo-stream.html")
           expect(response.body).to include("turbo-stream")
+        end
+
+        it "returns turbo_stream error when task update fails" do
+          sign_in(project_user)
+          allow_any_instance_of(Task).to receive(:update).and_return(false) # rubocop:disable RSpec/AnyInstance
+          post reassign_task_path(task), params: { agent_id: compatible_agent.id }, as: :turbo_stream
+          expect(response).to have_http_status(:success)
+          expect(response.media_type).to eq("text/vnd.turbo-stream.html")
+          expect(response.body).to include("could not be reassigned")
         end
       end
     end

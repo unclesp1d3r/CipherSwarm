@@ -56,10 +56,10 @@ RSpec.describe TaskActionsComponent, type: :component do
         expect(page).to have_link("Logs", href: logs_task_path(task))
       end
 
-      it "renders download results link" do
+      it "does not render download results link" do
         render_inline(described_class.new(task: task, current_ability: ability))
 
-        expect(page).to have_link("Download Results", href: download_results_task_path(task))
+        expect(page).to have_no_link("Download Results")
       end
     end
 

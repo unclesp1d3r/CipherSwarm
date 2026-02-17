@@ -12,35 +12,11 @@
 <% end %>
 
 <div class="row">
-  <%# Task Details Card %>
+  <%# Task Details Card - targeted by Turbo Stream for state updates %>
   <div class="col-lg-6">
-    <div class="card mb-3">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="card-title mb-0">Task Details</h5>
-        <%= render StatusPillComponent.new(status: @task.state) %>
-      </div>
-      <div class="card-body">
-        <dl class="row mb-0">
-          <dt class="col-sm-4">ID</dt>
-          <dd class="col-sm-8"><%= @task.id %></dd>
-
-          <dt class="col-sm-4">Attack</dt>
-          <dd class="col-sm-8"><%= link_to @task.attack.name, campaign_attack_path(@task.attack.campaign, @task.attack) %></dd>
-
-          <dt class="col-sm-4">Campaign</dt>
-          <dd class="col-sm-8"><%= link_to @task.attack.campaign.name, @task.attack.campaign %></dd>
-
-          <dt class="col-sm-4">Agent</dt>
-          <dd class="col-sm-8"><%= link_to @task.agent.host_name, @task.agent %></dd>
-
-          <dt class="col-sm-4">Keyspace Offset</dt>
-          <dd class="col-sm-8"><%= number_with_delimiter(@task.keyspace_offset) %></dd>
-
-          <dt class="col-sm-4">Keyspace Limit</dt>
-          <dd class="col-sm-8"><%= number_with_delimiter(@task.keyspace_limit) %></dd>
-        </dl>
-      </div>
-    </div>
+    <%= turbo_frame_tag "task-details-#{@task.id}" do %>
+      <%= render "tasks/task", task: @task %>
+    <% end %>
   </div>
 
   <%# Progress Card %>
@@ -120,25 +96,11 @@
     </div>
   </div>
 
-  <%# Error Section %>
-  <% if @task.last_error.present? %>
-    <div class="col-lg-6">
-      <div class="card mb-3 border-danger">
-        <div class="card-header bg-danger text-white">
-          <h5 class="card-title mb-0">
-            <i class="bi bi-exclamation-triangle me-2"></i>
-            Last Error
-          </h5>
-        </div>
-        <div class="card-body">
-          <pre class="mb-0 text-danger"><%= @task.last_error %></pre>
-        </div>
-      </div>
-    </div>
-  <% end %>
+  <%# Error Section - targeted by Turbo Stream for state updates %>
+  <%= render "tasks/task_error", task: @task %>
 </div>
 
-<%# Actions Card %>
+<%# Actions Card - targeted by Turbo Stream for state updates %>
 <div class="row">
   <div class="col-12">
     <div class="card mb-3">
@@ -146,7 +108,7 @@
         <h5 class="card-title mb-0">Actions</h5>
       </div>
       <div class="card-body">
-        <%= render TaskActionsComponent.new(task: @task, current_ability: current_ability) %>
+        <%= render "tasks/task_actions", task: @task %>
       </div>
     </div>
   </div>

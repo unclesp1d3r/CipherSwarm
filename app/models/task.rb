@@ -176,8 +176,8 @@ class Task < ApplicationRecord
     end
 
     event :accept_status do
+      transition %i[pending running] => :running
       transition paused: same
-      transition all => :running
     end
 
     event :abandon do
@@ -191,21 +191,18 @@ class Task < ApplicationRecord
     after_transition to: :running do |task|
       Rails.logger.info("[Task #{task.id}] Agent #{task.agent_id} - Attack #{task.attack_id} - State change: #{task.state_was} -> running - Task accepted and running")
       task.attack.accept
-      task.send(:safe_broadcast_attack_progress_update)
     end
 
     after_transition to: :completed do |task|
       uncracked = task.hash_list.uncracked_count
       Rails.logger.info("[Task #{task.id}] Agent #{task.agent_id} - Attack #{task.attack_id} - State change: #{task.state_was} -> completed - Uncracked hashes: #{uncracked}")
       task.attack.complete if task.attack.can_complete?
-      task.send(:safe_broadcast_attack_progress_update)
       task.hashcat_statuses.delete_all # DB cascades handle child records
     end
 
     after_transition to: :exhausted do |task|
       Rails.logger.info("[Task #{task.id}] Agent #{task.agent_id} - Attack #{task.attack_id} - State change: #{task.state_was} -> exhausted - Keyspace exhausted")
       task.attack.exhaust if task.attack.can_exhaust?
-      task.send(:safe_broadcast_attack_progress_update)
       task.hashcat_statuses.delete_all # DB cascades handle child records
     end
 
@@ -234,7 +231,6 @@ class Task < ApplicationRecord
 
     after_transition to: :paused do |task|
       Rails.logger.info("[Task #{task.id}] Agent #{task.agent_id} - Attack #{task.attack_id} - State change: #{task.state_was} -> paused - Task execution paused")
-      task.send(:safe_broadcast_attack_progress_update)
     end
 
     after_transition on: :retry do |task|
@@ -282,6 +278,15 @@ class Task < ApplicationRecord
       )
     end
 
+    # Shared broadcast hook: ensures all task state changes push attack progress
+    # updates to the UI. Covers error, cancel, retry, accept_status, accept_crack,
+    # and all other transitions. Excludes abandon (which triggers attack.abandon
+    # destroying all tasks, making broadcast unreliable).
+    after_transition do |task, transition|
+      next if transition.event == :abandon
+      task.send(:safe_broadcast_attack_progress_update)
+    end
+
     after_transition any - [:pending] => any, do: :update_activity_timestamp
 
     state :completed
@@ -302,9 +307,7 @@ class Task < ApplicationRecord
     # If the attack is a mask attack, we don't have a good way to estimate the stop time.
     return nil if attack.mask? && attack.mask_list.present?
 
-    Rails.cache.fetch("#{cache_key_with_version}/estimated_finish_time", expires_in: 1.minute) do
-      latest_status&.estimated_stop
-    end
+    latest_status&.estimated_stop
   end
 
   # Returns the hash list associated with the attack's campaign.

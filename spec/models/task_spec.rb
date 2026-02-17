@@ -175,6 +175,44 @@ RSpec.describe Task do
       end
     end
 
+    describe "#accept_status" do
+      it "transitions pending to running" do
+        task = create(:task, state: "pending")
+        task.accept_status
+        expect(task).to be_running
+      end
+
+      it "keeps running task in running state" do
+        task = create(:task, state: "running")
+        task.accept_status
+        expect(task).to be_running
+      end
+
+      it "keeps paused task in paused state" do
+        task = create(:task, state: "paused")
+        task.accept_status
+        expect(task).to be_paused
+      end
+
+      it "does not transition completed task to running" do
+        task = create(:task, state: "completed")
+        expect(task.accept_status).to be false
+        expect(task).to be_completed
+      end
+
+      it "does not transition exhausted task to running" do
+        task = create(:task, state: "exhausted")
+        expect(task.accept_status).to be false
+        expect(task).to be_exhausted
+      end
+
+      it "does not transition failed task to running" do
+        task = create(:task, state: "failed")
+        expect(task.accept_status).to be false
+        expect(task).to be_failed
+      end
+    end
+
     describe "#abandon" do
       let(:running_task) { create(:task, state: "running") }
 

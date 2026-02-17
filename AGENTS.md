@@ -239,6 +239,10 @@ Three core models use state_machines-activerecord:
 - pending → running → completed/exhausted/failed/paused
 - Transitions: run, pause, resume, complete, exhaust, fail
 
+**Attack Scope Gotcha:**
+
+- `Attack.incomplete` excludes `:running` and `:paused` (only matches pending/failed) — use `without_states(:completed, :exhausted)` when you need all unfinished work including running attacks
+
 **Task States:**
 
 - pending → running → completed/exhausted/failed/paused
@@ -250,6 +254,9 @@ Three core models use state_machines-activerecord:
 - `task.abandon` triggers `attack.abandon` which destroys ALL tasks for that attack
 - For reassigning running tasks, use `pause` then `resume` instead of `abandon`
 - The `retry` event already handles incrementing `retry_count` and clearing `last_error`
+- `accept` only transitions from `pending` or `running` — orphaned paused tasks must be `resume!`d to `pending` before a new agent can accept them
+- `resume!` marks the task as `stale: true`, ensuring the new agent re-downloads crack data
+- `accept_status` only allows transitions from active states (pending/running → running, paused → same) — finished states (completed/exhausted/failed) are blocked to prevent task resurrection
 
 ### Service Layer Pattern
 
@@ -333,10 +340,16 @@ To set up JavaScript testing in the project, we use Vitest. Follow the steps bel
 4. Run tests using:
 
    ```bash
-   bun test:js
+   npx vitest run
    ```
 
 Both unit tests for Stimulus controllers and integration tests via system tests are included in the project.
+
+**Vitest Mock Patterns:**
+
+- `bun test` uses Bun's runner (no jsdom) — always use `npx vitest run` for Vitest
+- `vi.mock` is hoisted to file top; use `vi.hoisted()` for mock references: `const { mockFn } = vi.hoisted(() => ({ mockFn: vi.fn() }))`
+- Turbo/Stimulus mocks: mock `@hotwired/turbo` and `@hotwired/stimulus` modules, not individual imports
 
 ## Testing Strategy
 
@@ -354,12 +367,27 @@ Both unit tests for Stimulus controllers and integration tests via system tests 
 - Selenium requires explicit Chrome binary path: `options.binary = ENV["CHROME_BIN"]` in `spec/support/capybara.rb`
 - If CI hangs after "Capybara starting Puma...", check for tests that load external resources
 - File downloads don't work in CI headless Chrome; test download content via request specs instead
+- `ProcessHashListJob` can race against DB truncation cleanup causing intermittent `PG::ForeignKeyViolation` on `hash_items` — safe to re-run
 
 **Turbo Stream System Test Pattern:**
 
 - Turbo Stream partial replacements do NOT trigger flash messages or update elements outside the replaced partial
 - Do NOT wait for flash messages or CSS badges after Turbo Stream actions (cancel, retry, reassign)
 - Use `sleep 1` + direct DB verification: `task.reload; expect(task.state).to eq("pending")`
+- Task actions use granular Turbo Streams (`turbo_stream.update`/`replace` with named DOM IDs like `task-details-{id}`, `task-actions-{id}`, `task-error-{id}`), not model-based replacement
+- To verify button removal after Turbo actions, reload the page with `visit task_path(task)` then assert
+
+**Turbo Frame Targeting:**
+
+- Do NOT wrap entire show page content in a single `turbo_frame_tag dom_id(@model)` — causes all sections to be replaced when any Turbo Stream targets the model
+- Use granular named frames/divs for updateable sections: `turbo_frame_tag "task-details-#{@task.id}"`, `div id="task-actions-#{@task.id}"`
+- Partials rendered via Turbo Stream should NOT contain their own `turbo_frame_tag` — let the show page control framing
+- Use `turbo_stream.update` for turbo-frame targets (preserves frame element); use `turbo_stream.replace` for div targets (partial must include wrapper div with same ID)
+
+**Health Check Test Setup:**
+
+- Specs touching `SystemHealthCheckService` require Redis lock cleanup in `before`: `Sidekiq.redis { |conn| conn.del(SystemHealthCheckService::LOCK_KEY) }`
+- Also need stubs for DB, storage, and Sidekiq — extract a `stub_health_checks` private method (see `spec/requests/system_health_spec.rb` for canonical example)
 
 **Model Tests (spec/models/):**
 
@@ -378,6 +406,10 @@ Both unit tests for Stimulus controllers and integration tests via system tests 
 - When using `min_by`, `sort_by`, or `ORDER BY` with columns that can tie, always add a tiebreaker (typically `.id`)
 - Example: `tasks.min_by { |t| [t.priority, t.progress, t.id] }` — without `t.id`, CI may return different results than local
 
+**Hash Item Test Setup:**
+
+- When testing "no uncracked hashes" scenarios, call `hash_list.hash_items.delete_all` before creating test hash_items — factories or callbacks may create default items
+
 **DB Constraint Testing:**
 
 - Use `record.delete` (not `destroy`) when testing DB-level FK cascades — `destroy` fires Rails callbacks that mask missing constraints
@@ -387,6 +419,14 @@ Both unit tests for Stimulus controllers and integration tests via system tests 
 - API endpoint testing
 - Generates Swagger documentation via RSwag
 - Authentication and authorization testing
+- When service methods add new SQL queries, stubs like `allow(...).to receive(:execute).with("SELECT 1")` reject other queries — add `and_call_original` as default first
+
+**Non-Standard Spec Directories:**
+
+- `spec/performance/` - Page load benchmarks and query count efficiency tests
+- `spec/deployment/` - Air-gapped deployment validation (CDN-free assets, Docker config, offline readiness)
+- `spec/coverage/` - Coverage verification (validates spec file existence across layers)
+- These use `# rubocop:disable RSpec/DescribeClass` since they describe behaviors, not classes
 
 **Logging Tests:**
 
@@ -496,11 +536,25 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 - Higher priority campaigns automatically pause lower priority ones
 - Callback `pause_lower_priority_campaigns` in Campaign model
 
+**Task Action State Requirements (TaskActionsComponent):**
+
+- `can_cancel?` requires `task.pending?` or `task.running?` (+ authorization)
+- `can_retry?` requires `task.failed?` (+ authorization)
+- `can_reassign?` requires `task.pending?`, `task.running?`, `task.failed?`, or `task.paused?` (+ authorization)
+- `can_download_results?` requires `task.completed?` or `task.exhausted?` (+ authorization)
+- Tests must create tasks in the correct state for action buttons to render
+
+**HashItem Scoping:**
+
+- `hash_items.attack_id` tracks which attack cracked a hash, but there is no `task_id` — per-task attribution unavailable
+- When scoping results to a task, use `HashItem.where(hash_list: task.hash_list, attack: task.attack, cracked: true)`
+
 **Agent Task Assignment:**
 
 - Agents request tasks via `GET /api/v1/client/tasks/new`
 - **Security:** Task queries in service objects must be scoped to the current agent (`.where(agent: agent)`) to prevent authorization bypass
 - Tasks claimed with `claimed_by_agent_id` and `expires_at`
+- **`tasks.agent_id` is NOT NULL** — never set to nil. On agent shutdown, tasks are paused and claim fields (`claimed_by_agent_id`, `claimed_at`, `expires_at`) are cleared. `TaskAssignmentService#find_unassigned_paused_task` detects orphans by checking the owning agent's state (offline/stopped), then reassigns `agent_id` and calls `resume!` on pickup.
 - Agents submit status updates via `POST /api/v1/client/tasks/:id/submit_status`
 - Agents submit cracks via `POST /api/v1/client/tasks/:id/submit_crack`
 
@@ -522,6 +576,12 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 - Use `params.key?(:field)` to check if parameter exists (even if nil)
 - Use `params[:field].present?` to check for non-nil values only
 - Important for API endpoints that need to distinguish between missing vs null values
+
+**Redis Lock Patterns:**
+
+- `conn.set(key, value, nx: true)` returns `true` on success, `nil` on contention (not `false`) — never use `rescue => nil` around lock acquisition, as it makes contention indistinguishable from Redis failure
+- Always capture lock errors in a separate variable (`lock_error`) to distinguish "lock contended" from "Redis down"
+- See `SystemHealthCheckService#call` for the canonical lock-with-error-capture pattern
 
 **Logging Patterns:**
 

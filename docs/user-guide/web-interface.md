@@ -94,9 +94,14 @@ The top of the dashboard displays four key metrics:
 The main content area shows all campaigns with:
 
 - **Accordion Layout**: Expandable campaign rows
-- **Live Progress**: Real-time progress bars with streaming updates
+- **Live Progress**: Real-time progress bars with streaming updates via Turbo Streams
 - **State Indicators**: Color-coded badges (Running=purple, Completed=green, Error=red, Paused=gray)
-- **Attack Details**: Expandable view showing individual attacks
+- **Attack Stepper**: Visual progression through configured attacks (completed, running, pending)
+- **ETA Display**: Estimated time to completion based on current hash rate
+- **Recent Cracks Feed**: Live feed of newly cracked hashes
+- **Attack Details**: Expandable view showing individual attacks with progress and task breakdown
+
+For detailed campaign management documentation, see [Campaign Management](campaign-management.md).
 
 ```html
 <div class="campaign-row">
@@ -346,10 +351,13 @@ For smaller resources (under configured size limits):
 
 The Agent Status Sheet (accessible from dashboard) shows:
 
-- **Agent Cards**: Individual agent status
-- **Performance Metrics**: Current hash rates and trends
-- **Task Assignment**: Current campaign/attack assignments
-- **Hardware Status**: Temperature and utilization
+- **Agent Cards**: Individual agent status with real-time status badges
+- **Performance Metrics**: Current hash rates, 8-hour trend charts, and performance history
+- **Task Assignment**: Current campaign/attack assignments with live progress
+- **Hardware Status**: Temperature, utilization, and error count badges
+- **Error Monitoring**: Error badges on agent cards with quick access to error details
+
+For comprehensive agent monitoring documentation, see [Agent Setup - Agent Monitoring](agent-setup.md#agent-monitoring).
 
 ### Agent Registration
 
@@ -408,19 +416,68 @@ CipherSwarm v2 uses streaming connections for real-time updates:
 - **Project Assignment**: Multi-project user access
 - **Password Policies**: Complexity requirements and rotation
 
-### System Health
+### System Health Dashboard
 
-#### Health Overview
+CipherSwarm V2 includes a dedicated System Health Dashboard accessible from **Admin** > **System Health**. This provides real-time monitoring of all critical infrastructure components.
+
+#### Service Status Cards
+
+The health dashboard displays four service status cards:
+
+1. **PostgreSQL**
+
+   - Connection status (connected/disconnected)
+   - Connection pool utilization
+   - Response time metrics
+   - Database version and configuration
+
+2. **Redis**
+
+   - Connection status
+   - Memory usage and limits
+   - Connected client count
+   - Used for caching, sessions, and Action Cable
+
+3. **MinIO (Object Storage)**
+
+   - Connection status
+   - Storage capacity and available space
+   - Bucket accessibility
+   - Used for wordlists, rules, hash lists, and other file storage
+
+4. **Application**
+
+   - Running status (running/degraded/error)
+   - Uptime since last restart
+   - Memory usage
+   - Sidekiq job queue depth
+   - Ruby and Rails version information
+   - Boot time
+
+#### Real-Time Health Monitoring
+
+- **Auto-refresh**: Health data refreshes automatically at configurable intervals
+- **Manual Refresh**: Click the refresh button for immediate status updates
+- **Diagnostics Detail**: Each card expands to show detailed diagnostic information
+- **Error Display**: When a service is unhealthy, the specific error message is shown
+
+#### Using the Health Dashboard
+
+The health dashboard is the first place to check when issues arise:
+
+- **All services green**: System is healthy, issue is likely user-specific
+- **PostgreSQL red**: Database connectivity lost, all operations affected
+- **Redis red**: Live updates and caching disabled, sessions may expire
+- **MinIO red**: File uploads and downloads will fail, agents cannot get resources
+- **Application degraded**: Check memory and job queue for bottlenecks
+
+#### Legacy Health Overview
+
+The dashboard also shows aggregate health metrics:
 
 - **Agent Status**: Online/offline counts
 - **System Performance**: Database latency, task backlog
 - **Error Monitoring**: Recent errors and warnings
-
-#### Component Health
-
-- **Database**: Connection status and performance
-- **Object Storage**: Storage health and capacity
-- **Cache Service**: Cache status (if configured)
 
 ### Performance Settings
 

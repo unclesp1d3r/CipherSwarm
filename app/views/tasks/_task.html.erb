@@ -1,38 +1,43 @@
-<%= turbo_frame_tag task, data: { "aria-live": "polite" } do %>
-  <div class="card mb-3" aria-label="Task details">
-    <div class="card-header">
-      <h5 class="card-title mb-0">Task Details</h5>
-    </div>
-    <div class="card-body">
-      <dl class="row mb-0">
-        <dt class="col-sm-4">ID</dt>
-        <dd class="col-sm-8"><%= task.id %></dd>
-
-        <dt class="col-sm-4">State</dt>
-        <dd class="col-sm-8"><%= task.state.humanize %></dd>
-
-        <dt class="col-sm-4">Attack</dt>
-        <dd class="col-sm-8"><%= link_to task.attack.name, campaign_attack_path(task.attack.campaign, task.attack) %></dd>
-
-        <dt class="col-sm-4">Agent</dt>
-        <dd class="col-sm-8"><%= link_to task.agent.host_name, task.agent %></dd>
-
-        <dt class="col-sm-4">Started</dt>
-        <dd class="col-sm-8"><%= task.start_date.present? ? time_ago_in_words(task.start_date) + " ago" : "Not started" %></dd>
-
-        <dt class="col-sm-4">Progress</dt>
-        <dd class="col-sm-8"><%= number_to_percentage(task.progress_percentage, precision: 2) %></dd>
-
-        <% if task.retry_count.positive? %>
-          <dt class="col-sm-4">Retry Count</dt>
-          <dd class="col-sm-8"><%= task.retry_count %></dd>
-        <% end %>
-
-        <% if task.last_error.present? %>
-          <dt class="col-sm-4">Last Error</dt>
-          <dd class="col-sm-8 text-danger" role="alert"><%= task.last_error %></dd>
-        <% end %>
-      </dl>
-    </div>
+<div class="card mb-3" aria-label="Task details" aria-live="polite">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h5 class="card-title mb-0">Task Details</h5>
+    <%= render StatusPillComponent.new(status: task.state) %>
   </div>
-<% end %>
+  <div class="card-body">
+    <dl class="row mb-0">
+      <dt class="col-sm-4">ID</dt>
+      <dd class="col-sm-8"><%= task.id %></dd>
+
+      <dt class="col-sm-4">Attack</dt>
+      <dd class="col-sm-8"><%= link_to task.attack.name, campaign_attack_path(task.attack.campaign, task.attack), data: { turbo_frame: "_top" } %></dd>
+
+      <dt class="col-sm-4">Campaign</dt>
+      <dd class="col-sm-8"><%= link_to task.attack.campaign.name, task.attack.campaign, data: { turbo_frame: "_top" } %></dd>
+
+      <dt class="col-sm-4">Agent</dt>
+      <dd class="col-sm-8"><%= link_to task.agent.host_name, task.agent, data: { turbo_frame: "_top" } %></dd>
+
+      <dt class="col-sm-4">Keyspace Offset</dt>
+      <dd class="col-sm-8"><%= number_with_delimiter(task.keyspace_offset) %></dd>
+
+      <dt class="col-sm-4">Keyspace Limit</dt>
+      <dd class="col-sm-8"><%= number_with_delimiter(task.keyspace_limit) %></dd>
+
+      <dt class="col-sm-4">Started</dt>
+      <dd class="col-sm-8"><%= task.start_date.present? ? time_ago_in_words(task.start_date) + " ago" : "Not started" %></dd>
+
+      <dt class="col-sm-4">Progress</dt>
+      <dd class="col-sm-8"><%= number_to_percentage(task.progress_percentage, precision: 2) %></dd>
+
+      <% if task.retry_count.positive? %>
+        <dt class="col-sm-4">Retry Count</dt>
+        <dd class="col-sm-8"><%= task.retry_count %></dd>
+      <% end %>
+
+      <% if task.last_error.present? %>
+        <dt class="col-sm-4">Last Error</dt>
+        <dd class="col-sm-8 text-danger" role="alert"><%= task.last_error %></dd>
+      <% end %>
+    </dl>
+  </div>
+</div>

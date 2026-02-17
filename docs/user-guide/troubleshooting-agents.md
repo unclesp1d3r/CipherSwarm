@@ -443,6 +443,108 @@ agent:
 
 ---
 
+## Task Management Actions
+
+CipherSwarm V2 provides task management actions directly from the web interface, giving administrators control over individual tasks without requiring command-line access.
+
+### Task Detail View
+
+To view task details:
+
+1. Navigate to a campaign and expand an attack
+2. Click on a task row to open the task detail page
+3. The detail page shows:
+   - Task state and progress
+   - Assigned agent
+   - Start time and duration
+   - Hash rate and keyspace progress
+   - Error messages (if any)
+   - Status history timeline
+
+### Cancel Task Action
+
+To cancel a running task:
+
+1. Open the task detail page
+2. Click **Cancel**
+3. Confirm the cancellation
+4. The task is stopped and its state changes to cancelled
+5. The unprocessed keyspace becomes available for reassignment
+
+**When to cancel**:
+
+- Agent is performing poorly on this task
+- Task is no longer needed (e.g., all hashes cracked by another task)
+- Agent needs to be taken offline for maintenance
+
+### Retry Task Action
+
+To retry a failed task:
+
+1. Open the task detail page for a failed task
+2. Click **Retry**
+3. The task state resets to pending
+4. The retry count increments for tracking purposes
+5. An available agent picks up the retried task
+
+**When to retry**:
+
+- Task failed due to a transient error (network issue, temporary GPU error)
+- The underlying issue has been resolved
+- The task has not exceeded the maximum retry count
+
+### Reassign Task Action
+
+To reassign a task to a different agent:
+
+1. Open the task detail page
+2. Click **Reassign**
+3. The task is released from the current agent
+4. The task returns to pending state
+5. An available agent picks up the task automatically
+
+**When to reassign**:
+
+- Current agent is performing poorly
+- Agent needs to be taken offline
+- Load balancing across agents
+- Agent is stuck but not formally failed
+
+### Task Status History
+
+Each task maintains a complete status history:
+
+| Timestamp           | State     | Details                       |
+| ------------------- | --------- | ----------------------------- |
+| 2026-01-15 10:00:00 | Pending   | Task created                  |
+| 2026-01-15 10:00:05 | Running   | Assigned to Agent GPU-Node-01 |
+| 2026-01-15 10:30:00 | Paused    | Campaign paused by user       |
+| 2026-01-15 11:00:00 | Running   | Campaign resumed              |
+| 2026-01-15 12:00:00 | Completed | 100% keyspace processed       |
+
+This history is visible on the task detail page and helps with debugging task lifecycle issues.
+
+### Task Error Handling
+
+When a task fails, the error information includes:
+
+- **Error Message**: The specific error from hashcat or the agent
+- **Error Time**: When the error occurred
+- **Agent Details**: Which agent encountered the error
+- **Retry Count**: How many times the task has been retried
+
+Common task errors and their solutions:
+
+| Error                          | Cause                          | Solution                               |
+| ------------------------------ | ------------------------------ | -------------------------------------- |
+| GPU memory allocation failed   | Insufficient GPU memory        | Reassign to agent with more GPU memory |
+| Hashcat returned error code -1 | Invalid attack parameters      | Review attack configuration            |
+| Resource download timeout      | Network or MinIO issue         | Check MinIO status, retry task         |
+| Agent connection lost          | Agent went offline during task | Wait for agent recovery, reassign      |
+| Temperature abort              | GPU overheated                 | Check agent cooling, reduce workload   |
+
+---
+
 ## Common Scenarios
 
 ### Scenario 1: Attack Abandoned While Agent Processing

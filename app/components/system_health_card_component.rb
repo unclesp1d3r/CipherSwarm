@@ -20,6 +20,7 @@ class SystemHealthCardComponent < ApplicationViewComponent
   option :status, required: true
   option :latency, default: proc { nil }
   option :error, default: proc { nil }
+  option :details, default: proc { {} }
 
   def status_variant
     case @status
@@ -55,5 +56,19 @@ class SystemHealthCardComponent < ApplicationViewComponent
     return nil unless @latency
 
     "#{@latency} ms"
+  end
+
+  def format_bytes(bytes)
+    return nil unless bytes
+
+    if bytes >= 1_073_741_824
+      "#{(bytes.to_f / 1_073_741_824).round(2)} GB"
+    elsif bytes >= 1_048_576
+      "#{(bytes.to_f / 1_048_576).round(2)} MB"
+    elsif bytes >= 1024
+      "#{(bytes.to_f / 1024).round(2)} KB"
+    else
+      "#{bytes} B"
+    end
   end
 end

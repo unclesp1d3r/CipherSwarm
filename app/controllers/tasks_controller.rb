@@ -26,13 +26,13 @@ class TasksController < ApplicationController
       Rails.logger.info("[TaskAction] Task #{@task.id} cancelled by user #{current_user.id}")
       respond_to do |format|
         format.html { redirect_to @task, notice: "Task was successfully cancelled." }
-        format.turbo_stream { render turbo_stream: turbo_stream.replace(@task, partial: "tasks/task", locals: { task: @task }) }
+        format.turbo_stream { render turbo_stream: task_turbo_streams(message: "Task was successfully cancelled.", variant: "success") }
       end
     else
       Rails.logger.warn("[TaskAction] Task #{@task.id} could not be cancelled - current state: #{@task.state}")
       respond_to do |format|
         format.html { redirect_to @task, alert: "Task could not be cancelled. Only pending or running tasks can be cancelled." }
-        format.turbo_stream { render turbo_stream: turbo_stream.replace(@task, partial: "tasks/task", locals: { task: @task }) }
+        format.turbo_stream { render turbo_stream: task_turbo_streams(message: "Task could not be cancelled. Only pending or running tasks can be cancelled.", variant: "danger") }
       end
     end
   end
@@ -47,13 +47,13 @@ class TasksController < ApplicationController
       Rails.logger.info("[TaskAction] Task #{@task.id} retried by user #{current_user.id} - retry count: #{@task.retry_count}")
       respond_to do |format|
         format.html { redirect_to @task, notice: "Task was successfully queued for retry." }
-        format.turbo_stream { render turbo_stream: turbo_stream.replace(@task, partial: "tasks/task", locals: { task: @task }) }
+        format.turbo_stream { render turbo_stream: task_turbo_streams(message: "Task was successfully queued for retry.", variant: "success") }
       end
     else
       Rails.logger.warn("[TaskAction] Task #{@task.id} could not be retried - current state: #{@task.state}")
       respond_to do |format|
         format.html { redirect_to @task, alert: "Task could not be retried. Only failed tasks can be retried." }
-        format.turbo_stream { render turbo_stream: turbo_stream.replace(@task, partial: "tasks/task", locals: { task: @task }) }
+        format.turbo_stream { render turbo_stream: task_turbo_streams(message: "Task could not be retried. Only failed tasks can be retried.", variant: "danger") }
       end
     end
   end
@@ -84,7 +84,7 @@ class TasksController < ApplicationController
     if params[:agent_id].blank?
       respond_to do |format|
         format.html { redirect_to @task, alert: "Please select an agent for reassignment." }
-        format.turbo_stream { render turbo_stream: turbo_stream.replace(@task, partial: "tasks/task", locals: { task: @task }) }
+        format.turbo_stream { render turbo_stream: task_turbo_streams(message: "Please select an agent for reassignment.", variant: "danger") }
       end
       return
     end
@@ -95,7 +95,7 @@ class TasksController < ApplicationController
     unless @task.pending? || @task.running? || @task.failed? || @task.paused?
       respond_to do |format|
         format.html { redirect_to @task, alert: "Task cannot be reassigned. Only pending, running, failed, or paused tasks can be reassigned." }
-        format.turbo_stream { render turbo_stream: turbo_stream.replace(@task, partial: "tasks/task", locals: { task: @task }) }
+        format.turbo_stream { render turbo_stream: task_turbo_streams(message: "Task cannot be reassigned. Only pending, running, failed, or paused tasks can be reassigned.", variant: "danger") }
       end
       return
     end
@@ -105,7 +105,7 @@ class TasksController < ApplicationController
       Rails.logger.warn("[TaskAction] Task #{@task.id} reassignment denied - Agent #{new_agent.id} not compatible with project")
       respond_to do |format|
         format.html { redirect_to @task, alert: "Agent is not compatible with this task's project. The agent must have access to the project." }
-        format.turbo_stream { render turbo_stream: turbo_stream.replace(@task, partial: "tasks/task", locals: { task: @task }) }
+        format.turbo_stream { render turbo_stream: task_turbo_streams(message: "Agent is not compatible with this task's project. The agent must have access to the project.", variant: "danger") }
       end
       return
     end
@@ -123,24 +123,34 @@ class TasksController < ApplicationController
       Rails.logger.info("[TaskAction] Task #{@task.id} reassigned from agent #{@task.agent_id_before_last_save} to agent #{new_agent.id} by user #{current_user.id}")
       respond_to do |format|
         format.html { redirect_to @task, notice: "Task was successfully reassigned." }
-        format.turbo_stream { render turbo_stream: turbo_stream.replace(@task, partial: "tasks/task", locals: { task: @task }) }
+        format.turbo_stream { render turbo_stream: task_turbo_streams(message: "Task was successfully reassigned.", variant: "success") }
       end
     else
       Rails.logger.warn("[TaskAction] Task #{@task.id} could not be reassigned - #{@task.errors.full_messages.join(', ')}")
       respond_to do |format|
         format.html { redirect_to @task, alert: "Task could not be reassigned. #{@task.errors.full_messages.join(', ')}" }
-        format.turbo_stream { render turbo_stream: turbo_stream.replace(@task, partial: "tasks/task", locals: { task: @task }) }
+        format.turbo_stream { render turbo_stream: task_turbo_streams(message: "Task could not be reassigned. #{@task.errors.full_messages.join(', ')}", variant: "danger") }
       end
     end
   end
 
   # GET /tasks/:id/download_results
-  # Exports cracked hashes for the task's hash list as CSV.
-  # Note: This exports ALL cracked hashes for the hash list, not just ones cracked by this specific task.
+  # Exports cracked hashes attributable to this task's attack as CSV.
+  # Scoped to hashes cracked by this task's attack (hash_items.attack_id)
+  # since per-task attribution is not tracked at the hash_item level.
+  # Only available for completed or exhausted tasks.
   def download_results
     authorize! :download_results, @task
 
-    hash_items = HashItem.where(hash_list: @task.hash_list, cracked: true)
+    unless @task.completed? || @task.exhausted?
+      respond_to do |format|
+        format.csv { redirect_to @task, alert: "Results can only be downloaded for completed or exhausted tasks." }
+        format.html { redirect_to @task, alert: "Results can only be downloaded for completed or exhausted tasks." }
+      end
+      return
+    end
+
+    hash_items = HashItem.where(hash_list: @task.hash_list, attack: @task.attack, cracked: true)
 
     respond_to do |format|
       format.csv do
@@ -167,6 +177,19 @@ class TasksController < ApplicationController
         csv << [item.hash_value, item.plain_text, item.cracked_time&.iso8601]
       end
     end
+  end
+
+  # Builds an array of Turbo Stream actions for granular task UI updates.
+  # Updates details card, actions buttons, error section, and appends a
+  # toast notification so Turbo Stream users receive visual feedback
+  # without a full page reload.
+  def task_turbo_streams(message:, variant: "success")
+    [
+      turbo_stream.update("task-details-#{@task.id}", partial: "tasks/task", locals: { task: @task }),
+      turbo_stream.replace("task-actions-#{@task.id}", partial: "tasks/task_actions", locals: { task: @task }),
+      turbo_stream.replace("task-error-#{@task.id}", partial: "tasks/task_error", locals: { task: @task }),
+      turbo_stream.append("toast_container", partial: "shared/toast", locals: { message: message, variant: variant })
+    ]
   end
 
   # Use callbacks to share common setup or constraints between actions.
