@@ -20,7 +20,7 @@ RSpec.describe "Air-Gapped Deployment Validation", type: :request do
 
     it "no CDN references in application layout" do
       layout_path = Rails.root.join("app/views/layouts/application.html.erb")
-      next unless File.exist?(layout_path)
+      skip "Application layout not found at #{layout_path}" unless File.exist?(layout_path)
 
       content = File.read(layout_path)
 
@@ -100,7 +100,11 @@ RSpec.describe "Air-Gapped Deployment Validation", type: :request do
     end
 
     it "local storage is configured" do
-      storage_config = YAML.load_file(Rails.root.join("config/storage.yml"))
+      storage_config = YAML.safe_load(
+        Rails.root.join("config/storage.yml").read,
+        permitted_classes: [],
+        aliases: true
+      )
       expect(storage_config).to have_key("local")
     end
   end

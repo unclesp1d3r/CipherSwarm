@@ -35,7 +35,7 @@ CipherSwarm V2 is designed to function fully offline. All assets, fonts, icons, 
 ### System Requirements
 
 - Docker and Docker Compose installed on all nodes
-- Sufficient disk space for container images (approximately 5 GB total)
+- Sufficient disk space for container images (~2 GB for images, plus space for data volumes)
 - Sufficient disk space for wordlists, rules, and hash data
 - Network connectivity between CipherSwarm server components (internal only)
 - Network connectivity between agents and the CipherSwarm server (internal only)
@@ -112,11 +112,11 @@ services:
     environment:
       - RAILS_ENV=production
       - SECRET_KEY_BASE=<generate-a-secure-key>
-      - DATABASE_URL=postgres://cipherswarm:password@postgres-db:5432/cipherswarm
+      - DATABASE_URL=postgres://cipherswarm:<secure-password>@postgres-db:5432/cipherswarm
       - REDIS_URL=redis://redis:6379/0
       - MINIO_ENDPOINT=http://minio:9000
-      - MINIO_ACCESS_KEY=minioadmin
-      - MINIO_SECRET_KEY=<secure-key>
+      - MINIO_ACCESS_KEY=<minio-access-key>
+      - MINIO_SECRET_KEY=<minio-secret-key>
     depends_on:
       - postgres-db
       - redis
@@ -140,8 +140,8 @@ services:
     image: minio/minio:latest
     command: server /data --console-address ":9001"
     environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: <secure-key>
+      MINIO_ROOT_USER: <minio-access-key>
+      MINIO_ROOT_PASSWORD: <minio-secret-key>
     volumes:
       - minio_data:/data
 
@@ -150,7 +150,7 @@ services:
     command: bundle exec sidekiq
     environment:
       - RAILS_ENV=production
-      - DATABASE_URL=postgres://cipherswarm:password@postgres-db:5432/cipherswarm
+      - DATABASE_URL=postgres://cipherswarm:<secure-password>@postgres-db:5432/cipherswarm
       - REDIS_URL=redis://redis:6379/0
     depends_on:
       - postgres-db

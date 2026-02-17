@@ -141,7 +141,7 @@ Run through this checklist after deployment to confirm full offline operation:
 
    ```bash
    docker compose -f docker-compose-production.yml exec postgres-db \
-     pg_dump -U root -d cipher_swarm_production > backup_$(date +%Y%m%d_%H%M%S).sql
+     pg_dump -U cipherswarm -d cipherswarm > backup_$(date +%Y%m%d_%H%M%S).sql
    ```
 
 5. Stop application services (keep the database running):
@@ -202,7 +202,7 @@ If a deployment causes issues:
 
    ```bash
    docker compose -f docker-compose-production.yml exec postgres-db \
-     psql -U root -d cipher_swarm_production < backup_YYYYMMDD_HHMMSS.sql
+     psql -U cipherswarm -d cipherswarm < backup_YYYYMMDD_HHMMSS.sql
    ```
 
 5. Restart services:

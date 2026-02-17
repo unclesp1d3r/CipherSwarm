@@ -122,7 +122,10 @@
           <small class="text-muted ms-2"><%= t(".cache_note") %></small>
           <% if @health_checks[:checked_at].present? %>
             <small class="text-muted ms-3" data-health-refresh-target="timestamp">
-              <%= t(".last_updated") %> <%= time_ago_in_words(Time.parse(@health_checks[:checked_at])) %> <%= t(".ago") %>
+              <% checked_time = Time.iso8601(@health_checks[:checked_at]) rescue nil %>
+              <% if checked_time %>
+                <%= t(".last_updated") %> <%= time_ago_in_words(checked_time) %> <%= t(".ago") %>
+              <% end %>
             </small>
           <% end %>
         </div>
