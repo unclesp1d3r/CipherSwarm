@@ -54,7 +54,6 @@ class HashItem < ApplicationRecord
   belongs_to :hash_list, touch: true, counter_cache: true
   belongs_to :attack, optional: true
   validates :hash_value, presence: true
-  validates :hash_value, presence: true
   validates :salt, length: { maximum: 255 }
   validates :plain_text, length: { maximum: 255 }
   validates :metadata, length: { maximum: 255 }

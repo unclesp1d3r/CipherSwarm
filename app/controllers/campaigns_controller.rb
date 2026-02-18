@@ -142,6 +142,6 @@ class CampaignsController < ApplicationController
   end
 
   def set_hash_lists
-    @hash_lists = HashList.accessible_by(current_ability)
+    @hash_lists = HashList.accessible_by(current_ability).chronological
   end
 end

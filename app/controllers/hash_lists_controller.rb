@@ -26,7 +26,7 @@ class HashListsController < ApplicationController
   # @return [void] The method does not return a value but assigns the filtered and preloaded hash lists to the instance variable `@hash_lists`.
   #   - `@hash_lists` contains the collection of hash lists accessible by the current user's abilities.
   def index
-    @hash_lists = HashList.includes(%i[project hash_type]).accessible_by(current_ability)
+    @hash_lists = HashList.includes(%i[project hash_type]).accessible_by(current_ability).chronological
   end
 
   # GET /hash_lists/:id or /hash_lists/:id.json
@@ -162,6 +162,6 @@ class HashListsController < ApplicationController
   end
 
   def set_projects
-    @projects = Project.accessible_by(current_ability)
+    @projects = Project.accessible_by(current_ability).chronological
   end
 end
