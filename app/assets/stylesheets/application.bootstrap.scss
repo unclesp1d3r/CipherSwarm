@@ -9,3 +9,7 @@ $bootstrap-icons-font-src: url("bootstrap-icons.woff2") format("woff2"), url("bo
 @import "bootstrap-icons/font/bootstrap-icons.scss";
 @import "stepper_component.scss";
 @import "components/agent_tabs";
+
+.container-fluid > .card {
+  margin-bottom: 1rem;
+}
