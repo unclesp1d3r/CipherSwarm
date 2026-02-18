@@ -82,6 +82,22 @@ RSpec.describe SystemHealthCheckService do
           expect(result[:bucket_count]).to be_nil
         end
       end
+
+      context "when storage service does not support buckets" do
+        before do
+          mock_service = Object.new.tap do |svc|
+            svc.define_singleton_method(:exist?) { |_key| false }
+            # No buckets method defined — respond_to?(:buckets) returns false
+          end
+          allow(ActiveStorage::Blob).to receive(:service).and_return(mock_service)
+        end
+
+        it "returns nil bucket_count" do
+          result = service.send(:check_minio)
+          expect(result[:status]).to eq(:healthy)
+          expect(result[:bucket_count]).to be_nil
+        end
+      end
     end
 
     describe "#check_postgresql (private)" do
@@ -175,6 +191,27 @@ RSpec.describe SystemHealthCheckService do
           expect(result[:status]).to eq(:healthy)
           expect(result[:hit_rate]).to be_nil
           expect(result[:connected_clients]).to be_nil
+        end
+      end
+
+      context "when Redis returns zero hits and zero misses" do
+        before do
+          zero_keyspace_info = {
+            "used_memory_human" => "2MB",
+            "connected_clients" => "5",
+            "keyspace_hits" => "0",
+            "keyspace_misses" => "0"
+          }
+          allow(Sidekiq).to receive(:redis).and_yield(
+            double("redis_conn", info: zero_keyspace_info) # rubocop:disable RSpec/VerifiedDoubles
+          )
+        end
+
+        it "returns nil hit_rate when total hits+misses is zero" do
+          result = service.send(:check_redis)
+          expect(result[:status]).to eq(:healthy)
+          expect(result[:hit_rate]).to be_nil
+          expect(result[:connected_clients]).to eq(5)
         end
       end
     end

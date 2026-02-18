@@ -18,13 +18,27 @@ This guide walks you through setting up CipherSwarm for the first time, from log
 
 ## First-Time Setup
 
+### Creating User Accounts (Administrators)
+
+On a fresh deployment, no user accounts exist beyond the initial admin account created during setup. An administrator must create accounts before anyone can log in.
+
+1. Log in with the admin account created during deployment
+2. Navigate to **Admin** > **Users**
+3. Click **New User**
+4. Fill in the required fields:
+   - **Email**: The user's email address
+   - **Password** and **Password Confirmation**: Set a temporary password for the user
+   - **Role**: Assign an appropriate role (e.g., basic user or admin)
+5. Click **Create User**
+6. Share the login credentials with the new user securely
+
+If the user needs to reset their password, they can use the **Forgot your password?** link on the login page to receive a password reset email.
+
 ### Logging In
 
 1. Open your browser and navigate to the CipherSwarm web interface URL provided by your administrator
 2. Enter your email address and password on the login page
 3. Click **Sign In**
-
-If this is your first login, your administrator will have created an account for you. Contact them if you do not have credentials.
 
 ### Password Requirements
 

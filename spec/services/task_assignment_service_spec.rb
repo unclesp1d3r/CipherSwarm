@@ -484,6 +484,34 @@ RSpec.describe TaskAssignmentService do
     end
   end
 
+  describe "#create_new_task_if_eligible error handling" do
+    let!(:attack) { create(:dictionary_attack, campaign: campaign, state: :pending) }
+
+    before do
+      create(:hash_item, hash_list: hash_list, cracked: false)
+    end
+
+    context "when task creation raises an error" do
+      before do
+        allow(Rails.logger).to receive(:error)
+      end
+
+      it "logs the error and returns nil" do
+        allow(agent.tasks).to receive(:create).and_raise(StandardError.new("DB connection lost"))
+
+        result = service.send(:create_new_task_if_eligible, attack)
+        expect(result).to be_nil
+      end
+
+      it "logs the error with attack id and error class" do
+        allow(agent.tasks).to receive(:create).and_raise(StandardError.new("DB connection lost"))
+
+        service.send(:create_new_task_if_eligible, attack)
+        expect(Rails.logger).to have_received(:error).with(/Error creating task for attack #{attack.id}.*StandardError.*DB connection lost/)
+      end
+    end
+  end
+
   describe "#find_task_from_available_attacks with preemption" do
     let(:high_priority_campaign) { create(:campaign, hash_list: hash_list, project: project, priority: :high) }
     let(:deferred_priority_campaign) { create(:campaign, hash_list: hash_list, project: project, priority: :deferred) }

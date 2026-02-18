@@ -419,6 +419,28 @@ RSpec.describe Task do
         task.complete
         expect(task.reload.hashcat_statuses.count).to eq(0)
       end
+
+      context "when attack cannot complete (can_complete? returns false)" do
+        it "does not call complete on the attack" do
+          allow(Rails.logger).to receive(:info)
+          allow(task.attack).to receive(:can_complete?).and_return(false)
+          allow(task.attack).to receive(:complete)
+
+          task.complete
+
+          expect(task.attack).not_to have_received(:complete)
+        end
+
+        it "still deletes hashcat_statuses when attack cannot complete" do
+          create(:hashcat_status, task: task)
+          allow(Rails.logger).to receive(:info)
+          allow(task.attack).to receive(:can_complete?).and_return(false)
+
+          task.complete
+
+          expect(task.reload.hashcat_statuses.count).to eq(0)
+        end
+      end
     end
 
     describe "exhausted callback" do
@@ -429,6 +451,28 @@ RSpec.describe Task do
         allow(Rails.logger).to receive(:info)
         task.exhaust
         expect(task.reload.hashcat_statuses.count).to eq(0)
+      end
+
+      context "when attack cannot exhaust (can_exhaust? returns false)" do
+        it "does not call exhaust on the attack" do
+          allow(Rails.logger).to receive(:info)
+          allow(task.attack).to receive(:can_exhaust?).and_return(false)
+          allow(task.attack).to receive(:exhaust)
+
+          task.exhaust
+
+          expect(task.attack).not_to have_received(:exhaust)
+        end
+
+        it "still deletes hashcat_statuses when attack cannot exhaust" do
+          create(:hashcat_status, task: task)
+          allow(Rails.logger).to receive(:info)
+          allow(task.attack).to receive(:can_exhaust?).and_return(false)
+
+          task.exhaust
+
+          expect(task.reload.hashcat_statuses.count).to eq(0)
+        end
       end
     end
   end
