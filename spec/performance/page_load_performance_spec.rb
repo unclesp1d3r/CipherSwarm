@@ -13,8 +13,10 @@ RSpec.describe "Page Load Performance", type: :request do
     sign_in user
   end
 
+  # SLA: all list and detail pages must respond in under 1 second.
+  # Seed realistic data (50 agents / 20 attacks) while staying within the budget.
   describe "agent list performance" do
-    it "loads agent list within 2 seconds with 50 agents" do
+    it "loads agent list within 1 second with 50 agents" do
       50.times { create(:agent, projects: [project]) }
 
       start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
@@ -22,10 +24,10 @@ RSpec.describe "Page Load Performance", type: :request do
       elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time
 
       expect(response).to have_http_status(:success)
-      expect(elapsed).to be < 2.0
+      expect(elapsed).to be < 1.0
     end
 
-    it "loads agent cards endpoint within 2 seconds with 50 agents" do
+    it "loads agent cards endpoint within 1 second with 50 agents" do
       50.times { create(:agent, projects: [project]) }
 
       start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
@@ -33,12 +35,12 @@ RSpec.describe "Page Load Performance", type: :request do
       elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time
 
       expect(response).to have_http_status(:success)
-      expect(elapsed).to be < 2.0
+      expect(elapsed).to be < 1.0
     end
   end
 
   describe "campaign page performance" do
-    it "loads campaign page within 2 seconds with 20 attacks" do
+    it "loads campaign page within 1 second with 20 attacks" do
       campaign = create(:campaign, project: project)
       20.times { create(:dictionary_attack, campaign: campaign) } # rubocop:disable FactoryBot/CreateList
 
@@ -47,7 +49,7 @@ RSpec.describe "Page Load Performance", type: :request do
       elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time
 
       expect(response).to have_http_status(:success)
-      expect(elapsed).to be < 2.0
+      expect(elapsed).to be < 1.0
     end
   end
 

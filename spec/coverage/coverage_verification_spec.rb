@@ -130,6 +130,24 @@ RSpec.describe "Coverage Verification" do # rubocop:disable RSpec/DescribeClass
     end
   end
 
+  describe "coverage threshold enforcement" do
+    it "SimpleCov is configured with minimum line coverage of 80%" do
+      expect(SimpleCov.minimum_coverage[:line]).to be >= 80
+    end
+
+    it "last coverage run meets the >80% line coverage threshold" do
+      result_path = Rails.root.join("coverage/.resultset.json")
+      skip "No coverage data found; run COVERAGE=true bundle exec rspec first" unless result_path.exist?
+
+      result_hash = JSON.parse(result_path.read)
+      covered, relevant = aggregate_line_coverage(result_hash)
+      overall_percent = (covered.to_f / relevant * 100).round(2)
+
+      expect(overall_percent).to be > 80,
+        "Overall line coverage is #{overall_percent}%, expected >80%"
+    end
+  end
+
   describe "all seven flow system tests" do
     it "agent fleet monitoring has system tests" do
       expect(Rails.root.join("spec/system/agent_fleet_monitoring_spec.rb").exist?).to be(true)
@@ -158,5 +176,31 @@ RSpec.describe "Coverage Verification" do # rubocop:disable RSpec/DescribeClass
     it "loading feedback patterns has system tests" do
       expect(Rails.root.join("spec/system/loading_feedback_patterns_spec.rb").exist?).to be(true)
     end
+  end
+
+  private
+
+  # Parse the SimpleCov .resultset.json and aggregate line coverage across all files.
+  # Returns [covered_lines, relevant_lines].
+  def aggregate_line_coverage(result_hash)
+    covered = 0
+    relevant = 0
+
+    result_hash.each_value do |suite|
+      file_coverage = suite.dig("coverage") || {}
+      file_coverage.each_value do |file_data|
+        lines = file_data.is_a?(Hash) ? file_data["lines"] : file_data
+        next unless lines.is_a?(Array)
+
+        lines.each do |hits|
+          next if hits.nil? # not a relevant line
+
+          relevant += 1
+          covered += 1 if hits.positive?
+        end
+      end
+    end
+
+    [covered, relevant]
   end
 end

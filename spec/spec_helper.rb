@@ -13,6 +13,7 @@ end
 
 SimpleCov.start "rails" do
   enable_coverage(:branch)
+  minimum_coverage line: 80
   formatter SimpleCov::Formatter::MultiFormatter.new([
     SimpleCov::Formatter::HTMLFormatter,
     SimpleCov::Formatter::LcovFormatter

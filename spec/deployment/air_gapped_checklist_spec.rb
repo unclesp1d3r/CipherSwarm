@@ -163,6 +163,23 @@ RSpec.describe "Air-Gapped Deployment Validation", type: :request do
       expect(storage_content).to include("endpoint")
       expect(storage_content).to include("force_path_style: true")
     end
+
+    it "uploads and downloads a file via MinIO storage (round-trip)" do
+      service = build_minio_service
+      skip "MinIO is not reachable" unless service
+
+      key = "air-gap-test-#{SecureRandom.hex(8)}"
+      content = "CipherSwarm air-gapped deployment round-trip test"
+
+      begin
+        service.upload(key, StringIO.new(content))
+        downloaded = service.download(key)
+
+        expect(downloaded).to eq(content)
+      ensure
+        service.delete(key) rescue nil
+      end
+    end
   end
 
   describe "production Docker configuration" do
@@ -263,6 +280,20 @@ RSpec.describe "Air-Gapped Deployment Validation", type: :request do
   end
 
   private
+
+  # Build an ActiveStorage service instance from the MinIO config in storage.yml.
+  # Returns nil if MinIO is unreachable (allows the test to skip gracefully).
+  def build_minio_service
+    configs = Rails.application.config.active_storage.service_configurations
+    return nil unless configs&.key?("minio")
+
+    service = ActiveStorage::Service.configure(:minio, configs)
+    # Probe connectivity by listing (an inexpensive S3 operation)
+    service.exist?("__connectivity_probe__")
+    service
+  rescue Aws::Errors::ServiceError, Seahorse::Client::NetworkingError, Errno::ECONNREFUSED => _e
+    nil
+  end
 
   def stub_health_checks
     allow(ActiveRecord::Base.connection).to receive(:execute).and_call_original
