@@ -107,6 +107,7 @@ jobs:
           # Help webdrivers find Chrome
           CHROME_BIN: /usr/bin/google-chrome-stable
         run: bin/bundle exec rspec --profile 10 --format RspecJunitFormatter --out /tmp/test-results/rspec.xml --format progress
+        continue-on-error: true
       - name: Upload Test Results
         uses: actions/upload-artifact@v6
         if: always()
@@ -114,6 +115,12 @@ jobs:
           name: test-results
           path: /tmp/test-results
           if-no-files-found: ignore
+      - name: Mergify CI Upload
+        if: success() || failure()
+        uses: mergifyio/gha-mergify-ci@v8
+        with:
+          token: ${{ secrets.MERGIFY_TOKEN }}
+          report_path: /tmp/test-results/rspec.xml
       - name: Check coverage of changed code
         env:
           BASE_REF: ${{ github.base_ref || 'main' }}
