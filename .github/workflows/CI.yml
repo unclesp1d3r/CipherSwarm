@@ -134,7 +134,7 @@ jobs:
         if: ${{ !cancelled() && env.HAS_MERGIFY_TOKEN == 'true' && steps.junit-wrap.outputs.report_exists == 'true' }}
         env:
           HAS_MERGIFY_TOKEN: ${{ secrets.MERGIFY_TOKEN != '' }}
-        uses: mergifyio/gha-mergify-ci@v8
+        uses: mergifyio/gha-mergify-ci@v11
         with:
           token: ${{ secrets.MERGIFY_TOKEN }}
           report_path: /tmp/test-results/rspec.xml
