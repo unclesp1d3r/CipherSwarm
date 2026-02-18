@@ -41,6 +41,25 @@ en:
       task_link_aria: "Task link"
       close: "Close"
 
+  sidebar:
+    system_health: "System Health"
+
+  system_health:
+    index:
+      title: "System Health"
+      checks_in_progress: "Health checks are being performed by another request."
+      refresh: "Refresh"
+      sidekiq_metrics: "Sidekiq Metrics"
+      workers: "Workers:"
+      queues: "Queues:"
+      enqueued_jobs: "Enqueued Jobs:"
+      diagnostics: "Diagnostics"
+      sidekiq_dashboard: "Sidekiq Dashboard"
+      rails_logs: "Rails Logs"
+      rails_logs_hint: "(view in terminal: <code>tail -f log/development.log</code>)"
+      cache_note: "Results cached for 1 minute"
+      unable_to_retrieve: "Unable to retrieve system health information. Please try again later."
+
   campaigns:
     attack_progress:
       view_error_details: "View error details for %{name}"

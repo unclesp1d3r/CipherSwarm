@@ -47,8 +47,8 @@ RSpec.describe AgentDetailTabsComponent, type: :component do
     end
 
     it "applies tab data targets and actions" do
-      expect(page).to have_css("a##{component.tab_id('overview')}[data-tabs-target='tab'][data-action='click->tabs#showTab']")
-      expect(page).to have_css("a##{component.tab_id('errors')}[data-tabs-target='tab'][data-action='click->tabs#showTab']")
+      expect(page).to have_css("a##{component.tab_id('overview')}[data-tabs-target='tab'][data-action='click->tabs#switch']")
+      expect(page).to have_css("a##{component.tab_id('errors')}[data-tabs-target='tab'][data-action='click->tabs#switch']")
     end
 
     it "renders tab panels with correct ids and targets" do

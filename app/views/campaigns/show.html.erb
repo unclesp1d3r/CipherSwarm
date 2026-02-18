@@ -49,7 +49,10 @@
 <small class="text-muted">Created <%= time_ago_in_words(@campaign.created_at) %> ago</small>
 <h4><%= @campaign.priority.humanize %></h4>
 <p><%= @campaign.description %></p>
-<% if @campaign.attacks.empty? %>
+<%= show_for @campaign do |s| %>
+  <%= s.association :creator, label: "Created By" %>
+<% end %>
+<% if @attacks.empty? %>
   <%= render Railsboot::BlankSlateComponent.new do |blankslate| %>
     <% blankslate.with_icon do %>
       <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-sticky" viewBox="0 0 16 16">
@@ -64,12 +67,12 @@
   <% end %>
 <% else %>
   <%= render Railsboot::StepperComponent.new do |stepper| %>
-    <%= render partial: "attack_stepper_line", collection: @campaign.attacks, as: :attack, locals: { campaign: @campaign, stepper: stepper, failed_attack_error_map: @failed_attack_error_map } %>
+    <%= render partial: "attack_stepper_line", collection: @attacks, as: :attack, locals: { campaign: @campaign, stepper: stepper, failed_attack_error_map: @failed_attack_error_map } %>
   <% end %>
 <% end %>
 
 <%# Error Modals for Failed Attacks %>
-<% @campaign.attacks.select { |a| a.state == "failed" }.each do |attack| %>
+<% @attacks.select { |a| a.state == "failed" }.each do |attack| %>
   <% error = @failed_attack_error_map[attack.id] %>
   <% if error %>
     <%= render(ErrorModalComponent.new(

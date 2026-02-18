@@ -46,11 +46,22 @@ class TaskAssignmentService
 
   # Finds an existing incomplete task assigned to the agent.
   #
+  # REASONING:
+  # - Uses NOT EXISTS subquery to filter tasks with fatal errors in SQL rather than
+  #   loading tasks then checking has_fatal_error? per-row (N+1).
+  # - Uses EXISTS to confirm uncracked hash items remain, avoiding join row multiplication.
+  # - Alternatives: INNER JOIN + DISTINCT (bloated result set), LEFT JOIN + WHERE NOT NULL
+  #   (less readable), Ruby iteration (N+1 queries on large task sets).
+  # - Decision: EXISTS subqueries are index-friendly, avoid duplicates, and push filtering to DB.
+  #
   # @return [Task, nil] an incomplete task without fatal errors, or nil
   def find_existing_incomplete_task
-    agent.tasks.incomplete.find do |task|
-      !has_fatal_error?(task) && task.uncracked_remaining
-    end
+    agent.tasks.incomplete
+         .where.not(id: AgentError.where(agent: agent, severity: :fatal).select(:task_id))
+         .joins(attack: { campaign: :hash_list })
+         .where("EXISTS (SELECT 1 FROM hash_items WHERE hash_items.hash_list_id = hash_lists.id AND hash_items.cracked = false)")
+         .order(:id)
+         .first
   end
 
   # Searches available attacks for a task to assign.
@@ -138,9 +149,11 @@ class TaskAssignmentService
   # @param attack [Attack] the attack to search in
   # @return [Task, nil] a retryable failed task, or nil
   def find_retryable_failed_task(attack)
-    attack.tasks.with_state(:failed).find do |task|
-      !has_fatal_error?(task)
-    end
+    attack.tasks.with_state(:failed)
+         .where(agent: agent)
+         .where.not(id: AgentError.where(agent: agent, severity: :fatal).select(:task_id))
+         .order(:id)
+         .first
   end
 
   # Finds an existing pending task.
@@ -148,7 +161,7 @@ class TaskAssignmentService
   # @param attack [Attack] the attack to search in
   # @return [Task, nil] a pending task, or nil
   def find_pending_task(attack)
-    attack.tasks.with_state(:pending).first
+    attack.tasks.with_state(:pending).where(agent: agent).first
   end
 
   # Creates a new task if the agent meets performance requirements and no pending tasks exist.
@@ -190,6 +203,7 @@ class TaskAssignmentService
   def available_attacks
     Attack.incomplete
           .joins(campaign: { hash_list: :hash_type })
+          .includes(campaign: %i[hash_list project])
           .where(campaigns: { project_id: agent.project_ids })
           .where(hash_lists: { hash_type_id: allowed_hash_type_ids })
           .order("campaigns.priority DESC, attacks.complexity_value, attacks.created_at")

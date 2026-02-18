@@ -47,8 +47,8 @@
 #
 # Foreign Keys
 #
-#  fk_rails_...  (attack_id => attacks.id)
-#  fk_rails_...  (hash_list_id => hash_lists.id)
+#  fk_rails_...  (attack_id => attacks.id) ON DELETE => nullify
+#  fk_rails_...  (hash_list_id => hash_lists.id) ON DELETE => cascade
 #
 class HashItem < ApplicationRecord
   belongs_to :hash_list, touch: true, counter_cache: true
@@ -64,7 +64,7 @@ class HashItem < ApplicationRecord
 
   include SafeBroadcasting
 
-  after_commit :broadcast_recent_cracks_update, on: [:update], if: :just_cracked?, unless: -> { Rails.env.test? }
+  after_commit :broadcast_recent_cracks_update, on: [:update], if: :just_cracked?
 
   # Returns a string representation of the hash item.
   # If the salt is present, the format will be "hash_value:salt:plain_text".
@@ -89,8 +89,6 @@ class HashItem < ApplicationRecord
   end
 
   def broadcast_recent_cracks_update
-    return if Rails.env.test?
-
     Rails.logger.info("[BroadcastUpdate] HashItem #{id} - Broadcasting recent cracks update for hash_list #{hash_list_id}")
 
     hash_list.campaigns.find_each do |campaign|

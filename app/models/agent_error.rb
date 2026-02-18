@@ -42,8 +42,8 @@
 #
 # Foreign Keys
 #
-#  fk_rails_...  (agent_id => agents.id)
-#  fk_rails_...  (task_id => tasks.id)
+#  fk_rails_...  (agent_id => agents.id) ON DELETE => cascade
+#  fk_rails_...  (task_id => tasks.id) ON DELETE => nullify
 #
 class AgentError < ApplicationRecord
   belongs_to :agent, touch: true
@@ -59,7 +59,44 @@ class AgentError < ApplicationRecord
 
   include SafeBroadcasting
 
-  broadcasts_refreshes unless Rails.env.test?
+  broadcasts_refreshes
+
+  # Scopes for common query patterns
+  scope :for_campaign, lambda { |campaign_id|
+    joins(task: :attack).where(attacks: { campaign_id: campaign_id })
+  }
+
+  scope :older_than, ->(date) { where(created_at: ...date) }
+
+  # Removes agent error records older than the configured retention period.
+  # Uses the `older_than` scope with `ApplicationConfig.agent_error_retention`.
+  #
+  # @return [Integer] the number of deleted records
+  def self.remove_old_errors
+    older_than(ApplicationConfig.agent_error_retention.ago).delete_all
+  end
+
+  # Returns the latest error for each attack in the given list.
+  #
+  # Uses PostgreSQL DISTINCT ON for efficient single-query retrieval.
+  # Returns a hash mapping attack_id => AgentError.
+  #
+  # @param attack_ids [Array<Integer>] list of attack IDs to find errors for
+  # @return [Hash<Integer, AgentError>] map of attack_id to latest error
+  def self.latest_per_attack(attack_ids)
+    return {} if attack_ids.blank?
+
+    find_by_sql([<<-SQL.squish, attack_ids])
+      SELECT DISTINCT ON (tasks.attack_id)
+             agent_errors.*,
+             tasks.attack_id AS associated_attack_id
+      FROM agent_errors
+      INNER JOIN tasks ON tasks.id = agent_errors.task_id
+      WHERE tasks.attack_id IN (?)
+      ORDER BY tasks.attack_id, agent_errors.created_at DESC
+    SQL
+      .index_by(&:associated_attack_id)
+  end
 
   # Retrieves the attack ID associated with the task.
   #

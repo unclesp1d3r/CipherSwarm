@@ -29,12 +29,31 @@ module SafeBroadcasting
     broadcast_refresh
   ].freeze
 
+  # Errors that are expected during broadcast operations (connection/network issues).
+  # Other StandardErrors may indicate bugs and should be surfaced in development.
+  EXPECTED_BROADCAST_ERRORS = [
+    IOError,
+    Errno::ECONNREFUSED,
+    Errno::ECONNRESET,
+    Errno::EPIPE
+  ].freeze
+
   included do
     BROADCAST_METHODS.each do |method_name|
       define_method(method_name) do |*args, **kwargs, &block|
+        # Skip broadcasting in test environment to avoid performance overhead
+        # The test cable adapter handles broadcasts silently, but skipping entirely is faster
+        return nil if Rails.env.test?
+
         super(*args, **kwargs, &block)
-      rescue StandardError => e
+      rescue *EXPECTED_BROADCAST_ERRORS => e
+        # Expected connection errors - log and continue
         log_broadcast_error(e)
+        nil
+      rescue StandardError => e
+        # Unexpected errors - log always, but re-raise in development to surface bugs
+        log_broadcast_error(e)
+        raise if Rails.env.development?
         nil
       end
     end

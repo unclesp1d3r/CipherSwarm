@@ -24,9 +24,6 @@
 # @normalizations
 # - name, email: stripped and downcased
 #
-# @kredis
-# - hide_completed_activities: boolean, default false
-#
 # == Schema Information
 #
 # Table name: users
@@ -77,19 +74,20 @@ class User < ApplicationRecord
   has_many :mask_lists, foreign_key: :creator_id, dependent: :restrict_with_error, inverse_of: :creator
   has_many :word_lists, foreign_key: :creator_id, dependent: :restrict_with_error, inverse_of: :creator
   has_many :rule_lists, foreign_key: :creator_id, dependent: :restrict_with_error, inverse_of: :creator
+  has_many :campaigns, foreign_key: :creator_id, dependent: :restrict_with_error, inverse_of: :creator
+  has_many :hash_lists, foreign_key: :creator_id, dependent: :restrict_with_error, inverse_of: :creator
+  has_many :attacks, foreign_key: :creator_id, dependent: :restrict_with_error, inverse_of: :creator
 
   after_create :assign_default_role
 
-  default_scope { order(:created_at) }
+  self.implicit_order_column = :created_at
 
   normalizes :email, with: ->(value) { value.strip.downcase }
   normalizes :name, with: ->(value) { value.strip.downcase }
 
   include SafeBroadcasting
 
-  broadcasts_refreshes unless Rails.env.test?
-
-  kredis_boolean :hide_completed_activities, default: false
+  broadcasts_refreshes
 
   # Checks if the user has an admin role.
   # @return [Boolean] True if the user has an admin role, false otherwise.
@@ -106,11 +104,11 @@ class User < ApplicationRecord
   end
 
   def hide_completed_activities?
-    !!self.hide_completed_activities.value
+    hide_completed_activities
   end
 
   def toggle_hide_completed_activities
-    self.hide_completed_activities.value = !self.hide_completed_activities.value
+    update!(hide_completed_activities: !hide_completed_activities)
   end
 
   private

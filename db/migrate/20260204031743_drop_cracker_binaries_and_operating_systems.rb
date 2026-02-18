@@ -1,0 +1,57 @@
+# frozen_string_literal: true
+
+# SPDX-FileCopyrightText:  2024 UncleSp1d3r
+# SPDX-License-Identifier: MPL-2.0
+
+# Removes unused Cracker Binaries and Operating Systems feature.
+# These tables were added to support managing hashcat versions but
+# the functionality was never fully developed and is not being used.
+#
+# Note: This does NOT affect the Agent.operating_system enum which
+# tracks which OS an agent is running on - that is a separate feature.
+#
+# REASONING
+# - Summary: Remove unused cracker binaries/operating systems tables to reduce maintenance surface.
+# - Alternatives Considered: Keep tables and deprecate; soft-delete rows only.
+# - Decision: Drop tables because feature and routes are removed, no data to preserve.
+# - Performance: Minor DB size reduction; no runtime impact.
+# - Future: Reintroduce via a new migration if the feature returns.
+class DropCrackerBinariesAndOperatingSystems < ActiveRecord::Migration[8.0]
+  def up
+    # Drop join table first (logically depends on both other tables)
+    drop_table :cracker_binaries_operating_systems, if_exists: true
+
+    # Drop the main tables
+    drop_table :cracker_binaries, if_exists: true
+    drop_table :operating_systems, if_exists: true
+  end
+
+  # Note: This down migration provides a simplified table recreation.
+  # If this feature is truly needed again, create a fresh migration
+  # with the full schema requirements rather than rolling back.
+  def down
+    create_table :operating_systems do |t|
+      t.string :name, null: false
+      t.string :cracker_command, null: false
+      t.timestamps
+      t.index :name, unique: true
+    end
+
+    create_table :cracker_binaries do |t|
+      t.string :version, null: false
+      t.boolean :active, default: true, null: false
+      t.integer :major_version
+      t.integer :minor_version
+      t.integer :patch_version
+      t.timestamps
+      t.index :version
+    end
+
+    create_table :cracker_binaries_operating_systems, id: false do |t|
+      t.bigint :cracker_binary_id, null: false
+      t.bigint :operating_system_id, null: false
+      t.index :cracker_binary_id
+      t.index :operating_system_id
+    end
+  end
+end

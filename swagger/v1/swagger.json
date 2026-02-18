@@ -28,10 +28,6 @@
       "description": "Client API"
     },
     {
-      "name": "Crackers",
-      "description": "Crackers API"
-    },
-    {
       "name": "Tasks",
       "description": "Tasks API"
     }
@@ -129,6 +125,11 @@
               "type": "string",
               "description": "The descriptive name of a GPU or CPU device."
             }
+          },
+          "current_activity": {
+            "type": "string",
+            "nullable": true,
+            "description": "Current agent activity state"
           },
           "advanced_configuration": {
             "$ref": "#/components/schemas/AdvancedAgentConfiguration"
@@ -392,39 +393,6 @@
           "hash_list_url",
           "hash_list_checksum",
           "url"
-        ]
-      },
-      "CrackerUpdate": {
-        "type": "object",
-        "properties": {
-          "available": {
-            "type": "boolean",
-            "description": "A new version of the cracker binary is available"
-          },
-          "latest_version": {
-            "type": "string",
-            "nullable": true,
-            "description": "The latest version of the cracker binary"
-          },
-          "download_url": {
-            "type": "string",
-            "format": "uri",
-            "nullable": true,
-            "description": "The download URL of the new version"
-          },
-          "exec_name": {
-            "type": "string",
-            "nullable": true,
-            "description": "The name of the executable"
-          },
-          "message": {
-            "type": "string",
-            "nullable": true,
-            "description": "A message about the update"
-          }
-        },
-        "required": [
-          "available"
         ]
       },
       "HashcatResult": {
@@ -858,6 +826,22 @@
           },
           "required": true,
           "description": "id"
+        },
+        {
+          "name": "heartbeat_body",
+          "in": "body",
+          "required": false,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "activity": {
+                "type": "string",
+                "description": "Current agent activity state. Known values: starting, benchmarking, updating, downloading, waiting, cracking, stopping. Future versions may support additional values.",
+                "example": "cracking",
+                "nullable": true
+              }
+            }
+          }
         }
       ],
       "post": {
@@ -865,7 +849,7 @@
         "tags": [
           "Agents"
         ],
-        "description": "Send a heartbeat for an agent to keep it alive.",
+        "description": "Send a heartbeat for an agent to keep it alive. Optionally accepts an 'activity' parameter in the request body to track the agent's current activity state.",
         "security": [
           {
             "bearer_auth": []
@@ -873,9 +857,6 @@
         ],
         "operationId": "sendHeartbeat",
         "responses": {
-          "204": {
-            "description": "successful"
-          },
           "200": {
             "description": "successful, but with server feedback",
             "content": {
@@ -910,6 +891,9 @@
                 }
               }
             }
+          },
+          "204": {
+            "description": "successful"
           }
         }
       }
@@ -1237,61 +1221,6 @@
             "description": "not found",
             "content": {
               "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorObject"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/client/crackers/check_for_cracker_update": {
-      "get": {
-        "summary": "Check for Cracker Update",
-        "tags": [
-          "Crackers"
-        ],
-        "description": "Check for a cracker update, based on the operating system and version.",
-        "security": [
-          {
-            "bearer_auth": []
-          }
-        ],
-        "operationId": "checkForCrackerUpdate",
-        "parameters": [
-          {
-            "name": "operating_system",
-            "in": "query",
-            "description": "operating_system",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "version",
-            "in": "query",
-            "description": "version",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "operating system not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CrackerUpdate"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "operating system parameter invalid",
-            "content": {
-              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }

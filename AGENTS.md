@@ -8,9 +8,15 @@ CipherSwarm is a distributed hash cracking system built on Rails 8.0+ inspired b
 
 **Current Status**: Undergoing V2 upgrade (see docs/v2-upgrade-overview.md)
 
+## Privacy in Documentation
+
+- Never include actual usernames, real names, or PII in code/documentation/examples
+- Use `$USER`, `unclesp1d3r` (public pseudonym), or generic placeholders instead
+- Applies to all files: code, docs, comments, examples, commit messages
+
 ## Development Tools
 
-This project uses [mise](https://mise.jdx.dev/) for development tool version management. All tool versions are defined in `.mise.toml`:
+This project uses [mise](https://mise.jdx.dev/) for development tool version management. All tool versions are defined in `mise.toml`:
 
 - **Ruby** - Application runtime (pinned version)
 - **Bun** - JavaScript runtime and package manager (replaces Node.js + npm/yarn)
@@ -24,6 +30,13 @@ This project uses [mise](https://mise.jdx.dev/) for development tool version man
 Install mise first, then run `mise install` to get all tools at the correct versions.
 
 **Bun** is used instead of npm/yarn for JavaScript dependency management. It's faster and provides a compatible API. Use `bun install`, `bun run`, `bun add`, etc.
+
+**Environment Isolation:**
+
+- `.envrc` file ensures clean environment isolation between projects
+- Automatically unsets `TEST_DATABASE_URL` from other projects (e.g., Ouroboros)
+- direnv integration via mise or oh-my-zsh activates on `cd` into directory
+- Rails uses system user (`$USER`) for local PostgreSQL when no DATABASE_URL is set
 
 ## Common Development Commands
 
@@ -68,6 +81,12 @@ HEADLESS=false bundle exec rspec spec/system
 just test-api
 # or
 bundle exec rspec spec/requests
+
+# Test database connection (if local PostgreSQL conflicts with Docker)
+# Stop local PostgreSQL: brew services stop postgresql@17
+# Start Docker PostgreSQL: docker compose up -d postgres-db
+# Run tests with explicit URL:
+TEST_DATABASE_URL=postgres://root:password@127.0.0.1:5432/cipher_swarm_test bundle exec rspec
 ```
 
 ### Code Quality
@@ -85,6 +104,20 @@ just lint
 # Run Brakeman security scanner
 just security
 ```
+
+### Undercover (Change-Based Coverage)
+
+```bash
+# Check test coverage for changed code vs origin/main
+just undercover
+
+# Full CI pipeline: pre-commit → brakeman → rspec (with coverage) → undercover → API tests → rswag
+just ci-check
+```
+
+- Undercover requires `COVERAGE=true` RSpec run first to generate `coverage/lcov.info`
+- CI needs `fetch-depth: 0` in checkout for undercover to access origin/main
+- To fix undercover failures: add tests covering the flagged lines, then re-run `just ci-check`
 
 ### Database Operations
 
@@ -198,8 +231,8 @@ Three core models use state_machines-activerecord:
 
 **Agent States:**
 
-- pending → active → benchmarked → error/stopped
-- Transitions: activate, benchmarked, error, stop
+- States: pending, active, stopped, error, offline
+- Transitions: activate, benchmarked (pending→active), deactivate, shutdown, check_online, check_benchmark_age, heartbeat
 
 **Attack States:**
 
@@ -211,6 +244,12 @@ Three core models use state_machines-activerecord:
 - pending → running → completed/exhausted/failed/paused
 - Transitions: accept, run, complete, pause, resume, error, exhaust, cancel, abandon
 - Tasks track progress via associated HashcatStatus records
+
+**Task State Machine Gotchas:**
+
+- `task.abandon` triggers `attack.abandon` which destroys ALL tasks for that attack
+- For reassigning running tasks, use `pause` then `resume` instead of `abandon`
+- The `retry` event already handles incrementing `retry_count` and clearing `last_error`
 
 ### Service Layer Pattern
 
@@ -309,11 +348,39 @@ Both unit tests for Stimulus controllers and integration tests via system tests 
 - Key workflows: authentication, agent management, campaigns, file uploads, authorization
 - See docs/testing/system-tests-guide.md
 
+**CI System Tests:**
+
+- Tests with font-loading (e.g., Bootstrap icons) can hang in headless Chrome - skip with `skip: ENV["CI"].present?`
+- Selenium requires explicit Chrome binary path: `options.binary = ENV["CHROME_BIN"]` in `spec/support/capybara.rb`
+- If CI hangs after "Capybara starting Puma...", check for tests that load external resources
+- File downloads don't work in CI headless Chrome; test download content via request specs instead
+
+**Turbo Stream System Test Pattern:**
+
+- Turbo Stream partial replacements do NOT trigger flash messages or update elements outside the replaced partial
+- Do NOT wait for flash messages or CSS badges after Turbo Stream actions (cancel, retry, reassign)
+- Use `sleep 1` + direct DB verification: `task.reload; expect(task.state).to eq("pending")`
+
 **Model Tests (spec/models/):**
 
 - FactoryBot factories (spec/factories/)
 - Comprehensive validation and association testing
 - State machine transition testing
+
+**State Machine Testing:**
+
+- `transition any => same` always succeeds unless the save fails
+- To test failure paths: invalidate the model via `update_column` (bypassing validations) so save fails during transition
+- Beware DB NOT NULL constraints - use columns with only Rails-level validations (e.g., `workload_profile` numericality)
+
+**Deterministic Ordering:**
+
+- When using `min_by`, `sort_by`, or `ORDER BY` with columns that can tie, always add a tiebreaker (typically `.id`)
+- Example: `tasks.min_by { |t| [t.priority, t.progress, t.id] }` — without `t.id`, CI may return different results than local
+
+**DB Constraint Testing:**
+
+- Use `record.delete` (not `destroy`) when testing DB-level FK cascades — `destroy` fires Rails callbacks that mask missing constraints
 
 **Request Tests (spec/requests/):**
 
@@ -345,13 +412,27 @@ Both unit tests for Stimulus controllers and integration tests via system tests 
 - **store_model** - JSON column typing (AdvancedConfiguration)
 - **anyway_config** - Configuration management
 
+**Ruby 3.4+ Dependencies:**
+
+- `csv` gem must be in Gemfile (removed from Ruby stdlib in 3.4)
+- Add `gem "csv", "~> 3.3"` if generating CSV files
+
 ### Code Organization Standards
 
 From .cursor/rules/core-principals.mdc and rails.mdc:
 
+**Service Objects and Concerns:**
+
+- All service objects and concerns require a REASONING block in comments explaining:
+  - Why this extraction was made
+  - Alternatives considered
+  - Decision rationale
+  - Performance implications (if any)
+  - Future considerations (if any)
+
 **File Structure:**
 
-- Business logic: app/models/ (no app/services/ directory)
+- Business logic: app/models/ and app/services/ (6 service objects)
 - API endpoints: app/controllers/api/v1/
 - View components: app/components/
 - Custom validations: app/validators/
@@ -371,12 +452,28 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 - Maximum 5 expectations per example
 - Use FactoryBot factories, not fixtures
 - Test both happy and edge cases
+- For ActiveJob::DeserializationError tests, use `instance_double` instead of instantiating (constructor signature varies)
+
+**ViewComponent Testing:**
+
+- When components query database (e.g., compatible agents), tests must create that data
+- Use `create(:factory)` in tests before `render_inline` to ensure conditional UI renders
 
 **Migration Generation:**
 
 - ALWAYS use Rails generators for migrations
 - Never create migration files manually
 - Use `bin/rails generate migration` or `just db-migration`
+- **Why this is critical:** Running `db:migrate` regenerates `schema.rb` from actual DATABASE state, not from migrations
+- Manual migration creation causes schema drift: unrelated DB changes get committed
+- Schema drift example: Local DB has dropped tables → manual migration → `db:migrate` → schema.rb shows deletions
+
+**Feature Removal Checklist:**
+
+- `db/seeds.rb` - Remove any model creation calls
+- `spec/swagger_helper.rb` - Remove API tags and schema definitions
+- `swagger/v1/swagger.json` - Regenerate with `RAILS_ENV=test rails rswag`
+- Migration `down` method - Add comment if simplified (won't restore full functionality)
 
 ### Important Configuration Files
 
@@ -402,6 +499,7 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 **Agent Task Assignment:**
 
 - Agents request tasks via `GET /api/v1/client/tasks/new`
+- **Security:** Task queries in service objects must be scoped to the current agent (`.where(agent: agent)`) to prevent authorization bypass
 - Tasks claimed with `claimed_by_agent_id` and `expires_at`
 - Agents submit status updates via `POST /api/v1/client/tasks/:id/submit_status`
 - Agents submit cracks via `POST /api/v1/client/tasks/:id/submit_crack`
@@ -413,25 +511,59 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 - Project-based scoping for all resources
 - Admin users have unrestricted access
 
+**CanCanCan Nested Associations:**
+
+- Task abilities use: `attack: { campaign: { project_id: user.all_project_ids } }`
+- Association path follows model relationships: Task → attack → campaign → project
+- Wrong path order will silently fail authorization checks
+
+**Nullable Parameters:**
+
+- Use `params.key?(:field)` to check if parameter exists (even if nil)
+- Use `params[:field].present?` to check for non-nil values only
+- Important for API endpoints that need to distinguish between missing vs null values
+
 **Logging Patterns:**
 
-- Use structured logging with `[LogType]` prefixes (`[APIRequest]`, `[APIError]`, `[AgentLifecycle]`, `[BroadcastError]`)
+- Use structured logging with `[LogType]` prefixes (`[APIRequest]`, `[APIError]`, `[AgentLifecycle]`, `[BroadcastError]`, `[AttackAbandon]`, `[JobDiscarded]`)
 - Include relevant context (IDs, timestamps, state changes)
 - Log errors with backtrace (first 5 lines)
 - Ensure logging failures don't break application (rescue blocks)
 - Always test that important events are logged correctly
 - Verify sensitive data is filtered (see docs/development/logging-guide.md)
 
+**Database Transactions:**
+
+- Wrap related operations in `Model.transaction do ... end` when they must succeed/fail together
+- Use `save!` (bang) inside transactions to trigger rollback on failure
+- Handle `ActiveRecord::RecordInvalid` outside the transaction block
+
+**Foreign Key Cascade Strategy:**
+
+- Prefer DB-level `on_delete: :cascade` / `:nullify` over relying solely on Rails `dependent:` callbacks
+- `delete_all` and DB-level cascades bypass Rails callbacks — without DB rules, orphans or FK violations result
+- Ephemeral child tables (telemetry, statuses) should cascade with their parent
+- When a table has multiple FKs to the same parent, always specify `column:` explicitly in `remove_foreign_key`/`add_foreign_key`
+- Test DB cascades with `delete` (not `destroy`) to verify the FK constraint, not Rails callbacks
+
 ### Development Workflow
 
 1. Use `just dev` to start the development server (Rails + assets + Sidekiq)
 2. Run tests frequently with `just test` or `just test-file spec/path/to/spec.rb`
 3. Use `just check` before committing (linting + security)
+   - Note: First run after modifying files may fail with "files were modified by this hook" - run again
 4. Always use Rails generators for migrations and models
 5. Follow conventional commits for git messages
 6. Keep PRs focused and small
 7. Verify logs are helpful for debugging and don't contain sensitive data
 8. Ensure log volume is reasonable (not too verbose)
+
+**PreToolUse Hook:**
+
+- A PreToolUse hook protects certain files (migrations, etc.) from direct Read/Edit/Write tools
+- Always try Read/Edit/Write tools first
+- If blocked, use bash commands as fallback for that specific file only
+- Never default to bash for file operations without first attempting proper tools
 
 ### Docker Development
 
@@ -444,7 +576,25 @@ docker compose -f docker-compose-production.yml up
 
 # Shell into Rails container
 just docker-shell
+
+# PostgreSQL service is named 'postgres-db' not 'db'
+docker compose up -d postgres-db
+
+# Run tests with Docker PostgreSQL (credentials: root/password)
+TEST_DATABASE_URL=postgres://root:password@127.0.0.1:5432/cipher_swarm_test bundle exec rspec
 ```
+
+**Environment Files:**
+
+- `.env` - Contains secrets (gitignored, not committed)
+- `.envrc` - Environment isolation config (committed to repo)
+- `.envrc` auto-loads via direnv when entering directory
+
+### Administrate Dashboard Patterns
+
+- Association field names must match model exactly: `has_many :project_users` → `project_users: Field::HasMany`
+- `Field::Select` with `.pluralize` pattern assumes Rails enums - doesn't work with Rolify roles
+- Dashboard files: `app/dashboards/*_dashboard.rb`
 
 ### Resources
 

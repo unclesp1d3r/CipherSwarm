@@ -54,10 +54,8 @@
 #
 # Foreign Keys
 #
-#  fk_rails_...  (agent_id => agents.id)
+#  fk_rails_...  (agent_id => agents.id) ON DELETE => cascade
 #
-include ActiveSupport::NumberHelper
-
 # A class for representing benchmarks performed using Hashcat.
 #
 # HashcatBenchmark tracks performance metrics such as device used, hash speed,
@@ -110,6 +108,8 @@ include ActiveSupport::NumberHelper
 # * `to_s`: Returns a string representation of the benchmark, including the hash type
 #   (and its name if available) along with the hash speed in a human-readable format.
 class HashcatBenchmark < ApplicationRecord
+  include ActiveSupport::NumberHelper
+
   belongs_to :agent, touch: true
 
   # Validations
@@ -126,7 +126,7 @@ class HashcatBenchmark < ApplicationRecord
 
   include SafeBroadcasting
 
-  broadcasts_refreshes unless Rails.env.test?
+  broadcasts_refreshes
 
   # Scopes
   scope :by_hash_type, ->(hash_type) { where(hash_type: hash_type) }
@@ -193,7 +193,7 @@ class HashcatBenchmark < ApplicationRecord
   def to_s
     # The hash type record is found by the hashcat mode number
     # These record virtually never change, so we can cache them very safely
-    hash_type_record = Rails.cache.fetch("hash_type/#{hash_type}", expires: 1.day) do
+    hash_type_record = Rails.cache.fetch("hash_type/#{hash_type}", expires_in: 1.day) do
       HashType.find_by(hashcat_mode: hash_type)&.name
     end
     if hash_type_record.nil?

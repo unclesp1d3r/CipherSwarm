@@ -19,7 +19,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
-      - uses: jdx/mise-action@v2
+      - uses: jdx/mise-action@v3
         with:
           install: true
           cache: true
@@ -34,7 +34,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
-      - uses: jdx/mise-action@v2
+      - uses: jdx/mise-action@v3
         with:
           install: true
           cache: true
@@ -64,7 +64,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
-      - uses: jdx/mise-action@v2
+        with:
+          fetch-depth: 0
+      - uses: jdx/mise-action@v3
         with:
           install: true
           cache: true
@@ -112,6 +114,10 @@ jobs:
           name: test-results
           path: /tmp/test-results
           if-no-files-found: ignore
+      - name: Check coverage of changed code
+        env:
+          BASE_REF: ${{ github.base_ref || 'main' }}
+        run: bin/bundle exec undercover --compare "origin/$BASE_REF"
       - name: Upload coverage results to Code Climate
         if: env.CC_TEST_REPORTER_ID != ''
         run: |

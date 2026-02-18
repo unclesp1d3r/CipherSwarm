@@ -215,9 +215,28 @@ RSpec.describe "api/v1/client/agents" do
     parameter name: :id, in: :path, schema: { type: :integer, format: :int64 },
               required: true, description: "id"
 
+    # NOTE: The `in: :body` parameter syntax is OpenAPI 2.0 style, which is technically invalid
+    # for OpenAPI 3.0. This is a known limitation of rswag 2.x. The generated swagger.json will
+    # contain this as a parameter instead of a requestBody, but most tools handle this gracefully.
+    # Consider upgrading to rswag 3.x for proper OpenAPI 3.0 requestBody support.
+    parameter name: :heartbeat_body, in: :body, required: false, schema: {
+      type: :object,
+      properties: {
+        activity: {
+          type: :string,
+          description: "Current agent activity state. Known values: starting, benchmarking, " \
+                       "updating, downloading, waiting, cracking, stopping. " \
+                       "Future versions may support additional values.",
+          example: "cracking",
+          nullable: true
+        }
+      }
+    }
+
     post "Send a heartbeat for an agent" do
       tags "Agents"
-      description "Send a heartbeat for an agent to keep it alive."
+      description "Send a heartbeat for an agent to keep it alive. Optionally accepts an 'activity' " \
+                  "parameter in the request body to track the agent's current activity state."
       security [bearer_auth: []]
       consumes "application/json"
       produces "application/json"
@@ -225,14 +244,6 @@ RSpec.describe "api/v1/client/agents" do
 
       let(:agent) { create(:agent) }
       let(:id) { agent.id }
-
-      response(204, "successful") do
-        let(:agent) { create(:agent, state: "active") }
-        let(:id) { agent.id }
-        let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
-
-        run_test!
-      end
 
       response(200, "successful, but with server feedback") do
         let(:agent) { create(:agent, state: "pending") }
@@ -286,6 +297,77 @@ RSpec.describe "api/v1/client/agents" do
           }
           example.metadata[:response][:content] = content.deep_merge(example_spec)
         end
+
+        run_test!
+      end
+
+      # Activity parameter tests
+      response(204, "successful with activity parameter") do
+        let(:agent) { create(:agent, state: "active") }
+        let(:id) { agent.id }
+        let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
+        let(:heartbeat_body) { { activity: "cracking" } }
+
+        run_test! do
+          expect(response).to have_http_status(:no_content)
+          expect(agent.reload.current_activity).to eq("cracking")
+        end
+      end
+
+      response(204, "successful with null activity") do
+        let(:agent) { create(:agent, state: "active", current_activity: "waiting") }
+        let(:id) { agent.id }
+        let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
+        let(:heartbeat_body) { { activity: nil } }
+
+        run_test! do
+          expect(response).to have_http_status(:no_content)
+          expect(agent.reload.current_activity).to be_nil
+        end
+      end
+
+      response(204, "successful with empty request body") do
+        let(:agent) { create(:agent, state: "active") }
+        let(:id) { agent.id }
+        let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
+        let(:heartbeat_body) { {} }
+
+        run_test! do
+          expect(response).to have_http_status(:no_content)
+        end
+      end
+
+      response(204, "successful with unknown activity value (forward compatibility)") do
+        let(:agent) { create(:agent, state: "active") }
+        let(:id) { agent.id }
+        let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
+        let(:heartbeat_body) { { activity: "future_activity_type" } }
+
+        run_test! do
+          expect(response).to have_http_status(:no_content)
+          expect(agent.reload.current_activity).to eq("future_activity_type")
+        end
+      end
+
+      response(204, "successful with invalid activity ignored") do
+        let(:agent) { create(:agent, state: "active") }
+        let(:id) { agent.id }
+        let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
+        let(:heartbeat_body) { { activity: "a" * 100 } }
+
+        run_test! do
+          # Heartbeat should succeed even if activity validation fails
+          expect(response).to have_http_status(:no_content)
+          # Activity should not be persisted due to length validation (max 50 chars)
+          expect(agent.reload.current_activity).to be_nil
+        end
+      end
+
+      # Basic heartbeat test - placed last so "successful" becomes the swagger 204 description
+      response(204, "successful") do
+        let(:agent) { create(:agent, state: "active") }
+        let(:id) { agent.id }
+        let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
 
         run_test!
       end

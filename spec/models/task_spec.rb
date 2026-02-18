@@ -41,9 +41,9 @@
 #
 # Foreign Keys
 #
-#  fk_rails_...  (agent_id => agents.id)
+#  fk_rails_...  (agent_id => agents.id) ON DELETE => cascade
 #  fk_rails_...  (attack_id => attacks.id) ON DELETE => cascade
-#  fk_rails_...  (claimed_by_agent_id => agents.id)
+#  fk_rails_...  (claimed_by_agent_id => agents.id) ON DELETE => nullify
 #
 require "rails_helper"
 
@@ -139,6 +139,42 @@ RSpec.describe Task do
       end
     end
 
+    describe "#error" do
+      let(:running_task) { create(:task, state: "running") }
+
+      it "transitions from running to failed" do
+        running_task.error
+        expect(running_task).to be_failed
+      end
+
+      it "logs the error transition via StateChangeLogger" do
+        running_task.update!(last_error: "GPU memory exhausted")
+        allow(StateChangeLogger).to receive(:log_task_transition)
+
+        running_task.error
+
+        expect(StateChangeLogger).to have_received(:log_task_transition).with(
+          task: running_task,
+          event: :error,
+          transition: { from: "running", to: "failed" },
+          context: { reason: "GPU memory exhausted" }
+        )
+      end
+
+      it "logs 'unknown' reason when last_error is nil" do
+        allow(StateChangeLogger).to receive(:log_task_transition)
+
+        running_task.error
+
+        expect(StateChangeLogger).to have_received(:log_task_transition).with(
+          task: running_task,
+          event: :error,
+          transition: { from: "running", to: "failed" },
+          context: { reason: "unknown" }
+        )
+      end
+    end
+
     describe "#abandon" do
       let(:running_task) { create(:task, state: "running") }
 
@@ -200,6 +236,29 @@ RSpec.describe Task do
         allow(Rails.logger).to receive(:error)
         task.send(:log_broadcast_error, StandardError.new("Test error"))
         expect(Rails.logger).to have_received(:error).with(/\[BroadcastError\].*Model: Task/).at_least(:once)
+      end
+    end
+
+    describe "#safe_broadcast_attack_progress_update" do
+      it "delegates to attack.broadcast_attack_progress_update" do
+        allow(task.attack).to receive(:broadcast_attack_progress_update)
+        task.send(:safe_broadcast_attack_progress_update)
+        expect(task.attack).to have_received(:broadcast_attack_progress_update)
+      end
+
+      it "logs via StateChangeLogger.log_broadcast_error with target context when broadcast raises" do
+        error = StandardError.new("Connection refused")
+        allow(task.attack).to receive(:broadcast_attack_progress_update).and_raise(error)
+        allow(StateChangeLogger).to receive(:log_broadcast_error)
+
+        task.send(:safe_broadcast_attack_progress_update)
+
+        expect(StateChangeLogger).to have_received(:log_broadcast_error).with(
+          model_name: "Task",
+          record_id: task.id,
+          error: error,
+          context: { target: "attack-progress-#{task.attack_id}", partial: "campaigns/attack_progress" }
+        )
       end
     end
   end
@@ -281,6 +340,108 @@ RSpec.describe Task do
 
         task.preemptable?
         expect(Rails.logger).to have_received(:warn).with(/preemption_count is nil/)
+      end
+    end
+  end
+
+  describe "#remove_old_status" do
+    let(:project) { create(:project) }
+    let(:campaign) { create(:campaign, project: project) }
+    let(:attack) { create(:dictionary_attack, campaign: campaign) }
+    let(:agent) { create(:agent, projects: [project]) }
+    let(:task) { create(:task, attack: attack, agent: agent) }
+
+    before do
+      allow(ApplicationConfig).to receive(:task_status_limit).and_return(2)
+    end
+
+    it "removes old statuses beyond the limit" do
+      create_list(:hashcat_status, 5, task: task)
+      expect { task.remove_old_status }.to change { task.hashcat_statuses.count }.from(5).to(2)
+    end
+
+    it "does nothing when statuses are within limit" do
+      create(:hashcat_status, task: task)
+      expect { task.remove_old_status }.not_to change { task.hashcat_statuses.count }
+    end
+  end
+
+  describe "state machine callbacks" do
+    let(:project) { create(:project) }
+    let(:campaign) { create(:campaign, project: project) }
+    let(:attack) { create(:dictionary_attack, campaign: campaign) }
+    let(:agent) { create(:agent, projects: [project]) }
+
+    describe "completed callback" do
+      let(:task) { create(:task, attack: attack, agent: agent, state: "running") }
+
+      it "deletes hashcat_statuses on completion" do
+        create(:hashcat_status, task: task)
+        allow(Rails.logger).to receive(:info)
+        task.complete
+        expect(task.reload.hashcat_statuses.count).to eq(0)
+      end
+    end
+
+    describe "exhausted callback" do
+      let(:task) { create(:task, attack: attack, agent: agent, state: "running") }
+
+      it "deletes hashcat_statuses on exhaustion" do
+        create(:hashcat_status, task: task)
+        allow(Rails.logger).to receive(:info)
+        task.exhaust
+        expect(task.reload.hashcat_statuses.count).to eq(0)
+      end
+    end
+  end
+
+  describe "#compatible_agent?" do
+    let(:project) { create(:project) }
+    let(:campaign) { create(:campaign, project: project) }
+    let(:attack) { create(:dictionary_attack, campaign: campaign) }
+    let(:original_agent) { create(:agent, projects: [project]) }
+    let(:task) { create(:task, attack: attack, agent: original_agent) }
+
+    context "when agent has no project restrictions" do
+      let(:unrestricted_agent) { create(:agent, projects: []) }
+
+      it "returns true for agent with no projects" do
+        expect(task.compatible_agent?(unrestricted_agent)).to be true
+      end
+    end
+
+    context "when agent is assigned to the task's project" do
+      let(:same_project_agent) { create(:agent, projects: [project]) }
+
+      it "returns true" do
+        expect(task.compatible_agent?(same_project_agent)).to be true
+      end
+    end
+
+    context "when agent is assigned to a different project" do
+      let(:other_project) { create(:project) }
+      let(:different_project_agent) { create(:agent, projects: [other_project]) }
+
+      it "returns false" do
+        expect(task.compatible_agent?(different_project_agent)).to be false
+      end
+    end
+
+    context "when agent is assigned to multiple projects including the task's project" do
+      let(:other_project) { create(:project) }
+      let(:multi_project_agent) { create(:agent, projects: [other_project, project]) }
+
+      it "returns true" do
+        expect(task.compatible_agent?(multi_project_agent)).to be true
+      end
+    end
+
+    context "when task has no associated project" do
+      let(:task_without_project) { build(:task, attack: nil) }
+
+      it "returns false" do
+        allow(task_without_project).to receive(:attack).and_return(nil)
+        expect(task_without_project.compatible_agent?(original_agent)).to be false
       end
     end
   end

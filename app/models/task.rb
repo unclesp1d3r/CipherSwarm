@@ -107,9 +107,9 @@
 #
 # Foreign Keys
 #
-#  fk_rails_...  (agent_id => agents.id)
+#  fk_rails_...  (agent_id => agents.id) ON DELETE => cascade
 #  fk_rails_...  (attack_id => attacks.id) ON DELETE => cascade
-#  fk_rails_...  (claimed_by_agent_id => agents.id)
+#  fk_rails_...  (claimed_by_agent_id => agents.id) ON DELETE => nullify
 #
 class Task < ApplicationRecord
   belongs_to :attack, touch: true
@@ -118,7 +118,8 @@ class Task < ApplicationRecord
   has_many :agent_errors, dependent: :destroy
   validates :start_date, presence: true
 
-  default_scope { order(:created_at) }
+  self.implicit_order_column = :created_at
+
   scope :incomplete, -> { with_states(%i[pending failed running]) }
   scope :inactive_for, ->(time) { where(activity_timestamp: ...time.ago) }
   scope :successful, -> { with_states(:completed, :exhausted) }
@@ -187,25 +188,25 @@ class Task < ApplicationRecord
       transition failed: :pending
     end
 
-    after_transition on: :running do |task|
+    after_transition to: :running do |task|
       Rails.logger.info("[Task #{task.id}] Agent #{task.agent_id} - Attack #{task.attack_id} - State change: #{task.state_was} -> running - Task accepted and running")
       task.attack.accept
-      task.safe_broadcast_attack_progress_update
+      task.send(:safe_broadcast_attack_progress_update)
     end
 
-    after_transition on: :completed do |task|
+    after_transition to: :completed do |task|
       uncracked = task.hash_list.uncracked_count
       Rails.logger.info("[Task #{task.id}] Agent #{task.agent_id} - Attack #{task.attack_id} - State change: #{task.state_was} -> completed - Uncracked hashes: #{uncracked}")
       task.attack.complete if task.attack.can_complete?
-      task.safe_broadcast_attack_progress_update
-      task.hashcat_statuses.destroy_all
+      task.send(:safe_broadcast_attack_progress_update)
+      task.hashcat_statuses.delete_all # DB cascades handle child records
     end
 
-    after_transition on: :exhausted do |task|
+    after_transition to: :exhausted do |task|
       Rails.logger.info("[Task #{task.id}] Agent #{task.agent_id} - Attack #{task.attack_id} - State change: #{task.state_was} -> exhausted - Keyspace exhausted")
       task.attack.exhaust if task.attack.can_exhaust?
-      task.safe_broadcast_attack_progress_update
-      task.hashcat_statuses.destroy_all
+      task.send(:safe_broadcast_attack_progress_update)
+      task.hashcat_statuses.delete_all # DB cascades handle child records
     end
 
     after_transition on: :abandon do |task|
@@ -231,9 +232,9 @@ class Task < ApplicationRecord
       task.update(stale: true)
     end
 
-    after_transition on: :paused do |task|
+    after_transition to: :paused do |task|
       Rails.logger.info("[Task #{task.id}] Agent #{task.agent_id} - Attack #{task.attack_id} - State change: #{task.state_was} -> paused - Task execution paused")
-      task.safe_broadcast_attack_progress_update
+      task.send(:safe_broadcast_attack_progress_update)
     end
 
     after_transition on: :retry do |task|
@@ -243,7 +244,43 @@ class Task < ApplicationRecord
       # rubocop:enable Rails/SkipsModelValidations
     end
 
-    after_transition on: :exhausted, do: :mark_attack_exhausted
+    after_transition on: :error do |task, transition|
+      StateChangeLogger.log_task_transition(
+        task: task,
+        event: :error,
+        transition: { from: transition.from, to: transition.to },
+        context: { reason: task.last_error || "unknown" }
+      )
+    end
+
+    after_transition on: :cancel do |task, transition|
+      StateChangeLogger.log_task_transition(
+        task: task,
+        event: :cancel,
+        transition: { from: transition.from, to: transition.to },
+        context: { reason: "Task manually cancelled" }
+      )
+    end
+
+    after_transition on: :accept_status do |task, transition|
+      StateChangeLogger.log_task_transition(
+        task: task,
+        event: :accept_status,
+        transition: { from: transition.from, to: transition.to },
+        context: { reason: "Status update received" }
+      )
+    end
+
+    after_transition on: :accept_crack do |task, transition|
+      next if transition.to == "completed"
+
+      StateChangeLogger.log_task_transition(
+        task: task,
+        event: :accept_crack,
+        transition: { from: transition.from, to: transition.to },
+        context: { reason: "Crack accepted, uncracked hashes remaining" }
+      )
+    end
 
     after_transition any - [:pending] => any, do: :update_activity_timestamp
 
@@ -279,18 +316,6 @@ class Task < ApplicationRecord
 
   def latest_status
     hashcat_statuses.where(status: :running).order(time: :desc).first
-  end
-
-  # Marks the attack as exhausted if it is not already exhausted.
-  # If the attack cannot be marked as exhausted, adds an error to the attack
-  # and aborts the operation.
-  #
-  # @return [void]
-  def mark_attack_exhausted
-    return if attack.exhaust
-
-    errors.add(:attack, "could not be marked exhausted")
-    throw(:abort)
   end
 
   # Calculates the progress percentage of the current task.
@@ -358,7 +383,7 @@ class Task < ApplicationRecord
     limit = ApplicationConfig.task_status_limit
     return unless limit.is_a?(Integer) && limit.positive?
 
-    hashcat_statuses.order(created_at: :desc).offset(limit).destroy_all
+    hashcat_statuses.order(created_at: :desc).offset(limit).delete_all # DB cascades handle child records
   end
 
   # Checks if there are any uncracked hashes remaining.
@@ -376,13 +401,37 @@ class Task < ApplicationRecord
     update(activity_timestamp: Time.zone.now) if state_changed?
   end
 
+  # Checks if an agent is compatible with this task.
+  #
+  # An agent is compatible if:
+  # 1. Agent has no project restrictions (agent.projects.empty?) - can work on any project
+  # 2. Agent is assigned to this specific project
+  #
+  # REASONING:
+  # - This method is used for task reassignment validation
+  # - Ensures agents can only be assigned tasks from projects they have access to
+  # - Agents with no project restrictions are considered "global" and can work on any project
+  # - Alternatives considered: Using CanCanCan abilities, but this is simpler and more focused
+  #
+  # @param agent [Agent] the agent to check for compatibility
+  # @return [Boolean] true if agent can work on this task, false otherwise
+  def compatible_agent?(agent)
+    project = attack&.campaign&.project
+    return false unless project
+
+    agent.projects.empty? || agent.projects.include?(project)
+  end
+
   private
 
   def safe_broadcast_attack_progress_update
-    return if Rails.env.test?
-
     attack.broadcast_attack_progress_update
   rescue StandardError => e
-    Rails.logger.error("[BroadcastUpdate] Task #{id} - Failed to broadcast attack progress update: #{e.message}")
+    StateChangeLogger.log_broadcast_error(
+      model_name: "Task",
+      record_id: id,
+      error: e,
+      context: { target: "attack-progress-#{attack_id}", partial: "campaigns/attack_progress" }
+    )
   end
 end

@@ -69,7 +69,7 @@ class Project < ApplicationRecord
 
   include SafeBroadcasting
 
-  broadcasts_refreshes unless Rails.env.test?
+  broadcasts_refreshes
 
   default_scope { order(:created_at) }
 end

@@ -20,6 +20,7 @@
   <%= a.attribute :attack_mode %>
   <%= a.attribute :state %>
   <%= a.attribute :complexity_value %>
+  <%= a.association :creator, label: "Created By" %>
   <% if @attack.attack_mode == "dictionary" %>
     <%= a.association :word_list %>
     <%= a.association :rule_list %>

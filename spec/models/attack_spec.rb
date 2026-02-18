@@ -31,30 +31,34 @@
 #  right_rule(Right rule)                                                                              :string           default("")
 #  slow_candidate_generators(Are slow candidate generators enabled?)                                   :boolean          default(FALSE), not null
 #  start_time(The time the attack started.)                                                            :datetime
-#  state                                                                                               :string           indexed
+#  state                                                                                               :string           indexed => [campaign_id], indexed
 #  type                                                                                                :string
 #  workload_profile(Hashcat workload profile (e.g. 1 for low, 2 for medium, 3 for high, 4 for insane)) :integer          default(3), not null
 #  created_at                                                                                          :datetime         not null
 #  updated_at                                                                                          :datetime         not null
-#  campaign_id                                                                                         :bigint           not null, indexed
+#  campaign_id                                                                                         :bigint           not null, indexed, indexed => [state]
+#  creator_id(The user who created this attack)                                                        :bigint           indexed
 #  mask_list_id(The mask list used for the attack.)                                                    :bigint           indexed
 #  rule_list_id(The rule list used for the attack.)                                                    :bigint           indexed
 #  word_list_id(The word list used for the attack.)                                                    :bigint           indexed
 #
 # Indexes
 #
-#  index_attacks_campaign_id          (campaign_id)
-#  index_attacks_on_attack_mode       (attack_mode)
-#  index_attacks_on_complexity_value  (complexity_value)
-#  index_attacks_on_deleted_at        (deleted_at)
-#  index_attacks_on_mask_list_id      (mask_list_id)
-#  index_attacks_on_rule_list_id      (rule_list_id)
-#  index_attacks_on_state             (state)
-#  index_attacks_on_word_list_id      (word_list_id)
+#  index_attacks_campaign_id               (campaign_id)
+#  index_attacks_on_attack_mode            (attack_mode)
+#  index_attacks_on_campaign_id_and_state  (campaign_id,state)
+#  index_attacks_on_complexity_value       (complexity_value)
+#  index_attacks_on_creator_id             (creator_id)
+#  index_attacks_on_deleted_at             (deleted_at)
+#  index_attacks_on_mask_list_id           (mask_list_id)
+#  index_attacks_on_rule_list_id           (rule_list_id)
+#  index_attacks_on_state                  (state)
+#  index_attacks_on_word_list_id           (word_list_id)
 #
 # Foreign Keys
 #
 #  fk_rails_...  (campaign_id => campaigns.id) ON DELETE => cascade
+#  fk_rails_...  (creator_id => users.id)
 #  fk_rails_...  (mask_list_id => mask_lists.id) ON DELETE => cascade
 #  fk_rails_...  (rule_list_id => rule_lists.id) ON DELETE => cascade
 #  fk_rails_...  (word_list_id => word_lists.id) ON DELETE => cascade
@@ -65,6 +69,7 @@ RSpec.describe Attack do
   context "with associations" do
     it { is_expected.to belong_to(:campaign) }
     it { is_expected.to have_many(:tasks).dependent(:destroy) }
+    it { is_expected.to belong_to(:creator).class_name("User").optional }
   end
 
   context "with validations" do
@@ -150,6 +155,33 @@ RSpec.describe Attack do
     it { expect(child_task).to be_valid }
     it { expect(attack.tasks.count).to eq(1) }
     it { expect { attack.destroy }.to change(Task, :count).by(-1) }
+  end
+
+  describe "state machine callbacks" do
+    describe "abandon error handling" do
+      let(:attack) { create(:dictionary_attack, state: "running") }
+      let!(:task) { create(:task, attack: attack, state: "running") } # rubocop:disable RSpec/LetSetup
+
+      it "logs error and re-raises when destroy_all fails during abandon" do
+        allow(Rails.logger).to receive(:info)
+        allow(Rails.logger).to receive(:error)
+        allow(attack.tasks).to receive(:destroy_all).and_raise(StandardError.new("DB connection lost"))
+
+        expect { attack.abandon }.to raise_error(StandardError, "DB connection lost")
+        expect(Rails.logger).to have_received(:error).with(/\[AttackAbandon\].*DB connection lost/)
+      end
+
+      it "handles errors with nil backtrace" do
+        allow(Rails.logger).to receive(:info)
+        allow(Rails.logger).to receive(:error)
+        error = StandardError.new("No backtrace error")
+        allow(error).to receive(:backtrace).and_return(nil)
+        allow(attack.tasks).to receive(:destroy_all).and_raise(error)
+
+        expect { attack.abandon }.to raise_error(StandardError, "No backtrace error")
+        expect(Rails.logger).to have_received(:error).with(/Not available/)
+      end
+    end
   end
 
   describe "SafeBroadcasting integration" do

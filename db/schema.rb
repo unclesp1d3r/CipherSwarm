@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_12_052238) do
+ActiveRecord::Schema[8.0].define(version: 2026_02_11_015927) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -74,6 +74,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_12_052238) do
     t.integer "current_temperature", default: 0, comment: "Current device temperature in Celsius, updated from HashcatStatus"
     t.integer "current_utilization", default: 0, comment: "Current device utilization percentage, updated from HashcatStatus"
     t.datetime "metrics_updated_at", comment: "Timestamp of last metrics update for throttling"
+    t.string "current_activity", comment: "Current agent activity state (e.g., cracking, waiting, benchmarking)"
+    t.index ["current_activity"], name: "index_agents_on_current_activity"
     t.index ["custom_label"], name: "index_agents_on_custom_label", unique: true
     t.index ["metrics_updated_at"], name: "index_agents_on_metrics_updated_at"
     t.index ["state", "last_seen_at"], name: "index_agents_on_state_and_last_seen_at"
@@ -131,9 +133,12 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_12_052238) do
     t.bigint "mask_list_id", comment: "The mask list used for the attack."
     t.datetime "deleted_at"
     t.decimal "complexity_value", default: "0.0", null: false, comment: "Complexity value of the attack"
+    t.bigint "creator_id", comment: "The user who created this attack"
     t.index ["attack_mode"], name: "index_attacks_on_attack_mode"
+    t.index ["campaign_id", "state"], name: "index_attacks_on_campaign_id_and_state"
     t.index ["campaign_id"], name: "index_attacks_campaign_id"
     t.index ["complexity_value"], name: "index_attacks_on_complexity_value"
+    t.index ["creator_id"], name: "index_attacks_on_creator_id"
     t.index ["deleted_at"], name: "index_attacks_on_deleted_at"
     t.index ["mask_list_id"], name: "index_attacks_on_mask_list_id"
     t.index ["rule_list_id"], name: "index_attacks_on_rule_list_id"
@@ -173,28 +178,13 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_12_052238) do
     t.text "description"
     t.datetime "deleted_at"
     t.integer "priority", default: 0, null: false, comment: "-1: Deferred, 0: Normal, 2: High"
+    t.bigint "creator_id", comment: "The user who created this campaign"
+    t.index ["creator_id"], name: "index_campaigns_on_creator_id"
     t.index ["deleted_at"], name: "index_campaigns_on_deleted_at"
     t.index ["hash_list_id"], name: "index_campaigns_on_hash_list_id"
+    t.index ["priority"], name: "index_campaigns_on_priority"
+    t.index ["project_id", "priority"], name: "index_campaigns_on_project_id_and_priority"
     t.index ["project_id"], name: "index_campaigns_on_project_id"
-  end
-
-  create_table "cracker_binaries", force: :cascade do |t|
-    t.string "version", null: false, comment: "Version of the cracker binary, e.g. 6.0.0 or 6.0.0-rc1"
-    t.boolean "active", default: true, null: false, comment: "Is the cracker binary active?"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.integer "major_version", comment: "The major version of the cracker binary."
-    t.integer "minor_version", comment: "The minor version of the cracker binary."
-    t.integer "patch_version", comment: "The patch version of the cracker binary."
-    t.string "prerelease_version", default: "", comment: "The prerelease version of the cracker binary."
-    t.index ["version"], name: "index_cracker_binaries_on_version"
-  end
-
-  create_table "cracker_binaries_operating_systems", id: false, force: :cascade do |t|
-    t.bigint "cracker_binary_id", null: false
-    t.bigint "operating_system_id", null: false
-    t.index ["cracker_binary_id"], name: "index_cracker_binaries_operating_systems_on_cracker_binary_id"
-    t.index ["operating_system_id"], name: "idx_on_operating_system_id_ee00451fea"
   end
 
   create_table "device_statuses", force: :cascade do |t|
@@ -239,6 +229,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_12_052238) do
     t.boolean "processed", default: false, null: false, comment: "Is the hash list processed into hash items?"
     t.bigint "hash_type_id", null: false
     t.integer "hash_items_count", default: 0
+    t.bigint "creator_id", comment: "The user who created this hash list"
+    t.index ["creator_id"], name: "index_hash_lists_on_creator_id"
     t.index ["hash_type_id"], name: "index_hash_lists_on_hash_type_id"
     t.index ["name"], name: "index_hash_lists_on_name", unique: true
     t.index ["project_id"], name: "index_hash_lists_on_project_id"
@@ -301,6 +293,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_12_052238) do
     t.datetime "estimated_stop", comment: "The estimated time of completion"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["task_id", "status", "time"], name: "index_hashcat_statuses_on_task_status_time", order: { time: :desc }
     t.index ["task_id"], name: "index_hashcat_statuses_on_task_id"
     t.index ["time"], name: "index_hashcat_statuses_on_time"
   end
@@ -325,14 +318,6 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_12_052238) do
     t.bigint "project_id"
     t.index ["mask_list_id"], name: "index_mask_lists_projects_on_mask_list_id"
     t.index ["project_id"], name: "index_mask_lists_projects_on_project_id"
-  end
-
-  create_table "operating_systems", force: :cascade do |t|
-    t.string "name", null: false, comment: "Name of the operating system"
-    t.string "cracker_command", null: false, comment: "Command to run the cracker on this OS"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["name"], name: "index_operating_systems_on_name", unique: true
   end
 
   create_table "project_users", force: :cascade do |t|
@@ -547,6 +532,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_12_052238) do
     t.integer "role", default: 0, comment: "The role of the user, either basic or admin"
     t.string "password_digest"
     t.boolean "auth_migrated", default: false, null: false
+    t.boolean "hide_completed_activities", default: false, null: false
     t.index ["auth_migrated"], name: "index_users_on_auth_migrated"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["name"], name: "index_users_on_name", unique: true
@@ -578,26 +564,29 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_12_052238) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
-  add_foreign_key "agent_errors", "agents"
-  add_foreign_key "agent_errors", "tasks"
+  add_foreign_key "agent_errors", "agents", on_delete: :cascade
+  add_foreign_key "agent_errors", "tasks", on_delete: :nullify
   add_foreign_key "agents", "users"
   add_foreign_key "attacks", "campaigns", on_delete: :cascade
   add_foreign_key "attacks", "mask_lists", on_delete: :cascade
   add_foreign_key "attacks", "rule_lists", on_delete: :cascade
+  add_foreign_key "attacks", "users", column: "creator_id"
   add_foreign_key "attacks", "word_lists", on_delete: :cascade
   add_foreign_key "campaigns", "hash_lists", on_delete: :cascade
   add_foreign_key "campaigns", "projects", on_delete: :cascade
+  add_foreign_key "campaigns", "users", column: "creator_id"
   add_foreign_key "device_statuses", "hashcat_statuses", on_delete: :cascade
-  add_foreign_key "hash_items", "attacks"
-  add_foreign_key "hash_items", "hash_lists"
+  add_foreign_key "hash_items", "attacks", on_delete: :nullify
+  add_foreign_key "hash_items", "hash_lists", on_delete: :cascade
   add_foreign_key "hash_lists", "hash_types"
-  add_foreign_key "hash_lists", "projects"
-  add_foreign_key "hashcat_benchmarks", "agents"
+  add_foreign_key "hash_lists", "projects", on_delete: :cascade
+  add_foreign_key "hash_lists", "users", column: "creator_id"
+  add_foreign_key "hashcat_benchmarks", "agents", on_delete: :cascade
   add_foreign_key "hashcat_guesses", "hashcat_statuses", on_delete: :cascade
   add_foreign_key "hashcat_statuses", "tasks", on_delete: :cascade
   add_foreign_key "mask_lists", "users", column: "creator_id"
-  add_foreign_key "project_users", "projects"
-  add_foreign_key "project_users", "users"
+  add_foreign_key "project_users", "projects", on_delete: :cascade
+  add_foreign_key "project_users", "users", on_delete: :cascade
   add_foreign_key "rule_lists", "users", column: "creator_id"
   add_foreign_key "sessions", "users"
   add_foreign_key "solid_queue_blocked_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
@@ -605,8 +594,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_12_052238) do
   add_foreign_key "solid_queue_failed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_ready_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_scheduled_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
-  add_foreign_key "tasks", "agents"
-  add_foreign_key "tasks", "agents", column: "claimed_by_agent_id"
+  add_foreign_key "tasks", "agents", column: "claimed_by_agent_id", on_delete: :nullify
+  add_foreign_key "tasks", "agents", on_delete: :cascade
   add_foreign_key "tasks", "attacks", on_delete: :cascade
   add_foreign_key "word_lists", "users", column: "creator_id"
 end

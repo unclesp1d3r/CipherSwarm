@@ -317,14 +317,25 @@ Rails.application.routes.draw do
   end
   get "toggle_hide_completed_activities" => "campaigns#toggle_hide_completed_activities"
 
+  resources :tasks, only: %i[show] do
+    member do
+      post :cancel
+      post :retry
+      post :reassign
+      get :logs
+      get :download_results
+    end
+  end
+
   resources :hash_lists
   resources :word_lists, :rule_lists, :mask_lists, concerns: :downloadable
-  resources :cracker_binaries
   namespace :api, defaults: { format: :json } do
     namespace :v1 do
       draw(:client_api)
     end
   end
+
+  get "system_health", to: "system_health#index", as: :system_health
 
   resources :agents do
     collection do

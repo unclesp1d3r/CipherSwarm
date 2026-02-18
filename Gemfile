@@ -26,7 +26,7 @@ gem "turbo-rails", "~> 2.0"
 gem "tzinfo-data", platforms: %i[windows jruby]
 
 group :development, :test do
-  gem "brakeman", "~> 7.1", require: false
+  gem "brakeman", ">= 7.1", require: false
   gem "bullet", "~> 8.0"
   gem "bundler-audit", "~> 0.9", require: false
   gem "capybara", "~> 3.40"
@@ -44,6 +44,8 @@ group :development, :test do
   gem "shoulda-callback-matchers", "~> 1.1"
   gem "shoulda-matchers", "~> 6.2"
   gem "simplecov", "~> 0.22", require: false
+  gem "simplecov-lcov", "~> 0.3", require: false
+  gem "undercover", "~> 0.5", require: false
 
   # Rubocop extensions
   gem "rswag-specs", "~> 2.13", require: false
@@ -78,11 +80,12 @@ gem "ar_lazy_preload", "~> 2.1"
 gem "audited", "~> 5.5"
 gem "aws-sdk-s3", "~> 1.151", groups: %i[production development]
 gem "cancancan", "~> 3.5"
+gem "csv", "~> 3.3" # Required for Ruby 3.4+ (no longer in standard library)
 gem "devise", "~> 4.9"
 gem "dry-initializer", "~> 3.1"
 # gem "groupdate", "~> 6.4"  # REMOVED: Not currently used in codebase
 gem "inline_svg", "~> 1.9"
-gem "kredis", "~> 1.7"
+
 gem "lograge", "~> 0.14"
 # gem "maruku", "~> 0.7"  # REMOVED: Not used - consider commonmarker or redcarpet if markdown needed
 gem "meta-tags", "~> 2.21"

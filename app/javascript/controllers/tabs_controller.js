@@ -14,12 +14,18 @@ export default class extends Controller {
     this.setActiveTab(this.activeValue)
   }
 
-  showTab(event) {
+  // Ticketed public action name
+  switch(event) {
     event.preventDefault()
     const index = this.tabTargets.indexOf(event.currentTarget)
     if (index !== -1) {
       this.setActiveTab(index)
     }
+  }
+
+  // Alias for backwards compatibility
+  showTab(event) {
+    this.switch(event)
   }
 
   setActiveTab(index) {
@@ -45,9 +51,11 @@ export default class extends Controller {
     this.panelTargets.forEach((panel, i) => {
       if (i === index) {
         panel.classList.remove("d-none")
+        panel.classList.add("active")
         panel.setAttribute("aria-hidden", "false")
       } else {
         panel.classList.add("d-none")
+        panel.classList.remove("active")
         panel.setAttribute("aria-hidden", "true")
       }
     })

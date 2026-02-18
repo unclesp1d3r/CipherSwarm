@@ -37,7 +37,6 @@ RSpec.configure do |config|
         { name: "Agents", description: "Agents API" },
         { name: "Attacks", description: "Attacks API" },
         { name: "Client", description: "Client API" },
-        { name: "Crackers", description: "Crackers API" },
         { name: "Tasks", description: "Tasks API" }
       ],
       info: {
@@ -101,6 +100,7 @@ RSpec.configure do |config|
                        enum: %w[pending active stopped error] },
               operating_system: { type: :string, description: "The operating system of the agent" },
               devices: { type: :array, items: { type: :string, description: "The descriptive name of a GPU or CPU device." } },
+              current_activity: { type: :string, nullable: true, description: "Current agent activity state" },
               advanced_configuration: {
                 "$ref" => "#/components/schemas/AdvancedAgentConfiguration"
               }
@@ -311,17 +311,6 @@ RSpec.configure do |config|
               hash_list_checksum
               url
             ]
-          },
-          CrackerUpdate: {
-            type: :object,
-            properties: {
-              available: { type: :boolean, description: "A new version of the cracker binary is available" },
-              latest_version: { type: :string, nullable: true, description: "The latest version of the cracker binary" },
-              download_url: { type: :string, format: :uri, nullable: true, description: "The download URL of the new version" },
-              exec_name: { type: :string, nullable: true, description: "The name of the executable" },
-              message: { type: :string, nullable: true, description: "A message about the update" }
-            },
-            required: %i[available]
           },
           HashcatResult: {
             type: :object,

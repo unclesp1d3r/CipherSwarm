@@ -138,6 +138,44 @@ RSpec.describe "api/v1/client/tasks" do
     end
   end
 
+  describe "Exhausted endpoint error handling" do
+    let(:agent) { create(:agent) }
+    let(:attack) { create(:dictionary_attack, state: :running) }
+    let(:headers) { { "Authorization" => "Bearer #{agent.token}" } }
+
+    context "when task exhaust fails" do
+      let(:pending_task) { create(:task, agent: agent, attack: attack, state: "pending") }
+
+      it "returns 422 with error details when task cannot be exhausted" do
+        allow(Rails.logger).to receive(:info)
+        allow(Rails.logger).to receive(:error)
+
+        post "/api/v1/client/tasks/#{pending_task.id}/exhausted", headers: headers
+
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(response.parsed_body["error"]).to eq("Failed to exhaust task")
+        expect(response.parsed_body).to have_key("details")
+      end
+    end
+
+    context "when attack exhaust fails" do
+      let(:running_task) { create(:task, agent: agent, attack: attack, state: "running") }
+
+      it "succeeds for task even when attack cannot be exhausted" do
+        allow(Rails.logger).to receive(:info)
+        allow(Rails.logger).to receive(:error)
+
+        # Set an invalid workload_profile (must be 1-4) so save fails during exhaust
+        running_task.attack.update_column(:workload_profile, 99) # rubocop:disable Rails/SkipsModelValidations
+
+        post "/api/v1/client/tasks/#{running_task.id}/exhausted", headers: headers
+
+        # Task exhaustion succeeds; attack exhaustion is handled by callback with can_exhaust? guard
+        expect(response).to have_http_status(:no_content)
+      end
+    end
+  end
+
   path "/api/v1/client/tasks/new" do
     get("Request a new task from server") do
       tags "Tasks"
@@ -156,6 +194,27 @@ RSpec.describe "api/v1/client/tasks" do
         let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
 
         run_test!
+      end
+
+      context "when only another agent's tasks exist for the attack", :skip_swagger do
+        let(:hash_list) do
+          hash_list = create(:hash_list, project: project)
+          create(:hash_item, hash_list: hash_list, cracked: false)
+          hash_list.update!(processed: true)
+          hash_list
+        end
+        let!(:campaign) { create(:campaign, project: project, hash_list: hash_list) }
+        let!(:attack) { create(:dictionary_attack, state: "running", campaign: campaign) }
+        let(:other_agent) { create(:agent, projects: [project], hashcat_benchmarks: build_list(:hashcat_benchmark, 1)) }
+
+        before { create(:task, agent: other_agent, attack: attack, state: :failed) }
+
+        it "returns 204 and does not return another agent's task" do
+          get "/api/v1/client/tasks/new",
+              headers: { "Authorization" => "Bearer #{agent.token}" }
+
+          expect(response).to have_http_status(:no_content)
+        end
       end
 
       response(200, "new task available") do

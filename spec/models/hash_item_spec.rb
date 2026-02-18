@@ -29,8 +29,8 @@
 #
 # Foreign Keys
 #
-#  fk_rails_...  (attack_id => attacks.id)
-#  fk_rails_...  (hash_list_id => hash_lists.id)
+#  fk_rails_...  (attack_id => attacks.id) ON DELETE => nullify
+#  fk_rails_...  (hash_list_id => hash_lists.id) ON DELETE => cascade
 #
 require "rails_helper"
 

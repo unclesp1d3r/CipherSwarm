@@ -54,6 +54,12 @@ RSpec.describe User do
     it { is_expected.to have_many(:agents) }
     it { is_expected.to have_many(:project_users).dependent(:destroy) }
     it { is_expected.to have_many(:projects).through(:project_users) }
+    it { is_expected.to have_many(:mask_lists).with_foreign_key(:creator_id).dependent(:restrict_with_error) }
+    it { is_expected.to have_many(:word_lists).with_foreign_key(:creator_id).dependent(:restrict_with_error) }
+    it { is_expected.to have_many(:rule_lists).with_foreign_key(:creator_id).dependent(:restrict_with_error) }
+    it { is_expected.to have_many(:campaigns).with_foreign_key(:creator_id).dependent(:restrict_with_error) }
+    it { is_expected.to have_many(:hash_lists).with_foreign_key(:creator_id).dependent(:restrict_with_error) }
+    it { is_expected.to have_many(:attacks).with_foreign_key(:creator_id).dependent(:restrict_with_error) }
   end
 
   describe "abilities" do
@@ -118,6 +124,82 @@ RSpec.describe User do
       it { is_expected.to be_able_to(:manage, create(:mask_list, projects: [project], sensitive: true)) }
       it { is_expected.to be_able_to(:manage, create(:rule_list, projects: [project], sensitive: true)) }
       it { is_expected.to be_able_to(:manage, create(:word_list, projects: [project], sensitive: true)) }
+    end
+
+    context "when user is the creator of resources" do
+      subject(:ability) { Ability.new(creator) }
+
+      let(:creator) { create(:user) }
+      let(:other_project) { create(:project) }
+
+      it "can read campaigns they created" do
+        campaign = create(:campaign, project: other_project, creator: creator)
+        expect(ability).to be_able_to(:read, campaign)
+      end
+
+      it "can update campaigns they created" do
+        campaign = create(:campaign, project: other_project, creator: creator)
+        expect(ability).to be_able_to(:update, campaign)
+      end
+
+      it "can destroy campaigns they created" do
+        campaign = create(:campaign, project: other_project, creator: creator)
+        expect(ability).to be_able_to(:destroy, campaign)
+      end
+
+      it "can read hash lists they created" do
+        hash_list = create(:hash_list, project: other_project, creator: creator)
+        expect(ability).to be_able_to(:read, hash_list)
+      end
+
+      it "can update hash lists they created" do
+        hash_list = create(:hash_list, project: other_project, creator: creator)
+        expect(ability).to be_able_to(:update, hash_list)
+      end
+
+      it "can destroy hash lists they created" do
+        hash_list = create(:hash_list, project: other_project, creator: creator)
+        expect(ability).to be_able_to(:destroy, hash_list)
+      end
+
+      it "can read attacks they created" do
+        campaign = create(:campaign, project: other_project)
+        attack = create(:dictionary_attack, campaign: campaign, creator: creator)
+        expect(ability).to be_able_to(:read, attack)
+      end
+
+      it "can update attacks they created" do
+        campaign = create(:campaign, project: other_project)
+        attack = create(:dictionary_attack, campaign: campaign, creator: creator)
+        expect(ability).to be_able_to(:update, attack)
+      end
+
+      it "can destroy attacks they created" do
+        campaign = create(:campaign, project: other_project)
+        attack = create(:dictionary_attack, campaign: campaign, creator: creator)
+        expect(ability).to be_able_to(:destroy, attack)
+      end
+
+      it "cannot manage resources created by others" do
+        other_user = create(:user)
+        campaign = create(:campaign, project: other_project, creator: other_user)
+        expect(ability).not_to be_able_to(:read, campaign)
+      end
+    end
+  end
+
+  describe "#toggle_hide_completed_activities" do
+    it "toggles from false to true" do
+      user = create(:user)
+      expect(user.hide_completed_activities).to be false
+      user.toggle_hide_completed_activities
+      expect(user.reload.hide_completed_activities).to be true
+    end
+
+    it "toggles from true to false" do
+      user = create(:user, hide_completed_activities: true)
+      user.toggle_hide_completed_activities
+      expect(user.reload.hide_completed_activities).to be false
     end
   end
 end

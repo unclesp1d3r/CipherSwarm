@@ -34,7 +34,33 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
   end
 
   # If the agent is active, does nothing. Otherwise, renders the agent's state.
+  # Accepts an optional activity parameter to track agent's current activity.
   def heartbeat
+    # Update activity if the key is present in params (even if value is nil)
+    if params.key?(:activity)
+      previous_activity = @agent.current_activity
+      @agent.current_activity = params[:activity]
+
+      # Save activity separately to avoid blocking heartbeat on validation errors
+      unless @agent.save
+        Rails.logger.warn(
+          "[AgentLifecycle] activity_update_failed: agent_id=#{@agent.id} activity=#{params[:activity]} " \
+          "errors=#{@agent.errors.full_messages.join(', ')} timestamp=#{Time.zone.now}"
+        )
+        # Reset to previous activity on failure
+        @agent.current_activity = previous_activity
+        @agent.errors.clear
+      else
+        # Log activity changes for audit trail
+        if previous_activity != @agent.current_activity
+          Rails.logger.info(
+            "[AgentLifecycle] activity_changed: agent_id=#{@agent.id} " \
+            "activity_change=#{previous_activity || 'nil'}->#{@agent.current_activity || 'nil'} timestamp=#{Time.zone.now}"
+          )
+        end
+      end
+    end
+
     unless @agent.heartbeat
       Rails.logger.error(
         "[AgentLifecycle] heartbeat_failed: agent_id=#{@agent.id} state=#{@agent.state} " \

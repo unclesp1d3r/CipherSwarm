@@ -19,29 +19,20 @@ class CampaignsController < ApplicationController
   before_action :set_hash_lists, only: %i[new edit create update]
 
   # GET /campaigns or /campaigns.json
+  def index
+    @campaigns = @campaigns.by_priority
+  end
 
   # GET /campaigns/1 or /campaigns/1.json
   def show
     fresh_when(@campaign)
 
-    # Precompute map for failed attacks to their latest error
-    failed_attack_ids = @campaign.attacks.where(state: "failed").pluck(:id)
-    if failed_attack_ids.any?
-      # Use raw SQL for PostgreSQL DISTINCT ON which requires ORDER BY to start with DISTINCT ON columns
-      latest_errors = AgentError.find_by_sql([<<-SQL.squish, failed_attack_ids])
-        SELECT DISTINCT ON (tasks.attack_id)
-               agent_errors.*,
-               tasks.attack_id AS associated_attack_id
-        FROM agent_errors
-        INNER JOIN tasks ON tasks.id = agent_errors.task_id
-        WHERE tasks.attack_id IN (?)
-        ORDER BY tasks.attack_id, agent_errors.created_at DESC
-      SQL
+    # Preload attacks with complexity ordering and eager-load associations used by views
+    @attacks = @campaign.attacks.by_complexity.includes(tasks: :hashcat_statuses)
 
-      @failed_attack_error_map = latest_errors.index_by(&:associated_attack_id)
-    else
-      @failed_attack_error_map = {}
-    end
+    # Precompute map for failed attacks to their latest error
+    failed_attack_ids = @attacks.where(state: "failed").pluck(:id)
+    @failed_attack_error_map = AgentError.latest_per_attack(failed_attack_ids)
   end
 
   def eta_summary
@@ -76,6 +67,7 @@ class CampaignsController < ApplicationController
   def create
     @hash_list = HashList.find(campaign_params[:hash_list_id])
     @campaign.project = @hash_list.project if @hash_list.present?
+    @campaign.creator = current_user
 
     # Check high priority authorization if priority is high
     if campaign_params[:priority] == "high"

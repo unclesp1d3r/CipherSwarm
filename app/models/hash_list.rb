@@ -38,19 +38,22 @@
 #  separator(Separator used in the hash list file to separate the hash from the password or other metadata. Default is ":".) :string(1)        default(":"), not null
 #  created_at                                                                                                                :datetime         not null
 #  updated_at                                                                                                                :datetime         not null
+#  creator_id(The user who created this hash list)                                                                           :bigint           indexed
 #  hash_type_id                                                                                                              :bigint           not null, indexed
 #  project_id(Project that the hash list belongs to)                                                                         :bigint           not null, indexed
 #
 # Indexes
 #
+#  index_hash_lists_on_creator_id    (creator_id)
 #  index_hash_lists_on_hash_type_id  (hash_type_id)
 #  index_hash_lists_on_name          (name) UNIQUE
 #  index_hash_lists_on_project_id    (project_id)
 #
 # Foreign Keys
 #
+#  fk_rails_...  (creator_id => users.id)
 #  fk_rails_...  (hash_type_id => hash_types.id)
-#  fk_rails_...  (project_id => projects.id)
+#  fk_rails_...  (project_id => projects.id) ON DELETE => cascade
 #
 class HashList < ApplicationRecord
   has_one_attached :file
@@ -58,6 +61,7 @@ class HashList < ApplicationRecord
   has_many :campaigns, dependent: :destroy
   has_many :hash_items, dependent: :destroy
   belongs_to :hash_type
+  belongs_to :creator, class_name: "User", optional: true
 
   validates :name, presence: true, uniqueness: { case_sensitive: false }
   validates :file, presence: { on: :create }
@@ -67,7 +71,7 @@ class HashList < ApplicationRecord
 
   include SafeBroadcasting
 
-  broadcasts_refreshes unless Rails.env.test?
+  broadcasts_refreshes
 
   scope :sensitive, -> { where(sensitive: true) }
   # create a scope for hash lists that are either not sensitive or are in a project that the user has access to
@@ -95,40 +99,50 @@ class HashList < ApplicationRecord
   # @return [Integer]
   def cracked_count
     Rails.cache.fetch("#{cache_key_with_version}/cracked_count", expires_in: 20.minutes) do
-      hash_items.where.not(plain_text: nil).size
+      # PERFORMANCE: Use .count for SQL COUNT aggregation instead of .size
+      # which loads all records into memory when the relation isn't already loaded
+      hash_items.where.not(plain_text: nil).count
     end
   end
 
   # Returns a string representation of the cracked hash list.
   #
-  # This method retrieves the hash items from the database that have been cracked,
-  # and constructs a string representation of each hash item in the format: "hash_value:plain_text".
+  # REASONING:
+  # - Uses in_batches to avoid loading millions of hash items into memory at once.
+  # - Alternatives: single pluck (OOM on large lists), streaming via Enumerator (more
+  #   complex, consumers must handle streaming), database-side concat (non-portable).
+  # - Decision: Batch into array parts, join at end. Balances memory safety with simplicity.
+  # - Same pattern applied to uncracked_list and uncracked_list_checksum below.
   #
-  # Example:
+  # @example
   #   hash_list.cracked_list
   #   # => "hash1:plain_text1\nhash2:plain_text2\n..."
   #
-  # Returns:
-  #   A string representation of the cracked hash list.
   # @return [String]
   def cracked_list
-    # This should output as "hash:plain_text" for each item if the separator is set to ":"
-    hash = hash_items.where.not(plain_text: nil).pluck(:hash_value, :plain_text)
-    hash.map { |h, p| "#{h}#{separator}#{p}" }.join("\n")
+    parts = []
+    hash_items.where.not(plain_text: nil).in_batches(of: 10_000) do |batch|
+      batch.pluck(:hash_value, :plain_text).each do |h, p|
+        parts << "#{h}#{separator}#{p}"
+      end
+    end
+    parts.join("\n")
   end
 
   # Returns the count of items in the hash.
   #
   # @return [Integer] the number of items in the hash
   def hash_item_count
-    hash_items.size
+    hash_items_count
   end
 
   # Returns the count of uncracked hash items.
   #
   # @return [Integer] the number of uncracked hash items
   def uncracked_count
-    hash_items.uncracked.size
+    Rails.cache.fetch("#{cache_key_with_version}/uncracked_count", expires_in: 30.seconds) do
+      hash_items.uncracked.count
+    end
   end
 
   # Returns a collection of hash items that are uncracked.
@@ -151,8 +165,11 @@ class HashList < ApplicationRecord
   #   A string representation of the uncracked hash list.
   # @return [String]
   def uncracked_list
-    # This should output as "hash" for each item - optimized version
-    uncracked_items.pluck(:hash_value).join("\n")
+    parts = []
+    uncracked_items.in_batches(of: 10_000) do |batch|
+      parts.concat(batch.pluck(:hash_value))
+    end
+    parts.join("\n")
   end
 
   # Calculates the MD5 checksum of the uncracked_list.
@@ -162,7 +179,14 @@ class HashList < ApplicationRecord
   # @return [String] The MD5 checksum of the uncracked_list as a base64-encoded string.
   def uncracked_list_checksum
     md5 = OpenSSL::Digest.new("MD5")
-    md5.update(uncracked_list)
+    first = true
+    uncracked_items.in_batches(of: 10_000) do |batch|
+      batch.pluck(:hash_value).each do |hash_value|
+        md5.update("\n") unless first
+        first = false
+        md5.update(hash_value)
+      end
+    end
     md5.base64digest
   end
 

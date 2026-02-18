@@ -35,25 +35,25 @@
 #  rejected(The number of rejected hashes)                  :bigint
 #  restore_point(The restore point)                         :bigint
 #  session(The session name)                                :string           not null
-#  status(The status code)                                  :integer          not null
+#  status(The status code)                                  :integer          not null, indexed => [task_id, time]
 #  target(The target file)                                  :string           not null
-#  time(The time of the status)                             :datetime         not null, indexed
+#  time(The time of the status)                             :datetime         not null, indexed => [task_id, status], indexed
 #  time_start(The time the task started)                    :datetime         not null
 #  created_at                                               :datetime         not null
 #  updated_at                                               :datetime         not null
-#  task_id                                                  :bigint           not null, indexed
+#  task_id                                                  :bigint           not null, indexed, indexed => [status, time]
 #
 # Indexes
 #
-#  index_hashcat_statuses_on_task_id  (task_id)
-#  index_hashcat_statuses_on_time     (time)
+#  index_hashcat_statuses_on_task_id           (task_id)
+#  index_hashcat_statuses_on_task_status_time  (task_id,status,time DESC)
+#  index_hashcat_statuses_on_time              (time)
 #
 # Foreign Keys
 #
 #  fk_rails_...  (task_id => tasks.id) ON DELETE => cascade
 #
 require "date"
-include ActiveSupport::NumberHelper
 
 # This class represents the status of a Hashcat task and its associated
 # properties, such as the current progress, status, device speeds, and
@@ -61,6 +61,7 @@ include ActiveSupport::NumberHelper
 # information about related devices, and provides utility methods to calculate
 # metrics and format data for display or serialization.
 class HashcatStatus < ApplicationRecord
+  include ActiveSupport::NumberHelper
   belongs_to :task, touch: true
   has_many :device_statuses, dependent: :destroy, autosave: true
   has_one :hashcat_guess, dependent: :destroy, autosave: true

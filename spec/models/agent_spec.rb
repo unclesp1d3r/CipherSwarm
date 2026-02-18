@@ -10,6 +10,7 @@
 #  id                                                                                     :bigint           not null, primary key
 #  advanced_configuration(Advanced configuration for the agent.)                          :jsonb
 #  client_signature(The signature of the agent)                                           :text
+#  current_activity(Current agent activity state (e.g., cracking, waiting, benchmarking)) :string           indexed
 #  current_hash_rate(Current hash rate in H/s, updated from HashcatStatus)                :decimal(20, 2)   default(0.0)
 #  current_temperature(Current device temperature in Celsius, updated from HashcatStatus) :integer          default(0)
 #  current_utilization(Current device utilization percentage, updated from HashcatStatus) :integer          default(0)
@@ -29,6 +30,7 @@
 #
 # Indexes
 #
+#  index_agents_on_current_activity        (current_activity)
 #  index_agents_on_custom_label            (custom_label) UNIQUE
 #  index_agents_on_metrics_updated_at      (metrics_updated_at)
 #  index_agents_on_state                   (state)
@@ -44,13 +46,44 @@ require "rails_helper"
 
 RSpec.describe Agent do
   describe "validations" do
-    subject { build(:agent) }
+    subject(:agent) { build(:agent) }
 
     it { is_expected.to be_valid }
     it { is_expected.to validate_presence_of(:host_name) }
     it { is_expected.to validate_length_of(:host_name).is_at_most(255) }
     it { is_expected.to validate_length_of(:custom_label).is_at_most(255) }
     it { is_expected.to validate_uniqueness_of(:token) }
+    it { is_expected.to validate_length_of(:current_activity).is_at_most(50) }
+
+    describe "current_activity" do
+      it "accepts valid activity values" do
+        %w[starting benchmarking waiting cracking updating downloading stopping].each do |activity|
+          agent.current_activity = activity
+          expect(agent).to be_valid
+        end
+      end
+
+      it "accepts nil activity (backward compatibility)" do
+        agent.current_activity = nil
+        expect(agent).to be_valid
+      end
+
+      it "accepts unknown activity strings (forward compatibility)" do
+        agent.current_activity = "future_activity_type"
+        expect(agent).to be_valid
+      end
+
+      it "rejects activity strings longer than 50 characters" do
+        agent.current_activity = "a" * 51
+        expect(agent).not_to be_valid
+        expect(agent.errors[:current_activity]).to include("is too long (maximum is 50 characters)")
+      end
+
+      it "has nil activity by default" do
+        new_agent = build(:agent)
+        expect(new_agent.current_activity).to be_nil
+      end
+    end
   end
 
   describe "associations" do
@@ -206,11 +239,11 @@ RSpec.describe Agent do
         expect(Rails.logger).to have_received(:info).with(/\[AgentLifecycle\] shutdown:.*agent_id=#{agent.id}/)
       end
 
-      it "includes running_tasks_abandoned count in shutdown log" do
+      it "includes running_tasks_paused count in shutdown log" do
         agent = create(:agent)
         allow(Rails.logger).to receive(:info)
         agent.shutdown
-        expect(Rails.logger).to have_received(:info).with(/running_tasks_abandoned=\d+/)
+        expect(Rails.logger).to have_received(:info).with(/running_tasks_paused=\d+/)
       end
 
       it "does not raise on shutdown" do

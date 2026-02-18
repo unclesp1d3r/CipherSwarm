@@ -1,0 +1,93 @@
+<h1><%= title t(".title") %></h1>
+
+<% if @health_checks.present? %>
+  <% if @health_checks.values.all? { |c| c[:status] == :checking } %>
+    <%= render SkeletonLoaderComponent.new(type: :health_dashboard, count: 4) %>
+    <div class="row mt-3">
+      <div class="col-12">
+        <p class="text-muted mb-0">
+          <%= t(".checks_in_progress") %>
+          <%= link_to system_health_path, class: "btn btn-outline-secondary btn-sm ms-2" do %>
+            <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> <%= t(".refresh") %>
+          <% end %>
+        </p>
+      </div>
+    </div>
+  <% else %>
+    <div class="row mb-4">
+      <% @health_checks.each do |service_key, check| %>
+        <div class="col-md-3 mb-3">
+          <%= render SystemHealthCardComponent.new(
+            service_name: service_name_for(service_key),
+            status: check[:status],
+            latency: check[:latency],
+            error: check[:error]
+          ) %>
+        </div>
+      <% end %>
+    </div>
+
+    <% sidekiq_check = @health_checks[:sidekiq] %>
+    <% if sidekiq_check && sidekiq_check[:status] == :healthy %>
+      <div class="row mb-4">
+        <div class="col-12">
+          <%= render Railsboot::CardComponent.new do |card| %>
+            <% card.with_header do %>
+              <h5 class="mb-0"><i class="bi bi-bar-chart" aria-hidden="true"></i> <%= t(".sidekiq_metrics") %></h5>
+            <% end %>
+            <% card.with_body do %>
+              <div class="d-flex gap-4">
+                <div>
+                  <strong><%= t(".workers") %></strong> <%= sidekiq_check[:workers] %>
+                </div>
+                <div>
+                  <strong><%= t(".queues") %></strong> <%= sidekiq_check[:queues] %>
+                </div>
+                <div>
+                  <strong><%= t(".enqueued_jobs") %></strong> <%= sidekiq_check[:enqueued] %>
+                </div>
+              </div>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <div class="row mb-4">
+      <div class="col-12">
+        <%= render Railsboot::CardComponent.new do |card| %>
+          <% card.with_header do %>
+            <h5 class="mb-0"><i class="bi bi-tools" aria-hidden="true"></i> <%= t(".diagnostics") %></h5>
+          <% end %>
+          <% card.with_body do %>
+            <ul class="list-unstyled mb-0">
+              <% if can? :read, :admin_dashboard %>
+                <li class="mb-2">
+                  <%= link_to sidekiq_web_path, class: "text-decoration-none" do %>
+                    <i class="bi bi-speedometer2" aria-hidden="true"></i> <%= t(".sidekiq_dashboard") %>
+                  <% end %>
+                </li>
+              <% end %>
+              <li>
+                <i class="bi bi-terminal" aria-hidden="true"></i> <%= t(".rails_logs") %> <small class="text-muted"><%= raw t(".rails_logs_hint") %></small>
+              </li>
+            </ul>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-12">
+        <%= link_to system_health_path, class: "btn btn-outline-secondary btn-sm" do %>
+          <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> <%= t(".refresh") %>
+        <% end %>
+        <small class="text-muted ms-2"><%= t(".cache_note") %></small>
+      </div>
+    </div>
+  <% end %>
+<% else %>
+  <%= render Railsboot::BlankSlateComponent.new do %>
+    <p class="mb-0"><%= t(".unable_to_retrieve") %></p>
+  <% end %>
+<% end %>

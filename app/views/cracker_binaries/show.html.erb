@@ -1,8 +1,0 @@
-<%= show_for @cracker_binary do |s| %>
-  <%= s.attribute :version %>
-  <%= s.attribute :active %>
-  <%= s.association :cracker %>
-<% end %>
-
-<%= link_to "Edit", edit_cracker_binary_path(@cracker_binary) %> |
-<%= link_to "Back", cracker_binaries_path %>

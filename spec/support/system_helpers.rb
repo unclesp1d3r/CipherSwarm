@@ -164,8 +164,22 @@ module SystemHelpers
   # @param modal_id [String] the ID of the modal
   # @param timeout [Integer] timeout in seconds (default: 5)
   def wait_for_modal(modal_id, timeout: 5)
-    expect(page).to have_css("##{modal_id}.show", wait: timeout)
-    expect(page).to have_css(".modal-backdrop.show", wait: timeout)
+    # First ensure the modal element exists in the DOM
+    expect(page).to have_css("##{modal_id}", visible: :all, wait: timeout)
+
+    # Wait for Bootstrap to add the 'show' class (handles animation timing)
+    # Use a retry loop to handle flaky timing with Bootstrap's JS initialization
+    Timeout.timeout(timeout) do
+      loop do
+        break if page.has_css?("##{modal_id}.show", wait: 0.2) &&
+                 page.has_css?(".modal-backdrop.show", wait: 0.2)
+        sleep 0.1
+      end
+    end
+  rescue Timeout::Error
+    # Fall back to standard Capybara expectation for better error messages
+    expect(page).to have_css("##{modal_id}.show", wait: 1)
+    expect(page).to have_css(".modal-backdrop.show", wait: 1)
   end
 
   # Close a Bootstrap modal programmatically

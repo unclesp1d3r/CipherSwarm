@@ -24,6 +24,7 @@
   <%= s.attribute :description %>
   <%= s.association :hash_type %>
   <%= s.association :project %>
+  <%= s.association :creator, label: "Created By" %>
 <% end %>
 
 <%= render Railsboot::NavComponent.new(style: "tabs", class: "mt-4") do |nav| %>

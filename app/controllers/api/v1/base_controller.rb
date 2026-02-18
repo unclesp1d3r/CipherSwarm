@@ -81,6 +81,7 @@ class Api::V1::BaseController < ApplicationController
     authenticate_with_http_token do |token, _options|
       @agent = Agent.find_by(token: token)
       update_last_seen
+      @agent # Explicitly return agent for authenticate_with_http_token
     end
   end
 
@@ -182,7 +183,16 @@ class Api::V1::BaseController < ApplicationController
   def update_last_seen
     return unless @agent
 
-    @agent.update(last_seen_at: Time.zone.now, last_ipaddress: request.remote_ip)
-    @agent.heartbeat # Marks the agent as active if it was previously offline.
+    # PERFORMANCE: Throttle updates to reduce database writes on frequent API calls.
+    # Only update if more than 30 seconds since last update or IP address changed.
+    # This reduces updates from every API call to at most once per 30 seconds per agent.
+    last_seen = @agent.last_seen_at
+    ip_changed = @agent.last_ipaddress != request.remote_ip
+
+    if last_seen.nil? || ip_changed || last_seen < 30.seconds.ago
+      @agent.update(last_seen_at: Time.zone.now, last_ipaddress: request.remote_ip)
+    end
+
+    @agent.heartbeat unless @agent.active? # Only fire heartbeat when agent needs state change
   end
 end
