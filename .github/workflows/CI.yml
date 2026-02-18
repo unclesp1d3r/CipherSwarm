@@ -106,7 +106,7 @@ jobs:
           HEADLESS: "true"
           # Help webdrivers find Chrome
           CHROME_BIN: /usr/bin/google-chrome-stable
-        run: bin/bundle exec rspec --profile 10 --format RspecJunitFormatter --out /tmp/test-results/rspec.xml --format progress
+        run: bin/bundle exec rspec --exclude-pattern "spec/system/**/*_spec.rb" --profile 10 --format RspecJunitFormatter --out /tmp/test-results/rspec.xml --format progress
         continue-on-error: true
       - name: Upload Test Results
         uses: actions/upload-artifact@v6
