@@ -363,11 +363,13 @@ Both unit tests for Stimulus controllers and integration tests via system tests 
 - Key workflows: authentication, agent management, campaigns, file uploads, authorization
 - See docs/testing/system-tests-guide.md
 
-**CI System Tests:**
+**CI Test Scope:**
 
+- GitHub CI excludes `spec/system/` via `--exclude-pattern` — system tests only run locally via `just ci-check`
+- `continue-on-error: true` on CI test step for Mergify quarantine features
+- JUnit XML: `rspec_junit_formatter` outputs `<testsuite>` (singular); Mergify CI Insights requires `<testsuites>` (plural) — a CI step wraps it
 - Tests with font-loading (e.g., Bootstrap icons) can hang in headless Chrome - skip with `skip: ENV["CI"].present?`
 - Selenium requires explicit Chrome binary path: `options.binary = ENV["CHROME_BIN"]` in `spec/support/capybara.rb`
-- If CI hangs after "Capybara starting Puma...", check for tests that load external resources
 - File downloads don't work in CI headless Chrome; test download content via request specs instead
 - `ProcessHashListJob` can race against DB truncation cleanup causing intermittent `PG::ForeignKeyViolation` on `hash_items` — safe to re-run
 
@@ -677,6 +679,19 @@ TEST_DATABASE_URL=postgres://root:password@127.0.0.1:5432/cipher_swarm_test bund
 - Association field names must match model exactly: `has_many :project_users` → `project_users: Field::HasMany`
 - `Field::Select` with `.pluralize` pattern assumes Rails enums - doesn't work with Rolify roles
 - Dashboard files: `app/dashboards/*_dashboard.rb`
+
+### Mergify Merge Queue
+
+- `.mergify.yml` manages merge automation — squash merge, conventional commit enforcement
+- Dependabot exempt from conventional commit check (uses "Bump ..." titles)
+- `MERGIFY_TOKEN` secret required for CI Insights upload; guarded for forks where secrets are unavailable
+- Dependabot `rebase-strategy: "disabled"` on all ecosystems — Mergify handles branch updates
+
+### Storage Backend (ActiveStorage)
+
+- Application code is storage-agnostic via ActiveStorage — no MinIO-specific APIs used
+- Switching storage backends (local disk, SeaweedFS, S3) requires only config/docker changes
+- See issue #577 for MinIO replacement tracking
 
 ### Resources
 
