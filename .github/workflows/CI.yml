@@ -116,17 +116,22 @@ jobs:
           path: /tmp/test-results
           if-no-files-found: ignore
       - name: Wrap JUnit XML for Mergify
+        id: junit-wrap
         if: ${{ !cancelled() }}
         run: |
           FILE=/tmp/test-results/rspec.xml
-          if [ -f "$FILE" ] && ! grep -q '<testsuites' "$FILE"; then
+          if [ ! -f "$FILE" ]; then
+            echo "report_exists=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "report_exists=true" >> "$GITHUB_OUTPUT"
+          if ! grep -q '<testsuites' "$FILE"; then
             sed -i '1s/^/<?xml version="1.0" encoding="UTF-8"?>\n<testsuites>\n/' "$FILE"
             echo '</testsuites>' >> "$FILE"
-            # Remove any duplicate XML declarations left by the formatter
             sed -i '2{/<?xml/d}' "$FILE"
           fi
       - name: Mergify CI Upload
-        if: ${{ !cancelled() && env.HAS_MERGIFY_TOKEN == 'true' }}
+        if: ${{ !cancelled() && env.HAS_MERGIFY_TOKEN == 'true' && steps.junit-wrap.outputs.report_exists == 'true' }}
         env:
           HAS_MERGIFY_TOKEN: ${{ secrets.MERGIFY_TOKEN != '' }}
         uses: mergifyio/gha-mergify-ci@v8
