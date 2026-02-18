@@ -5,6 +5,7 @@ x-common-env-vars: &common-env-vars
   MINIO_ENDPOINT: http://minio:9000
   APPLICATION_HOST: ${APPLICATION_HOST:-localhost}
   DISABLE_SSL: ${DISABLE_SSL:-true}
+  ACTIVE_STORAGE_SERVICE: ${ACTIVE_STORAGE_SERVICE:-local}
 
 services:
   web:
