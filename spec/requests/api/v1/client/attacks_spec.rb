@@ -236,5 +236,43 @@ RSpec.describe "api/v1/client/attacks" do
         expect(Rails.logger).to have_received(:error).with(/unknown/)
       end
     end
+
+    context "when @agent is nil during hash_list ATTACK_NOT_FOUND" do
+      before do
+        allow_any_instance_of(Api::V1::Client::AttacksController).to receive(:authenticate_agent) # rubocop:disable RSpec/AnyInstance
+        allow_any_instance_of(Api::V1::Client::AttacksController).to receive(:update_last_seen) # rubocop:disable RSpec/AnyInstance
+        allow(Rails.logger).to receive(:error)
+      end
+
+      it "logs with 'unknown' agent identifier" do
+        get "/api/v1/client/attacks/999999/hash_list",
+            headers: { "Accept" => "application/json" }
+
+        expect(response).to have_http_status(:not_found)
+        expect(Rails.logger).to have_received(:error).with(/ATTACK_NOT_FOUND.*unknown/)
+      end
+    end
+
+    context "when @agent is nil during hash_list HASH_LIST_NOT_FOUND" do
+      let(:test_attack) { create(:dictionary_attack) }
+
+      before do
+        allow_any_instance_of(Api::V1::Client::AttacksController).to receive(:authenticate_agent) # rubocop:disable RSpec/AnyInstance
+        allow_any_instance_of(Api::V1::Client::AttacksController).to receive(:update_last_seen) # rubocop:disable RSpec/AnyInstance
+        query_scope = double("attack_scope") # rubocop:disable RSpec/VerifiedDoubles
+        allow(Attack).to receive(:joins).and_return(query_scope)
+        allow(query_scope).to receive_messages(where: query_scope, find_by: test_attack)
+        allow(test_attack).to receive(:campaign).and_return(nil)
+        allow(Rails.logger).to receive(:error)
+      end
+
+      it "logs with 'unknown' agent identifier" do
+        get "/api/v1/client/attacks/#{test_attack.id}/hash_list",
+            headers: { "Accept" => "application/json" }
+
+        expect(response).to have_http_status(:not_found)
+        expect(Rails.logger).to have_received(:error).with(/HASH_LIST_NOT_FOUND.*unknown/)
+      end
+    end
   end
 end
