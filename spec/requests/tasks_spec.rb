@@ -136,6 +136,24 @@ RSpec.describe "Tasks" do
           expect(task.reload.state).to eq("failed")
         end
 
+        it "includes toast notification in turbo_stream response" do
+          sign_in(project_user)
+          post cancel_task_path(task), as: :turbo_stream
+          expect(response.body).to include("toast_container")
+          expect(response.body).to include("Task was successfully cancelled")
+        end
+
+        it "logs and re-raises when turbo stream rendering fails" do
+          sign_in(project_user)
+          allow(Rails.logger).to receive(:error).and_call_original
+          allow(Rails.logger).to receive(:debug).and_call_original
+          allow_any_instance_of(Turbo::Streams::TagBuilder).to receive(:update).and_raise(StandardError.new("render error")) # rubocop:disable RSpec/AnyInstance
+          expect {
+            post cancel_task_path(task), as: :turbo_stream
+          }.to raise_error(ActionController::RespondToMismatchError)
+          expect(Rails.logger).to have_received(:error).with(/Failed to render Turbo Stream for task #{task.id}/)
+        end
+
         it "returns turbo_stream response on failed cancellation" do
           completed_task = create(:task, attack: attack, agent: agent, state: "completed")
           sign_in(project_user)
@@ -234,6 +252,14 @@ RSpec.describe "Tasks" do
           expect(response.body).to include("turbo-stream")
           expect(response.body).to include('action="replace"')
           expect(failed_task.reload.state).to eq("pending")
+        end
+
+        it "includes toast notification in turbo_stream response" do
+          failed_task = create(:task, attack: attack, agent: agent, state: "failed", last_error: "Some error")
+          sign_in(project_user)
+          post retry_task_path(failed_task), as: :turbo_stream
+          expect(response.body).to include("toast_container")
+          expect(response.body).to include("Task was successfully queued for retry")
         end
 
         it "returns turbo_stream response on failed retry" do
@@ -355,6 +381,8 @@ RSpec.describe "Tasks" do
   describe "GET /download_results" do
     let!(:hash_list) { campaign.hash_list }
 
+    before { task.update_columns(state: "completed") } # rubocop:disable Rails/SkipsModelValidations
+
     context "when user is not logged in" do
       it "returns unauthorized for CSV request" do
         get download_results_task_path(task, format: :csv)
@@ -381,11 +409,13 @@ RSpec.describe "Tasks" do
         before do
           create(:hash_item, :cracked_recently,
             hash_list: hash_list,
+            attack: attack,
             hash_value: "abc123",
             plain_text: "password1",
             cracked_time: Time.zone.parse("2025-01-15 10:30:00"))
           create(:hash_item, :cracked_recently,
             hash_list: hash_list,
+            attack: attack,
             hash_value: "def456",
             plain_text: "password2",
             cracked_time: Time.zone.parse("2025-01-16 14:45:00"))
@@ -447,6 +477,25 @@ RSpec.describe "Tasks" do
           expect(response).to redirect_to(task_path(task))
           expect(flash[:alert]).to eq("CSV format required")
         end
+      end
+    end
+
+    context "when task is not completed or exhausted" do
+      before do
+        sign_in(project_user)
+        task.update_columns(state: "pending") # rubocop:disable Rails/SkipsModelValidations
+      end
+
+      it "redirects with alert for CSV format" do
+        get download_results_task_path(task, format: :csv)
+        expect(response).to redirect_to(task_path(task))
+        expect(flash[:alert]).to include("Results can only be downloaded")
+      end
+
+      it "redirects with alert for HTML format" do
+        get download_results_task_path(task, format: :html)
+        expect(response).to redirect_to(task_path(task))
+        expect(flash[:alert]).to include("Results can only be downloaded")
       end
     end
 
@@ -585,6 +634,13 @@ RSpec.describe "Tasks" do
           expect(task.reload.agent_id).to eq(compatible_agent.id)
         end
 
+        it "includes toast notification in turbo_stream response" do
+          sign_in(project_user)
+          post reassign_task_path(task), params: { agent_id: compatible_agent.id }, as: :turbo_stream
+          expect(response.body).to include("toast_container")
+          expect(response.body).to include("Task was successfully reassigned")
+        end
+
         it "returns turbo_stream response for incompatible agent" do
           sign_in(project_user)
           post reassign_task_path(task), params: { agent_id: incompatible_agent.id }, as: :turbo_stream
@@ -600,6 +656,15 @@ RSpec.describe "Tasks" do
           expect(response).to have_http_status(:success)
           expect(response.media_type).to eq("text/vnd.turbo-stream.html")
           expect(response.body).to include("turbo-stream")
+        end
+
+        it "returns turbo_stream error when task update fails" do
+          sign_in(project_user)
+          allow_any_instance_of(Task).to receive(:update).and_return(false) # rubocop:disable RSpec/AnyInstance
+          post reassign_task_path(task), params: { agent_id: compatible_agent.id }, as: :turbo_stream
+          expect(response).to have_http_status(:success)
+          expect(response.media_type).to eq("text/vnd.turbo-stream.html")
+          expect(response.body).to include("could not be reassigned")
         end
       end
     end

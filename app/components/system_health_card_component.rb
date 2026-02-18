@@ -20,6 +20,7 @@ class SystemHealthCardComponent < ApplicationViewComponent
   option :status, required: true
   option :latency, default: proc { nil }
   option :error, default: proc { nil }
+  option :details, default: proc { {} }
 
   def status_variant
     case @status
@@ -55,5 +56,13 @@ class SystemHealthCardComponent < ApplicationViewComponent
     return nil unless @latency
 
     "#{@latency} ms"
+  end
+
+  # @param bytes [Integer, nil] Size in bytes
+  # @return [String, nil] Human-readable size or nil when input is nil
+  def format_bytes(bytes)
+    return nil unless bytes
+
+    number_to_human_size(bytes)
   end
 end

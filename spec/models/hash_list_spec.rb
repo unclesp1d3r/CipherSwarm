@@ -130,6 +130,61 @@ RSpec.describe HashList do
       end
     end
 
+    describe "#cracked_list_enum" do
+      before do
+        hash_list.hash_items.delete_all
+      end
+
+      it "returns an Enumerator" do
+        expect(hash_list.cracked_list_enum).to be_a(Enumerator)
+      end
+
+      it "yields cracked hash items with default separator" do
+        item1 = create(:hash_item, hash_list: hash_list, hash_value: "abc123", plain_text: "password1", cracked: true, cracked_time: 1.hour.ago)
+        item2 = create(:hash_item, hash_list: hash_list, hash_value: "def456", plain_text: "password2", cracked: true, cracked_time: 2.hours.ago)
+
+        result = hash_list.cracked_list_enum.to_a.join
+        expect(result).to include("#{item1.hash_value}:#{item1.plain_text}")
+        expect(result).to include("#{item2.hash_value}:#{item2.plain_text}")
+      end
+
+      it "does not include uncracked items" do
+        create(:hash_item, hash_list: hash_list, hash_value: "abc123", plain_text: "password1", cracked: true, cracked_time: 1.hour.ago)
+        uncracked = create(:hash_item, hash_list: hash_list, hash_value: "uncracked_hash", plain_text: nil, cracked: false)
+
+        result = hash_list.cracked_list_enum.to_a.join
+        expect(result).not_to include(uncracked.hash_value)
+      end
+
+      it "uses the configured separator between hash_value and plain_text" do
+        hash_list.update_column(:separator, ";") # rubocop:disable Rails/SkipsModelValidations
+        create(:hash_item, hash_list: hash_list, hash_value: "abc123", plain_text: "password1", cracked: true, cracked_time: 1.hour.ago)
+
+        result = hash_list.cracked_list_enum.to_a.join
+        expect(result).to include("abc123;password1")
+        expect(result).not_to include("abc123:password1")
+      end
+
+      it "has no leading newline on first item and newlines between subsequent items" do
+        create(:hash_item, hash_list: hash_list, hash_value: "abc123", plain_text: "pass1", cracked: true, cracked_time: 1.hour.ago)
+        create(:hash_item, hash_list: hash_list, hash_value: "def456", plain_text: "pass2", cracked: true, cracked_time: 2.hours.ago)
+
+        chunks = hash_list.cracked_list_enum.to_a
+        full_output = chunks.join
+
+        expect(full_output).not_to start_with("\n")
+        lines = full_output.split("\n")
+        expect(lines.length).to eq(2)
+      end
+
+      it "returns empty enumerator when no cracked items exist" do
+        create(:hash_item, hash_list: hash_list, hash_value: "uncracked", plain_text: nil, cracked: false)
+
+        result = hash_list.cracked_list_enum.to_a
+        expect(result).to be_empty
+      end
+    end
+
     describe "#recent_cracks_count" do
       before do
         create(:hash_item, hash_list: hash_list, cracked: true, cracked_time: 2.hours.ago, plain_text: "password1")

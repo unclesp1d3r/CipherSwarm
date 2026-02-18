@@ -167,8 +167,10 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
 
     @task.update(stale: false)
     Rails.logger.info("[Agent #{@agent.id}] Task #{@task.id} - Sending cracked hash list")
-    send_data @task.attack.campaign.hash_list.cracked_list,
-              filename: "#{@task.attack.campaign.hash_list.id}.txt"
+    hash_list = @task.attack.campaign.hash_list
+    headers["Content-Disposition"] = "attachment; filename=\"#{hash_list.id}.txt\""
+    headers["Content-Type"] = "text/plain"
+    self.response_body = hash_list.cracked_list_enum
   end
 
   # Submits a crack result for a specific task, updating the relevant hash item and task state.

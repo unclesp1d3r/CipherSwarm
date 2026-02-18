@@ -104,7 +104,7 @@ class RuleListsController < ApplicationController
   private
 
   def set_projects
-    @projects = Project.accessible_by(current_ability)
+    @projects = Project.accessible_by(current_ability).chronological
   end
 
   # Validates that the current user has read access to all specified projects.
