@@ -17,7 +17,7 @@ class AdminController < ApplicationController
   def index
     authorize! :read, :admin_dashboard
     @users = User.order(:name)
-    @projects = Project.all
+    @projects = Project.chronological
   end
 
   def create_user

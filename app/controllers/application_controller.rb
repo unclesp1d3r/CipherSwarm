@@ -39,7 +39,6 @@ class ApplicationController < ActionController::Base
   include Pagy::Backend # Adds support for pagination.
   before_action :configure_permitted_parameters, if: :devise_controller?
 
-  rescue_from Exception, with: :unknown_error if Rails.env.production?
   rescue_from StandardError, with: :unknown_error # Handles unknown errors.
   rescue_from ActionController::RoutingError, with: :route_not_found # Handles routing errors.
   rescue_from ActionController::UnknownFormat, with: :bad_request # Handles unknown format errors.

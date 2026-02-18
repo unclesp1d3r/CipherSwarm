@@ -36,7 +36,7 @@
 FactoryBot.define do
   factory :user do
     name { Faker::Name.name }
-    email { Faker::Internet.email }
+    email { Faker::Internet.email(name: name, separators: %w[.], domain: "test.com").first(50) }
     password { "password" }
     password_confirmation { "password" }
 

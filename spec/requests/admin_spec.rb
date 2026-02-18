@@ -13,7 +13,7 @@ RSpec.describe "Admins" do
   }
   let!(:regular_user) { create(:user) }
 
-  describe "GET /index" do
+  describe "GET /admin (dashboard root)" do
     it "returns http success" do
       sign_in admin
       get admin_root_path
@@ -23,6 +23,20 @@ RSpec.describe "Admins" do
     it "returns http failure" do
       sign_in regular_user
       get admin_root_path
+      expect(response).to have_http_status(:unauthorized)
+    end
+  end
+
+  describe "GET /admin/index" do
+    it "returns http success for admin" do
+      sign_in admin
+      get admin_index_path
+      expect(response).to have_http_status(:success)
+    end
+
+    it "returns unauthorized for non-admin" do
+      sign_in regular_user
+      get admin_index_path
       expect(response).to have_http_status(:unauthorized)
     end
   end

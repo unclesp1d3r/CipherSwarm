@@ -14,5 +14,14 @@
     <% if @error.present? %>
       <div class="text-danger mt-2 small"><%= @error %></div>
     <% end %>
+
+    <% if @details.present? %>
+      <div class="mt-2 small text-muted">
+        <% @details.each do |label, value| %>
+          <% next if value.nil? %>
+          <div><strong><%= label %>:</strong> <%= value %></div>
+        <% end %>
+      </div>
+    <% end %>
   <% end %>
 <% end %>

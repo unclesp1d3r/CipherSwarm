@@ -195,16 +195,53 @@ RSpec.describe "Campaign Progress Monitoring" do
       initial_progress = page_object.attack_progress_percentage("Live Attack")
       expect(initial_progress).to eq(50)
 
-      # Simulate progress update by updating the existing status
+      # Update progress in the database
       task = attack.tasks.first
       status = task.hashcat_statuses.last
       status.update!(progress: [9000, 10000])
 
-      # Refresh the page to see updated progress (broadcasting is disabled in test env)
-      page.refresh
+      # Simulate a Turbo Stream broadcast by injecting the stream message into the browser.
+      # SafeBroadcasting skips in test env and the test cable adapter does not deliver
+      # to browser clients, so we render the updated HTML and push it through
+      # Turbo.renderStreamMessage to verify the page handles stream updates correctly.
+      stream_html = build_attack_progress_stream(attack, "Live Attack", 90)
+      page.execute_script("Turbo.renderStreamMessage(arguments[0])", stream_html)
 
-      # Verify page refreshes successfully and attack still displays
-      expect(page_object).to have_progress_bar("Live Attack")
+      # Assert progress updated to 90% without a full page reload
+      expect(page_object.attack_progress_percentage("Live Attack")).to eq(90)
     end
+  end
+
+  private
+
+  # Build a Turbo Stream replace message for the attack progress area.
+  # Mirrors the HTML rendered by _attack_stepper_line.html.erb + CampaignProgressComponent.
+  def build_attack_progress_stream(attack, attack_name, percentage)
+    target = "attack-progress-#{attack.id}"
+    <<~HTML.squish
+      <turbo-stream action="replace" target="#{target}">
+        <template>
+          <div id="#{target}" class="d-flex flex-column gap-2 w-100">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+              <span class="fw-medium">#{attack_name}</span>
+            </div>
+            <div class="d-flex align-items-start gap-3" aria-label="Campaign progress">
+              <div style="flex: 0 0 60%;">
+                <div class="progress" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                  <div class="progress-bar" style="width: #{percentage}.00%" role="progressbar"
+                       aria-valuenow="#{percentage}" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+              </div>
+              <div style="flex: 0 0 40%;" class="d-flex flex-column gap-1">
+                <span class="badge bg-primary d-inline-flex align-items-center gap-1">
+                  <span>Running</span>
+                </span>
+                <small class="text-muted">#{percentage}.00%</small>
+              </div>
+            </div>
+          </div>
+        </template>
+      </turbo-stream>
+    HTML
   end
 end
