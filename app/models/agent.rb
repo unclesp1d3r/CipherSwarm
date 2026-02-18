@@ -156,11 +156,20 @@ class Agent < ApplicationRecord
 
     after_transition on: :shutdown do |agent|
       running_tasks = agent.tasks.with_states(:running)
+      paused_count = running_tasks.count
+
       Rails.logger.info(
         "[AgentLifecycle] shutdown: agent_id=#{agent.id} state_change=#{agent.state_was}->offline " \
-        "running_tasks_paused=#{running_tasks.count} timestamp=#{Time.zone.now}"
+        "running_tasks_paused=#{paused_count} timestamp=#{Time.zone.now}"
       )
-      running_tasks.find_each(&:pause)
+
+      running_tasks.find_each do |task|
+        task.pause! if task.can_pause?
+        # Clear claim fields so other agents can pick up the orphaned task.
+        # Keep agent_id populated (NOT NULL column) — TaskAssignmentService
+        # reassigns ownership when another agent claims the paused task.
+        task.update_columns(claimed_by_agent_id: nil, claimed_at: nil, expires_at: nil) # rubocop:disable Rails/SkipsModelValidations
+      end
     end
 
     after_transition on: :activate do |agent|

@@ -10,7 +10,7 @@
 # - Retry: visible when task.failed? and user can :retry
 # - Reassign: visible when task.pending? || task.failed? and user can :reassign
 # - Logs: always visible (GET request)
-# - Download Results: always visible and user can :download_results
+# - Download Results: visible when task.completed? || task.exhausted? and user can :download_results
 #
 # REASONING:
 # - Extracted as a ViewComponent to encapsulate action button logic and authorization checks
@@ -56,11 +56,11 @@ class TaskActionsComponent < ApplicationViewComponent
   end
 
   # Returns true if the download results button should be displayed.
-  # Always visible if user has :download_results permission.
+  # Only visible for completed or exhausted tasks when user has :download_results permission.
   #
   # @return [Boolean]
   def can_download_results?
-    @current_ability.can?(:download_results, @task)
+    (@task.completed? || @task.exhausted?) && @current_ability.can?(:download_results, @task)
   end
 
   # Returns agents that are compatible with the task's project.

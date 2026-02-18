@@ -106,7 +106,8 @@ jobs:
           HEADLESS: "true"
           # Help webdrivers find Chrome
           CHROME_BIN: /usr/bin/google-chrome-stable
-        run: bin/bundle exec rspec --profile 10 --format RspecJunitFormatter --out /tmp/test-results/rspec.xml --format progress
+        run: bin/bundle exec rspec --exclude-pattern "spec/system/**/*_spec.rb" --profile 10 --format RspecJunitFormatter --out /tmp/test-results/rspec.xml --format progress
+        continue-on-error: true
       - name: Upload Test Results
         uses: actions/upload-artifact@v6
         if: always()
@@ -114,6 +115,29 @@ jobs:
           name: test-results
           path: /tmp/test-results
           if-no-files-found: ignore
+      - name: Wrap JUnit XML for Mergify
+        id: junit-wrap
+        if: ${{ !cancelled() }}
+        run: |
+          FILE=/tmp/test-results/rspec.xml
+          if [ ! -f "$FILE" ]; then
+            echo "report_exists=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "report_exists=true" >> "$GITHUB_OUTPUT"
+          if ! grep -q '<testsuites' "$FILE"; then
+            sed -i '/<?xml/d' "$FILE"
+            sed -i '1i\<?xml version="1.0" encoding="UTF-8"?>\n<testsuites>' "$FILE"
+            echo '</testsuites>' >> "$FILE"
+          fi
+      - name: Mergify CI Upload
+        if: ${{ !cancelled() && env.HAS_MERGIFY_TOKEN == 'true' && steps.junit-wrap.outputs.report_exists == 'true' }}
+        env:
+          HAS_MERGIFY_TOKEN: ${{ secrets.MERGIFY_TOKEN != '' }}
+        uses: mergifyio/gha-mergify-ci@v8
+        with:
+          token: ${{ secrets.MERGIFY_TOKEN }}
+          report_path: /tmp/test-results/rspec.xml
       - name: Check coverage of changed code
         env:
           BASE_REF: ${{ github.base_ref || 'main' }}

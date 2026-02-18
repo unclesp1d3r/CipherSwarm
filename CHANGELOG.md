@@ -6,6 +6,30 @@ All notable changes to this project will be documented in this file.
 
 ### 🎯 Features
 
+- Add Agent Fleet Monitoring with real-time status updates and performance metrics
+  - Color-coded health indicators for agent status (active, pending, stopped, error, offline)
+  - Live performance metrics display (hash rate, temperature, utilization)
+  - Error tracking with detailed error log modal
+  - Tabbed interface for agent details (overview, benchmarks, errors, tasks)
+- Add Campaign Progress Tracking with ETA calculations and recent crack display
+  - Visual progress bars for campaign and attack completion
+  - ETA calculations for current attack and total campaign duration
+  - Recent crack results display with expandable table
+  - Real-time progress updates via Turbo Stream broadcasts
+- Add Task Management Actions with authorization controls
+  - Cancel running tasks with confirmation and authorization checks
+  - Retry failed tasks with automatic state reset and retry count increment
+  - Reassign tasks to compatible agents with agent selection
+  - Download task results as CSV
+  - View detailed task logs with error information
+- Add System Health Dashboard monitoring PostgreSQL, Redis, MinIO, and Sidekiq
+  - Service health indicators with detailed metrics (connections, memory, storage, queue depth)
+  - Cached health checks (1-minute TTL) for performance
+  - Diagnostic links for troubleshooting individual services
+  - Auto-refresh via Stimulus controller
+- Add real-time UI updates via Turbo Stream broadcasts on Agent, Campaign, and Task models
+- Add structured logging with Lograge for operational visibility
+  - `[APIRequest]`, `[APIError]`, `[AgentLifecycle]`, `[BroadcastError]`, `[AttackAbandon]`, `[JobDiscarded]` prefixes
 - Implement comprehensive UI/UX testing with Capybara
   - Add system tests for authentication, agent management, campaigns, hash lists, navigation, and admin functionality
   - Implement Page Object Pattern for maintainable test architecture
@@ -20,16 +44,36 @@ All notable changes to this project will be documented in this file.
   - New behavior: Integer multiplication (e.g., 5 * 2 = 10)
 - Configure Devise paranoid mode to prevent user enumeration attacks
 - Update Devise navigational formats to support Turbo Stream requests
+- Fix pre-existing state machine callback bug in task/attack lifecycle
 
 ### ✨ Enhancements
 
+- Add cached agent metrics (current_hash_rate, current_temperature, current_utilization) for improved dashboard performance
+- Add database query optimization indexes for task assignment and campaign management
+  - Indexes on hash_items.cracked_time, agent_errors.created_at, hashcat_statuses.time, tasks(agent_id, state)
+  - Indexes on campaigns.priority, attacks(campaign_id, state), campaigns(project_id, priority)
+- Add loading states with skeleton loaders and toast notifications for better UX feedback
+- Add error investigation modal with detailed error logs per agent
+- Add task detail page with structured logs and CSV result downloads
+- Add current_activity column to agents for real-time activity tracking
 - Allow users to create and destroy their own agents (non-admins)
 - Standardize submit buttons across forms to display "Submit" for improved clarity
 - Update CI/CD workflow with improved Chrome installation and better artifact handling
 - Add webdrivers gem for automatic browser driver management (note: gem is deprecated, consider migration)
 
+### 🗄️ Database Migrations
+
+- Add performance indexes for hash_items, agent_errors, hashcat_statuses, and tasks tables
+- Add cached metrics columns to agents table (current_hash_rate, current_temperature, current_utilization, metrics_updated_at)
+- Add current_activity column to agents table for real-time status display
+- Add query optimization indexes for campaigns, attacks, and project-scoped queries
+
 ### 🧪 Testing
 
+- Add comprehensive system tests for agent monitoring, campaign progress, task management, and system health
+- Add integration tests for real-time Turbo Stream updates and cache behavior
+- Add performance tests for page load times and query optimization verification
+- Add JavaScript tests for Stimulus controllers (health_refresh_controller)
 - Add Turbo/Hotwire wait helpers to prevent flaky tests
 - Add comprehensive ability specs for agent permissions
 - Configure Capybara with headless Chrome for system tests
@@ -37,6 +81,7 @@ All notable changes to this project will be documented in this file.
 
 ### 📚 Documentation
 
+- Add air-gapped deployment guide (docs/deployment/air-gapped-deployment.md)
 - Add comprehensive system tests guide (docs/testing/system-tests-guide.md)
 - Add test failures investigation documentation
 - Update README with system test section and CI integration details
@@ -47,6 +92,7 @@ All notable changes to this project will be documented in this file.
 - Update PostgreSQL version to 17.0 and Redis to 7.2 in CI
 - Update GitHub Actions checkout action to v5
 - Add Vale configuration for documentation linting
+- Add boot_time initializer for system health uptime tracking
 
 ## [0.6.7] - 2025-08-09
 

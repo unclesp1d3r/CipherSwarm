@@ -1,0 +1,15 @@
+<div id="task-error-<%= task.id %>" class="col-lg-6">
+  <% if task.last_error.present? %>
+    <div class="card mb-3 border-danger">
+      <div class="card-header bg-danger text-white">
+        <h5 class="card-title mb-0">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          Last Error
+        </h5>
+      </div>
+      <div class="card-body">
+        <pre class="mb-0 text-danger"><%= task.last_error %></pre>
+      </div>
+    </div>
+  <% end %>
+</div>
