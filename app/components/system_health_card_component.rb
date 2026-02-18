@@ -58,6 +58,8 @@ class SystemHealthCardComponent < ApplicationViewComponent
     "#{@latency} ms"
   end
 
+  # @param bytes [Integer, nil] Size in bytes
+  # @return [String, nil] Human-readable size or nil when input is nil
   def format_bytes(bytes)
     return nil unless bytes
 

@@ -116,7 +116,9 @@ jobs:
           path: /tmp/test-results
           if-no-files-found: ignore
       - name: Mergify CI Upload
-        if: success() || failure()
+        if: ${{ !cancelled() && env.HAS_MERGIFY_TOKEN == 'true' }}
+        env:
+          HAS_MERGIFY_TOKEN: ${{ secrets.MERGIFY_TOKEN != '' }}
         uses: mergifyio/gha-mergify-ci@v8
         with:
           token: ${{ secrets.MERGIFY_TOKEN }}
