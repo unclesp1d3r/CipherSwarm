@@ -105,9 +105,10 @@ module ApplicationHelper
   # @return [Boolean] True if authorized, false if not authorized or no user context
   def safe_can?(action, subject)
     can?(action, subject)
-  rescue Warden::NotAuthenticated, NoMethodError => e
+  rescue Warden::NotAuthenticated, NoMethodError, RuntimeError => e
     # NoMethodError can occur when current_user is called without Warden
     # Warden::NotAuthenticated when Warden proxy is missing
+    # RuntimeError raised by Devise when Warden::Proxy instance is missing from request env
     Rails.logger.debug { "[SafeAuthorization] Authorization check skipped - no user context: #{e.message}" }
     false
   end
