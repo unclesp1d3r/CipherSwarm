@@ -115,6 +115,16 @@ jobs:
           name: test-results
           path: /tmp/test-results
           if-no-files-found: ignore
+      - name: Wrap JUnit XML for Mergify
+        if: ${{ !cancelled() }}
+        run: |
+          FILE=/tmp/test-results/rspec.xml
+          if [ -f "$FILE" ] && ! grep -q '<testsuites' "$FILE"; then
+            sed -i '1s/^/<?xml version="1.0" encoding="UTF-8"?>\n<testsuites>\n/' "$FILE"
+            echo '</testsuites>' >> "$FILE"
+            # Remove any duplicate XML declarations left by the formatter
+            sed -i '2{/<?xml/d}' "$FILE"
+          fi
       - name: Mergify CI Upload
         if: ${{ !cancelled() && env.HAS_MERGIFY_TOKEN == 'true' }}
         env:
