@@ -15,7 +15,7 @@
 
       <% if can? :create, Agent %>
         <% blank_slate.with_primary_action do %>
-          <%= link_to "New Agent", new_agent_path, class: "btn btn-primary" %>
+          <%= link_to "New Agent", new_agent_path, class: "btn btn-primary", data: { turbo_frame: "_top" } %>
         <% end %>
       <% end %>
     <% end %>
