@@ -139,6 +139,7 @@ RSpec.describe "SystemHealth" do
     context "when a health check fails" do
       before do
         sign_in regular_user
+        allow(ActiveRecord::Base.connection).to receive(:execute).and_call_original
         allow(ActiveRecord::Base.connection).to receive(:execute)
           .with("SELECT 1")
           .and_raise(PG::ConnectionBad.new("connection refused"))
@@ -157,14 +158,116 @@ RSpec.describe "SystemHealth" do
         expect(Rails.logger).to have_received(:error).with(/PostgreSQL check failed/)
       end
     end
+
+    context "with large values and nil hit_rate in health checks" do
+      before do
+        sign_in regular_user
+        health_result = {
+          postgresql: { status: :healthy, latency: 1.5, error: nil, connection_count: 10, database_size: 2_147_483_648 },
+          redis: { status: :healthy, latency: 0.5, error: nil, used_memory: "10MB", connected_clients: 5, hit_rate: nil },
+          minio: { status: :healthy, latency: 2.0, error: nil, storage_used: 1_073_741_824, bucket_count: 3 },
+          sidekiq: { status: :healthy, latency: 0.3, error: nil, workers: 2, queues: 1, enqueued: 0 },
+          application: { rails_version: Rails.version, ruby_version: RUBY_VERSION, uptime: "1d 2h", workers_running: true, worker_count: 2 },
+          checked_at: Time.current.iso8601
+        }
+        allow(SystemHealthCheckService).to receive(:call).and_return(health_result)
+      end
+
+      it "renders GB-formatted database size" do
+        get system_health_path
+        expect(response).to have_http_status(:success)
+        expect(response.body).to include("2 GB")
+      end
+
+      it "renders page without redis hit rate" do
+        get system_health_path
+        expect(response).to have_http_status(:success)
+        expect(response.body).not_to include("Hit Rate")
+      end
+    end
+
+    context "with MinIO nil storage_used" do
+      before do
+        sign_in regular_user
+        health_result = {
+          postgresql: { status: :healthy, latency: 1.0, error: nil, connection_count: 5, database_size: 1024 },
+          redis: { status: :healthy, latency: 0.5, error: nil, used_memory: "10MB", connected_clients: 3, hit_rate: nil },
+          minio: { status: :healthy, latency: 2.0, error: nil, storage_used: nil, bucket_count: 1 },
+          sidekiq: { status: :healthy, latency: 0.1, error: nil, workers: 1, queues: 1, enqueued: 0 },
+          application: { rails_version: Rails.version, ruby_version: RUBY_VERSION, uptime: "1h", workers_running: true, worker_count: 1 },
+          checked_at: Time.current.iso8601
+        }
+        allow(SystemHealthCheckService).to receive(:call).and_return(health_result)
+      end
+
+      it "renders MinIO details without error when storage_used is nil" do
+        get system_health_path
+        expect(response).to have_http_status(:success)
+      end
+
+      it "does not include a formatted storage size" do
+        get system_health_path
+        expect(response).to have_http_status(:success)
+        # With nil storage_used, the ternary returns nil so no human-readable size is rendered
+        expect(response.body).not_to include("Bytes")
+      end
+    end
+
+    context "with nil database_size in PostgreSQL" do
+      before do
+        sign_in regular_user
+        health_result = {
+          postgresql: { status: :healthy, latency: 1.0, error: nil, connection_count: 5, database_size: nil },
+          redis: { status: :healthy, latency: 0.5, error: nil, used_memory: "10MB", connected_clients: 3, hit_rate: nil },
+          minio: { status: :healthy, latency: 2.0, error: nil, storage_used: 500, bucket_count: 1 },
+          sidekiq: { status: :healthy, latency: 0.1, error: nil, workers: 1, queues: 1, enqueued: 0 },
+          application: { rails_version: Rails.version, ruby_version: RUBY_VERSION, uptime: "1h", workers_running: true, worker_count: 1 },
+          checked_at: Time.current.iso8601
+        }
+        allow(SystemHealthCheckService).to receive(:call).and_return(health_result)
+      end
+
+      it "renders PostgreSQL details without error when database_size is nil" do
+        get system_health_path
+        expect(response).to have_http_status(:success)
+      end
+    end
+
+    context "with JSON format" do
+      before do
+        sign_in regular_user
+        stub_health_checks
+      end
+
+      it "returns JSON response" do
+        get system_health_path(format: :json)
+        expect(response).to have_http_status(:success)
+        expect(response.content_type).to include("application/json")
+      end
+
+      it "includes checked_at in JSON response" do
+        get system_health_path(format: :json)
+        json = response.parsed_body
+        expect(json["checked_at"]).to be_present
+      end
+
+      it "includes application info in JSON response" do
+        get system_health_path(format: :json)
+        json = response.parsed_body
+        expect(json["application"]).to be_present
+        expect(json["application"]["rails_version"]).to eq(Rails.version)
+      end
+    end
   end
 
   private
 
   def stub_health_checks
+    allow(ActiveRecord::Base.connection).to receive(:execute).and_call_original
     allow(ActiveRecord::Base.connection).to receive(:execute).with("SELECT 1").and_return(true)
     stub_minio_check
     stub_sidekiq_check
+    stub_application_info
   end
 
   def stub_minio_check
@@ -174,5 +277,9 @@ RSpec.describe "SystemHealth" do
   def stub_sidekiq_check
     stats = instance_double(Sidekiq::Stats, workers_size: 2, queues: { "default" => 0 }, enqueued: 5)
     allow(Sidekiq::Stats).to receive(:new).and_return(stats)
+  end
+
+  def stub_application_info
+    allow(Sidekiq::ProcessSet).to receive(:new).and_return([])
   end
 end

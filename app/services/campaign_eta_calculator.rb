@@ -22,9 +22,6 @@
 #   calculator.current_eta
 #
 class CampaignEtaCalculator
-  # Default cache duration for ETA calculations
-  CACHE_DURATION = 1.minute
-
   # @return [Campaign] the campaign to calculate ETAs for
   attr_reader :campaign
 
@@ -70,15 +67,18 @@ class CampaignEtaCalculator
     running_tasks.filter_map(&:estimated_finish_time).max
   end
 
-  # Calculates the total ETA including pending and paused attacks.
+  # Calculates the total ETA including running, pending, and paused attacks.
+  #
+  # When only running attacks are present, returns the current running ETA so the
+  # campaign summary shows a concrete value instead of nil/"Calculating…".
   #
   # @return [Time, nil] the total estimated completion time
   def calculate_total_eta
-    incomplete_attacks = campaign.attacks.incomplete
-    return nil if incomplete_attacks.blank?
+    unfinished_attacks = campaign.attacks.without_states(:completed, :exhausted)
+    return nil if unfinished_attacks.blank?
 
     current_eta_time = calculate_current_eta
-    pending_attacks = incomplete_attacks.with_states(:pending, :paused)
+    pending_attacks = unfinished_attacks.with_states(:pending, :paused)
 
     return current_eta_time if pending_attacks.blank?
 
@@ -146,14 +146,20 @@ class CampaignEtaCalculator
   def with_cache(suffix)
     return yield unless cache_enabled
 
-    Rails.cache.fetch(cache_key(suffix), expires_in: CACHE_DURATION) { yield }
+    Rails.cache.fetch(cache_key(suffix)) { yield }
   end
 
-  # Generates a cache key for the campaign.
+  # Generates a cache key for the campaign that incorporates attack and task freshness.
+  #
+  # The key includes the latest updated_at timestamps from attacks and tasks so that
+  # the cache is automatically busted when work progresses (e.g., status updates,
+  # state transitions, or task completions).
   #
   # @param suffix [String] the cache key suffix
   # @return [String] the full cache key
   def cache_key(suffix)
-    "#{campaign.cache_key_with_version}/eta/#{suffix}"
+    attacks_freshness = campaign.attacks.maximum(:updated_at).to_i
+    tasks_freshness = Task.where(attack_id: campaign.attack_ids).maximum(:updated_at).to_i
+    "#{campaign.cache_key_with_version}/eta/#{suffix}/#{attacks_freshness}-#{tasks_freshness}"
   end
 end

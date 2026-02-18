@@ -17,6 +17,28 @@ RSpec.describe "HashLists" do
 
   let(:hash_list) { create(:hash_list, project: project, processed: true) }
 
+  describe "GET /index" do
+    context "when user is not logged in" do
+      it { expect(get(hash_lists_path)).to redirect_to(new_user_session_path) }
+    end
+
+    context "when admin user is logged in" do
+      it "returns http success" do
+        sign_in(admin)
+        get hash_lists_path
+        expect(response).to have_http_status(:success)
+      end
+    end
+
+    context "when a project user is logged in" do
+      it "returns http success" do
+        sign_in(project_user)
+        get hash_lists_path
+        expect(response).to have_http_status(:success)
+      end
+    end
+  end
+
   describe "GET /new" do
     context "when user is not logged in" do
       it { expect(get(new_hash_list_path)).to redirect_to(new_user_session_path) }

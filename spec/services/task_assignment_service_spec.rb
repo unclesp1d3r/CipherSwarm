@@ -304,6 +304,138 @@ RSpec.describe TaskAssignmentService do
     end
   end
 
+  describe "#find_unassigned_paused_task" do
+    let(:offline_agent) { create(:agent, user: user, projects: [project], state: :offline) }
+
+    before do
+      create(:hashcat_benchmark, agent: offline_agent, hash_type: 0, hash_speed: 10_000_000)
+    end
+
+    context "when a paused task from an offline agent exists in agent's project" do
+      let!(:attack) { create(:dictionary_attack, campaign: campaign, state: :running) }
+      let!(:paused_task) do
+        create(:task, agent: offline_agent, attack: attack, state: :paused)
+      end
+
+      before do
+        create(:hash_item, hash_list: hash_list, cracked: false)
+      end
+
+      it "returns the orphaned task after resuming it to pending" do
+        result = service.send(:find_unassigned_paused_task)
+        expect(result).to eq(paused_task)
+        expect(result.state).to eq("pending")
+      end
+
+      it "reassigns agent_id to the claiming agent" do
+        service.send(:find_unassigned_paused_task)
+        expect(paused_task.reload.agent_id).to eq(agent.id)
+      end
+
+      it "marks the task as stale so the new agent re-downloads cracks" do
+        service.send(:find_unassigned_paused_task)
+        expect(paused_task.reload.stale).to be true
+      end
+    end
+
+    context "when no orphaned paused tasks exist" do
+      before do
+        create(:dictionary_attack, campaign: campaign, state: :running)
+        create(:hash_item, hash_list: hash_list, cracked: false)
+      end
+
+      it "returns nil" do
+        expect(service.send(:find_unassigned_paused_task)).to be_nil
+      end
+    end
+
+    context "when paused task belongs to an active agent" do
+      before do
+        active_agent = create(:agent, user: user, projects: [project], state: :active)
+        attack = create(:dictionary_attack, campaign: campaign, state: :running)
+        create(:task, agent: active_agent, attack: attack, state: :paused)
+        create(:hash_item, hash_list: hash_list, cracked: false)
+      end
+
+      it "returns nil" do
+        expect(service.send(:find_unassigned_paused_task)).to be_nil
+      end
+    end
+
+    context "when paused task is in a different project" do
+      before do
+        other_project = create(:project)
+        other_hash_list = create(:hash_list, hash_type: hash_type, project: other_project)
+        other_campaign = create(:campaign, hash_list: other_hash_list, project: other_project)
+        attack = create(:dictionary_attack, campaign: other_campaign, state: :running)
+        other_offline_agent = create(:agent, user: user, projects: [other_project], state: :offline)
+        create(:task, agent: other_offline_agent, attack: attack, state: :paused)
+        create(:hash_item, hash_list: other_hash_list, cracked: false)
+      end
+
+      it "returns nil" do
+        expect(service.send(:find_unassigned_paused_task)).to be_nil
+      end
+    end
+
+    context "when paused task has no uncracked hashes" do
+      before do
+        attack = create(:dictionary_attack, campaign: campaign, state: :running)
+        create(:task, agent: offline_agent, attack: attack, state: :paused)
+        # Mark ALL hash_items as cracked (including any auto-created by ProcessHashListJob)
+        # to ensure no uncracked hashes remain for the EXISTS subquery
+        HashItem.where(hash_list_id: hash_list.id).update_all(cracked: true) # rubocop:disable Rails/SkipsModelValidations
+      end
+
+      it "returns nil" do
+        expect(service.send(:find_unassigned_paused_task)).to be_nil
+      end
+    end
+  end
+
+  describe "agent shutdown reassignment integration" do
+    let(:other_agent) { create(:agent, user: user, projects: [project]) }
+    let(:other_service) { described_class.new(other_agent) }
+
+    before do
+      create(:hashcat_benchmark, agent: other_agent, hash_type: 0, hash_speed: 10_000_000)
+    end
+
+    context "when an agent shuts down with a running task" do
+      let!(:attack) { create(:dictionary_attack, campaign: campaign, state: :running) }
+      let!(:running_task) { create(:task, agent: agent, attack: attack, state: :running) }
+
+      before do
+        create(:hash_item, hash_list: hash_list, cracked: false)
+        allow(Rails.logger).to receive(:info)
+        agent.shutdown
+      end
+
+      it "makes the paused task discoverable by another agent in pending state" do
+        task = other_service.find_next_task
+        expect(task).to eq(running_task.reload)
+        expect(task.state).to eq("pending")
+      end
+
+      it "keeps agent_id populated after shutdown" do
+        expect(running_task.reload.agent_id).to eq(agent.id)
+      end
+
+      it "reassigns agent_id to the claiming agent on pickup" do
+        other_service.find_next_task
+        expect(running_task.reload.agent_id).to eq(other_agent.id)
+      end
+
+      it "allows the new agent to accept the reassigned task" do
+        task = other_service.find_next_task
+        expect(task.state).to eq("pending")
+
+        # Verify the new agent can successfully accept the task
+        expect { task.accept! }.to change { task.reload.state }.from("pending").to("running")
+      end
+    end
+  end
+
   describe "#should_attempt_preemption?" do
     let(:attack) { create(:dictionary_attack, campaign: campaign) }
 
@@ -348,6 +480,34 @@ RSpec.describe TaskAssignmentService do
 
       it "returns false" do
         expect(service.send(:should_attempt_preemption?, attack)).to be false
+      end
+    end
+  end
+
+  describe "#create_new_task_if_eligible error handling" do
+    let!(:attack) { create(:dictionary_attack, campaign: campaign, state: :pending) }
+
+    before do
+      create(:hash_item, hash_list: hash_list, cracked: false)
+    end
+
+    context "when task creation raises an error" do
+      before do
+        allow(Rails.logger).to receive(:error)
+      end
+
+      it "logs the error and returns nil" do
+        allow(agent.tasks).to receive(:create).and_raise(StandardError.new("DB connection lost"))
+
+        result = service.send(:create_new_task_if_eligible, attack)
+        expect(result).to be_nil
+      end
+
+      it "logs the error with attack id and error class" do
+        allow(agent.tasks).to receive(:create).and_raise(StandardError.new("DB connection lost"))
+
+        service.send(:create_new_task_if_eligible, attack)
+        expect(Rails.logger).to have_received(:error).with(/Error creating task for attack #{attack.id}.*StandardError.*DB connection lost/)
       end
     end
   end

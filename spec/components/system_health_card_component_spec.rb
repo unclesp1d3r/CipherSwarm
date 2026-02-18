@@ -75,6 +75,30 @@ RSpec.describe SystemHealthCardComponent, type: :component do
     end
   end
 
+  describe "#format_bytes" do
+    let(:component) { described_class.new(service_name: "Test", status: :healthy) }
+
+    it "returns nil for nil input" do
+      expect(component.format_bytes(nil)).to be_nil
+    end
+
+    it "formats bytes" do
+      expect(component.format_bytes(500)).to eq("500 Bytes")
+    end
+
+    it "formats kilobytes" do
+      expect(component.format_bytes(2048)).to eq("2 KB")
+    end
+
+    it "formats megabytes" do
+      expect(component.format_bytes(5_242_880)).to eq("5 MB")
+    end
+
+    it "formats gigabytes" do
+      expect(component.format_bytes(2_147_483_648)).to eq("2 GB")
+    end
+  end
+
   describe "helper methods" do
     it "returns correct status_variant for healthy" do
       component = described_class.new(service_name: "Test", status: :healthy)

@@ -12,7 +12,7 @@ class Api::V1::Client::AttacksController < Api::V1::BaseController
   # @param [Integer] id The ID of the attack to be shown.
   # @return [void]
   def show
-    @attack = Attack.find_by(id: params[:id])
+    @attack = Attack.joins(:tasks).where(tasks: { agent: @agent }).find_by(id: params[:id])
     return if @attack
     Rails.logger.error("[APIError] ATTACK_NOT_FOUND - Agent #{@agent&.id || 'unknown'} - Attack ID: #{params[:id]} - #{Time.current}")
     render json: { error: "Attack not found." }, status: :not_found
@@ -28,13 +28,20 @@ class Api::V1::Client::AttacksController < Api::V1::BaseController
   # @param [Integer] id The ID of the attack whose hash list is to be retrieved.
   # @return [void]
   def hash_list
-    @attack = Attack.find_by(id: params[:id])
+    @attack = Attack.joins(:tasks).where(tasks: { agent: @agent }).find_by(id: params[:id])
     if @attack.nil?
       Rails.logger.error("[APIError] ATTACK_NOT_FOUND - Agent #{@agent&.id || 'unknown'} - Attack ID: #{params[:id]} - #{Time.current}")
       render json: { error: "Attack not found." }, status: :not_found
       return
     end
-    send_data @attack.campaign.hash_list.uncracked_list,
-              filename: "#{@attack.campaign.hash_list.id}.txt"
+    hash_list_model = @attack.campaign&.hash_list
+    if hash_list_model.nil?
+      Rails.logger.error("[APIError] HASH_LIST_NOT_FOUND - Agent #{@agent&.id || 'unknown'} - Attack ID: #{@attack.id} - #{Time.current}")
+      render json: { error: "Hash list not found." }, status: :not_found
+      return
+    end
+    headers["Content-Disposition"] = "attachment; filename=\"#{hash_list_model.id}.txt\""
+    headers["Content-Type"] = "text/plain"
+    self.response_body = hash_list_model.uncracked_list_enum
   end
 end

@@ -264,11 +264,18 @@ The Task is the smallest unit of work within the system, representing a segment 
 
 Comprehensive documentation is available in the [docs/](docs/) directory:
 
+**Quick Links:**
+
+- [Getting Started](docs/user-guide/getting-started.md) - First-time setup and your first campaign
+- [User Guide](docs/user-guide/README.md) - Comprehensive user documentation for all features
+- [Troubleshooting](docs/user-guide/troubleshooting.md) - System diagnostics and common solutions
+
+**Reference:**
+
 - [V2 Upgrade Overview](docs/v2-upgrade-overview.md) - Complete overview of the V2 upgrade
-- [User Guide](docs/user-guide/) - How to use CipherSwarm
-- [Getting Started](docs/getting-started/quick-start.md) - Quick start guide
 - [API Reference](docs/api-reference-agent-auth.md) - Agent API documentation
 - [Development Guide](docs/development/) - Development and contribution guidelines
+- [Air-Gapped Deployment](docs/user-guide/air-gapped-deployment.md) - Deploying in isolated environments
 
 ## Contributing
 

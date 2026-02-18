@@ -20,7 +20,7 @@
 # @scopes
 # - sensitive: hash lists marked as sensitive
 # - accessible_to(user): lists in projects accessible to user
-# - default: ordered by created_at
+# - chronological: ordered by created_at
 #
 # @callbacks
 # - after_save: processes hash list if file attached
@@ -77,7 +77,7 @@ class HashList < ApplicationRecord
   # create a scope for hash lists that are either not sensitive or are in a project that the user has access to
   scope :accessible_to, ->(user) { where(project_id: user.projects) }
 
-  default_scope { order(:created_at) }
+  scope :chronological, -> { order(:created_at) }
 
   delegate :hash_mode, to: :hash_type
 
@@ -107,13 +107,6 @@ class HashList < ApplicationRecord
 
   # Returns a string representation of the cracked hash list.
   #
-  # REASONING:
-  # - Uses in_batches to avoid loading millions of hash items into memory at once.
-  # - Alternatives: single pluck (OOM on large lists), streaming via Enumerator (more
-  #   complex, consumers must handle streaming), database-side concat (non-portable).
-  # - Decision: Batch into array parts, join at end. Balances memory safety with simplicity.
-  # - Same pattern applied to uncracked_list and uncracked_list_checksum below.
-  #
   # @example
   #   hash_list.cracked_list
   #   # => "hash1:plain_text1\nhash2:plain_text2\n..."
@@ -127,6 +120,23 @@ class HashList < ApplicationRecord
       end
     end
     parts.join("\n")
+  end
+
+  # Returns an Enumerator that yields cracked hash list data in batches.
+  # Suitable for streaming responses to avoid loading the entire list into memory.
+  #
+  # @return [Enumerator] yields string chunks of cracked hash data
+  def cracked_list_enum
+    Enumerator.new do |yielder|
+      first = true
+      hash_items.where.not(plain_text: nil).in_batches(of: 10_000) do |batch|
+        batch.pluck(:hash_value, :plain_text).each do |h, p|
+          yielder << "\n" unless first
+          first = false
+          yielder << "#{h}#{separator}#{p}"
+        end
+      end
+    end
   end
 
   # Returns the count of items in the hash.
@@ -170,6 +180,23 @@ class HashList < ApplicationRecord
       parts.concat(batch.pluck(:hash_value))
     end
     parts.join("\n")
+  end
+
+  # Returns an Enumerator that yields uncracked hash list data in batches.
+  # Suitable for streaming responses to avoid loading the entire list into memory.
+  #
+  # @return [Enumerator] yields string chunks of uncracked hash data
+  def uncracked_list_enum
+    Enumerator.new do |yielder|
+      first = true
+      uncracked_items.in_batches(of: 10_000) do |batch|
+        batch.pluck(:hash_value).each do |hash_value|
+          yielder << "\n" unless first
+          first = false
+          yielder << hash_value
+        end
+      end
+    end
   end
 
   # Calculates the MD5 checksum of the uncracked_list.

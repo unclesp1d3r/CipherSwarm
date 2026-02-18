@@ -246,13 +246,17 @@ RSpec.describe "Task Management" do
   end
 
   describe "download results" do
-    it "has download results link" do
+    let(:completed_task) { create(:task, attack: attack, agent: agent, state: :pending) }
+
+    before { completed_task.update_columns(state: "completed") } # rubocop:disable Rails/SkipsModelValidations
+
+    it "has download results link for completed tasks" do
       create(:hash_item, :cracked_recently,
         hash_list: hash_list,
         hash_value: "abc123",
         plain_text: "password1")
 
-      visit task_path(task)
+      visit task_path(completed_task)
 
       expect(page).to have_link("Download Results")
     end
@@ -263,10 +267,10 @@ RSpec.describe "Task Management" do
         hash_value: "abc123",
         plain_text: "password1")
 
-      visit task_path(task)
+      visit task_path(completed_task)
 
       download_link = find_link("Download Results")
-      expect(download_link[:href]).to include(download_results_task_path(task))
+      expect(download_link[:href]).to include(download_results_task_path(completed_task))
     end
   end
 end

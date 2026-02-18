@@ -17,13 +17,20 @@ Welcome to the CipherSwarm documentation. This directory contains comprehensive 
 
 ### User Guides
 
-- [Agent Setup](user-guide/agent-setup.md) - Setting up and configuring agents
-- [Attack Configuration](user-guide/attack-configuration.md) - Creating and managing attacks
-- [Resource Management](user-guide/resource-management.md) - Managing wordlists, rules, and masks
-- [Web Interface](user-guide/web-interface.md) - Using the web interface
-- [Optimization](user-guide/optimization.md) - Performance optimization tips
-- [Common Issues](user-guide/common-issues.md) - Troubleshooting guide
+- [**User Guide Index**](user-guide/README.md) - Complete table of contents and quick navigation
+- [Getting Started](user-guide/getting-started.md) - First-time setup, dashboard overview, and your first campaign
+- [Campaign Management](user-guide/campaign-management.md) - Creating, monitoring, and managing campaigns
+- [Attack Configuration](user-guide/attack-configuration.md) - Configuring dictionary, mask, brute force, and hybrid attacks
+- [Understanding Results](user-guide/understanding-results.md) - Viewing, interpreting, and exporting cracking results
+- [Agent Setup](user-guide/agent-setup.md) - Installing, registering, and configuring agents
+- [Agent Troubleshooting](user-guide/troubleshooting-agents.md) - Task lifecycle diagnostics and recovery
+- [Resource Management](user-guide/resource-management.md) - Managing wordlists, rules, masks, and charsets
+- [Web Interface](user-guide/web-interface.md) - Complete web interface reference
+- [Troubleshooting](user-guide/troubleshooting.md) - System diagnostics, common issues, and solutions
+- [Common Issues](user-guide/common-issues.md) - Quick fixes for frequently encountered problems
 - [FAQ](user-guide/faq.md) - Frequently asked questions
+- [Performance Optimization](user-guide/optimization.md) - Hardware tuning, attack strategies, and system optimization
+- [Air-Gapped Deployment](user-guide/air-gapped-deployment.md) - Deploying in isolated environments
 
 ### Development Documentation
 

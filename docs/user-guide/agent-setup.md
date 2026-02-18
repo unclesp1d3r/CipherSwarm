@@ -26,6 +26,13 @@ This guide covers the installation, registration, and configuration of CipherSwa
     - [1. Systemd Service (Recommended)](#1-systemd-service-recommended)
     - [2. Docker Container](#2-docker-container)
     - [3. Docker Compose](#3-docker-compose)
+  - [Agent Monitoring](#agent-monitoring)
+    - [Real-Time Status Updates](#real-time-status-updates)
+    - [Agent List View](#agent-list-view)
+    - [Hash Rate Monitoring](#hash-rate-monitoring)
+    - [Error Badges and Notifications](#error-badges-and-notifications)
+    - [Agent Detail Tabs](#agent-detail-tabs)
+    - [Performance Charts (8-Hour Trends)](#performance-charts-8-hour-trends)
   - [Agent Management via Web Interface](#agent-management-via-web-interface)
     - [1. Agent Status Monitoring](#1-agent-status-monitoring)
     - [2. Configuration Management](#2-configuration-management)
@@ -433,6 +440,95 @@ services:
         max-file: '3'
 ```
 
+## Agent Monitoring
+
+CipherSwarm V2 introduces enhanced agent monitoring with real-time visibility into agent health and performance.
+
+### Real-Time Status Updates
+
+Agent statuses are updated in real time via Turbo Streams:
+
+- Status changes (online, offline, active, error) reflect immediately in the web interface
+- No manual page refresh is needed
+- All connected users see the same live status
+
+### Agent List View
+
+The agent list page shows all registered agents with:
+
+- **Status Badges**: Color-coded indicators (green=active, gray=offline, red=error, yellow=pending)
+- **Current Task**: What the agent is currently working on
+- **Hash Rate**: Live cracking speed
+- **Error Count Badge**: Number of recent errors displayed as a badge on the agent card
+- **Last Seen**: Time since the agent's last heartbeat
+
+### Hash Rate Monitoring
+
+Each agent displays its current and historical hash rate:
+
+- **Current Rate**: Live hash rate updated with each status report
+- **Trend Indicator**: Shows whether the rate is increasing, stable, or decreasing
+- **8-Hour Chart**: Performance trend chart showing hash rate over the last 8 hours
+
+### Error Badges and Notifications
+
+When agents encounter errors:
+
+- An error count badge appears on the agent card in the list view
+- Critical errors are highlighted with red indicators
+- Error details are accessible from the agent detail page
+- Errors are logged with timestamps for correlation with server events
+
+### Agent Detail Tabs
+
+Clicking an agent name opens the detail view with four tabs:
+
+#### Overview Tab
+
+- Agent status and uptime
+- Current task assignment
+- Hardware summary (GPU model, memory, temperature)
+- Performance metrics (hash rate, tasks completed, success rate)
+
+#### Errors Tab
+
+- List of recent errors with timestamps
+- Error severity indicators
+- Detailed error messages and context
+- Links to related tasks or attacks
+
+#### Configuration Tab
+
+- Current agent configuration settings
+- Heartbeat interval
+- Workload settings
+- Backend device selection
+- Project assignments
+
+#### Capabilities Tab
+
+- Detected hardware (GPUs, CPUs)
+- Supported backends (CUDA, OpenCL, HIP, Metal)
+- Benchmark results by hash type
+- Device memory and temperature thresholds
+
+### Performance Charts (8-Hour Trends)
+
+The agent detail page includes performance trend charts:
+
+- **Hash Rate Over Time**: Line chart showing cracking speed over 8 hours
+- **GPU Temperature**: Temperature readings correlated with workload
+- **GPU Utilization**: Percentage utilization over time
+- **Task Throughput**: Tasks completed per hour
+
+These charts help identify:
+
+- Performance degradation due to thermal throttling
+- Inconsistent workloads or idle periods
+- Optimal operating conditions for each agent
+
+---
+
 ## Agent Management via Web Interface
 
 ### 1. Agent Status Monitoring
@@ -718,4 +814,5 @@ For additional information:
 - [Web Interface Guide](web-interface.md) - Managing agents via web interface
 - [Attack Configuration](attack-configuration.md) - Understanding attack types
 - [Troubleshooting Guide](troubleshooting.md) - Common issues and solutions
+- [Agent Troubleshooting](troubleshooting-agents.md) - Detailed agent diagnostics and task lifecycle
 - [API Documentation](../api/agent.md) - Agent API reference

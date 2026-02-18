@@ -56,10 +56,10 @@ RSpec.describe TaskActionsComponent, type: :component do
         expect(page).to have_link("Logs", href: logs_task_path(task))
       end
 
-      it "renders download results link" do
+      it "does not render download results link" do
         render_inline(described_class.new(task: task, current_ability: ability))
 
-        expect(page).to have_link("Download Results", href: download_results_task_path(task))
+        expect(page).to have_no_link("Download Results")
       end
     end
 
@@ -141,6 +141,40 @@ RSpec.describe TaskActionsComponent, type: :component do
         render_inline(described_class.new(task: task, current_ability: ability))
 
         expect(page).to have_link("Download Results")
+      end
+    end
+
+    context "when task is exhausted" do
+      before { task.update!(state: "exhausted") }
+
+      it "renders download results link" do
+        render_inline(described_class.new(task: task, current_ability: ability))
+
+        expect(page).to have_link("Download Results")
+      end
+
+      it "does not render cancel button" do
+        render_inline(described_class.new(task: task, current_ability: ability))
+
+        expect(page).to have_no_button("Cancel")
+      end
+
+      it "does not render retry button" do
+        render_inline(described_class.new(task: task, current_ability: ability))
+
+        expect(page).to have_no_button("Retry")
+      end
+
+      it "does not render reassign button" do
+        render_inline(described_class.new(task: task, current_ability: ability))
+
+        expect(page).to have_no_button("Reassign")
+      end
+
+      it "still renders logs link" do
+        render_inline(described_class.new(task: task, current_ability: ability))
+
+        expect(page).to have_link("Logs")
       end
     end
   end
@@ -272,6 +306,49 @@ RSpec.describe TaskActionsComponent, type: :component do
       component = described_class.new(task: task, current_ability: ability)
 
       expect(component.can_reassign?).to be false
+    end
+  end
+
+  describe "#can_download_results?" do
+    let(:ability) do
+      ability = Ability.new(nil)
+      ability.can :download_results, Task
+      ability
+    end
+
+    it "returns true when completed and has permission" do
+      task.update!(state: "completed")
+      component = described_class.new(task: task, current_ability: ability)
+
+      expect(component.can_download_results?).to be true
+    end
+
+    it "returns true when exhausted and has permission" do
+      task.update!(state: "exhausted")
+      component = described_class.new(task: task, current_ability: ability)
+
+      expect(component.can_download_results?).to be true
+    end
+
+    it "returns false when pending" do
+      task.update!(state: "pending")
+      component = described_class.new(task: task, current_ability: ability)
+
+      expect(component.can_download_results?).to be false
+    end
+
+    it "returns false when running" do
+      task.update!(state: "running")
+      component = described_class.new(task: task, current_ability: ability)
+
+      expect(component.can_download_results?).to be false
+    end
+
+    it "returns false when failed" do
+      task.update!(state: "failed")
+      component = described_class.new(task: task, current_ability: ability)
+
+      expect(component.can_download_results?).to be false
     end
   end
 end

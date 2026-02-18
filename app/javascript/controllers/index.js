@@ -4,6 +4,9 @@
 
 import { application } from "./application"
 
+import HealthRefreshController from "./health_refresh_controller"
+application.register("health-refresh", HealthRefreshController)
+
 import PagyInitializerController from "./pagy_initializer_controller"
 application.register("pagy-initializer", PagyInitializerController)
 

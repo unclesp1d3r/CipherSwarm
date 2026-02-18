@@ -59,6 +59,16 @@ en:
       rails_logs_hint: "(view in terminal: <code>tail -f log/development.log</code>)"
       cache_note: "Results cached for 1 minute"
       unable_to_retrieve: "Unable to retrieve system health information. Please try again later."
+      application_info: "Application"
+      rails_version: "Rails:"
+      ruby_version: "Ruby:"
+      uptime: "Uptime:"
+      worker_status: "Workers:"
+      running: "Running"
+      stopped: "Stopped"
+      processes: "processes"
+      last_updated: "Last updated"
+      ago: "ago"
 
   campaigns:
     attack_progress:

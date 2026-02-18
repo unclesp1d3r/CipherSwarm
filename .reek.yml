@@ -67,7 +67,6 @@ detectors:
     - CrackerBinary#check_for_newer
     - HashcatStatus#serializable_hash
     - Task#progress_percentage
-    - VersionValidator#validate
     - InitSchema#up
   FeatureEnvy:
     exclude:
@@ -235,7 +234,6 @@ detectors:
     - WordListDashboard
     - AgentHelper
     - ApplicationHelper
-    - AttackHelper
     - BootstrapIconHelper
     - ViewComponentHelper
     - ApplicationJob
@@ -249,7 +247,6 @@ detectors:
     - AttackResource
     - HashcatBenchmark
     - HashcatStatus
-    - VersionValidator
     - Railsboot::HeadingComponentTest
     - ChangeWordListsSensitiveNullConstraint
     - ChangeWordListsProcessedNullConstraint
@@ -362,7 +359,6 @@ detectors:
     - HashcatBenchmark#to_s
     - Task#estimated_finish_time
     - Task#progress_percentage
-    - VersionValidator#validate
   RepeatedConditional:
     exclude:
     - Api::V1::Client::TasksController
@@ -434,7 +430,6 @@ detectors:
     - WordListsController#destroy
     - WordListsController#update
     - ApplicationHelper#body_class
-    - AttackHelper#attack_status_class
     - NavHelper#sidebar_link
     - ViewComponentHelper#component_class_for
     - CountFileLinesJob#perform
@@ -484,11 +479,7 @@ detectors:
     - AgentHelper#error_severity_to_css
     - ApplicationHelper#body_class
     - ApplicationHelper#current_site
-    - ApplicationHelper#route_exists?
-    - ApplicationHelper#sanitize
-    - AttackHelper#attack_status_class
     - ViewComponentHelper#component_path
     - CountFileLinesJob#perform
     - ProcessHashListJob#perform
     - UpdateStatusJob#perform
-    - VersionValidator#validate

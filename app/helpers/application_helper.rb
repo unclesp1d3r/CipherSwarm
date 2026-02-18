@@ -94,43 +94,6 @@ module ApplicationHelper
     content_for :description, description
   end
 
-  # Checks if a route exists for the given path.
-  #
-  # @param path [String] The path to check.
-  # @return [Boolean] Returns true if the route exists, false otherwise.
-  def route_exists?(path)
-    Rails.application.routes.recognize_path(path, method: :get)
-    true
-  rescue ActionController::RoutingError, ActionController::UnknownController, ActionController::UnknownAction
-    false
-  end
-
-  # Sanitizes the given content by removing any potentially harmful HTML tags.
-  #
-  # Parameters:
-  # - content: The content to be sanitized.
-  #
-  # Returns:
-  # The sanitized content.
-  def sanitize_content(content)
-    ActionController::Base.helpers.sanitize(content)
-  end
-
-  # Removes HTML tags and entities from a given string.
-  #
-  # Parameters:
-  # - string: The string to be processed.
-  #
-  # Returns:
-  # The processed string with HTML tags and entities removed.
-  def strip_tags_and_entities(string)
-    return if string.blank?
-
-    stripped = strip_tags(string)
-    decoded = HTMLEntities.new.decode(stripped)
-    decoded.squish.gsub(%r{/</?[^>]*>/}, "")
-  end
-
   # Safely checks authorization, returning false if no user context is available.
   #
   # This helper wraps the CanCanCan `can?` method to handle cases where authorization

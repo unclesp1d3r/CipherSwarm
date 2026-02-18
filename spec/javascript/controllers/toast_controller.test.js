@@ -81,4 +81,27 @@ describe("ToastController", () => {
     controller.disconnect();
     expect(mockDispose).toHaveBeenCalledTimes(1);
   });
+
+  it("supports multiple toasts displayed simultaneously", async () => {
+    // Add a second toast to the DOM using safe DOM methods
+    const secondToast = document.createElement("div");
+    secondToast.classList.add("toast");
+    secondToast.setAttribute("data-controller", "toast");
+    secondToast.setAttribute("data-toast-autohide-value", "true");
+    secondToast.setAttribute("data-toast-delay-value", "5000");
+    secondToast.setAttribute("role", "alert");
+    const toastBody = document.createElement("div");
+    toastBody.classList.add("toast-body");
+    toastBody.textContent = "Second message";
+    secondToast.appendChild(toastBody);
+    document.body.appendChild(secondToast);
+
+    // Stimulus auto-connects via MutationObserver; allow callback to process
+    await Promise.resolve();
+
+    const toasts = document.querySelectorAll('[data-controller="toast"]');
+    expect(toasts.length).toBe(2);
+    // Both toasts should have triggered show
+    expect(mockShow).toHaveBeenCalledTimes(2);
+  });
 });

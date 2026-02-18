@@ -78,15 +78,19 @@ RSpec.describe CampaignEtaCalculator do
     end
 
     context "with only running attacks" do
+      let(:attack) { create(:dictionary_attack, :running, campaign: campaign) }
+      let(:expected_eta) { 1.hour.from_now }
+
       before do
-        attack = create(:dictionary_attack, :running, campaign: campaign)
-        create(:task, attack: attack, state: :running)
+        task = create(:task, attack: attack, state: :running)
+        allow(task).to receive(:estimated_finish_time).and_return(expected_eta)
+        # rubocop:disable RSpec/MessageChain
+        allow(Task).to receive_message_chain(:joins, :where, :with_state).and_return([task])
+        # rubocop:enable RSpec/MessageChain
       end
 
-      it "returns nil since running attacks are not considered incomplete" do
-        # Running attacks are excluded from the incomplete scope
-        # Use current_eta for running work ETA
-        expect(calculator.total_eta).to be_nil
+      it "returns the current running ETA as total ETA" do
+        expect(calculator.total_eta).to be_within(1.second).of(expected_eta)
       end
     end
 
@@ -134,7 +138,7 @@ RSpec.describe CampaignEtaCalculator do
       cached_calculator.current_eta
 
       expect(Rails.cache).to have_received(:fetch)
-        .with(/eta\/current_eta/, expires_in: 1.minute)
+        .with(/eta\/current_eta/)
     end
 
     it "caches total_eta results when cache is enabled" do
@@ -143,7 +147,7 @@ RSpec.describe CampaignEtaCalculator do
       cached_calculator.total_eta
 
       expect(Rails.cache).to have_received(:fetch)
-        .with(/eta\/total_eta/, expires_in: 1.minute)
+        .with(/eta\/total_eta/)
     end
 
     it "does not cache when cache is disabled" do

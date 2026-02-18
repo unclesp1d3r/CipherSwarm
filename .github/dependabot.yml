@@ -5,15 +5,26 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 10
+    rebase-strategy: "disabled"
+
   - package-ecosystem: devcontainers
     directory: "/"
     schedule:
       interval: weekly
+    rebase-strategy: "disabled"
+
+  - package-ecosystem: docker
+    directory: "/"
+    schedule:
+      interval: weekly
+    rebase-strategy: "disabled"
+
   - package-ecosystem: bundler
     directory: "/"
     schedule:
       interval: weekly
     open-pull-requests-limit: 3
+    rebase-strategy: "disabled"
     groups:
       rails-bundler-security:
         patterns:
@@ -25,10 +36,12 @@ updates:
       analytics-time:
         patterns:
           - "groupdate"
+
   - package-ecosystem: npm
     directory: "/"
     schedule:
       interval: weekly
+    rebase-strategy: "disabled"
     groups:
       build-tooling:
         patterns:

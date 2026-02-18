@@ -134,21 +134,13 @@ class TaskPreemptionService
     nil
   end
 
-  # Preempts a task by transitioning it to pending and marking it as stale.
-  # Does not destroy the task or trigger attack abandonment.
+  # Preempts a task using the dedicated preempt state machine event.
+  # The preempt event transitions running -> pending without triggering attack abandon.
+  # The after_transition callback handles marking as stale and incrementing preemption_count.
   # Uses a database transaction with row-level locking to prevent race conditions.
   #
-  # We bypass the state machine here and use update_columns because:
-  # 1. State machine transitions trigger callbacks that may modify task state (abandon logic)
-  # 2. The task object may be stale (optimistic locking conflicts)
-  # 3. We need precise control over the transition for preemption semantics
-  # 4. We want to avoid N+1 queries from state machine callbacks
-  #
   # @param task [Task] the task to preempt
-  ##
-  # Forces a running task back to `pending`, marks it as stale, and increments its preemption count.
-  # @param [Task] task - The running Task to preempt.
-  # @return [Task] The task after being marked pending and stale with its `preemption_count` incremented.
+  # @return [Task] The task after being preempted (pending, stale, preemption_count incremented)
   def preempt_task(task)
     Rails.logger.info(
       "[TaskPreemption] Preempting task #{task.id} (priority: #{task.attack.campaign.priority}, " \
@@ -157,18 +149,8 @@ class TaskPreemptionService
     )
 
     Task.transaction do
-      # Lock the task row to prevent concurrent modifications
       task.lock!
-
-      # rubocop:disable Rails/SkipsModelValidations
-      task.increment!(:preemption_count)
-      # rubocop:enable Rails/SkipsModelValidations
-
-      # Update columns directly to bypass state machine transitions
-      # This avoids triggering abandon callbacks and prevents StaleObjectError from optimistic locking
-      # rubocop:disable Rails/SkipsModelValidations
-      task.update_columns(state: "pending", stale: true)
-      # rubocop:enable Rails/SkipsModelValidations
+      task.preempt!
     end
 
     task

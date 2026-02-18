@@ -52,16 +52,50 @@ class SystemHealthCheckService
     return cached if cached.present?
 
     lock_token = SecureRandom.hex(16)
-    if acquire_lock(lock_token)
+    lock_acquired = nil
+    lock_error = nil
+    begin
+      lock_acquired = acquire_lock(lock_token)
+    rescue StandardError => e
+      lock_error = e
+      Rails.logger.error("[SystemHealth] Lock acquisition failed: #{e.message}\n#{Array(e.backtrace).first(5).join("\n")}")
+    end
+
+    if lock_acquired
+      Rails.logger.debug { "[SystemHealth] Lock acquired, performing all checks" }
       begin
         results = perform_all_checks
         Rails.cache.write(CACHE_KEY, results, expires_in: CACHE_TTL)
         results
       ensure
-        release_lock(lock_token)
+        begin
+          release_lock(lock_token)
+        rescue StandardError => e
+          Rails.logger.error("[SystemHealth] Lock release failed: #{e.message}\n#{Array(e.backtrace).first(5).join("\n")}")
+        end
       end
+    elsif lock_error
+      # Redis is down — still run non-Redis checks, skip caching
+      Rails.logger.warn("[SystemHealth] Redis unavailable, running non-Redis checks only: #{lock_error.message}")
+      {
+        postgresql: check_postgresql,
+        redis: {
+          status: :unhealthy,
+          latency: nil,
+          error: lock_error.message,
+          used_memory: nil,
+          connected_clients: nil,
+          hit_rate: nil
+        },
+        minio: check_minio,
+        sidekiq: check_sidekiq,
+        application: application_info,
+        checked_at: Time.current.iso8601
+      }
     else
-      Rails.cache.read(CACHE_KEY) || checking_status
+      # Lock contention — another request is performing checks
+      Rails.logger.debug { "[SystemHealth] Lock contended, returning checking status" }
+      checking_status
     end
   end
 
@@ -77,10 +111,20 @@ class SystemHealthCheckService
       ActiveStorage::Blob.service.exist?("health_check")
     end
     latency = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - start) * 1000).round(2)
-    { status: :healthy, latency: latency, error: nil }
+
+    storage_used = nil
+    bucket_count = nil
+    begin
+      storage_used = ActiveStorage::Blob.sum(:byte_size)
+      bucket_count = ActiveStorage::Blob.service.respond_to?(:buckets) ? ActiveStorage::Blob.service.buckets.count : nil
+    rescue => e
+      Rails.logger.warn("[SystemHealth] MinIO extended metrics failed: #{e.message}")
+    end
+
+    { status: :healthy, latency: latency, error: nil, storage_used: storage_used, bucket_count: bucket_count }
   rescue => e
-    Rails.logger.error("[SystemHealth] MinIO check failed: #{e.message}")
-    { status: :unhealthy, latency: nil, error: e.message }
+    Rails.logger.error("[SystemHealth] MinIO check failed: #{e.message}\n#{Array(e.backtrace).first(5).join("\n")}")
+    { status: :unhealthy, latency: nil, error: e.message, storage_used: nil, bucket_count: nil }
   end
 
   def check_postgresql
@@ -89,22 +133,49 @@ class SystemHealthCheckService
       ActiveRecord::Base.connection.execute("SELECT 1")
     end
     latency = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - start) * 1000).round(2)
-    { status: :healthy, latency: latency, error: nil }
+
+    connection_count = nil
+    database_size = nil
+    begin
+      result = ActiveRecord::Base.connection.execute(
+        "SELECT numbackends FROM pg_stat_database WHERE datname = current_database()"
+      )
+      connection_count = result.first&.fetch("numbackends", nil)
+
+      result = ActiveRecord::Base.connection.execute(
+        "SELECT pg_database_size(current_database()) AS size"
+      )
+      database_size = result.first&.fetch("size", nil)&.to_i
+    rescue => e
+      Rails.logger.warn("[SystemHealth] PostgreSQL extended metrics failed: #{e.message}")
+    end
+
+    { status: :healthy, latency: latency, error: nil, connection_count: connection_count, database_size: database_size }
   rescue => e
-    Rails.logger.error("[SystemHealth] PostgreSQL check failed: #{e.message}")
-    { status: :unhealthy, latency: nil, error: e.message }
+    Rails.logger.error("[SystemHealth] PostgreSQL check failed: #{e.message}\n#{Array(e.backtrace).first(5).join("\n")}")
+    { status: :unhealthy, latency: nil, error: e.message, connection_count: nil, database_size: nil }
   end
 
   def check_redis
     start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-    Timeout.timeout(CHECK_TIMEOUT) do
-      Sidekiq.redis { |conn| conn.ping }
+    info = Timeout.timeout(CHECK_TIMEOUT) do
+      Sidekiq.redis { |conn| conn.info }
     end
     latency = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - start) * 1000).round(2)
-    { status: :healthy, latency: latency, error: nil }
+
+    used_memory = info["used_memory_human"]
+    connected_clients = info["connected_clients"]&.to_i
+    hits = info["keyspace_hits"]&.to_i || 0
+    misses = info["keyspace_misses"]&.to_i || 0
+    hit_rate = (hits + misses).positive? ? ((hits.to_f / (hits + misses)) * 100).round(2) : nil
+
+    {
+      status: :healthy, latency: latency, error: nil,
+      used_memory: used_memory, connected_clients: connected_clients, hit_rate: hit_rate
+    }
   rescue => e
-    Rails.logger.error("[SystemHealth] Redis check failed: #{e.message}")
-    { status: :unhealthy, latency: nil, error: e.message }
+    Rails.logger.error("[SystemHealth] Redis check failed: #{e.message}\n#{Array(e.backtrace).first(5).join("\n")}")
+    { status: :unhealthy, latency: nil, error: e.message, used_memory: nil, connected_clients: nil, hit_rate: nil }
   end
 
   def check_sidekiq
@@ -122,22 +193,60 @@ class SystemHealthCheckService
       enqueued: stats.enqueued
     }
   rescue => e
-    Rails.logger.error("[SystemHealth] Sidekiq check failed: #{e.message}")
+    Rails.logger.error("[SystemHealth] Sidekiq check failed: #{e.message}\n#{Array(e.backtrace).first(5).join("\n")}")
     { status: :unhealthy, latency: nil, error: e.message, workers: 0, queues: 0, enqueued: 0 }
+  end
+
+  def application_info
+    sidekiq_processes = begin
+      Sidekiq::ProcessSet.new.size
+    rescue => e
+      Rails.logger.warn("[SystemHealth] Sidekiq process check failed: #{e.message}")
+      0
+    end
+
+    {
+      rails_version: Rails.version,
+      ruby_version: RUBY_VERSION,
+      uptime: format_uptime,
+      workers_running: sidekiq_processes.positive?,
+      worker_count: sidekiq_processes
+    }
   end
 
   def checking_status
     {
-      postgresql: { status: :checking, latency: nil, error: nil },
-      redis: { status: :checking, latency: nil, error: nil },
-      minio: { status: :checking, latency: nil, error: nil },
-      sidekiq: { status: :checking, latency: nil, error: nil, workers: 0, queues: 0, enqueued: 0 }
+      postgresql: { status: :checking, latency: nil, error: nil, connection_count: nil, database_size: nil },
+      redis: { status: :checking, latency: nil, error: nil, used_memory: nil, connected_clients: nil, hit_rate: nil },
+      minio: { status: :checking, latency: nil, error: nil, storage_used: nil, bucket_count: nil },
+      sidekiq: { status: :checking, latency: nil, error: nil, workers: 0, queues: 0, enqueued: 0 },
+      application: application_info,
+      checked_at: Time.current.iso8601
     }
+  end
+
+  def format_uptime
+    booted_at = Rails.application.config.respond_to?(:booted_at) ? Rails.application.config.booted_at : nil
+    return "unknown" unless booted_at
+
+    seconds = (Time.current - booted_at).to_i
+    days = seconds / 86400
+    hours = (seconds % 86400) / 3600
+    minutes = (seconds % 3600) / 60
+
+    parts = []
+    parts << "#{days}d" if days.positive?
+    parts << "#{hours}h" if hours.positive?
+    parts << "#{minutes}m" if minutes.positive?
+    parts.empty? ? "< 1m" : parts.join(" ")
   end
 
   def perform_all_checks
     checks = { postgresql: :check_postgresql, redis: :check_redis, minio: :check_minio, sidekiq: :check_sidekiq }
-    checks.transform_values { |m| send(m) }
+    results = checks.transform_values { |m| send(m) }
+    results[:application] = application_info
+    results[:checked_at] = Time.current.iso8601
+    results
   end
 
   def release_lock(token)

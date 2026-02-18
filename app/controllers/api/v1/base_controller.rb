@@ -24,7 +24,9 @@ class Api::V1::BaseController < ApplicationController
   end
 
   rescue_from NoMethodError do |e|
-    render json: { error: e.message }, status: :unprocessable_content
+    agent_id = @agent&.id || "unknown"
+    Rails.logger.error("[APIError] NO_METHOD_ERROR - Agent #{agent_id} - #{request.method} #{request.path} - Error: #{e.message} - #{Time.current}")
+    render json: { error: "Invalid request" }, status: :unprocessable_content
   end
 
   rescue_from ActionController::ParameterMissing do |e|

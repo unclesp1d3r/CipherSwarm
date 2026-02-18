@@ -18,7 +18,7 @@
 # - name: present, unique (case insensitive), max 100 chars
 #
 # @scopes
-# - default: ordered by created_at
+# - chronological: ordered by created_at
 #
 # === Validations
 # * +name+ - Must be present, unique (case-insensitive), and at most 100 characters long.
@@ -34,7 +34,7 @@
 # * +has_and_belongs_to_many+ - agents
 #
 # === Scopes
-# * Default scope - Orders projects by creation date.
+# * chronological - Orders projects by creation date.
 #
 # === Callbacks and Behavior
 # * Audited unless in a test environment.
@@ -71,5 +71,5 @@ class Project < ApplicationRecord
 
   broadcasts_refreshes
 
-  default_scope { order(:created_at) }
+  scope :chronological, -> { order(:created_at) }
 end
