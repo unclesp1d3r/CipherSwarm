@@ -1,3 +1,14 @@
+# CipherSwarm Production Docker Compose
+#
+# Web Scaling Formula: scale = n + 1, where n = number of fully active cracking nodes.
+# Adjust the 'scale' value on the web service to match your deployment size.
+# Example: 8 active nodes -> scale: 9, 16 active nodes -> scale: 17
+#
+# Override at runtime without editing this file:
+#   docker compose -f docker-compose-production.yml up -d --scale web=N
+#
+# See docs/deployment/production-load-balancing.md for full details.
+
 x-common-env-vars: &common-env-vars
   RAILS_MASTER_KEY: ${RAILS_MASTER_KEY}
   REDIS_URL: redis://redis-db:6379
@@ -29,10 +40,29 @@ x-replicas: &replicas
     order: start-first
 
 services:
-  web:
-    image: ghcr.io/unclesp1d3r/cipherswarm:latest
+  nginx:
+    image: nginx:alpine
     ports:
       - "80:80"
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - web
+    networks:
+      - frontend
+      - backend
+    deploy:
+      resources:
+        <<: *resource-limits
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail http://localhost/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  web:
+    image: ghcr.io/unclesp1d3r/cipherswarm:latest
+    scale: 9
     environment:
       <<: *common-env-vars
     depends_on:
