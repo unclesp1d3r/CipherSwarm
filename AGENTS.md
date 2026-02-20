@@ -103,6 +103,9 @@ just lint
 
 # Run Brakeman security scanner
 just security
+
+# Lint OpenAPI specification with vacuum
+just lint-api
 ```
 
 ### Undercover (Change-Based Coverage)
@@ -311,6 +314,9 @@ Business logic is extracted into service objects and models:
 - RSwag for OpenAPI/Swagger documentation
 - Tests in spec/requests/ generate documentation
 - Run `just docs-api` or `RAILS_ENV=test rails rswag` to regenerate
+- [vacuum](https://quobix.com/vacuum/) lints the generated OpenAPI spec (`just lint-api`)
+- Custom ruleset in `vacuum-ruleset.yaml` disables rules that conflict with Rails conventions (snake_case properties, underscore paths)
+- `in: :body` parameters in RSwag specs must be defined **inside** the HTTP method block (`post`, `put`, etc.), not at the path level, for proper OpenAPI 3.0 `requestBody` generation
 
 #### JavaScript Testing
 

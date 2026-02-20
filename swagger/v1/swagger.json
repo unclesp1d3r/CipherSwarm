@@ -73,12 +73,14 @@
     "securitySchemes": {
       "bearer_auth": {
         "type": "http",
-        "scheme": "bearer"
+        "scheme": "bearer",
+        "description": "Bearer token authentication using agent API tokens"
       }
     },
     "schemas": {
       "ErrorObject": {
         "type": "object",
+        "description": "Standard error response returned by all API endpoints",
         "properties": {
           "error": {
             "type": "string"
@@ -91,6 +93,7 @@
       },
       "Agent": {
         "type": "object",
+        "description": "A cracking agent registered with CipherSwarm",
         "properties": {
           "id": {
             "type": "integer",
@@ -109,10 +112,11 @@
             "type": "string",
             "description": "The state of the agent",
             "enum": [
-              "pending",
               "active",
-              "stopped",
-              "error"
+              "error",
+              "offline",
+              "pending",
+              "stopped"
             ]
           },
           "operating_system": {
@@ -147,6 +151,7 @@
       },
       "AdvancedAgentConfiguration": {
         "type": "object",
+        "description": "Advanced hashcat and agent configuration options",
         "properties": {
           "agent_update_interval": {
             "type": "integer",
@@ -182,6 +187,7 @@
       },
       "HashcatBenchmark": {
         "type": "object",
+        "description": "A single hashcat benchmark result for a specific hash type and device",
         "properties": {
           "hash_type": {
             "type": "integer",
@@ -211,6 +217,7 @@
       },
       "Attack": {
         "type": "object",
+        "description": "A hashcat attack configuration assigned to an agent",
         "properties": {
           "id": {
             "type": "integer",
@@ -397,6 +404,7 @@
       },
       "HashcatResult": {
         "type": "object",
+        "description": "A cracked hash result submitted by an agent",
         "properties": {
           "timestamp": {
             "type": "string",
@@ -420,6 +428,7 @@
       },
       "Task": {
         "type": "object",
+        "description": "A unit of work assigned to an agent for a specific attack",
         "properties": {
           "id": {
             "type": "integer",
@@ -462,6 +471,7 @@
       },
       "AttackResourceFile": {
         "type": "object",
+        "description": "A downloadable resource file (word list, rule list, or mask list) used by an attack",
         "properties": {
           "id": {
             "type": "integer",
@@ -493,6 +503,7 @@
       },
       "TaskStatus": {
         "type": "object",
+        "description": "A hashcat status update submitted by an agent during task execution",
         "properties": {
           "original_line": {
             "type": "string",
@@ -587,6 +598,7 @@
       },
       "DeviceStatus": {
         "type": "object",
+        "description": "Status and performance metrics for a single GPU or CPU device",
         "properties": {
           "device_id": {
             "type": "integer",
@@ -629,6 +641,7 @@
       },
       "HashcatGuess": {
         "type": "object",
+        "description": "Current hashcat guess progress including base and modifier values",
         "properties": {
           "guess_base": {
             "type": "string",
@@ -811,7 +824,8 @@
                 ]
               }
             }
-          }
+          },
+          "description": "Agent system information"
         }
       }
     },
@@ -826,22 +840,6 @@
           },
           "required": true,
           "description": "id"
-        },
-        {
-          "name": "heartbeat_body",
-          "in": "body",
-          "required": false,
-          "schema": {
-            "type": "object",
-            "properties": {
-              "activity": {
-                "type": "string",
-                "description": "Current agent activity state. Known values: starting, benchmarking, updating, downloading, waiting, cracking, stopping. Future versions may support additional values.",
-                "example": "cracking",
-                "nullable": true
-              }
-            }
-          }
         }
       ],
       "post": {
@@ -856,6 +854,7 @@
           }
         ],
         "operationId": "sendHeartbeat",
+        "parameters": [],
         "responses": {
           "200": {
             "description": "successful, but with server feedback",
@@ -867,11 +866,13 @@
                   "properties": {
                     "state": {
                       "type": "string",
-                      "description": "The state of the agent:\n                       * `pending` - The agent needs to perform the setup process again.\n                       * `active` - The agent is ready to accept tasks, all is good.\n                       * `error` - The agent has encountered an error and needs to be checked.\n                       * `stopped` - The agent has been stopped by the user.",
+                      "description": "The state of the agent:\n                       * `pending` - The agent needs to perform the setup process again.\n                       * `active` - The agent is ready to accept tasks, all is good.\n                       * `error` - The agent has encountered an error and needs to be checked.\n                       * `stopped` - The agent has been stopped by the user.\n                       * `offline` - The agent has not checked in recently and is considered offline.",
                       "enum": [
+                        "active",
+                        "error",
+                        "offline",
                         "pending",
-                        "stopped",
-                        "error"
+                        "stopped"
                       ]
                     }
                   },
@@ -895,6 +896,24 @@
           "204": {
             "description": "successful"
           }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "activity": {
+                    "type": "string",
+                    "description": "Current agent activity state. Known values: starting, benchmarking, updating, downloading, waiting, cracking, stopping. Future versions may support additional values.",
+                    "example": "cracking",
+                    "nullable": true
+                  }
+                }
+              }
+            }
+          },
+          "description": "Optional activity state update"
         }
       }
     },
@@ -968,7 +987,8 @@
               }
             }
           },
-          "required": true
+          "required": true,
+          "description": "Hashcat benchmark results for the agent"
         }
       }
     },
@@ -1075,7 +1095,8 @@
                 ]
               }
             }
-          }
+          },
+          "description": "Error details reported by the agent"
         }
       }
     },
@@ -1380,7 +1401,8 @@
                 "$ref": "#/components/schemas/HashcatResult"
               }
             }
-          }
+          },
+          "description": "Cracked hash result"
         }
       }
     },
@@ -1453,7 +1475,7 @@
             }
           },
           "required": true,
-          "description": "status"
+          "description": "Hashcat status update for the task"
         }
       }
     },

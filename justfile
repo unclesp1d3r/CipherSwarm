@@ -239,6 +239,10 @@ docs-serve:
 docs-build:
     @echo "Documentation build not yet configured"
 
+# Lint OpenAPI specification with vacuum
+lint-api:
+    {{mise_exec}} vacuum lint swagger/v1/swagger.json -r vacuum-ruleset.yaml -b
+
 # Run integration tests and generate API docs
 docs-generate: test-api docs-api
 
@@ -270,5 +274,5 @@ annotate:
 changelog:
     git cliff -o CHANGELOG.md
 
-ci-check: check test undercover docs-generate
+ci-check: check test undercover docs-generate lint-api
     @echo "✓ CI checks passed"

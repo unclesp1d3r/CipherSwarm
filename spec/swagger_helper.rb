@@ -78,12 +78,14 @@ RSpec.configure do |config|
         securitySchemes: {
           bearer_auth: {
             type: :http,
-            scheme: :bearer
+            scheme: :bearer,
+            description: "Bearer token authentication using agent API tokens"
           }
         },
         schemas: {
           ErrorObject: {
             type: "object",
+            description: "Standard error response returned by all API endpoints",
             properties: {
               error: { type: :string }
             },
@@ -92,12 +94,13 @@ RSpec.configure do |config|
           },
           Agent: {
             type: :object,
+            description: "A cracking agent registered with CipherSwarm",
             properties: {
               id: { type: :integer, format: :int64, description: "The id of the agent" },
               host_name: { type: :string, description: "The hostname of the agent" },
               client_signature: { type: :string, description: "The signature of the client" },
               state: { type: :string, description: "The state of the agent",
-                       enum: %w[pending active stopped error] },
+                       enum: Agent.state_machine.states.map { |s| s.name.to_s }.sort },
               operating_system: { type: :string, description: "The operating system of the agent" },
               devices: { type: :array, items: { type: :string, description: "The descriptive name of a GPU or CPU device." } },
               current_activity: { type: :string, nullable: true, description: "Current agent activity state" },
@@ -109,6 +112,7 @@ RSpec.configure do |config|
           },
           AdvancedAgentConfiguration: {
             type: :object,
+            description: "Advanced hashcat and agent configuration options",
             properties: {
               agent_update_interval: { type: :integer, nullable: true, description: "The interval in seconds to check for agent updates" },
               use_native_hashcat: { type: :boolean, nullable: true, description: "Use the hashcat binary already installed on the client system" },
@@ -122,6 +126,7 @@ RSpec.configure do |config|
 
           HashcatBenchmark: {
             type: :object,
+            description: "A single hashcat benchmark result for a specific hash type and device",
             properties: {
               hash_type: { type: :integer, description: "The hashcat hash type" },
               runtime: { type: :integer, format: :int64, description: "The runtime of the benchmark in milliseconds." },
@@ -132,6 +137,7 @@ RSpec.configure do |config|
           },
           Attack: {
             type: :object,
+            description: "A hashcat attack configuration assigned to an agent",
             properties: {
               id: {
                 type: :integer,
@@ -314,6 +320,7 @@ RSpec.configure do |config|
           },
           HashcatResult: {
             type: :object,
+            description: "A cracked hash result submitted by an agent",
             properties: {
               timestamp: { type: :string, format: "date-time", description: "The time the hash was cracked" },
               hash: { type: :string, description: "The hash value" },
@@ -323,6 +330,7 @@ RSpec.configure do |config|
           },
           Task: {
             type: :object,
+            description: "A unit of work assigned to an agent for a specific attack",
             properties: {
               id: { type: :integer, format: :int64, description: "The id of the task" },
               attack_id: { type: :integer, format: :int64, description: "The id of the attack" },
@@ -335,6 +343,7 @@ RSpec.configure do |config|
           },
           AttackResourceFile: {
             type: :object,
+            description: "A downloadable resource file (word list, rule list, or mask list) used by an attack",
             properties: {
               id: { type: :integer, format: :int64, description: "The id of the resource file" },
               download_url: { type: :string, format: :uri, description: "The download URL of the resource file" },
@@ -346,6 +355,7 @@ RSpec.configure do |config|
           },
           TaskStatus: {
             type: :object,
+            description: "A hashcat status update submitted by an agent during task execution",
             properties: {
               original_line: { type: :string, description: "The original line from hashcat" },
               time: { type: :string, format: "date-time", description: "The time the status was received" },
@@ -382,6 +392,7 @@ RSpec.configure do |config|
           },
           DeviceStatus: {
             type: :object,
+            description: "Status and performance metrics for a single GPU or CPU device",
             properties: {
               device_id: { type: :integer, description: "The id of the device" },
               device_name: { type: :string, description: "The name of the device" },
@@ -394,6 +405,7 @@ RSpec.configure do |config|
           },
           HashcatGuess: {
             type: :object,
+            description: "Current hashcat guess progress including base and modifier values",
             properties: {
               guess_base: { type: :string, description: "The base value used for the guess (for example, the mask)" },
               guess_base_count: { type: :integer, format: :int64, description: "The number of times the base value was used" },
