@@ -827,22 +827,6 @@
           },
           "required": true,
           "description": "id"
-        },
-        {
-          "name": "heartbeat_body",
-          "in": "body",
-          "required": false,
-          "schema": {
-            "type": "object",
-            "properties": {
-              "activity": {
-                "type": "string",
-                "description": "Current agent activity state. Known values: starting, benchmarking, updating, downloading, waiting, cracking, stopping. Future versions may support additional values.",
-                "example": "cracking",
-                "nullable": true
-              }
-            }
-          }
         }
       ],
       "post": {
@@ -857,6 +841,7 @@
           }
         ],
         "operationId": "sendHeartbeat",
+        "parameters": [],
         "responses": {
           "200": {
             "description": "successful, but with server feedback",
@@ -897,6 +882,23 @@
           },
           "204": {
             "description": "successful"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "activity": {
+                    "type": "string",
+                    "description": "Current agent activity state. Known values: starting, benchmarking, updating, downloading, waiting, cracking, stopping. Future versions may support additional values.",
+                    "example": "cracking",
+                    "nullable": true
+                  }
+                }
+              }
+            }
           }
         }
       }

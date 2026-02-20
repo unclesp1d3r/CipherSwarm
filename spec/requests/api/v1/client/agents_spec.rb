@@ -215,24 +215,6 @@ RSpec.describe "api/v1/client/agents" do
     parameter name: :id, in: :path, schema: { type: :integer, format: :int64 },
               required: true, description: "id"
 
-    # NOTE: The `in: :body` parameter syntax is OpenAPI 2.0 style, which is technically invalid
-    # for OpenAPI 3.0. This is a known limitation of rswag 2.x. The generated swagger.json will
-    # contain this as a parameter instead of a requestBody, but most tools handle this gracefully.
-    # Consider upgrading to rswag 3.x for proper OpenAPI 3.0 requestBody support.
-    parameter name: :heartbeat_body, in: :body, required: false, schema: {
-      type: :object,
-      properties: {
-        activity: {
-          type: :string,
-          description: "Current agent activity state. Known values: starting, benchmarking, " \
-                       "updating, downloading, waiting, cracking, stopping. " \
-                       "Future versions may support additional values.",
-          example: "cracking",
-          nullable: true
-        }
-      }
-    }
-
     post "Send a heartbeat for an agent" do
       tags "Agents"
       description "Send a heartbeat for an agent to keep it alive. Optionally accepts an 'activity' " \
@@ -241,6 +223,20 @@ RSpec.describe "api/v1/client/agents" do
       consumes "application/json"
       produces "application/json"
       operationId "sendHeartbeat"
+
+      parameter name: :heartbeat_body, in: :body, required: false, schema: {
+        type: :object,
+        properties: {
+          activity: {
+            type: :string,
+            description: "Current agent activity state. Known values: starting, benchmarking, " \
+                         "updating, downloading, waiting, cracking, stopping. " \
+                         "Future versions may support additional values.",
+            example: "cracking",
+            nullable: true
+          }
+        }
+      }
 
       let(:agent) { create(:agent) }
       let(:id) { agent.id }
