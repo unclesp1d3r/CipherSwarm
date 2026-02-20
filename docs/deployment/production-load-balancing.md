@@ -30,15 +30,15 @@ When many cracking agents are active simultaneously, a single CipherSwarm web in
 
 **Component roles:**
 
-- **Nginx** — Accepts all incoming HTTP traffic on port 80 and distributes requests across web replicas using the `least_conn` algorithm. Uses Docker's embedded DNS (`127.0.0.11`) to discover replicas automatically.
-- **Web replicas (Thruster/Puma)** — Each replica is an independent container running the full Rails stack. Thruster handles HTTP/2, asset serving, and gzip per instance. Puma serves Rails requests with its own thread pool.
+- **Nginx** — Accepts all incoming HTTP traffic on port 80 and distributes requests across web replicas using the `least_conn` algorithm. Uses Docker's embedded DNS (`127.0.0.11`) to discover replicas automatically. Includes a dedicated `/cable` location for Action Cable WebSocket connections (Turbo Streams).
+- **Web replicas (Thruster/Puma)** — Each replica is an independent container running the full Rails stack. Thruster handles HTTP/2 and asset serving per instance. Puma serves Rails requests with its own thread pool.
 - **Backend services** — PostgreSQL, Redis, and Sidekiq are shared by all replicas. Rails cookie-based sessions are stateless, so no sticky sessions are required.
 
 ## Scaling Guidelines
 
 ### The n+1 Formula
 
-Set the number of web replicas to **n + 1**, where **n** is the number of fully active cracking nodes:
+Set the number of web replicas to **n + 1**, where **n** is the number of fully active cracking nodes. This is a conservative upper bound assuming worst-case scenarios where all agents submit status updates, crack results, and task requests simultaneously:
 
 | Active Nodes | Recommended Replicas | Rationale             |
 | :----------: | :------------------: | --------------------- |
@@ -49,12 +49,16 @@ Set the number of web replicas to **n + 1**, where **n** is the number of fully 
 
 The **+1 buffer** ensures that even if one replica is temporarily unhealthy or handling a slow request, the remaining replicas can absorb the load without queuing.
 
+For typical deployments with 30-second heartbeat intervals, fewer replicas may suffice. Monitor nginx access logs (check `upstream_response_time`) and Puma queue depth to right-size your deployment.
+
 ### Resource Considerations
 
 Each web replica is constrained to:
 
 - **CPU**: 1 core (limit), 0.5 core (reservation)
 - **Memory**: 512 MB (limit), 256 MB (reservation)
+
+PostgreSQL and Sidekiq have higher resource limits (2 GB and 1 GB respectively) to handle connection pooling from multiple web replicas and background job processing.
 
 Plan your host resources accordingly. For example, 9 web replicas require at minimum 4.5 CPU cores and 2.25 GB RAM reserved, with burst capacity up to 9 cores and 4.5 GB.
 
@@ -64,16 +68,22 @@ Plan your host resources accordingly. For example, 9 web replicas require at min
 
 Key settings and their purpose:
 
-| Setting                     | Value           | Purpose                                                              |
-| --------------------------- | --------------- | -------------------------------------------------------------------- |
-| `resolver 127.0.0.11`       | Docker DNS      | Discovers all web replica IPs dynamically                            |
-| `least_conn`                | Algorithm       | Sends new requests to the replica with the fewest active connections |
-| `max_fails=3`               | Passive health  | Marks a replica as down after 3 consecutive failures                 |
-| `fail_timeout=30s`          | Recovery window | Waits 30 s before retrying a failed replica                          |
-| `keepalive 32`              | Connection pool | Reuses TCP connections to backends for efficiency                    |
-| `proxy_read_timeout 300s`   | Long reads      | Allows slow API responses (e.g., large hash list downloads)          |
-| `proxy_next_upstream`       | Retry policy    | Retries on error, timeout, 502, 503, 504                             |
-| `client_max_body_size 100M` | Upload limit    | Accommodates large hash list and word list uploads                   |
+| Setting                           | Value           | Purpose                                                               |
+| --------------------------------- | --------------- | --------------------------------------------------------------------- |
+| `resolver 127.0.0.11`             | Docker DNS      | Discovers all web replica IPs dynamically                             |
+| `zone web_backend_zone 64k`       | Shared memory   | Required for the `resolve` parameter on upstream servers              |
+| `least_conn`                      | Algorithm       | Sends new requests to the replica with the fewest active connections  |
+| `resolve`                         | DNS re-query    | Re-resolves DNS so new/removed replicas are picked up (nginx 1.27.3+) |
+| `max_fails=3`                     | Passive health  | Marks a replica as down after 3 consecutive failures                  |
+| `fail_timeout=30s`                | Recovery window | Waits 30 s before retrying a failed replica                           |
+| `keepalive 32`                    | Connection pool | Reuses TCP connections to backends for efficiency                     |
+| `proxy_read_timeout 300s`         | Long reads      | Allows slow API responses (e.g., large hash list downloads)           |
+| `proxy_next_upstream`             | Retry policy    | Retries GET/HEAD on error, timeout, 502, 503, 504                     |
+| `proxy_next_upstream_timeout 30s` | Retry budget    | Bounds total retry duration to prevent cascading delays               |
+| `client_max_body_size 100M`       | Upload limit    | Accommodates large hash list and word list uploads                    |
+| `/cable` location                 | WebSocket       | Upgrades connections for Action Cable (Turbo Streams)                 |
+
+**Nginx version requirement:** The `resolve` parameter in upstream blocks requires nginx >= 1.27.3 (open-sourced from nginx Plus). The default `nginx:alpine` image (currently 1.29.x) supports this. Do not pin to an older version.
 
 ### Adjusting Timeouts
 
@@ -103,13 +113,19 @@ If agents experience timeouts during large file uploads or downloads, increase `
 
    ```yaml
    web:
-     scale: 9  # n+1 where n = active cracking nodes
+     deploy:
+       replicas: 9  # n+1 where n = active cracking nodes
    ```
+
+   Or pass it at the command line (see step 3).
 
 3. **Deploy the stack:**
 
    ```bash
    docker compose -f docker-compose-production.yml up -d
+
+   # Or with a specific replica count:
+   docker compose -f docker-compose-production.yml up -d --scale web=9
    ```
 
 4. **Verify all replicas are healthy:**
@@ -118,12 +134,12 @@ If agents experience timeouts during large file uploads or downloads, increase `
    docker compose -f docker-compose-production.yml ps
    ```
 
-   All web replicas and the nginx service should show `healthy` status.
+   All web replicas and the nginx service should show `healthy` status. Note that web replicas take 10-45 seconds to boot Rails, and nginx waits for at least one healthy web replica before starting.
 
 5. **Test load distribution** (optional):
 
    ```bash
-   # Send several requests and observe different container IDs in logs
+   # Send several requests and observe different upstream addresses in nginx logs
    for i in $(seq 1 10); do
      curl -s -o /dev/null -w "%{http_code}\n" http://localhost/up
    done
@@ -174,6 +190,8 @@ just docker-prod-logs-web
 docker compose -f docker-compose-production.yml logs web --index 1
 ```
 
+The nginx access log includes upstream context (`upstream=`, `upstream_status=`, `upstream_response_time=`, `request_time=`) to help diagnose load distribution and slow backends.
+
 ### Common Issues
 
 | Symptom                        | Likely Cause                  | Solution                                                                       |
@@ -183,10 +201,12 @@ docker compose -f docker-compose-production.yml logs web --index 1
 | Connection timeouts on uploads | `proxy_read_timeout` too low  | Increase timeout in `docker/nginx/nginx.conf`                                  |
 | 502 Bad Gateway                | All replicas down or starting | Wait for health checks to pass; check web replica logs                         |
 | Database connection errors     | Too many connections          | Tune `pool` size in `config/database.yml` or add PgBouncer                     |
+| OOM kills (exit code 137)      | Memory limit too low          | Check `docker inspect --format='{{.State.OOMKilled}}'`; increase service limit |
+| WebSocket disconnects          | Missing `/cable` location     | Verify `docker/nginx/nginx.conf` has the `/cable` WebSocket block              |
 
 ### Performance Monitoring
 
-- Watch nginx access logs for slow responses (> 1 s)
+- Watch nginx access logs for slow responses (`upstream_response_time` > 1 s)
 - Monitor PostgreSQL connection count: `SELECT count(*) FROM pg_stat_activity;`
 - Monitor Redis memory usage: `redis-cli INFO memory`
 - Track Sidekiq queue depth via the Sidekiq Web UI at `/sidekiq`
@@ -195,12 +215,13 @@ docker compose -f docker-compose-production.yml logs web --index 1
 
 ### SSL/TLS Termination
 
-The current configuration serves plain HTTP on port 80. For production deployments exposed to untrusted networks:
+The current configuration serves plain HTTP on port 80. The `DISABLE_SSL` environment variable is set to `true` by default in `docker-compose-production.yml`, which disables Rails `force_ssl` and `assume_ssl` redirects.
 
-1. **Recommended**: Place an external TLS-terminating reverse proxy (e.g., Caddy, Traefik, or a cloud load balancer) in front of the nginx service.
-2. **Alternative**: Add TLS certificates to the nginx configuration directly by mounting certs and updating the server block to listen on 443 with `ssl_certificate` and `ssl_certificate_key`.
+For deployments exposed to untrusted networks:
 
-Rails is already configured with `config.assume_ssl = true` and `config.force_ssl = true`, so it expects an upstream proxy to handle TLS.
+1. **Recommended**: Place an external TLS-terminating reverse proxy (e.g., Caddy, Traefik, or a cloud load balancer) in front of the nginx service. Then remove `DISABLE_SSL` (or set it to empty) so Rails enforces HTTPS.
+2. **Self-signed certificates** (typical for lab environments): Add TLS certificates to the nginx configuration directly by mounting certs and updating the server block to listen on 443 with `ssl_certificate` and `ssl_certificate_key`. Then remove `DISABLE_SSL`.
+3. **Isolated lab environments**: The default configuration (plain HTTP with `DISABLE_SSL=true`) is appropriate when the deployment is not exposed to untrusted networks.
 
 ### Header Forwarding
 
@@ -245,11 +266,11 @@ Nginx's passive health checks automatically route traffic away from replicas tha
 
 ### Scaling Automation
 
-For dynamic scaling based on agent count, consider scripting the replica adjustment:
+For dynamic scaling based on agent count, you could script the replica adjustment. Note that this requires a custom API endpoint that does not yet exist:
 
 ```bash
 #!/usr/bin/env bash
-# Example: query the API for active agent count and scale accordingly
+# Hypothetical example — requires implementing an /api/v1/agents/active_count endpoint.
 ACTIVE_AGENTS=$(curl -s http://localhost/api/v1/agents/active_count)
 REPLICAS=$((ACTIVE_AGENTS + 1))
 docker compose -f docker-compose-production.yml up -d --scale web=$REPLICAS
