@@ -499,6 +499,7 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 
 - When adding new files to `docs/user-guide/`, update BOTH `docs/user-guide/README.md` (user guide index) AND `docs/README.md` (top-level docs index) with links to the new files
 - `docs/user-guide/README.md` includes a "What's New in V2" section and a Quick Navigation table that also need updating for new features
+- When adding new files to `docs/deployment/`, update `docs/README.md` with links to the new files
 - `docs/deployment/air-gapped-deployment.md` is the DevOps-focused guide; `docs/user-guide/air-gapped-deployment.md` is the user-focused version with the 10-item validation checklist
 
 **Ruby Style:**
@@ -651,12 +652,29 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 
 ### Docker Development
 
+**Docker Configuration Files:**
+
+- `docker/nginx/nginx.conf` - Nginx reverse proxy config for production load balancing
+- Production uses nginx in front of horizontally-scaled web replicas (see `docker-compose-production.yml`)
+- Scale web replicas via CLI: `--scale web=N` or `just docker-prod-scale N`
+- Scaling formula: n+1 replicas where n = number of active cracking nodes
+
 ```bash
 # Start development environment
 docker compose up --watch
 
 # Start production environment
 docker compose -f docker-compose-production.yml up
+
+# Scale production web replicas (n+1 where n=active nodes)
+just docker-prod-scale 9
+
+# Check production service status
+just docker-prod-status
+
+# View nginx / web logs
+just docker-prod-logs-nginx
+just docker-prod-logs-web
 
 # Shell into Rails container
 just docker-shell
