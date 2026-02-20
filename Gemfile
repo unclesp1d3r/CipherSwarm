@@ -90,7 +90,7 @@ gem "lograge", "~> 0.14"
 # gem "maruku", "~> 0.7"  # REMOVED: Not used - consider commonmarker or redcarpet if markdown needed
 gem "meta-tags", "~> 2.21"
 gem "oj", "~> 3.16"
-gem "pagy", "~> 8.0"
+gem "pagy", "~> 43.2"
 gem "paranoia", "~> 3.0"
 gem "redis", "~> 5.1"
 gem "rexml", "~> 3.3"
