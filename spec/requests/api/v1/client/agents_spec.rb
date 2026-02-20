@@ -150,7 +150,7 @@ RSpec.describe "api/v1/client/agents" do
       produces "application/json"
       operationId "updateAgent"
 
-      parameter name: :agent, in: :body, schema: {
+      parameter name: :agent, in: :body, description: "Agent system information", schema: {
         type: :object,
         properties: {
           id: { type: :integer, format: :int64, description: "The id of the agent" },
@@ -224,7 +224,7 @@ RSpec.describe "api/v1/client/agents" do
       produces "application/json"
       operationId "sendHeartbeat"
 
-      parameter name: :heartbeat_body, in: :body, required: false, schema: {
+      parameter name: :heartbeat_body, in: :body, required: false, description: "Optional activity state update", schema: {
         type: :object,
         properties: {
           activity: {
@@ -383,7 +383,7 @@ RSpec.describe "api/v1/client/agents" do
       produces "application/json"
       operationId "submitBenchmark"
 
-      parameter name: :hashcat_benchmarks, in: :body, schema: {
+      parameter name: :hashcat_benchmarks, in: :body, description: "Hashcat benchmark results for the agent", schema: {
         type: :object,
         properties: {
           hashcat_benchmarks: {
@@ -920,7 +920,7 @@ RSpec.describe "api/v1/client/agents" do
       produces "application/json"
       operationId "submitErrorAgent"
 
-      parameter name: :agent_error, in: :body, schema: {
+      parameter name: :agent_error, in: :body, description: "Error details reported by the agent", schema: {
         type: :object,
         properties: {
           message: { type: :string, description: "The error message" },

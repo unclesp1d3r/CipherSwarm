@@ -73,12 +73,14 @@
     "securitySchemes": {
       "bearer_auth": {
         "type": "http",
-        "scheme": "bearer"
+        "scheme": "bearer",
+        "description": "Bearer token authentication using agent API tokens"
       }
     },
     "schemas": {
       "ErrorObject": {
         "type": "object",
+        "description": "Standard error response returned by all API endpoints",
         "properties": {
           "error": {
             "type": "string"
@@ -91,6 +93,7 @@
       },
       "Agent": {
         "type": "object",
+        "description": "A cracking agent registered with CipherSwarm",
         "properties": {
           "id": {
             "type": "integer",
@@ -148,6 +151,7 @@
       },
       "AdvancedAgentConfiguration": {
         "type": "object",
+        "description": "Advanced hashcat and agent configuration options",
         "properties": {
           "agent_update_interval": {
             "type": "integer",
@@ -183,6 +187,7 @@
       },
       "HashcatBenchmark": {
         "type": "object",
+        "description": "A single hashcat benchmark result for a specific hash type and device",
         "properties": {
           "hash_type": {
             "type": "integer",
@@ -212,6 +217,7 @@
       },
       "Attack": {
         "type": "object",
+        "description": "A hashcat attack configuration assigned to an agent",
         "properties": {
           "id": {
             "type": "integer",
@@ -398,6 +404,7 @@
       },
       "HashcatResult": {
         "type": "object",
+        "description": "A cracked hash result submitted by an agent",
         "properties": {
           "timestamp": {
             "type": "string",
@@ -421,6 +428,7 @@
       },
       "Task": {
         "type": "object",
+        "description": "A unit of work assigned to an agent for a specific attack",
         "properties": {
           "id": {
             "type": "integer",
@@ -463,6 +471,7 @@
       },
       "AttackResourceFile": {
         "type": "object",
+        "description": "A downloadable resource file (word list, rule list, or mask list) used by an attack",
         "properties": {
           "id": {
             "type": "integer",
@@ -494,6 +503,7 @@
       },
       "TaskStatus": {
         "type": "object",
+        "description": "A hashcat status update submitted by an agent during task execution",
         "properties": {
           "original_line": {
             "type": "string",
@@ -588,6 +598,7 @@
       },
       "DeviceStatus": {
         "type": "object",
+        "description": "Status and performance metrics for a single GPU or CPU device",
         "properties": {
           "device_id": {
             "type": "integer",
@@ -630,6 +641,7 @@
       },
       "HashcatGuess": {
         "type": "object",
+        "description": "Current hashcat guess progress including base and modifier values",
         "properties": {
           "guess_base": {
             "type": "string",
@@ -812,7 +824,8 @@
                 ]
               }
             }
-          }
+          },
+          "description": "Agent system information"
         }
       }
     },
@@ -899,7 +912,8 @@
                 }
               }
             }
-          }
+          },
+          "description": "Optional activity state update"
         }
       }
     },
@@ -973,7 +987,8 @@
               }
             }
           },
-          "required": true
+          "required": true,
+          "description": "Hashcat benchmark results for the agent"
         }
       }
     },
@@ -1080,7 +1095,8 @@
                 ]
               }
             }
-          }
+          },
+          "description": "Error details reported by the agent"
         }
       }
     },
@@ -1385,7 +1401,8 @@
                 "$ref": "#/components/schemas/HashcatResult"
               }
             }
-          }
+          },
+          "description": "Cracked hash result"
         }
       }
     },
@@ -1458,7 +1475,7 @@
             }
           },
           "required": true,
-          "description": "status"
+          "description": "Hashcat status update for the task"
         }
       }
     },
