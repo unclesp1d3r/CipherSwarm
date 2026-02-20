@@ -257,8 +257,9 @@ RSpec.describe "api/v1/client/agents" do
                        * `pending` - The agent needs to perform the setup process again.
                        * `active` - The agent is ready to accept tasks, all is good.
                        * `error` - The agent has encountered an error and needs to be checked.
-                       * `stopped` - The agent has been stopped by the user.",
-                          enum: %w[pending stopped error] }
+                       * `stopped` - The agent has been stopped by the user.
+                       * `offline` - The agent has not checked in within the configured threshold and is considered offline.",
+                          enum: %w[pending active stopped error offline] }
                },
                required: %i[state]
 

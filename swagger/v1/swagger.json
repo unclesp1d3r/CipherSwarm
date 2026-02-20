@@ -112,7 +112,8 @@
               "pending",
               "active",
               "stopped",
-              "error"
+              "error",
+              "offline"
             ]
           },
           "operating_system": {
@@ -867,11 +868,13 @@
                   "properties": {
                     "state": {
                       "type": "string",
-                      "description": "The state of the agent:\n                       * `pending` - The agent needs to perform the setup process again.\n                       * `active` - The agent is ready to accept tasks, all is good.\n                       * `error` - The agent has encountered an error and needs to be checked.\n                       * `stopped` - The agent has been stopped by the user.",
+                      "description": "The state of the agent:\n                       * `pending` - The agent needs to perform the setup process again.\n                       * `active` - The agent is ready to accept tasks, all is good.\n                       * `error` - The agent has encountered an error and needs to be checked.\n                       * `stopped` - The agent has been stopped by the user.\n                       * `offline` - The agent has not checked in within the configured threshold and is considered offline.",
                       "enum": [
                         "pending",
+                        "active",
                         "stopped",
-                        "error"
+                        "error",
+                        "offline"
                       ]
                     }
                   },
