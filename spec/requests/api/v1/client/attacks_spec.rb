@@ -191,15 +191,15 @@ RSpec.describe "api/v1/client/attacks" do
       end
     end
 
-    it "returns 422 when a NoMethodError occurs" do
+    it "returns 500 when a NoMethodError occurs" do
       create(:task, attack: attack, agent: agent)
       allow(Attack).to receive(:joins).and_raise(NoMethodError.new("undefined method"))
 
       get "/api/v1/client/attacks/#{attack.id}",
           headers: { "Authorization" => "Bearer #{agent.token}", "Accept" => "application/json" }
 
-      expect(response).to have_http_status(:unprocessable_content)
-      expect(response.parsed_body["error"]).to eq("Invalid request")
+      expect(response).to have_http_status(:internal_server_error)
+      expect(response.parsed_body["error"]).to eq("Internal server error")
     end
 
     context "when the attack's campaign association is nil" do
@@ -232,7 +232,7 @@ RSpec.describe "api/v1/client/attacks" do
         get "/api/v1/client/attacks/#{attack.id}",
             headers: { "Accept" => "application/json" }
 
-        expect(response).to have_http_status(:unprocessable_content)
+        expect(response).to have_http_status(:internal_server_error)
         expect(Rails.logger).to have_received(:error).with(/unknown/)
       end
     end
