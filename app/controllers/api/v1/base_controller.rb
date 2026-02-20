@@ -14,19 +14,15 @@ class Api::V1::BaseController < ApplicationController
   after_action :update_last_seen # Updates the last seen timestamp and IP address for the agent.
   after_action :log_api_request_complete # Logs the completion of an API request with duration
 
-  # Catch-all error handler for unexpected exceptions
-  # IMPORTANT: Must be registered FIRST so specific handlers below take precedence
+  # Catch-all error handler for unexpected exceptions.
+  # IMPORTANT: Must be registered FIRST so specific handlers below take precedence.
+  # NOTE: Unlike ApplicationController#unknown_error (which re-raises in dev/test),
+  # the API always renders JSON errors since agents need structured responses.
   rescue_from StandardError do |e|
     agent_id = @agent&.id || "unknown"
     backtrace = e.backtrace.first(5).join("\n")
     Rails.logger.error("[APIError] UNHANDLED_ERROR - Agent #{agent_id} - #{request.method} #{request.path} - Error: #{e.class.name} - #{e.message} - Backtrace: #{backtrace} - #{Time.current}")
     render json: { error: "Internal server error" }, status: :internal_server_error
-  end
-
-  rescue_from NoMethodError do |e|
-    agent_id = @agent&.id || "unknown"
-    Rails.logger.error("[APIError] NO_METHOD_ERROR - Agent #{agent_id} - #{request.method} #{request.path} - Error: #{e.message} - #{Time.current}")
-    render json: { error: "Invalid request" }, status: :unprocessable_content
   end
 
   rescue_from ActionController::ParameterMissing do |e|

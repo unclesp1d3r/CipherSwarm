@@ -21,9 +21,10 @@ require "pagy"
 # - `resource_forbidden`: Handles forbidden resource access errors (403 status).
 # - `resource_not_found`: Handles not found errors for resources (404 status).
 # - `route_not_found`: Handles routing errors for non-existent URLs (404 status).
-# - `unknown_error`: Handles unexpected internal server errors (500 status).
+# - `unknown_error`: Handles unexpected internal server errors (500 status, production only).
 # - `unsupported_version`: Handles requests for unsupported resource formats (404 status).
 # - Specific exceptions like `ActionController::RoutingError`, `ActiveRecord::RecordNotFound`, and `CanCan::AccessDenied` are rescued with tailored response methods.
+# - In development/test, unhandled StandardErrors propagate naturally to surface real bugs.
 #
 # Supported Error Handlers:
 # - Logs errors for debugging and analytics.
@@ -39,7 +40,7 @@ class ApplicationController < ActionController::Base
   include Pagy::Backend # Adds support for pagination.
   before_action :configure_permitted_parameters, if: :devise_controller?
 
-  rescue_from StandardError, with: :unknown_error # Handles unknown errors.
+  rescue_from StandardError, with: :unknown_error # Handles unknown errors (production only, re-raises in dev/test).
   rescue_from ActionController::RoutingError, with: :route_not_found # Handles routing errors.
   rescue_from ActionController::UnknownFormat, with: :bad_request # Handles unknown format errors.
   rescue_from ActionController::InvalidCrossOriginRequest, with: :bad_request # Handles invalid cross-origin requests.
@@ -134,6 +135,8 @@ class ApplicationController < ActionController::Base
   end
 
   def unknown_error(error)
+    raise error unless Rails.env.production?
+
     logger.error "unknown_error #{error}"
     logger.error error.backtrace.join("\n") unless error.backtrace.nil?
     respond_to do |format|
