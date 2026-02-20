@@ -219,6 +219,13 @@ RSpec.describe Ability do
       it { is_expected.to be_able_to(:reassign, project_task) }
       it { is_expected.to be_able_to(:download_results, other_task) }
     end
+
+    context "when user is nil" do
+      subject(:ability) { described_class.new(nil) }
+
+      it { is_expected.not_to be_able_to(:read, project_task) }
+      it { is_expected.not_to be_able_to(:manage, project_task) }
+    end
   end
 
   describe "User permissions" do
