@@ -54,7 +54,7 @@ For detailed information about the V2 upgrade, see the [V2 Upgrade Overview](doc
 - **Advanced Agent Management**: Intelligent task distribution based on agent capabilities
 - **Comprehensive Analytics**: Password pattern analysis and security insights
 - **Team Collaboration**: Activity feeds, commenting, and project coordination
-- **Production-Ready Deployment**: Containerized deployment with monitoring and scaling
+- **Production-Ready Deployment**: Containerized deployment with nginx load balancing, horizontal scaling, monitoring, and multi-replica support
 
 See the [V2 Upgrade Overview](docs/v2-upgrade-overview.md) for complete feature details.
 
@@ -185,6 +185,8 @@ The quickest way to get CipherSwarm up and running is to use Docker. The followi
 3. Access the CipherSwarm web interface at <http://localhost:3000>.
 
 4. Log in with the default admin credentials (username: admin, password: password) and change the password immediately.
+
+For production deployments with multiple agents, see the [Production Load Balancing Guide](docs/deployment/production-load-balancing.md) for horizontal scaling configuration.
 
 ### Project Assumptions and Target Audience
 

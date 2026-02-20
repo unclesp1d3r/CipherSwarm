@@ -1,10 +1,59 @@
+# CipherSwarm Production Docker Compose
+#
+# Web Scaling Formula: scale = n + 1, where n = number of fully active cracking nodes.
+# This is a conservative upper bound assuming worst-case concurrent API traffic.
+# For typical deployments with 30-second heartbeat intervals, fewer replicas may suffice.
+# Monitor nginx access logs and Puma queue depth to right-size.
+#
+# Example: 8 active nodes -> --scale web=9, 16 active nodes -> --scale web=17
+#
+# Scale at runtime (default is 1 replica):
+#   docker compose -f docker-compose-production.yml up -d --scale web=N
+#   or: just docker-prod-scale N
+#
+# See docs/deployment/production-load-balancing.md for full details.
+
 x-common-env-vars: &common-env-vars
   RAILS_MASTER_KEY: ${RAILS_MASTER_KEY}
   REDIS_URL: redis://redis-db:6379
   DATABASE_URL: postgres://root:${POSTGRES_PASSWORD:-password}@postgres-db/
   MINIO_ENDPOINT: http://${MINIO_PUBLIC_IP:-127.0.0.1}:9000
+  # Disable Rails force_ssl since TLS is terminated upstream (or not used in lab environments).
+  DISABLE_SSL: ${DISABLE_SSL:-true}
 
-x-resource-limits: &resource-limits
+x-web-resources: &web-resources
+  limits:
+    cpus: '1'
+    memory: 512M
+  reservations:
+    cpus: '0.5'
+    memory: 256M
+
+x-nginx-resources: &nginx-resources
+  limits:
+    cpus: '0.5'
+    memory: 128M
+  reservations:
+    cpus: '0.25'
+    memory: 64M
+
+x-db-resources: &db-resources
+  limits:
+    cpus: '2'
+    memory: 2G
+  reservations:
+    cpus: '1'
+    memory: 1G
+
+x-worker-resources: &worker-resources
+  limits:
+    cpus: '1'
+    memory: 1G
+  reservations:
+    cpus: '0.5'
+    memory: 512M
+
+x-default-resources: &default-resources
   limits:
     cpus: '1'
     memory: 512M
@@ -29,17 +78,39 @@ x-replicas: &replicas
     order: start-first
 
 services:
-  web:
-    image: ghcr.io/unclesp1d3r/cipherswarm:latest
+  nginx:
+    image: nginx:alpine
     ports:
       - "80:80"
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      web:
+        condition: service_healthy
+    networks:
+      - frontend
+      - backend
+    deploy:
+      resources:
+        <<: *nginx-resources
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8080/nginx-health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  web:
+    image: ghcr.io/unclesp1d3r/cipherswarm:latest
     environment:
       <<: *common-env-vars
     depends_on:
-      - redis-db
-      - postgres-db
-      - minio
-      - sidekiq
+      redis-db:
+        condition: service_healthy
+      postgres-db:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
     volumes:
       - storage:/rails/storage
     networks:
@@ -47,12 +118,13 @@ services:
       - backend
     deploy:
       resources:
-        <<: *resource-limits
+        <<: *web-resources
     healthcheck:
       test: [ "CMD-SHELL", "curl --fail http://localhost/up || exit 1" ]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 45s
 
   postgres-db:
     image: postgres
@@ -72,7 +144,7 @@ services:
       - backend
     deploy:
       resources:
-        <<: *resource-limits
+        <<: *db-resources
 
   minio:
     image: minio/minio
@@ -89,7 +161,7 @@ services:
       - MINIO_ROOT_PASSWORD=minioadmin
     deploy:
       resources:
-        <<: *resource-limits
+        <<: *default-resources
     healthcheck:
       test: [ "CMD-SHELL", "curl --fail http://localhost:9000/minio/health/live || exit 1" ]
       interval: 30s
@@ -104,7 +176,7 @@ services:
       restart_policy:
         condition: on-failure
       resources:
-        <<: *resource-limits
+        <<: *default-resources
     volumes:
       - redis:/data
     healthcheck:
@@ -119,9 +191,12 @@ services:
     environment:
       <<: *common-env-vars
     depends_on:
-      - redis-db
-      - postgres-db
-      - minio
+      redis-db:
+        condition: service_healthy
+      postgres-db:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
     volumes:
       - storage:/rails/storage
     networks:
@@ -130,7 +205,7 @@ services:
       replicas: 4
       <<: *replicas
       resources:
-        <<: *resource-limits
+        <<: *worker-resources
     healthcheck:
       test: [ "CMD-SHELL", "curl --fail http://localhost:7433 || exit 1" ]
       interval: 30s

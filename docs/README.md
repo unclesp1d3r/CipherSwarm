@@ -32,6 +32,10 @@ Welcome to the CipherSwarm documentation. This directory contains comprehensive 
 - [Performance Optimization](user-guide/optimization.md) - Hardware tuning, attack strategies, and system optimization
 - [Air-Gapped Deployment](user-guide/air-gapped-deployment.md) - Deploying in isolated environments
 
+### Deployment Guides
+
+- [Production Load Balancing](deployment/production-load-balancing.md) - Nginx load balancing with horizontal web scaling
+
 ### Development Documentation
 
 - [Style Guide](development/style-guide.md) - Code style and conventions
@@ -79,7 +83,7 @@ CipherSwarm is currently undergoing a comprehensive V2 upgrade. The upgrade main
 - **Advanced Agent Management** with intelligent task distribution
 - **Comprehensive Reporting & Analytics** for security insights
 - **Team Collaboration Features** with activity feeds and notifications
-- **Production-Ready Deployment** with containerization and monitoring
+- **Production-Ready Deployment** with containerization, nginx load balancing, horizontal scaling, and monitoring
 
 For complete details, see the [V2 Upgrade Overview](v2-upgrade-overview.md).
 
