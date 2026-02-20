@@ -145,6 +145,22 @@ docker-dev-watch:
 docker-prod-up:
     docker compose -f docker-compose-production.yml up
 
+# Scale production web service (use n+1 where n=active nodes)
+docker-prod-scale NUMBER:
+    docker compose -f docker-compose-production.yml up -d --scale web={{NUMBER}}
+
+# View nginx load balancer logs
+docker-prod-logs-nginx:
+    docker compose -f docker-compose-production.yml logs -f nginx
+
+# View web service replica logs
+docker-prod-logs-web:
+    docker compose -f docker-compose-production.yml logs -f web
+
+# Check status of all production services
+docker-prod-status:
+    docker compose -f docker-compose-production.yml ps
+
 # Stop and clean up development environment
 docker-down:
     docker compose -p csdev down
