@@ -97,7 +97,7 @@ RSpec.configure do |config|
               host_name: { type: :string, description: "The hostname of the agent" },
               client_signature: { type: :string, description: "The signature of the client" },
               state: { type: :string, description: "The state of the agent",
-                       enum: %w[pending active stopped error offline] },
+                       enum: Agent.state_machine.states.map { |s| s.name.to_s }.sort },
               operating_system: { type: :string, description: "The operating system of the agent" },
               devices: { type: :array, items: { type: :string, description: "The descriptive name of a GPU or CPU device." } },
               current_activity: { type: :string, nullable: true, description: "Current agent activity state" },
