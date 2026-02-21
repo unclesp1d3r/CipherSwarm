@@ -323,7 +323,7 @@ Business logic is extracted into service objects and models:
 - Tests in spec/requests/ generate documentation
 - Run `just docs-api` or `RAILS_ENV=test rails rswag` to regenerate
 - [vacuum](https://quobix.com/vacuum/) lints the generated OpenAPI spec (`just lint-api`)
-- Custom ruleset in `vacuum-ruleset.yaml` disables rules that conflict with Rails conventions (snake_case properties, underscore paths)
+- Custom ruleset in `vacuum-ruleset.yaml` disables rules that conflict with Rails conventions (snake_case properties, underscore paths, description duplication, `$ref` siblings from rswag description placement)
 - Use `request_body_json schema: {...}, examples: :let_name` for request bodies (polyfilled in spec/support/rswag_polyfills.rb for rswag 3.0.0.pre)
 - `request_body_json` must be called **inside** the HTTP method block (`post`, `put`, etc.), not at the path level
 
@@ -370,6 +370,8 @@ To set up JavaScript testing in the project, we use Vitest. Follow the steps bel
    ```
 
 Both unit tests for Stimulus controllers and integration tests via system tests are included in the project.
+
+- Pagy JS is distributed via the gem's `javascripts/` directory, not npm — `config/initializers/pagy.rb` adds it to asset paths and esbuild resolves via `NODE_PATH`
 
 **Vitest Mock Patterns:**
 
