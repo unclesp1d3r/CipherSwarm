@@ -12,8 +12,6 @@
 # - `before_action :authenticate_user!` ensures that only authenticated users access controller actions.
 # - `before_action :set_task` loads the task for actions.
 class TasksController < ApplicationController
-  include Pagy::Method
-
   before_action :authenticate_user!
   before_action :set_task
 

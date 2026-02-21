@@ -8,10 +8,16 @@ require "rails_helper"
 # Polyfill request_body_json for rswag 3.0.0.pre which lacks this helper.
 # Wraps the existing `consumes` + `parameter in: :body` mechanism so specs
 # use the OAS 3.0 requestBody DSL while the formatter converts to valid output.
+# TODO: Remove this polyfill when upgrading to a stable rswag 3.x that includes request_body_json natively.
 module Rswag
   module Specs
     module ExampleGroupHelpers
       def request_body_json(schema:, required: true, description: nil, examples: nil)
+        unless metadata.key?(:operation)
+          raise ArgumentError,
+                "request_body_json must be called inside an HTTP method block (post, put, patch), not at the path level"
+        end
+
         consumes "application/json"
 
         param_name = examples || :_request_body
@@ -25,7 +31,9 @@ module Rswag
     # Bridge rswag 2.x `let`-based parameter resolution to 3.x `request_params`
     # hash lookups. rswag 3.0.0.pre resolves parameters via params.fetch(name)
     # from example.request_params (empty by default). This wrapper falls back to
-    # example.send(name) so that existing `let` blocks continue to work.
+    # example.public_send(name) so that existing `let` blocks continue to work.
+    # NOTE: Avoid using parameter names that collide with RSpec internals
+    # (e.g., :subject, :response, :described_class, :metadata).
     class LetFallbackHash
       def initialize(base_hash, example)
         @base = base_hash
@@ -36,7 +44,7 @@ module Rswag
         @base.fetch(key, *args, &)
       rescue KeyError
         raise unless @example.respond_to?(key.to_sym)
-        @example.send(key.to_sym)
+        @example.public_send(key.to_sym)
       end
 
       def key?(key)
@@ -44,7 +52,7 @@ module Rswag
       end
 
       def method_missing(method, ...)
-        @base.send(method, ...)
+        @base.public_send(method, ...)
       end
 
       def respond_to_missing?(method, include_private = false)
@@ -53,11 +61,20 @@ module Rswag
     end
 
     class RequestFactory
+      rswag_version = Gem.loaded_specs["rswag-specs"]&.version&.to_s
+      unless rswag_version == "3.0.0.pre"
+        raise "rswag-specs version changed to #{rswag_version || 'unknown'}. " \
+              "Remove the LetFallbackHash monkey-patch in swagger_helper.rb " \
+              "and verify request_body_json is natively supported."
+      end
+
       alias_method :original_initialize, :initialize
 
       def initialize(metadata, example, config = ::Rswag::Specs.config)
         original_initialize(metadata, example, config)
         @params = LetFallbackHash.new(@params, example)
+        # Header parameters (e.g., Authorization) are also resolved from `let` blocks
+        # and need the same fallback behavior as body/query params.
         @headers = LetFallbackHash.new(@headers, example)
       end
     end
@@ -88,7 +105,7 @@ RSpec.configure do |config|
         backoff: {
           initialInterval: 500, # 500 milliseconds
           maxInterval: 60000, # 60 seconds
-          maxElapsedTime: 3600000, # 5 minutes
+          maxElapsedTime: 3600000, # 60 minutes
           exponent: 1.5
         },
         statusCodes: ["5XX", 429],
