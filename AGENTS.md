@@ -325,6 +325,7 @@ Business logic is extracted into service objects and models:
 - `request_body_json` does not exist in rswag 3.0.0.pre — polyfilled in `spec/swagger_helper.rb`
 - `RequestFactory` in 3.x resolves parameters via `params.fetch(name)` against `example.request_params` (empty hash by default); since rswag 2.x resolved parameters via `example.send(param_name)` directly from `let` blocks, `LetFallbackHash` in swagger_helper.rb bridges this gap by falling back to `example.public_send(key)` when `request_params` lacks the key
 - The rswag 3.x formatter already converts internal `in: :body` + `consumes` to OAS 3.0 `requestBody` — polyfills use this mechanism
+- Known limitation: rswag 3.0.0.pre places `description` inside `requestBody.content.schema` rather than at the `requestBody` level — this is less conventional in OpenAPI 3.0 but does not affect functionality
 
 #### JavaScript Testing
 

@@ -30,7 +30,7 @@ class AgentsController < ApplicationController
 
   # GET /agents/1 or /agents/1.json
   def show
-    @pagy, @errors = pagy(:offset, @agent.agent_errors.order(created_at: :desc),
+    @pagy, @errors = pagy(:offset, @agent.agent_errors.order(created_at: :desc, id: :desc),
                           limit: 10, anchor_string: 'data-remote="true"')
   end
 

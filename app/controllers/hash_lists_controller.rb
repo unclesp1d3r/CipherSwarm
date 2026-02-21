@@ -46,7 +46,7 @@ class HashListsController < ApplicationController
   #   - `@state`: The current filtering state, indicating the applied filter ("uncracked", "cracked", or "all").
   #   - `@pagy`: Pagy instance to handle pagination metadata for the view layer.
   def show
-    @hash_items = @hash_list.hash_items.order(created_at: :desc)
+    @hash_items = @hash_list.hash_items.order(created_at: :desc, id: :desc)
 
     case params[:item_state]
     when "uncracked"

@@ -61,7 +61,7 @@ class TasksController < ApplicationController
   def logs
     authorize! :read, @task
     @pagy, @statuses = pagy(:offset,
-      @task.hashcat_statuses.order(time: :desc),
+      @task.hashcat_statuses.order(time: :desc, id: :desc),
       limit: 50)
   end
 

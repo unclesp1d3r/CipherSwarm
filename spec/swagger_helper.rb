@@ -41,10 +41,12 @@ module Rswag
       end
 
       def fetch(key, *args, &)
+        return @base.fetch(key, *args, &) if @base.key?(key)
+        return @example.public_send(key.to_sym) if @example.respond_to?(key.to_sym)
+
+        # Neither base nor example has the key — delegate to Hash#fetch for
+        # standard default/block/KeyError behavior.
         @base.fetch(key, *args, &)
-      rescue KeyError
-        raise unless @example.respond_to?(key.to_sym)
-        @example.public_send(key.to_sym)
       end
 
       def key?(key)
