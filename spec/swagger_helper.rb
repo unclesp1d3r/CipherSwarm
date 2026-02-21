@@ -12,8 +12,10 @@ RSpec.configure do |config|
   # to ensure that it's configured to serve Swagger from the same folder
   config.openapi_root = Rails.root.join("swagger").to_s
 
-  # rswag 3.0.0.pre replaced openapi_strict_schema_validation with granular options.
-  # Rely on vacuum linter (just lint-api) for OpenAPI document structure validation.
+  # rswag 3.0.0.pre replaced openapi_strict_schema_validation with granular options:
+  # - openapi_no_additional_properties: rejects undeclared properties in responses
+  # - openapi_all_properties_required: treats every declared property as required
+  # vacuum linter (just lint-api) validates the generated OpenAPI document structure.
   config.openapi_no_additional_properties = true
   config.openapi_all_properties_required = true
 

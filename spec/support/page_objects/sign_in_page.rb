@@ -77,6 +77,8 @@ class SignInPage < BasePage
   private
 
   # Replicate Devise 5's downcase_first behavior for authentication key labels.
+  # Coupled to Devise::FailureApp#i18n_message (devise 5.x) — update if Devise
+  # changes how it formats authentication_keys in flash messages.
   def devise_auth_keys_label
     Devise.authentication_keys.map { |key|
       User.human_attribute_name(key).downcase_first

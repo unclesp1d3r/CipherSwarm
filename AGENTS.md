@@ -284,8 +284,9 @@ Business logic is extracted into service objects and models:
 ### Pagy 43 Pagination Rendering
 
 - All paginated views must use `<%== @pagy.series_nav(:bootstrap) %>` with a `<noscript><%== @pagy.series_nav %></noscript>` fallback
-- Guard with `if @pagy.pages > 1` where appropriate
-- `Railsboot::PaginationComponent` exists but is not yet used universally
+- Some views use a local `pagy` variable (from partials) instead of `@pagy` — same API applies
+- Guard both `series_nav` and `<noscript>` inside `if pagy.pages > 1` (see `campaigns/_error_log.html.erb` for reference)
+- `Railsboot::PaginationComponent` wraps `series_nav(:bootstrap)` with noscript fallback for reuse in view components
 
 ### Real-Time Features
 
@@ -569,6 +570,7 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 - **.rubocop.yml** - RuboCop configuration (inherits from rubocop-rails-omakase)
 - **config/routes.rb** - Routes organized with `draw(:admin)`, `draw(:client_api)`, `draw(:errors)`, `draw(:devise)`
 - **swagger_helper.rb** - OpenAPI/Swagger configuration (requires `spec/support/rswag_polyfills.rb` for rswag 3.x bridge code)
+- **spec/openapi_helper.rb** - rswag 3.x compatibility shim that delegates to `swagger_helper.rb`
 - **spec/support/rswag_polyfills.rb** - Temporary rswag 3.0.0.pre polyfills (`request_body_json` DSL, `LetFallbackHash`, `RequestFactoryLetFallback`); version-guarded to fail on rswag upgrade
 
 ### Common Patterns

@@ -1400,7 +1400,8 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/HashcatResult"
+                "$ref": "#/components/schemas/HashcatResult",
+                "description": "Cracked hash result from hashcat"
               }
             }
           },
@@ -1472,7 +1473,8 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TaskStatus"
+                "$ref": "#/components/schemas/TaskStatus",
+                "description": "Hashcat status update for the task"
               }
             }
           },

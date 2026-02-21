@@ -53,7 +53,14 @@ module Rswag
 
       def fetch(key, *args, &)
         return @base.fetch(key, *args, &) if @base.key?(key)
-        return @example.public_send(key.to_sym) if @example.respond_to?(key.to_sym)
+
+        if @example.respond_to?(key.to_sym)
+          begin
+            return @example.public_send(key.to_sym)
+          rescue => e
+            raise e.class, "LetFallbackHash: error resolving `let(:#{key})` — #{e.message}", e.backtrace
+          end
+        end
 
         # Neither base nor example has the key — delegate to Hash#fetch for
         # standard default/block/KeyError behavior.

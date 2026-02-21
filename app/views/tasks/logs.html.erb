@@ -78,10 +78,12 @@
               </table>
             </div>
 
-            <nav class="mt-3" aria-label="Status history pagination">
-              <%== @pagy.series_nav(:bootstrap) if @pagy.pages > 1 %>
-              <noscript><%== @pagy.series_nav %></noscript>
-            </nav>
+            <% if @pagy.pages > 1 %>
+              <nav class="mt-3" aria-label="Status history pagination">
+                <%== @pagy.series_nav(:bootstrap) %>
+                <noscript><%== @pagy.series_nav %></noscript>
+              </nav>
+            <% end %>
           <% else %>
             <p class="text-muted mb-0">No status history available for this task.</p>
           <% end %>

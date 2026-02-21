@@ -20,8 +20,10 @@
       </table>
     </div>
 
-    <%== pagy.series_nav(:bootstrap) if pagy.pages > 1 %>
-    <noscript><%== pagy.series_nav %></noscript>
+    <% if pagy.pages > 1 %>
+      <%== pagy.series_nav(:bootstrap) %>
+      <noscript><%== pagy.series_nav %></noscript>
+    <% end %>
   <% else %>
     <%= render Railsboot::BlankSlateComponent.new do |blank_slate| %>
       <% blank_slate.with_icon do %>
