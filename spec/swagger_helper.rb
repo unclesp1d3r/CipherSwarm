@@ -15,6 +15,7 @@ RSpec.configure do |config|
   # rswag 3.0.0.pre replaced openapi_strict_schema_validation with granular options.
   # Rely on vacuum linter (just lint-api) for OpenAPI document structure validation.
   config.openapi_no_additional_properties = true
+  config.openapi_all_properties_required = true
 
   # Define one or more Swagger documents and provide global metadata for each one
   # When you run the 'rswag:specs:swaggerize' rake task, the complete Swagger will

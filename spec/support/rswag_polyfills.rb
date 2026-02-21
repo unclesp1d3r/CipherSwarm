@@ -3,9 +3,19 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
-# Temporary polyfills for rswag 3.0.0.pre compatibility.
-# TODO: Remove this file when upgrading to a stable rswag 3.x that includes
-# request_body_json natively and resolves let-based parameters without shims.
+# REASONING:
+#   Why: rswag 3.0.0.pre is the only version that generates valid OpenAPI 3.0
+#     requestBody (2.x only produces invalid `in: body` parameters). However,
+#     3.0.0.pre lacks the `request_body_json` DSL and changed parameter resolution
+#     from `let`-block lookups to a `request_params` hash, breaking existing specs.
+#   Alternatives considered:
+#     - Stay on rswag 2.x: cannot generate valid OpenAPI 3.0 specs (issue #598)
+#     - Rewrite all specs to use 3.x native APIs: high churn for a pre-release
+#     - Fork rswag: unnecessary maintenance burden
+#   Decision: Provide lightweight polyfills that bridge the gap, guarded by a
+#     version check so they fail loudly when a stable rswag 3.x ships.
+#   Performance: Negligible — thin wrappers around Hash lookups in test code only.
+#   Future: Remove this file when upgrading to a stable rswag 3.x release.
 
 module Rswag
   module Specs
