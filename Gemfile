@@ -48,7 +48,7 @@ group :development, :test do
   gem "undercover", "~> 0.5", require: false
 
   # Rubocop extensions
-  gem "rswag-specs", "~> 2.13", require: false
+  gem "rswag-specs", "3.0.0.pre", require: false
   gem "rubocop", "~> 1.82", require: false
   gem "rubocop-capybara", "~> 2.22", require: false
   gem "rubocop-factory_bot", "~> 2.28", require: false
@@ -90,12 +90,12 @@ gem "lograge", "~> 0.14"
 # gem "maruku", "~> 0.7"  # REMOVED: Not used - consider commonmarker or redcarpet if markdown needed
 gem "meta-tags", "~> 2.21"
 gem "oj", "~> 3.16"
-gem "pagy", "~> 8.0"
+gem "pagy", "~> 43.2"
 gem "paranoia", "~> 3.0"
 gem "redis", "~> 5.1"
 gem "rexml", "~> 3.3"
 gem "rolify", "~> 6.0"
-gem "rswag", "~> 2.13"
+gem "rswag", "3.0.0.pre"
 gem "sem_version", "~> 2.0"
 gem "show_for", "~> 0.8"
 gem "sidekiq", "~> 8.1"
