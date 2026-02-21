@@ -35,7 +35,7 @@
 <% if @hash_items.any? %>
   <div id="hash_items">
     <div>
-      <%== pagy_info(@pagy) %>
+      <%== @pagy.info_tag %>
     </div>
     <table class="table">
       <thead>
@@ -61,10 +61,8 @@
       </tbody>
     </table>
 
-    <div data-controller="pagy-initializer">
-      <%== pagy_bootstrap_nav(@pagy) if @pagy.pages > 1 %> <!-- Pagy pagination -->
-    </div>
-    <noscript><%== pagy_nav(@pagy) %></noscript>
+    <%== @pagy.series_nav(:bootstrap) if @pagy.pages > 1 %>
+    <noscript><%== @pagy.series_nav %></noscript>
   </div>
 <% else %>
   <div class="alert alert-info mt-4" role="alert">

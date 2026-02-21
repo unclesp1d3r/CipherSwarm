@@ -60,7 +60,7 @@ class HashListsController < ApplicationController
       @state = "all"
     end
 
-    @pagy, @hash_items = pagy(@hash_items, items: 50, anchor_string: 'data-remote="true"')
+    @pagy, @hash_items = pagy(:offset, @hash_items, limit: 50, anchor_string: 'data-remote="true"')
     fresh_when(@hash_list)
   end
 

@@ -821,11 +821,12 @@
                   "client_signature",
                   "operating_system",
                   "devices"
-                ]
+                ],
+                "description": "Agent system information"
               }
             }
           },
-          "description": "Agent system information"
+          "required": true
         }
       }
     },
@@ -909,11 +910,11 @@
                     "example": "cracking",
                     "nullable": true
                   }
-                }
+                },
+                "description": "Optional activity state update"
               }
             }
-          },
-          "description": "Optional activity state update"
+          }
         }
       }
     },
@@ -983,12 +984,12 @@
                 },
                 "required": [
                   "hashcat_benchmarks"
-                ]
+                ],
+                "description": "Hashcat benchmark results for the agent"
               }
             }
           },
-          "required": true,
-          "description": "Hashcat benchmark results for the agent"
+          "required": true
         }
       }
     },
@@ -1092,11 +1093,12 @@
                   "message",
                   "severity",
                   "agent_id"
-                ]
+                ],
+                "description": "Error details reported by the agent"
               }
             }
           },
-          "description": "Error details reported by the agent"
+          "required": true
         }
       }
     },
@@ -1402,7 +1404,7 @@
               }
             }
           },
-          "description": "Cracked hash result"
+          "required": true
         }
       }
     },
@@ -1474,8 +1476,7 @@
               }
             }
           },
-          "required": true,
-          "description": "Hashcat status update for the task"
+          "required": true
         }
       }
     },

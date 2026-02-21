@@ -18,7 +18,7 @@ gem "jbuilder", "~> 2.12"
 gem "jsbundling-rails", "~> 1.3"
 gem "pg", "~> 1.1"
 gem "propshaft", "~> 1.1"
-gem "puma", "~> 6.0"
+gem "puma", "~> 7.2"
 gem "solid_cable", "~> 3.0"
 gem "solid_cache", "~> 1.0"
 gem "stimulus-rails", "~> 1.3"
@@ -39,10 +39,10 @@ group :development, :test do
   gem "fuubar", "~> 2.5"
   gem "rails-controller-testing", "~> 1.0"
   gem "rspec_junit_formatter", "~> 0.6", require: false
-  gem "rspec-rails", "~> 6.1"
+  gem "rspec-rails", "~> 8.0"
   gem "selenium-webdriver", "~> 4.19"
   gem "shoulda-callback-matchers", "~> 1.1"
-  gem "shoulda-matchers", "~> 6.2"
+  gem "shoulda-matchers", "~> 7.0"
   gem "simplecov", "~> 0.22", require: false
   gem "simplecov-lcov", "~> 0.3", require: false
   gem "undercover", "~> 0.5", require: false
@@ -81,7 +81,7 @@ gem "audited", "~> 5.5"
 gem "aws-sdk-s3", "~> 1.151", groups: %i[production development]
 gem "cancancan", "~> 3.5"
 gem "csv", "~> 3.3" # Required for Ruby 3.4+ (no longer in standard library)
-gem "devise", "~> 4.9"
+gem "devise", "~> 5.0"
 gem "dry-initializer", "~> 3.1"
 # gem "groupdate", "~> 6.4"  # REMOVED: Not currently used in codebase
 gem "inline_svg", "~> 1.9"
@@ -100,7 +100,7 @@ gem "sem_version", "~> 2.0"
 gem "show_for", "~> 0.8"
 gem "sidekiq", "~> 8.1"
 gem "sidekiq_alive", "~> 2.4", groups: %i[production development]
-gem "sidekiq-cron", "~> 1.12"
+gem "sidekiq-cron", "~> 2.3"
 gem "simple_form", "~> 5.3"
 gem "state_machines-activerecord", "~> 0.9"
 gem "store_model", "~> 2.4"

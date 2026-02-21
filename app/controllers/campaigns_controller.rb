@@ -48,7 +48,7 @@ class CampaignsController < ApplicationController
                              .where(attacks: { campaign_id: @campaign.id })
                              .includes(task: :attack)
                              .order(created_at: :desc)
-    @pagy, @campaign_errors = pagy(errors_query, limit: 50)
+    @pagy, @campaign_errors = pagy(:offset, errors_query, limit: 50)
     render partial: "error_log", locals: { campaign: @campaign, campaign_errors: @campaign_errors, pagy: @pagy }
   end
 

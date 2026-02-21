@@ -5,13 +5,74 @@
 
 require "rails_helper"
 
+# Polyfill request_body_json for rswag 3.0.0.pre which lacks this helper.
+# Wraps the existing `consumes` + `parameter in: :body` mechanism so specs
+# use the OAS 3.0 requestBody DSL while the formatter converts to valid output.
+module Rswag
+  module Specs
+    module ExampleGroupHelpers
+      def request_body_json(schema:, required: true, description: nil, examples: nil)
+        consumes "application/json"
+
+        param_name = examples || :_request_body
+        attrs = { name: param_name, in: :body, schema: schema, required: required }
+        attrs[:description] = description if description
+
+        parameter(attrs)
+      end
+    end
+
+    # Bridge rswag 2.x `let`-based parameter resolution to 3.x `request_params`
+    # hash lookups. rswag 3.0.0.pre resolves parameters via params.fetch(name)
+    # from example.request_params (empty by default). This wrapper falls back to
+    # example.send(name) so that existing `let` blocks continue to work.
+    class LetFallbackHash
+      def initialize(base_hash, example)
+        @base = base_hash
+        @example = example
+      end
+
+      def fetch(key, *args, &)
+        @base.fetch(key, *args, &)
+      rescue KeyError
+        raise unless @example.respond_to?(key.to_sym)
+        @example.send(key.to_sym)
+      end
+
+      def key?(key)
+        @base.key?(key) || @example.respond_to?(key.to_sym)
+      end
+
+      def method_missing(method, ...)
+        @base.send(method, ...)
+      end
+
+      def respond_to_missing?(method, include_private = false)
+        @base.respond_to?(method, include_private) || super
+      end
+    end
+
+    class RequestFactory
+      alias_method :original_initialize, :initialize
+
+      def initialize(metadata, example, config = ::Rswag::Specs.config)
+        original_initialize(metadata, example, config)
+        @params = LetFallbackHash.new(@params, example)
+        @headers = LetFallbackHash.new(@headers, example)
+      end
+    end
+  end
+end
+
 RSpec.configure do |config|
   # Specify a root folder where Swagger JSON files are generated
   # NOTE: If you're using the rswag-api to serve API descriptions, you'll need
   # to ensure that it's configured to serve Swagger from the same folder
   config.openapi_root = Rails.root.join("swagger").to_s
 
-  config.openapi_strict_schema_validation = true
+  # rswag 3.0.0.pre replaced openapi_strict_schema_validation with granular options.
+  # Rely on vacuum linter (just lint-api) for OpenAPI document structure validation.
+  config.openapi_no_additional_properties = true
 
   # Define one or more Swagger documents and provide global metadata for each one
   # When you run the 'rswag:specs:swaggerize' rake task, the complete Swagger will

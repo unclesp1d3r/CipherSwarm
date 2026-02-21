@@ -79,7 +79,7 @@
             </div>
 
             <nav class="mt-3" aria-label="Status history pagination">
-              <%== pagy_nav(@pagy) if @pagy.pages > 1 %>
+              <%== @pagy.series_nav if @pagy.pages > 1 %>
             </nav>
           <% else %>
             <p class="text-muted mb-0">No status history available for this task.</p>

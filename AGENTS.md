@@ -316,7 +316,15 @@ Business logic is extracted into service objects and models:
 - Run `just docs-api` or `RAILS_ENV=test rails rswag` to regenerate
 - [vacuum](https://quobix.com/vacuum/) lints the generated OpenAPI spec (`just lint-api`)
 - Custom ruleset in `vacuum-ruleset.yaml` disables rules that conflict with Rails conventions (snake_case properties, underscore paths)
-- `in: :body` parameters in RSwag specs must be defined **inside** the HTTP method block (`post`, `put`, etc.), not at the path level, for proper OpenAPI 3.0 `requestBody` generation
+- Use `request_body_json schema: {...}, examples: :let_name` for request bodies (polyfilled in swagger_helper.rb for rswag 3.0.0.pre)
+- `request_body_json` must be called **inside** the HTTP method block (`post`, `put`, etc.), not at the path level
+
+**rswag 3.0.0.pre Migration Notes:**
+
+- `openapi_strict_schema_validation` removed in 3.x — replaced by `openapi_no_additional_properties` and `openapi_all_properties_required`
+- `request_body_json` does not exist in rswag 3.0.0.pre — polyfilled in `spec/swagger_helper.rb`
+- `RequestFactory` changed from `example.send(param_name)` (2.x) to `params.fetch()` from `request_params` (3.x) — `LetFallbackHash` in swagger_helper.rb bridges `let` variables to the new params hash
+- The rswag 3.x formatter already converts internal `in: :body` + `consumes` to OAS 3.0 `requestBody` — polyfills use this mechanism
 
 #### JavaScript Testing
 
@@ -551,7 +559,7 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 - **Procfile.dev** - Development processes (web, CSS, JS)
 - **.rubocop.yml** - RuboCop configuration (inherits from rubocop-rails-omakase)
 - **config/routes.rb** - Routes organized with `draw(:admin)`, `draw(:client_api)`, `draw(:errors)`, `draw(:devise)`
-- **swagger_helper.rb** - OpenAPI/Swagger configuration
+- **swagger_helper.rb** - OpenAPI/Swagger configuration and rswag 3.x polyfills (`request_body_json` DSL, `LetFallbackHash` for parameter resolution, `RequestFactory` monkey-patch)
 
 ### Common Patterns
 

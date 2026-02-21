@@ -12,7 +12,7 @@
 # - `before_action :authenticate_user!` ensures that only authenticated users access controller actions.
 # - `before_action :set_task` loads the task for actions.
 class TasksController < ApplicationController
-  include Pagy::Backend
+  include Pagy::Method
 
   before_action :authenticate_user!
   before_action :set_task
@@ -62,10 +62,9 @@ class TasksController < ApplicationController
   # Displays paginated hashcat status history for a task.
   def logs
     authorize! :read, @task
-    @pagy, @statuses = pagy(
+    @pagy, @statuses = pagy(:offset,
       @task.hashcat_statuses.order(time: :desc),
-      limit: 50
-    )
+      limit: 50)
   end
 
   # GET /tasks/1 or /tasks/1.json
