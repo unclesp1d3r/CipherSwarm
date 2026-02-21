@@ -1,0 +1,8 @@
+extends: [[spectral:oas, recommended]]
+rules:
+  # Rails uses snake_case for properties, not camelCase
+  camel-case-properties: false
+  # Rails routes use underscores, not kebab-case
+  paths-kebab-case: false
+  # RSwag repeats response descriptions per endpoint by design
+  description-duplication: false

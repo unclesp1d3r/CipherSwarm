@@ -371,7 +371,8 @@ RSpec.describe "api/v1/client/tasks" do
       consumes "application/json"
       produces "application/json"
       operationId "sendCrack"
-      parameter name: :hashcat_result, in: :body, schema: { "$ref" => "#/components/schemas/HashcatResult" }
+      parameter name: :hashcat_result, in: :body, description: "Cracked hash result",
+                schema: { "$ref" => "#/components/schemas/HashcatResult" }
 
       let!(:agent) { create(:agent) }
       let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
@@ -502,7 +503,7 @@ RSpec.describe "api/v1/client/tasks" do
       produces "application/json"
       operationId "sendStatus"
 
-      parameter name: :hashcat_status, in: :body, description: "status",
+      parameter name: :hashcat_status, in: :body, description: "Hashcat status update for the task",
                 schema: { "$ref" => "#/components/schemas/TaskStatus" },
                 required: true
 

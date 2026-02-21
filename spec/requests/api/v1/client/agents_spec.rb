@@ -150,7 +150,7 @@ RSpec.describe "api/v1/client/agents" do
       produces "application/json"
       operationId "updateAgent"
 
-      parameter name: :agent, in: :body, schema: {
+      parameter name: :agent, in: :body, description: "Agent system information", schema: {
         type: :object,
         properties: {
           id: { type: :integer, format: :int64, description: "The id of the agent" },
@@ -215,24 +215,6 @@ RSpec.describe "api/v1/client/agents" do
     parameter name: :id, in: :path, schema: { type: :integer, format: :int64 },
               required: true, description: "id"
 
-    # NOTE: The `in: :body` parameter syntax is OpenAPI 2.0 style, which is technically invalid
-    # for OpenAPI 3.0. This is a known limitation of rswag 2.x. The generated swagger.json will
-    # contain this as a parameter instead of a requestBody, but most tools handle this gracefully.
-    # Consider upgrading to rswag 3.x for proper OpenAPI 3.0 requestBody support.
-    parameter name: :heartbeat_body, in: :body, required: false, schema: {
-      type: :object,
-      properties: {
-        activity: {
-          type: :string,
-          description: "Current agent activity state. Known values: starting, benchmarking, " \
-                       "updating, downloading, waiting, cracking, stopping. " \
-                       "Future versions may support additional values.",
-          example: "cracking",
-          nullable: true
-        }
-      }
-    }
-
     post "Send a heartbeat for an agent" do
       tags "Agents"
       description "Send a heartbeat for an agent to keep it alive. Optionally accepts an 'activity' " \
@@ -241,6 +223,20 @@ RSpec.describe "api/v1/client/agents" do
       consumes "application/json"
       produces "application/json"
       operationId "sendHeartbeat"
+
+      parameter name: :heartbeat_body, in: :body, required: false, description: "Optional activity state update", schema: {
+        type: :object,
+        properties: {
+          activity: {
+            type: :string,
+            description: "Current agent activity state. Known values: starting, benchmarking, " \
+                         "updating, downloading, waiting, cracking, stopping. " \
+                         "Future versions may support additional values.",
+            example: "cracking",
+            nullable: true
+          }
+        }
+      }
 
       let(:agent) { create(:agent) }
       let(:id) { agent.id }
@@ -257,8 +253,9 @@ RSpec.describe "api/v1/client/agents" do
                        * `pending` - The agent needs to perform the setup process again.
                        * `active` - The agent is ready to accept tasks, all is good.
                        * `error` - The agent has encountered an error and needs to be checked.
-                       * `stopped` - The agent has been stopped by the user.",
-                          enum: %w[pending stopped error] }
+                       * `stopped` - The agent has been stopped by the user.
+                       * `offline` - The agent has not checked in recently and is considered offline.",
+                          enum: Agent.state_machine.states.map { |s| s.name.to_s }.sort }
                },
                required: %i[state]
 
@@ -386,7 +383,7 @@ RSpec.describe "api/v1/client/agents" do
       produces "application/json"
       operationId "submitBenchmark"
 
-      parameter name: :hashcat_benchmarks, in: :body, schema: {
+      parameter name: :hashcat_benchmarks, in: :body, description: "Hashcat benchmark results for the agent", schema: {
         type: :object,
         properties: {
           hashcat_benchmarks: {
@@ -923,7 +920,7 @@ RSpec.describe "api/v1/client/agents" do
       produces "application/json"
       operationId "submitErrorAgent"
 
-      parameter name: :agent_error, in: :body, schema: {
+      parameter name: :agent_error, in: :body, description: "Error details reported by the agent", schema: {
         type: :object,
         properties: {
           message: { type: :string, description: "The error message" },

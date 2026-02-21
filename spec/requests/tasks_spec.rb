@@ -150,7 +150,7 @@ RSpec.describe "Tasks" do
           allow_any_instance_of(Turbo::Streams::TagBuilder).to receive(:update).and_raise(StandardError.new("render error")) # rubocop:disable RSpec/AnyInstance
           expect {
             post cancel_task_path(task), as: :turbo_stream
-          }.to raise_error(ActionController::RespondToMismatchError)
+          }.to raise_error(StandardError, "render error")
           expect(Rails.logger).to have_received(:error).with(/Failed to render Turbo Stream for task #{task.id}/)
         end
 
