@@ -3,9 +3,13 @@ queue_rules:
     merge_method: squash
     merge_conditions:
       - check-success = lint
+      - check-success = lint_api
       - check-success = scan_ruby
       - check-success = test
       - check-success = DCO
+      - or:
+          - label = lgtm
+          - author = dependabot[bot]
     autoqueue: true
 pull_request_rules:
   - name: Queue maintainer PRs with lgtm label
@@ -65,6 +69,7 @@ merge_protections:
       - base = main
     success_conditions:
       - check-success = lint
+      - check-success = lint_api
       - check-success = scan_ruby
       - check-success = test
       - check-success = DCO
