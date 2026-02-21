@@ -211,6 +211,7 @@ CipherSwarm is built around four hierarchical concepts:
 
 - Rails 8 built-in authentication with secure session cookies
 - Devise for user management (sign in, password reset, account management)
+- Devise 5 applies `downcase_first` to humanized authentication keys in flash messages ("name" instead of "Name") — test page objects should derive labels dynamically via `User.human_attribute_name(key).downcase_first` (see `spec/support/page_objects/sign_in_page.rb#devise_auth_keys_label`)
 - CanCanCan for authorization (see app/models/ability.rb)
 - Rolify for role management
 
@@ -280,6 +281,12 @@ Business logic is extracted into service objects and models:
 - Local disk storage for development
 - File validation via ActiveStorageValidations gem
 
+### Pagy 43 Pagination Rendering
+
+- All paginated views must use `<%== @pagy.series_nav(:bootstrap) %>` with a `<noscript><%== @pagy.series_nav %></noscript>` fallback
+- Guard with `if @pagy.pages > 1` where appropriate
+- `Railsboot::PaginationComponent` exists but is not yet used universally
+
 ### Real-Time Features
 
 - Hotwire (Turbo + Stimulus) for interactive UI
@@ -316,7 +323,7 @@ Business logic is extracted into service objects and models:
 - Run `just docs-api` or `RAILS_ENV=test rails rswag` to regenerate
 - [vacuum](https://quobix.com/vacuum/) lints the generated OpenAPI spec (`just lint-api`)
 - Custom ruleset in `vacuum-ruleset.yaml` disables rules that conflict with Rails conventions (snake_case properties, underscore paths)
-- Use `request_body_json schema: {...}, examples: :let_name` for request bodies (polyfilled in swagger_helper.rb for rswag 3.0.0.pre)
+- Use `request_body_json schema: {...}, examples: :let_name` for request bodies (polyfilled in spec/support/rswag_polyfills.rb for rswag 3.0.0.pre)
 - `request_body_json` must be called **inside** the HTTP method block (`post`, `put`, etc.), not at the path level
 
 **rswag 3.0.0.pre Migration Notes:**
@@ -326,6 +333,7 @@ Business logic is extracted into service objects and models:
 - `RequestFactory` in 3.x resolves parameters via `params.fetch(name)` against `example.request_params` (empty hash by default); since rswag 2.x resolved parameters via `example.send(param_name)` directly from `let` blocks, `LetFallbackHash` in `spec/support/rswag_polyfills.rb` bridges this gap by falling back to `example.public_send(key)` when `request_params` lacks the key
 - The rswag 3.x formatter already converts internal `in: :body` + `consumes` to OAS 3.0 `requestBody` — polyfills use this mechanism
 - Known limitation: rswag 3.0.0.pre places `description` inside `requestBody.content.schema` rather than at the `requestBody` level — this is less conventional in OpenAPI 3.0 but does not affect functionality
+- rswag 3.0.0.pre is the only version with proper OpenAPI 3.0 `requestBody` generation; 2.17.0 (latest stable, Nov 2025) only added Rails 8.1 gemspec support and still has the `in: body` limitation
 
 #### JavaScript Testing
 
@@ -560,7 +568,8 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 - **Procfile.dev** - Development processes (web, CSS, JS)
 - **.rubocop.yml** - RuboCop configuration (inherits from rubocop-rails-omakase)
 - **config/routes.rb** - Routes organized with `draw(:admin)`, `draw(:client_api)`, `draw(:errors)`, `draw(:devise)`
-- **swagger_helper.rb** - OpenAPI/Swagger configuration and rswag 3.x polyfills (`request_body_json` DSL, `LetFallbackHash` for parameter resolution, `RequestFactory` monkey-patch)
+- **swagger_helper.rb** - OpenAPI/Swagger configuration (requires `spec/support/rswag_polyfills.rb` for rswag 3.x bridge code)
+- **spec/support/rswag_polyfills.rb** - Temporary rswag 3.0.0.pre polyfills (`request_body_json` DSL, `LetFallbackHash`, `RequestFactoryLetFallback`); version-guarded to fail on rswag upgrade
 
 ### Common Patterns
 
