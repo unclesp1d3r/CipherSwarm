@@ -236,6 +236,8 @@ Three core models use state_machines-activerecord:
 **Agent States:**
 
 - States: pending, active, stopped, error, offline
+- `benchmarked` is an EVENT (not a state) — transitions pending→active after benchmarks complete
+- Agent factory defaults to `state: "active"` — use `create(:agent, state: "pending")` for pending-state tests
 - Transitions: activate, benchmarked (pending→active), deactivate, shutdown, check_online, check_benchmark_age, heartbeat
 
 **Attack States:**
@@ -288,12 +290,19 @@ Business logic is extracted into service objects and models:
 - Guard both `series_nav` and `<noscript>` inside `if pagy.pages > 1` (see `campaigns/_error_log.html.erb` for reference)
 - `Railsboot::PaginationComponent` wraps `series_nav(:bootstrap)` with noscript fallback for reuse in view components
 
+### Caching & Real-Time Backend
+
+- **Do NOT use Solid Cache or Solid Cable** — removed in favor of Redis (see cable.yml, production.rb)
+- Production Action Cable: Redis adapter (`REDIS_URL`)
+- Production cache store: `redis_cache_store` with `pool: false` (required for `connection_pool >= 3.0`)
+- Development Action Cable: `async` adapter (no Redis needed)
+
 ### Real-Time Features
 
 - Hotwire (Turbo + Stimulus) for interactive UI
 - Turbo Streams for real-time updates
 - `broadcasts_refreshes` on models to push updates to clients
-- Solid Cable for WebSocket connections
+- Action Cable via Redis in production, async in development
 
 ### Admin Interface
 
@@ -574,6 +583,14 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 - **swagger_helper.rb** - OpenAPI/Swagger configuration (requires `spec/support/rswag_polyfills.rb` for rswag 3.x bridge code)
 - **spec/openapi_helper.rb** - rswag 3.x compatibility shim that delegates to `swagger_helper.rb`
 - **spec/support/rswag_polyfills.rb** - Temporary rswag 3.0.0.pre polyfills (`request_body_json` DSL, `LetFallbackHash`, `RequestFactoryLetFallback`); version-guarded to fail on rswag upgrade
+
+### Tom Select (Searchable Dropdowns)
+
+- Stimulus controller: `app/javascript/controllers/select_controller.js`
+- Supports `data-select-allow-empty-value` and `data-select-max-options-value` attributes
+- CSS: `tom-select/dist/css/tom-select.bootstrap5` imported in application.bootstrap.scss
+- System test helper: `BasePage#tom_select_fill_and_choose(select_id, text)` — requires `dropdown_input` plugin
+- SimpleForm: use `label_method: :to_s` explicitly rather than adding `to_label` to models
 
 ### Common Patterns
 

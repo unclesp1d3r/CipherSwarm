@@ -3,12 +3,15 @@
 # SPDX-FileCopyrightText:  2024 UncleSp1d3r
 # SPDX-License-Identifier: MPL-2.0
 
-#
 # The ProcessHashListJob class is responsible for processing a HashList identified by a given ID.
-# It retrieves the HashList object, checks if it has already been processed, and if not, processes
-# each line in the associated file. For each line, it creates a HashItem, validates it, and adds it
-# to the HashList. Additionally, it checks if the hash value has already been cracked and updates
-# the HashItem accordingly.
+# It retrieves the HashList object, checks if it has already been processed, and if not,
+# bulk-inserts hash items from the associated file in batches (bypassing model validations
+# for performance). Additionally, it checks if any hash values have already been cracked
+# in other lists of the same hash type and marks them accordingly.
+#
+# An atomic lock pattern (`UPDATE ... WHERE processed=false`) prevents duplicate processing
+# when the after_commit callback fires multiple times. If ingestion fails partway through,
+# already-inserted items are cleaned up before retrying to prevent duplicates.
 #
 # The job is configured to retry on specific errors:
 # - ActiveStorage::FileNotFoundError: Retries with a polynomially increasing wait time, up to 10 attempts.
@@ -18,34 +21,69 @@
 #
 # @param id [Integer] the ID of the HashList to be processed
 # @return [void]
-# @raise [StandardError] if there is an error during file processing
+# @raise [ActiveRecord::RecordNotSaved] if the hash list record disappears during processing
+# @raise [StandardError] if no hash items were processed from the file
 class ProcessHashListJob < ApplicationJob
   queue_as :ingest
   retry_on ActiveStorage::FileNotFoundError, wait: :polynomially_longer, attempts: 10
   discard_on ActiveRecord::RecordNotFound
 
-  # Performs the processing of a HashList identified by the given ID.
-  #
-  # This method retrieves the HashList object, checks if it has already been processed,
-  # and if not, processes each line in the associated file. For each line, it creates
-  # a HashItem, validates it, and adds it to the HashList. Additionally, it checks if
-  # the hash value has already been cracked and updates the HashItem accordingly.
-  #
-  # @param id [Integer] the ID of the HashList to be processed
-  # @return [void]
-  # @raise [StandardError] if there is an error during file processing
+  # REASONING:
+  #   Use an atomic UPDATE ... WHERE processed = false to prevent duplicate ingestion
+  #   when after_commit fires twice (record save + attachment commit).
+  # Alternatives Considered:
+  #   1) Advisory locks (pg_try_advisory_lock) — adds complexity, requires explicit release.
+  #   2) Separate processing_state/claimed_at column — cleaner semantics but requires migration.
+  #   3) Redis lock — adds external dependency for a DB-level concern.
+  # Decision:
+  #   Atomic update keeps overhead low (one extra UPDATE) without long-lived locks.
+  # Performance Implications:
+  #   One extra UPDATE per job; no row lock held during ingestion.
+  # Future Considerations:
+  #   Add a processing_state/claimed_at TTL to recover from hard crashes (OOM/deploy kill).
+
+  # Processes the HashList with the given ID. See class documentation for details.
   def perform(id)
     list = HashList.find(id)
     return if list.processed?
+
+    # Acquire an atomic lock to prevent duplicate processing from concurrent jobs.
+    # The after_commit callback can fire multiple times (record save + attachment commit),
+    # causing two jobs to race. This UPDATE ... WHERE atomically claims the work.
+    # rubocop:disable Rails/SkipsModelValidations
+    rows_claimed = HashList.where(id: id, processed: false)
+                           .update_all(processed: true)
+    # rubocop:enable Rails/SkipsModelValidations
+    return if rows_claimed.zero?
+
+    ingest_hash_items(list)
+  rescue StandardError
+    # Roll back the processed flag so the job can be retried.
+    # Wrapped in its own rescue to ensure the original exception always propagates.
+    begin
+      # rubocop:disable Rails/SkipsModelValidations
+      HashList.where(id: id).update_all(processed: false)
+      # rubocop:enable Rails/SkipsModelValidations
+    rescue StandardError => rollback_error
+      Rails.logger.error("[ProcessHashList] Failed to roll back processed flag for list #{id}: #{rollback_error.message}")
+    end
+    raise
+  end
+
+  private
+
+  def ingest_hash_items(list)
+    # Clean up any partial results from a prior failed attempt to ensure idempotent ingestion.
+    list.hash_items.delete_all
 
     hash_items = []
     processed_count = 0
 
     list.file.open do |file|
-      file.each_line.with_index do |line, index|
+      file.each_line do |line|
         next if line.blank?
 
-        line.strip!
+        line = line.strip
         hash_items << {
           hash_value: line,
           metadata: {},
@@ -70,31 +108,29 @@ class ProcessHashListJob < ApplicationJob
       processed_count += hash_items.size
     end
 
-    # Mark as processed if we actually ingested items
+    # Update the hash items count now that processing is complete.
+    # The `processed` flag was already set atomically at the start to prevent duplicates.
     if processed_count.positive?
       # rubocop:disable Rails/SkipsModelValidations
       # Intentionally skipping validations for performance during bulk status update
       affected_rows = HashList.where(id: list.id).update_all(
-        processed: true,
         hash_items_count: processed_count
       )
       # rubocop:enable Rails/SkipsModelValidations
 
       if affected_rows.zero?
-        error_msg = "Failed to mark hash list #{list.id} as processed - record may have been deleted"
+        error_msg = "[ProcessHashList] Failed to update hash list #{list.id} count - record may have been deleted"
         Rails.logger.error(error_msg)
         raise ActiveRecord::RecordNotSaved, error_msg
       end
 
-      Rails.logger.info("Successfully processed #{processed_count} hash items for list #{list.id}")
+      Rails.logger.info("[ProcessHashList] Successfully processed #{processed_count} hash items for list #{list.id}")
     else
-      error_msg = "No hash items were processed for list #{list.id}"
+      error_msg = "[ProcessHashList] No hash items were processed for list #{list.id}"
       Rails.logger.error(error_msg)
       raise StandardError, error_msg
     end
   end
-
-  private
 
   # Returns the batch size for processing hash items.
   # Priority order:
@@ -114,7 +150,8 @@ class ProcessHashListJob < ApplicationJob
     HashItem.transaction do
       # Bulk insert the hash items
       # rubocop:disable Rails/SkipsModelValidations
-      # Intentionally skipping validations for performance during bulk insert of trusted data
+      # Intentionally skipping validations for performance during bulk insert.
+      # Data integrity is enforced by database-level constraints.
       inserted_items = HashItem.insert_all(hash_items, returning: %w[id hash_value])
       # rubocop:enable Rails/SkipsModelValidations
 
@@ -152,7 +189,7 @@ class ProcessHashListJob < ApplicationJob
         end if updates.any?
       end
     end
-  rescue ActiveRecord::RecordInvalid => e
+  rescue ActiveRecord::StatementInvalid => e
     Rails.logger.error("Failed to process batch for list #{list.id}: #{e.message}")
     raise
   end

@@ -33,17 +33,6 @@ production:
     pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 10 }.to_i * 2 %>
     # Enable prepared statements for better performance
     prepared_statements: true
-    # Connection management for ActionCable/Solid Cable
     reaping_frequency: 10
     # Enable SSL for production
     # sslmode: require
-  cache:
-    <<: *default
-    url: <%= ENV["DATABASE_URL"]&.sub(/\/[^\/]*$/, '/cipher_swarm_cache') %>
-    migrations_paths: db/cache_migrate
-    schema_dump: db/cache_schema.rb
-  cable:
-    <<: *default
-    url: <%= ENV["DATABASE_URL"]&.sub(/\/[^\/]*$/, '/cipher_swarm_cable') %>
-    migrations_paths: db/cable_migrate
-    schema_dump: db/cable_schema.rb

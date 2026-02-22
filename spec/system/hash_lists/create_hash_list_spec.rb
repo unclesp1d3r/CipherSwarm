@@ -22,7 +22,7 @@ RSpec.describe "Create hash list" do
       find("a[href='#{new_hash_list_path}']").click
 
       hash_list_form.fill_name("Test Hash List")
-      hash_list_form.select_hash_type(hash_type.name)
+      hash_list_form.select_hash_type(hash_type.to_s)
       hash_list_form.select_project(project.name)
       hash_list_form.attach_file(file_path)
       hash_list_form.wait_for_upload_complete
@@ -64,7 +64,7 @@ RSpec.describe "Create hash list" do
       find("a[href='#{new_hash_list_path}']").click
 
       hash_list_form.fill_name("Processed Hash List")
-      hash_list_form.select_hash_type(hash_type.name)
+      hash_list_form.select_hash_type(hash_type.to_s)
       hash_list_form.select_project(project.name)
       hash_list_form.attach_file(file_path)
       hash_list_form.wait_for_upload_complete
