@@ -176,7 +176,7 @@ alwaysApply: true
 - Use tags to group related endpoints
 - Include proper descriptions for all operations
 - Document all possible response types
-- Enable strict schema validation with `config.openapi_strict_schema_validation = true`
+- Enable schema validation with `config.openapi_no_additional_properties = true` and `config.openapi_all_properties_required = true` (rswag 3.x removed `openapi_strict_schema_validation`)
 - Generate documentation in `swagger/v1` directory
 - Maintain OpenAPI 3.0.1 specification compliance
 

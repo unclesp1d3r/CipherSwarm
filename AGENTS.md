@@ -211,6 +211,7 @@ CipherSwarm is built around four hierarchical concepts:
 
 - Rails 8 built-in authentication with secure session cookies
 - Devise for user management (sign in, password reset, account management)
+- Devise 5 applies `downcase_first` to humanized authentication keys in flash messages ("name" instead of "Name") — test page objects should derive labels dynamically via `User.human_attribute_name(key).downcase_first` (see `spec/support/page_objects/sign_in_page.rb#devise_auth_keys_label`)
 - CanCanCan for authorization (see app/models/ability.rb)
 - Rolify for role management
 
@@ -280,6 +281,13 @@ Business logic is extracted into service objects and models:
 - Local disk storage for development
 - File validation via ActiveStorageValidations gem
 
+### Pagy 43 Pagination Rendering
+
+- All paginated views must use `<%== @pagy.series_nav(:bootstrap) %>` with a `<noscript><%== @pagy.series_nav %></noscript>` fallback
+- Some views use a local `pagy` variable (from partials) instead of `@pagy` — same API applies
+- Guard both `series_nav` and `<noscript>` inside `if pagy.pages > 1` (see `campaigns/_error_log.html.erb` for reference)
+- `Railsboot::PaginationComponent` wraps `series_nav(:bootstrap)` with noscript fallback for reuse in view components
+
 ### Real-Time Features
 
 - Hotwire (Turbo + Stimulus) for interactive UI
@@ -315,8 +323,18 @@ Business logic is extracted into service objects and models:
 - Tests in spec/requests/ generate documentation
 - Run `just docs-api` or `RAILS_ENV=test rails rswag` to regenerate
 - [vacuum](https://quobix.com/vacuum/) lints the generated OpenAPI spec (`just lint-api`)
-- Custom ruleset in `vacuum-ruleset.yaml` disables rules that conflict with Rails conventions (snake_case properties, underscore paths)
-- `in: :body` parameters in RSwag specs must be defined **inside** the HTTP method block (`post`, `put`, etc.), not at the path level, for proper OpenAPI 3.0 `requestBody` generation
+- Custom ruleset in `vacuum-ruleset.yaml` disables rules that conflict with Rails conventions (snake_case properties, underscore paths, description duplication, `$ref` siblings from rswag description placement)
+- Use `request_body_json schema: {...}, examples: :let_name` for request bodies (polyfilled in spec/support/rswag_polyfills.rb for rswag 3.0.0.pre)
+- `request_body_json` must be called **inside** the HTTP method block (`post`, `put`, etc.), not at the path level
+
+**rswag 3.0.0.pre Migration Notes:**
+
+- `openapi_strict_schema_validation` removed in 3.x — replaced by `openapi_no_additional_properties` and `openapi_all_properties_required`
+- `request_body_json` does not exist in rswag 3.0.0.pre — polyfilled in `spec/support/rswag_polyfills.rb`
+- `RequestFactory` in 3.x resolves parameters via `params.fetch(name)` against `example.request_params` (empty hash by default); since rswag 2.x resolved parameters via `example.send(param_name)` directly from `let` blocks, `LetFallbackHash` in `spec/support/rswag_polyfills.rb` bridges this gap by falling back to `example.public_send(key)` when `request_params` lacks the key
+- The rswag 3.x formatter already converts internal `in: :body` + `consumes` to OAS 3.0 `requestBody` — polyfills use this mechanism
+- Known limitation: rswag 3.0.0.pre places `description` inside `requestBody.content.schema` rather than at the `requestBody` level — this is less conventional in OpenAPI 3.0 but does not affect functionality
+- rswag 3.0.0.pre is the only version with proper OpenAPI 3.0 `requestBody` generation; 2.17.0 (latest stable, Nov 2025) only added Rails 8.1 gemspec support and still has the `in: body` limitation
 
 #### JavaScript Testing
 
@@ -352,6 +370,8 @@ To set up JavaScript testing in the project, we use Vitest. Follow the steps bel
    ```
 
 Both unit tests for Stimulus controllers and integration tests via system tests are included in the project.
+
+- Pagy JS is distributed via the gem's `javascripts/` directory, not npm — `config/initializers/pagy.rb` adds it to asset paths and esbuild resolves via `NODE_PATH`
 
 **Vitest Mock Patterns:**
 
@@ -551,7 +571,9 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 - **Procfile.dev** - Development processes (web, CSS, JS)
 - **.rubocop.yml** - RuboCop configuration (inherits from rubocop-rails-omakase)
 - **config/routes.rb** - Routes organized with `draw(:admin)`, `draw(:client_api)`, `draw(:errors)`, `draw(:devise)`
-- **swagger_helper.rb** - OpenAPI/Swagger configuration
+- **swagger_helper.rb** - OpenAPI/Swagger configuration (requires `spec/support/rswag_polyfills.rb` for rswag 3.x bridge code)
+- **spec/openapi_helper.rb** - rswag 3.x compatibility shim that delegates to `swagger_helper.rb`
+- **spec/support/rswag_polyfills.rb** - Temporary rswag 3.0.0.pre polyfills (`request_body_json` DSL, `LetFallbackHash`, `RequestFactoryLetFallback`); version-guarded to fail on rswag upgrade
 
 ### Common Patterns
 
