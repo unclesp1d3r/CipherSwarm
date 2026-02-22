@@ -28,6 +28,20 @@ class ProcessHashListJob < ApplicationJob
   retry_on ActiveStorage::FileNotFoundError, wait: :polynomially_longer, attempts: 10
   discard_on ActiveRecord::RecordNotFound
 
+  # REASONING:
+  #   Use an atomic UPDATE ... WHERE processed = false to prevent duplicate ingestion
+  #   when after_commit fires twice (record save + attachment commit).
+  # Alternatives Considered:
+  #   1) Advisory locks (pg_try_advisory_lock) — adds complexity, requires explicit release.
+  #   2) Separate processing_state/claimed_at column — cleaner semantics but requires migration.
+  #   3) Redis lock — adds external dependency for a DB-level concern.
+  # Decision:
+  #   Atomic update keeps overhead low (one extra UPDATE) without long-lived locks.
+  # Performance Implications:
+  #   One extra UPDATE per job; no row lock held during ingestion.
+  # Future Considerations:
+  #   Add a processing_state/claimed_at TTL to recover from hard crashes (OOM/deploy kill).
+
   # Processes the HashList with the given ID. See class documentation for details.
   def perform(id)
     list = HashList.find(id)
@@ -105,14 +119,14 @@ class ProcessHashListJob < ApplicationJob
       # rubocop:enable Rails/SkipsModelValidations
 
       if affected_rows.zero?
-        error_msg = "Failed to update hash list #{list.id} count - record may have been deleted"
+        error_msg = "[ProcessHashList] Failed to update hash list #{list.id} count - record may have been deleted"
         Rails.logger.error(error_msg)
         raise ActiveRecord::RecordNotSaved, error_msg
       end
 
-      Rails.logger.info("Successfully processed #{processed_count} hash items for list #{list.id}")
+      Rails.logger.info("[ProcessHashList] Successfully processed #{processed_count} hash items for list #{list.id}")
     else
-      error_msg = "No hash items were processed for list #{list.id}"
+      error_msg = "[ProcessHashList] No hash items were processed for list #{list.id}"
       Rails.logger.error(error_msg)
       raise StandardError, error_msg
     end
@@ -176,7 +190,7 @@ class ProcessHashListJob < ApplicationJob
       end
     end
   rescue ActiveRecord::StatementInvalid => e
-    Rails.logger.error("Failed to process batch for list #{list.id}: #{e.message}")
+    Rails.logger.error("[ProcessHashList] Failed to process batch for list #{list.id}: #{e.message}")
     raise
   end
 end

@@ -79,7 +79,7 @@ module Agent::Benchmarking
   #
   # @return [Boolean] true if the agent appears to be actively benchmarking
   def benchmarking?
-    pending? && last_seen_at.present? && last_seen_at > 1.minute.ago && hashcat_benchmarks.empty?
+    pending? && last_seen_at.present? && last_seen_at > 1.minute.ago && !hashcat_benchmarks.exists?
   end
 
   # Returns the last benchmarks recorded for the agent as an array of strings.
