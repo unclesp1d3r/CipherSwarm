@@ -7,6 +7,7 @@ $bootstrap-icons-font-dir: ".";
 $bootstrap-icons-font-src: url("bootstrap-icons.woff2") format("woff2"), url("bootstrap-icons.woff") format("woff");
 @import "bootstrap/scss/bootstrap";
 @import "bootstrap-icons/font/bootstrap-icons.scss";
+@import "tom-select/dist/css/tom-select.bootstrap5";
 @import "stepper_component.scss";
 @import "components/agent_tabs";
 

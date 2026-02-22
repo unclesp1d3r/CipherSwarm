@@ -32,10 +32,10 @@ class HashListFormPage < BasePage
     self
   end
 
-  # Select hash type from dropdown
-  # @param hash_type_name [String] the hash type name to select
-  def select_hash_type(hash_type_name)
-    select hash_type_name, from: "Hash type"
+  # Select hash type from Tom Select dropdown
+  # @param hash_type_label [String] the hash type label to search and select (e.g., "0 (MD5)")
+  def select_hash_type(hash_type_label)
+    tom_select_fill_and_choose("hash_list_hash_type_id", hash_type_label)
     self
   end
 

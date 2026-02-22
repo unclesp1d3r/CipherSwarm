@@ -15,7 +15,7 @@ pull_request_rules:
   - name: Queue maintainer PRs with lgtm label
     conditions:
       - base = main
-      - author=@maintainers
+      - author=unclesp1d3r
       - label = lgtm
       - label != do-not-merge
     actions:
@@ -36,9 +36,9 @@ pull_request_rules:
   - name: Queue external PRs when approved by maintainer
     conditions:
       - base = main
-      - -author=@maintainers
+      - -author=unclesp1d3r
       - author != dependabot[bot]
-      - approved-reviews-by=@maintainers
+      - approved-reviews-by=unclesp1d3r
       - label != do-not-merge
     actions:
       queue:

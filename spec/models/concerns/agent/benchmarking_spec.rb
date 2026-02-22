@@ -186,6 +186,52 @@ RSpec.describe Agent::Benchmarking do
     end
   end
 
+  describe "#benchmarking?" do
+    let(:pending_agent) { create(:agent, state: "pending") }
+
+    context "when agent is pending, recently seen, and has no benchmarks" do
+      before { pending_agent.update!(last_seen_at: 30.seconds.ago) }
+
+      it "returns true" do
+        expect(pending_agent.benchmarking?).to be true
+      end
+    end
+
+    context "when agent is active" do
+      it "returns false" do
+        agent.update!(last_seen_at: 30.seconds.ago)
+        expect(agent).to be_active
+        expect(agent.benchmarking?).to be false
+      end
+    end
+
+    context "when agent is pending but not recently seen" do
+      before { pending_agent.update!(last_seen_at: 5.minutes.ago) }
+
+      it "returns false" do
+        expect(pending_agent.benchmarking?).to be false
+      end
+    end
+
+    context "when agent is pending and recently seen but has benchmarks" do
+      before do
+        pending_agent.update!(last_seen_at: 30.seconds.ago)
+        create(:hashcat_benchmark, agent: pending_agent, hash_type: hash_type.hashcat_mode,
+                                   benchmark_date: benchmark_date)
+      end
+
+      it "returns false" do
+        expect(pending_agent.benchmarking?).to be false
+      end
+    end
+
+    context "when agent has never been seen" do
+      it "returns false" do
+        expect(pending_agent.benchmarking?).to be false
+      end
+    end
+  end
+
   describe "#needs_benchmark?" do
     context "when benchmarks are recent" do
       before do

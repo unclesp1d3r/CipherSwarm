@@ -217,6 +217,22 @@ class BasePage
     @session.has_unchecked_field?(locator, **options)
   end
 
+  # Tom Select Helper Methods
+
+  # Interact with a Tom Select dropdown (with dropdown_input plugin) by clicking
+  # to open, typing to filter, and selecting a match
+  # @param select_id [String] the DOM id of the original <select> element
+  # @param text [String] the text to type and then select from the dropdown
+  def tom_select_fill_and_choose(select_id, text)
+    control = find("##{select_id}-ts-control", visible: true)
+    control.click
+    dropdown = find("##{select_id}-ts-dropdown", visible: true)
+    input = dropdown.find("input.dropdown-input", visible: true)
+    input.set(text)
+    dropdown.find(".option", text: text, match: :prefer_exact, visible: true).click
+    self
+  end
+
   # Turbo/Hotwire Helper Methods
 
   # Wait for Turbo to finish loading
