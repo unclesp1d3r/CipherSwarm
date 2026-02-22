@@ -185,8 +185,15 @@ RSpec.describe ProcessHashListJob do
       end
 
       it "returns early without processing when another job claimed the lock" do
-        # Simulate another job claiming the lock first
-        HashList.where(id: hash_list.id).update_all(processed: true) # rubocop:disable Rails/SkipsModelValidations
+        # Simulate a race: find() loads processed=false, but another job
+        # atomically claims the lock before our update_all runs.
+        allow(HashList).to receive(:find).and_wrap_original do |method, *args|
+          result = method.call(*args)
+          # Between find and update_all, another job claims the lock
+          HashList.where(id: result.id, processed: false)
+                  .update_all(processed: true) # rubocop:disable Rails/SkipsModelValidations
+          result
+        end
 
         expect { described_class.perform_now(hash_list.id) }
           .not_to change(HashItem, :count)
@@ -202,24 +209,46 @@ RSpec.describe ProcessHashListJob do
       end
 
       it "raises RecordNotSaved when count update finds no record" do
-        # Stub ingest to succeed but delete the record before count update
-        allow_any_instance_of(described_class).to receive(:ingest_hash_items).and_wrap_original do |method, list| # rubocop:disable RSpec/AnyInstance
-          list.hash_items.delete_all
-          # Simulate one batch processed
-          HashItem.insert_all([{ # rubocop:disable Rails/SkipsModelValidations
-            hash_value: "test", hash_list_id: list.id, metadata: {},
-            created_at: Time.current, updated_at: Time.current, cracked: false
-          }])
-          # Delete the hash list before the count update
-          HashList.where(id: list.id).delete_all
-          # Now call the original which will fail on update_all
-          # Instead, manually execute the count update path
-          affected_rows = HashList.where(id: list.id).update_all(hash_items_count: 1) # rubocop:disable Rails/SkipsModelValidations
-          raise ActiveRecord::RecordNotSaved, "Failed to update hash list #{list.id} count - record may have been deleted" if affected_rows.zero?
+        # Let ingest run normally, but delete the hash list after the last
+        # process_batch call so the final update_all(hash_items_count:) returns 0.
+        batch_call_count = 0
+        allow_any_instance_of(described_class).to receive(:process_batch).and_wrap_original do |method, *args| # rubocop:disable RSpec/AnyInstance
+          method.call(*args)
+          batch_call_count += 1
+          # File has 1024 lines, batch_size=1000 → 2 process_batch calls.
+          # Delete the hash list after the final batch.
+          HashList.where(id: hash_list.id).delete_all if batch_call_count == 2
         end
 
         expect { described_class.perform_now(hash_list.id) }
           .to raise_error(ActiveRecord::RecordNotSaved, /record may have been deleted/)
+      end
+    end
+
+    context "when rollback fails during error handling" do
+      let(:hash_list) do
+        hl = create(:hash_list, processed: true)
+        hl.update_column(:processed, false) # rubocop:disable Rails/SkipsModelValidations
+        HashItem.where(hash_list_id: hl.id).delete_all
+        hl.reload
+      end
+
+      it "logs rollback failure and re-raises the original exception" do
+        allow_any_instance_of(described_class).to receive(:ingest_hash_items) # rubocop:disable RSpec/AnyInstance
+          .and_raise(StandardError, "file corrupt")
+
+        # Make the rollback update_all raise by intercepting HashList.where(id:)
+        allow(HashList).to receive(:where).and_wrap_original do |method, *args|
+          result = method.call(*args)
+          if args == [{ id: hash_list.id }]
+            allow(result).to receive(:update_all).with(processed: false)
+              .and_raise(ActiveRecord::ConnectionNotEstablished, "DB connection lost")
+          end
+          result
+        end
+
+        expect { described_class.perform_now(hash_list.id) }
+          .to raise_error(StandardError, "file corrupt")
       end
     end
 
