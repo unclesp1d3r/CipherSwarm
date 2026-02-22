@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: MPL-2.0
 
 require "rails_helper"
+require_relative "support/rswag_polyfills"
 
 RSpec.configure do |config|
   # Specify a root folder where Swagger JSON files are generated
@@ -11,7 +12,12 @@ RSpec.configure do |config|
   # to ensure that it's configured to serve Swagger from the same folder
   config.openapi_root = Rails.root.join("swagger").to_s
 
-  config.openapi_strict_schema_validation = true
+  # rswag 3.0.0.pre replaced openapi_strict_schema_validation with granular options:
+  # - openapi_no_additional_properties: rejects undeclared properties in responses
+  # - openapi_all_properties_required: treats every declared property as required
+  # vacuum linter (just lint-api) validates the generated OpenAPI document structure.
+  config.openapi_no_additional_properties = true
+  config.openapi_all_properties_required = true
 
   # Define one or more Swagger documents and provide global metadata for each one
   # When you run the 'rswag:specs:swaggerize' rake task, the complete Swagger will
@@ -27,7 +33,7 @@ RSpec.configure do |config|
         backoff: {
           initialInterval: 500, # 500 milliseconds
           maxInterval: 60000, # 60 seconds
-          maxElapsedTime: 3600000, # 5 minutes
+          maxElapsedTime: 3600000, # 60 minutes
           exponent: 1.5
         },
         statusCodes: ["5XX", 429],

@@ -4,7 +4,7 @@
  */
 
 import { Controller } from "@hotwired/stimulus";
-import Pagy from "pagy-module"; // if using sprockets, you can remove above line, but make sure you have the appropriate directive if your manifest.js file.
+import Pagy from "pagy";
 
 export default class extends Controller {
   connect() {

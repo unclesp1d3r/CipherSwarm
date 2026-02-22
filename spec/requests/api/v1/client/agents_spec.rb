@@ -89,7 +89,6 @@ RSpec.describe "api/v1/client/agents" do
       tags "Agents"
       description "Returns an agent"
       security [bearer_auth: []]
-      consumes "application/json"
       produces "application/json"
       operationId "getAgent"
 
@@ -146,11 +145,10 @@ RSpec.describe "api/v1/client/agents" do
       tags "Agents"
       description "Updates an agent"
       security [bearer_auth: []]
-      consumes "application/json"
       produces "application/json"
       operationId "updateAgent"
 
-      parameter name: :agent, in: :body, description: "Agent system information", schema: {
+      request_body_json schema: {
         type: :object,
         properties: {
           id: { type: :integer, format: :int64, description: "The id of the agent" },
@@ -160,7 +158,7 @@ RSpec.describe "api/v1/client/agents" do
           devices: { type: :array, items: { type: :string, description: "The descriptive name of a GPU or CPU device." } }
         },
         required: %i[id host_name client_signature operating_system devices]
-      }
+      }, description: "Agent system information", examples: :agent
 
       let(:agent) { create(:agent) }
       let(:id) { agent.id }
@@ -220,11 +218,10 @@ RSpec.describe "api/v1/client/agents" do
       description "Send a heartbeat for an agent to keep it alive. Optionally accepts an 'activity' " \
                   "parameter in the request body to track the agent's current activity state."
       security [bearer_auth: []]
-      consumes "application/json"
       produces "application/json"
       operationId "sendHeartbeat"
 
-      parameter name: :heartbeat_body, in: :body, required: false, description: "Optional activity state update", schema: {
+      request_body_json schema: {
         type: :object,
         properties: {
           activity: {
@@ -236,7 +233,7 @@ RSpec.describe "api/v1/client/agents" do
             nullable: true
           }
         }
-      }
+      }, required: false, description: "Optional activity state update", examples: :heartbeat_body
 
       let(:agent) { create(:agent) }
       let(:id) { agent.id }
@@ -379,11 +376,10 @@ RSpec.describe "api/v1/client/agents" do
       tags "Agents"
       description "Submit a benchmark for an agent"
       security [bearer_auth: []]
-      consumes "application/json"
       produces "application/json"
       operationId "submitBenchmark"
 
-      parameter name: :hashcat_benchmarks, in: :body, description: "Hashcat benchmark results for the agent", schema: {
+      request_body_json schema: {
         type: :object,
         properties: {
           hashcat_benchmarks: {
@@ -391,7 +387,7 @@ RSpec.describe "api/v1/client/agents" do
             items: { "$ref" => "#/components/schemas/HashcatBenchmark" }
           }
         }, required: %i[hashcat_benchmarks]
-      }, required: true
+      }, required: true, description: "Hashcat benchmark results for the agent", examples: :hashcat_benchmarks
 
       let(:agent) { create(:agent) }
 
@@ -916,11 +912,10 @@ RSpec.describe "api/v1/client/agents" do
       tags "Agents"
       description "Submit an error for an agent"
       security [bearer_auth: []]
-      consumes "application/json"
       produces "application/json"
       operationId "submitErrorAgent"
 
-      parameter name: :agent_error, in: :body, description: "Error details reported by the agent", schema: {
+      request_body_json schema: {
         type: :object,
         properties: {
           message: { type: :string, description: "The error message" },
@@ -945,7 +940,7 @@ RSpec.describe "api/v1/client/agents" do
           task_id: { type: :integer, nullable: true, format: :int64, description: "The task that caused the error, if any" }
         },
         required: %i[message severity agent_id]
-      }, require: true
+      }, required: true, description: "Error details reported by the agent", examples: :agent_error
 
       let(:agent) { create(:agent) }
       let(:id) { agent.id }
@@ -1007,7 +1002,6 @@ RSpec.describe "api/v1/client/agents" do
       tags "Agents"
       description "Marks the agent as shutdown and offline, freeing any assigned tasks."
       security [bearer_auth: []]
-      consumes "application/json"
       produces "application/json"
       operationId "setAgentShutdown"
 

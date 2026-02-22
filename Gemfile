@@ -18,7 +18,7 @@ gem "jbuilder", "~> 2.12"
 gem "jsbundling-rails", "~> 1.3"
 gem "pg", "~> 1.1"
 gem "propshaft", "~> 1.1"
-gem "puma", "~> 6.0"
+gem "puma", "~> 7.2"
 gem "solid_cable", "~> 3.0"
 gem "solid_cache", "~> 1.0"
 gem "stimulus-rails", "~> 1.3"
@@ -39,16 +39,16 @@ group :development, :test do
   gem "fuubar", "~> 2.5"
   gem "rails-controller-testing", "~> 1.0"
   gem "rspec_junit_formatter", "~> 0.6", require: false
-  gem "rspec-rails", "~> 6.1"
+  gem "rspec-rails", "~> 8.0"
   gem "selenium-webdriver", "~> 4.19"
   gem "shoulda-callback-matchers", "~> 1.1"
-  gem "shoulda-matchers", "~> 6.2"
+  gem "shoulda-matchers", "~> 7.0"
   gem "simplecov", "~> 0.22", require: false
   gem "simplecov-lcov", "~> 0.3", require: false
   gem "undercover", "~> 0.5", require: false
 
   # Rubocop extensions
-  gem "rswag-specs", "~> 2.13", require: false
+  gem "rswag-specs", "3.0.0.pre", require: false
   gem "rubocop", "~> 1.82", require: false
   gem "rubocop-capybara", "~> 2.22", require: false
   gem "rubocop-factory_bot", "~> 2.28", require: false
@@ -81,7 +81,7 @@ gem "audited", "~> 5.5"
 gem "aws-sdk-s3", "~> 1.151", groups: %i[production development]
 gem "cancancan", "~> 3.5"
 gem "csv", "~> 3.3" # Required for Ruby 3.4+ (no longer in standard library)
-gem "devise", "~> 4.9"
+gem "devise", "~> 5.0"
 gem "dry-initializer", "~> 3.1"
 # gem "groupdate", "~> 6.4"  # REMOVED: Not currently used in codebase
 gem "inline_svg", "~> 1.9"
@@ -90,17 +90,17 @@ gem "lograge", "~> 0.14"
 # gem "maruku", "~> 0.7"  # REMOVED: Not used - consider commonmarker or redcarpet if markdown needed
 gem "meta-tags", "~> 2.21"
 gem "oj", "~> 3.16"
-gem "pagy", "~> 8.0"
+gem "pagy", "~> 43.2"
 gem "paranoia", "~> 3.0"
 gem "redis", "~> 5.1"
 gem "rexml", "~> 3.3"
 gem "rolify", "~> 6.0"
-gem "rswag", "~> 2.13"
+gem "rswag", "3.0.0.pre"
 gem "sem_version", "~> 2.0"
 gem "show_for", "~> 0.8"
 gem "sidekiq", "~> 8.1"
 gem "sidekiq_alive", "~> 2.4", groups: %i[production development]
-gem "sidekiq-cron", "~> 1.12"
+gem "sidekiq-cron", "~> 2.3"
 gem "simple_form", "~> 5.3"
 gem "state_machines-activerecord", "~> 0.9"
 gem "store_model", "~> 2.4"

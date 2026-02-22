@@ -12,7 +12,6 @@ RSpec.describe "api/v1/client" do
         tags "Client"
         description "Returns the configuration for the agent."
         security [bearer_auth: []]
-        consumes "application/json"
         produces "application/json"
         operationId "getConfiguration"
 
@@ -79,7 +78,6 @@ RSpec.describe "api/v1/client" do
         tags "Client"
         description "Authenticates the client. This is used to verify that the client is able to connect to the server."
         security [bearer_auth: []]
-        consumes "application/json"
         produces "application/json"
         operationId "authenticate"
 

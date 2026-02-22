@@ -6,3 +6,5 @@ rules:
   paths-kebab-case: false
   # RSwag repeats response descriptions per endpoint by design
   description-duplication: false
+  # rswag 3.0.0.pre places description alongside $ref in requestBody schema
+  no-$ref-siblings: false

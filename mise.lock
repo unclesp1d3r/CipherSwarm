@@ -1,0 +1,55 @@
+[[tools.actionlint]]
+version = "1.7.11"
+backend = "aqua:rhysd/actionlint"
+
+[[tools.bun]]
+version = "1.3.9"
+backend = "core:bun"
+
+[[tools.docker-cli]]
+version = "29.2.1"
+backend = "aqua:docker/cli"
+
+[[tools.docker-compose]]
+version = "5.0.2"
+backend = "aqua:docker/compose"
+
+[[tools."gem:rails"]]
+version = "8.1.2"
+backend = "gem:rails"
+
+[[tools."gem:rubocop"]]
+version = "1.84.2"
+backend = "gem:rubocop"
+
+[[tools.git-cliff]]
+version = "2.12.0"
+backend = "aqua:orhun/git-cliff"
+
+[[tools.just]]
+version = "1.46.0"
+backend = "aqua:casey/just"
+
+[[tools.markdownlint-cli2]]
+version = "0.21.0"
+backend = "npm:markdownlint-cli2"
+
+[[tools.oxlint]]
+version = "1.49.0"
+backend = "npm:oxlint"
+
+[[tools.pre-commit]]
+version = "4.5.1"
+backend = "aqua:pre-commit/pre-commit"
+
+[[tools.python]]
+version = "3.14.3"
+backend = "core:python"
+
+[[tools.vacuum]]
+version = "0.23.8"
+backend = "aqua:daveshanley/vacuum"
+
+[[tools.vale]]
+version = "3.13.1"
+backend = "aqua:errata-ai/vale"

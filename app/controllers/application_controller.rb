@@ -10,7 +10,7 @@ require "pagy"
 #
 # Key Features:
 # - Extends from `ActionController::Base`, providing the foundation for handling HTTP requests.
-# - Includes `Pagy::Backend` for efficient server-side pagination.
+# - Includes `Pagy::Method` for efficient server-side pagination.
 # - Configures Devise parameters using `configure_permitted_parameters` to allow customization during user authentication.
 # - Implements a suite of rescue methods to handle various types of application errors gracefully.
 #
@@ -37,7 +37,7 @@ require "pagy"
 # ApplicationController serves as a central place to manage global configuration, behaviors, and shared error handling logic,
 # ensuring all child controllers benefit from consistent defaults.
 class ApplicationController < ActionController::Base
-  include Pagy::Backend # Adds support for pagination.
+  include Pagy::Method # Adds support for pagination.
   before_action :configure_permitted_parameters, if: :devise_controller?
 
   rescue_from StandardError, with: :unknown_error # Handles unknown errors (production only, re-raises in dev/test).

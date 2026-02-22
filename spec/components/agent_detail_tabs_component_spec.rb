@@ -18,7 +18,7 @@ RSpec.describe AgentDetailTabsComponent, type: :component do
   end
 
   let(:errors) { create_list(:agent_error, 2, agent: agent) }
-  let(:pagy) { Pagy.new(count: errors.size, page: 1, items: 10) }
+  let(:pagy) { Pagy::Offset.new(count: errors.size, page: 1, limit: 10) }
 
   def render_component(&)
     render_inline(component, &)
