@@ -12,7 +12,7 @@
 # - Extracted benchmark logic from Agent model to improve code organization and reduce model complexity.
 # - Benchmarking is a cohesive set of functionality that operates on hashcat_benchmarks association.
 # Alternatives Considered:
-# - Keep methods in Agent model: Would increase model size (~80 lines) and mix concerns.
+# - Keep methods in Agent model: Would significantly increase model size and mix concerns.
 # - Use a service object: Overkill for query/formatting methods that don't involve complex business logic.
 # - Use a PORO decorator: Adds complexity without benefit since methods are tightly coupled to Agent.
 # Decision:
@@ -28,7 +28,7 @@
 #   agent.needs_benchmark?
 #   # => true if benchmarks are older than max_benchmark_age
 #
-#   agent.meets_performance_threshold?(hash_type_id)
+#   agent.meets_performance_threshold?(0) # hashcat mode 0 = MD5
 #   # => true if agent's hash speed meets minimum threshold
 #
 #   agent.aggregate_benchmarks
@@ -68,6 +68,18 @@ module Agent::Benchmarking
   # @return [Array<Integer>] An array containing distinct hashcat mode identifiers supported by the agent.
   def allowed_hash_types
     hashcat_benchmarks.distinct.pluck(:hash_type)
+  end
+
+  # Detects whether the agent is currently running benchmarks.
+  #
+  # An agent is considered to be benchmarking when it is in the pending state,
+  # has recently checked in (within the last minute), and has no benchmark
+  # results on record. This is used to show a "Benchmarking..." indicator
+  # on the Overview tab instead of a generic "Pending" state.
+  #
+  # @return [Boolean] true if the agent appears to be actively benchmarking
+  def benchmarking?
+    pending? && last_seen_at.present? && last_seen_at > 1.minute.ago && !hashcat_benchmarks.exists?
   end
 
   # Returns the last benchmarks recorded for the agent as an array of strings.
@@ -134,7 +146,7 @@ module Agent::Benchmarking
   # This method calculates the total hash speed for the agent for the given hash type
   # and compares it to the minimum performance benchmark defined in the application configuration.
   #
-  # @param hash_type [Integer] The hash type to check the performance benchmark for.
+  # @param hash_type [Integer] The hashcat mode identifier to check the performance benchmark for.
   # @return [Boolean] true if the agent meets or exceeds the minimum performance benchmark, false otherwise.
   def meets_performance_threshold?(hash_type)
     total_hash_speed = hashcat_benchmarks.where(hash_type: hash_type).sum(:hash_speed)
