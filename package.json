@@ -2,17 +2,18 @@
   "name": "app",
   "dependencies": {
     "@hotwired/stimulus": "^3.2.2",
-    "@hotwired/turbo-rails": "^8.0.21",
+    "@hotwired/turbo-rails": "^8.0.23",
     "@popperjs/core": "^2.11.8",
     "@rails/activestorage": "^8.1.200",
-    "autoprefixer": "^10.4.23",
+    "autoprefixer": "^10.4.24",
     "bootstrap": "^5.3.8",
     "bootstrap-icons": "^1.13.1",
-    "esbuild": "^0.27.2",
-    "nodemon": "^3.1.11",
+    "esbuild": "^0.27.3",
+    "nodemon": "^3.1.14",
     "postcss": "^8.5.6",
     "postcss-cli": "^11.0.1",
-    "sass": "^1.97.2"
+    "sass": "^1.97.3",
+    "tom-select": "^2.5.1"
   },
   "scripts": {
     "build:css:compile": "sass ./app/assets/stylesheets/application.bootstrap.scss:./app/assets/builds/application.css --no-source-map --load-path=node_modules",
