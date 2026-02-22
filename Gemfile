@@ -101,7 +101,7 @@ gem "sidekiq_alive", "~> 2.4", groups: %i[production development]
 gem "sidekiq-cron", "~> 2.3"
 gem "simple_form", "~> 5.3"
 gem "state_machines-activerecord", "~> 0.9"
-gem "store_model", "~> 2.4"
+gem "store_model", "~> 4.5"
 gem "thruster", "~> 0.1"
 gem "view_component", "~> 4.4"
 # gem "view_component-contrib", "~> 0.2.0"
