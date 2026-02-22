@@ -14,13 +14,23 @@ export default class extends Controller {
   }
 
   connect() {
-    if (this.select) return
+    // Guard against re-initialization from Turbo morphing or reconnection,
+    // and prevent retries after a failed initialization attempt.
+    if (this.select || this._initFailed) return
 
-    this.select = new TomSelect(this.element, {
-      allowEmptyOption: this.allowEmptyValue,
-      plugins: ['dropdown_input'],
-      maxOptions: this.maxOptionsValue
-    })
+    try {
+      this.select = new TomSelect(this.element, {
+        allowEmptyOption: this.allowEmptyValue,
+        plugins: ['dropdown_input'],
+        maxOptions: this.maxOptionsValue
+      })
+    } catch (error) {
+      console.error(
+        `[SelectController] Failed to initialize TomSelect on #${this.element.id}:`,
+        error
+      )
+      this._initFailed = true
+    }
   }
 
   disconnect() {
@@ -28,5 +38,6 @@ export default class extends Controller {
       this.select.destroy()
       this.select = null
     }
+    this._initFailed = false
   }
 }

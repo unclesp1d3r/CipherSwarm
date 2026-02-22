@@ -120,4 +120,53 @@ describe("SelectController", () => {
       expect.objectContaining({ maxOptions: 50 })
     );
   });
+
+  it("handles TomSelect initialization failure gracefully", () => {
+    const controller = getController();
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    // Simulate failure on next connect attempt
+    controller.select = null;
+    controller._initFailed = false;
+    TomSelect.mockImplementationOnce(() => { throw new Error("init failed"); });
+
+    controller.connect();
+
+    expect(consoleError).toHaveBeenCalledWith(
+      expect.stringContaining("[SelectController]"),
+      expect.any(Error)
+    );
+    expect(controller.select).toBeFalsy();
+    expect(controller._initFailed).toBe(true);
+
+    consoleError.mockRestore();
+  });
+
+  it("does not retry after initialization failure", () => {
+    const controller = getController();
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    // Simulate a failed init
+    controller.select = null;
+    controller._initFailed = false;
+    TomSelect.mockImplementationOnce(() => { throw new Error("init failed"); });
+    controller.connect();
+
+    TomSelect.mockClear();
+
+    // Subsequent connect() should be blocked by _initFailed flag
+    controller.connect();
+    expect(TomSelect).not.toHaveBeenCalled();
+
+    consoleError.mockRestore();
+  });
+
+  it("resets _initFailed on disconnect allowing fresh attempt", () => {
+    const controller = getController();
+
+    controller._initFailed = true;
+    controller.disconnect();
+
+    expect(controller._initFailed).toBe(false);
+  });
 });

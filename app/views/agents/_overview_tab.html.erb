@@ -1,4 +1,5 @@
 <%= turbo_frame_tag dom_id(agent, :overview) do %>
+<% benchmarking = agent.benchmarking? %>
 <div class="row g-3">
     <div class="col-12">
       <div class="card">
@@ -13,7 +14,7 @@
                 <%= attack.campaign.name %> - <%= attack.attack_mode.humanize %>
               <% end %>
             </p>
-          <% elsif agent.benchmarking? %>
+          <% elsif benchmarking %>
             <p class="text-muted mb-0">
               <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
               Running initial benchmarks...
@@ -73,7 +74,7 @@
           <dl class="row mb-0">
             <dt class="col-sm-3">State</dt>
             <dd class="col-sm-9">
-              <% if agent.benchmarking? %>
+              <% if benchmarking %>
                 <span class="badge bg-info">
                   <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
                   Benchmarking

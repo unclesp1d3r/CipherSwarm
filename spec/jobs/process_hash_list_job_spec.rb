@@ -114,5 +114,66 @@ RSpec.describe ProcessHashListJob do
         expect(HashItem.count).to eq(initial_count)
       end
     end
+
+    context "when called twice (atomic lock prevents duplicates)" do
+      let(:hash_list) do
+        hl = create(:hash_list, processed: true)
+        hl.update_column(:processed, false) # rubocop:disable Rails/SkipsModelValidations
+        HashItem.where(hash_list_id: hl.id).delete_all
+        hl.reload
+      end
+
+      it "only processes once even if called twice" do
+        described_class.perform_now(hash_list.id)
+        first_count = HashItem.where(hash_list_id: hash_list.id).count
+
+        # Second call should be a no-op because processed is now true
+        described_class.perform_now(hash_list.id)
+        expect(HashItem.where(hash_list_id: hash_list.id).count).to eq(first_count)
+      end
+    end
+
+    context "when ingestion raises an error" do
+      let(:hash_list) do
+        hl = create(:hash_list, processed: true)
+        hl.update_column(:processed, false) # rubocop:disable Rails/SkipsModelValidations
+        HashItem.where(hash_list_id: hl.id).delete_all
+        hl.reload
+      end
+
+      before do
+        allow_any_instance_of(described_class).to receive(:ingest_hash_items).and_raise(StandardError, "file corrupt") # rubocop:disable RSpec/AnyInstance
+      end
+
+      it "rolls back the processed flag" do
+        expect { described_class.perform_now(hash_list.id) }.to raise_error(StandardError, "file corrupt")
+        expect(hash_list.reload.processed).to be false
+      end
+
+      it "re-raises the exception for retry" do
+        expect { described_class.perform_now(hash_list.id) }.to raise_error(StandardError, "file corrupt")
+      end
+    end
+
+    context "when retrying after a partial failure" do
+      let(:hash_list) do
+        hl = create(:hash_list, processed: true)
+        hl.update_column(:processed, false) # rubocop:disable Rails/SkipsModelValidations
+        HashItem.where(hash_list_id: hl.id).delete_all
+        hl.reload
+      end
+
+      it "cleans up partial results before re-ingesting" do
+        # Simulate partial results from a prior failed attempt
+        create(:hash_item, hash_list: hash_list, hash_value: "partial_leftover")
+        expect(HashItem.where(hash_list_id: hash_list.id).count).to eq(1)
+
+        described_class.perform_now(hash_list.id)
+
+        # Should have exactly the file contents, not file + partial leftovers
+        expect(hash_list.reload.hash_items_count).to eq(1024)
+        expect(HashItem.where(hash_list_id: hash_list.id).count).to eq(1024)
+      end
+    end
   end
 end
