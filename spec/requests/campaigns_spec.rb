@@ -110,6 +110,28 @@ RSpec.describe "Campaigns" do
     end
   end
 
+  describe "GET /error_log" do
+    context "when user is not logged in" do
+      it { expect(get(error_log_campaign_path(campaign))).to redirect_to(new_user_session_path) }
+    end
+
+    context "when a non-project user is logged in" do
+      it "returns http unauthorized" do
+        sign_in(non_project_user)
+        get error_log_campaign_path(campaign)
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
+    context "when a project user is logged in" do
+      it "returns http success" do
+        sign_in(project_user)
+        get error_log_campaign_path(campaign)
+        expect(response).to have_http_status(:success)
+      end
+    end
+  end
+
   describe "POST /create with priority authorization" do
     let!(:hash_list) { create(:hash_list, project: project) }
 

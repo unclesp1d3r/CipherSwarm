@@ -13,7 +13,6 @@ RSpec.describe "api/v1/client/attacks" do
       tags "Attacks"
       description "Returns an attack by id. This is used to get the details of an attack."
       security [bearer_auth: []]
-      consumes "application/json"
       produces "application/json"
       operationId "getAttack"
 
@@ -97,7 +96,6 @@ RSpec.describe "api/v1/client/attacks" do
       tags "Attacks"
       description "Returns the hash list for an attack."
       security [bearer_auth: []]
-      consumes "application/json"
       produces "text/plain"
       operationId "getHashList"
 

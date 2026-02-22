@@ -45,7 +45,8 @@ class SignInPage < BasePage
   # Specific invalid credentials message (Devise i18n uses %{authentication_keys})
   def has_invalid_credentials_error?
     # Use Devise i18n key to avoid brittle hard-coded English strings.
-    has_error_message?(I18n.t("devise.failure.invalid", authentication_keys: "Name"))
+    # Devise 5 applies downcase_first to humanized authentication keys.
+    has_error_message?(I18n.t("devise.failure.invalid", authentication_keys: devise_auth_keys_label))
   end
 
   # Locked account error message
@@ -53,7 +54,7 @@ class SignInPage < BasePage
     # Devise hides the locked reason when paranoid mode is enabled, so fall back to
     # the generic invalid credentials flash in that scenario.
     expected_message = if Devise.paranoid
-      I18n.t("devise.failure.invalid", authentication_keys: "Name")
+      I18n.t("devise.failure.invalid", authentication_keys: devise_auth_keys_label)
     else
       I18n.t("devise.failure.locked")
     end
@@ -71,5 +72,16 @@ class SignInPage < BasePage
   def check_remember_me
     check "Remember me"
     self
+  end
+
+  private
+
+  # Replicate Devise 5's downcase_first behavior for authentication key labels.
+  # Coupled to Devise::FailureApp#i18n_message (devise 5.x) — update if Devise
+  # changes how it formats authentication_keys in flash messages.
+  def devise_auth_keys_label
+    Devise.authentication_keys.map { |key|
+      User.human_attribute_name(key).downcase_first
+    }.join(I18n.t(:"support.array.words_connector"))
   end
 end

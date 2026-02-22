@@ -181,7 +181,6 @@ RSpec.describe "api/v1/client/tasks" do
       tags "Tasks"
       description "Request a new task from the server, if available."
       security [bearer_auth: []]
-      consumes "application/json"
       produces "application/json"
       operationId "getNewTask"
 
@@ -282,7 +281,6 @@ RSpec.describe "api/v1/client/tasks" do
       tags "Tasks"
       description "Request the task information from the server."
       security [bearer_auth: []]
-      consumes "application/json"
       produces "application/json"
       operationId "getTask"
 
@@ -368,11 +366,11 @@ RSpec.describe "api/v1/client/tasks" do
       tags "Tasks"
       description "Submit a cracked hash result for a task."
       security [bearer_auth: []]
-      consumes "application/json"
       produces "application/json"
       operationId "sendCrack"
-      parameter name: :hashcat_result, in: :body, description: "Cracked hash result",
-                schema: { "$ref" => "#/components/schemas/HashcatResult" }
+      request_body_json schema: { "$ref" => "#/components/schemas/HashcatResult" },
+                        description: "Cracked hash result from hashcat",
+                        examples: :hashcat_result
 
       let!(:agent) { create(:agent) }
       let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
@@ -499,13 +497,12 @@ RSpec.describe "api/v1/client/tasks" do
       tags "Tasks"
       description "Submit a status update for a task. This includes the status of the current guess and the devices."
       security [bearer_auth: []]
-      consumes "application/json"
       produces "application/json"
       operationId "sendStatus"
 
-      parameter name: :hashcat_status, in: :body, description: "Hashcat status update for the task",
-                schema: { "$ref" => "#/components/schemas/TaskStatus" },
-                required: true
+      request_body_json schema: { "$ref" => "#/components/schemas/TaskStatus" },
+                        required: true, description: "Hashcat status update for the task",
+                        examples: :hashcat_status
 
       let!(:agent) { create(:agent) }
       let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
@@ -632,7 +629,6 @@ RSpec.describe "api/v1/client/tasks" do
       tags "Tasks"
       description "Accept an offered task from the server."
       security [bearer_auth: []]
-      consumes "application/json"
       produces "application/json"
       operationId "setTaskAccepted"
 
@@ -704,7 +700,6 @@ RSpec.describe "api/v1/client/tasks" do
       tags "Tasks"
       description "Notify the server that the task is exhausted. This will mark the task as completed."
       security [bearer_auth: []]
-      consumes "application/json"
       produces "application/json"
       operationId "setTaskExhausted"
 
@@ -773,7 +768,6 @@ RSpec.describe "api/v1/client/tasks" do
       tags "Tasks"
       description "Abandon a task. This will mark the task as abandoned. Usually used when the client is unable to complete the task."
       security [bearer_auth: []]
-      consumes "application/json"
       produces "application/json"
       operationId "setTaskAbandoned"
 
@@ -875,7 +869,6 @@ RSpec.describe "api/v1/client/tasks" do
       tags "Tasks"
       description "Gets the completed hashes for a task. This is a text file that should be added to the monitored directory to remove the hashes from the list during runtime."
       security [bearer_auth: []]
-      consumes "application/json"
       produces "text/plain"
       operationId "getTaskZaps"
 
