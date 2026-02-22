@@ -190,7 +190,7 @@ class ProcessHashListJob < ApplicationJob
       end
     end
   rescue ActiveRecord::StatementInvalid => e
-    Rails.logger.error("[ProcessHashList] Failed to process batch for list #{list.id}: #{e.message}")
+    Rails.logger.error("Failed to process batch for list #{list.id}: #{e.message}")
     raise
   end
 end
