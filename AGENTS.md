@@ -236,6 +236,8 @@ Three core models use state_machines-activerecord:
 **Agent States:**
 
 - States: pending, active, stopped, error, offline
+- `benchmarked` is an EVENT (not a state) — transitions pending→active after benchmarks complete
+- Agent factory defaults to `state: "active"` — use `create(:agent, state: "pending")` for pending-state tests
 - Transitions: activate, benchmarked (pending→active), deactivate, shutdown, check_online, check_benchmark_age, heartbeat
 
 **Attack States:**
