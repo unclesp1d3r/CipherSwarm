@@ -38,11 +38,34 @@ class ProcessHashListJob < ApplicationJob
     list = HashList.find(id)
     return if list.processed?
 
+    # Acquire an atomic lock to prevent duplicate processing from concurrent jobs.
+    # The after_commit callback can fire multiple times (record save + attachment commit),
+    # causing two jobs to race. This UPDATE ... WHERE atomically claims the work.
+    # rubocop:disable Rails/SkipsModelValidations
+    rows_claimed = HashList.where(id: id, processed: false)
+                           .update_all(processed: true)
+    # rubocop:enable Rails/SkipsModelValidations
+    return if rows_claimed.zero?
+
+    ingest_hash_items(list)
+  rescue ActiveRecord::RecordNotFound
+    raise
+  rescue => e
+    # Roll back the processed flag so the job can be retried
+    # rubocop:disable Rails/SkipsModelValidations
+    HashList.where(id: id).update_all(processed: false)
+    # rubocop:enable Rails/SkipsModelValidations
+    raise
+  end
+
+  private
+
+  def ingest_hash_items(list)
     hash_items = []
     processed_count = 0
 
     list.file.open do |file|
-      file.each_line.with_index do |line, index|
+      file.each_line do |line|
         next if line.blank?
 
         line.strip!
@@ -70,18 +93,18 @@ class ProcessHashListJob < ApplicationJob
       processed_count += hash_items.size
     end
 
-    # Mark as processed if we actually ingested items
+    # Update the hash items count now that processing is complete.
+    # The `processed` flag was already set atomically at the start to prevent duplicates.
     if processed_count.positive?
       # rubocop:disable Rails/SkipsModelValidations
       # Intentionally skipping validations for performance during bulk status update
       affected_rows = HashList.where(id: list.id).update_all(
-        processed: true,
         hash_items_count: processed_count
       )
       # rubocop:enable Rails/SkipsModelValidations
 
       if affected_rows.zero?
-        error_msg = "Failed to mark hash list #{list.id} as processed - record may have been deleted"
+        error_msg = "Failed to update hash list #{list.id} count - record may have been deleted"
         Rails.logger.error(error_msg)
         raise ActiveRecord::RecordNotSaved, error_msg
       end
@@ -93,8 +116,6 @@ class ProcessHashListJob < ApplicationJob
       raise StandardError, error_msg
     end
   end
-
-  private
 
   # Returns the batch size for processing hash items.
   # Priority order:

@@ -8,13 +8,18 @@ import TomSelect from "tom-select"
 
 // Connects to data-controller="select"
 export default class extends Controller {
+  static values = {
+    allowEmpty: { type: Boolean, default: false },
+    maxOptions: { type: Number, default: 100 }
+  }
+
   connect() {
     if (this.select) return
 
     this.select = new TomSelect(this.element, {
-      allowEmptyOption: false,
+      allowEmptyOption: this.allowEmptyValue,
       plugins: ['dropdown_input'],
-      maxOptions: null
+      maxOptions: this.maxOptionsValue
     })
   }
 

@@ -85,10 +85,6 @@ class HashType < ApplicationRecord
     cryptocurrency: 21
   }
 
-  def to_label
-    to_s
-  end
-
   def to_s
     "#{hashcat_mode} (#{name})"
   end
