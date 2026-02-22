@@ -10,5 +10,8 @@ application.register("health-refresh", HealthRefreshController)
 import PagyInitializerController from "./pagy_initializer_controller"
 application.register("pagy-initializer", PagyInitializerController)
 
+import SelectController from "./select_controller"
+application.register("select", SelectController)
+
 import TabsController from "./tabs_controller"
 application.register("tabs", TabsController)

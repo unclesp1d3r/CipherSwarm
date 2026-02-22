@@ -91,6 +91,14 @@ RSpec.describe HashType do
     it { is_expected.to have_db_column(:built_in).of_type(:boolean).with_options(default: false, null: false) }
   end
 
+  describe "#to_s" do
+    let(:hash_type) { create(:hash_type, hashcat_mode: 0, name: "MD5") }
+
+    it "returns hashcat_mode followed by name in parentheses" do
+      expect(hash_type.to_s).to eq("0 (MD5)")
+    end
+  end
+
   describe "is valid" do
     let(:hash_type) { create(:hash_type) }
 
