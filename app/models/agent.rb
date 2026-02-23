@@ -263,7 +263,7 @@ class Agent < ApplicationRecord
   end
 
   def current_running_attack
-    tasks.running.first&.attack
+    tasks.running.order(:id).first&.attack
   end
 
   # Returns the name of the agent.

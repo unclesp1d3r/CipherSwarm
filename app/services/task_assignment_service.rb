@@ -210,7 +210,7 @@ class TaskAssignmentService
   # @param attack [Attack] the attack to search in
   # @return [Task, nil] a pending task, or nil
   def find_pending_task(attack)
-    attack.tasks.with_state(:pending).where(agent: agent).first
+    attack.tasks.with_state(:pending).where(agent: agent).order(:id).first
   end
 
   # Creates a new task if the agent meets performance requirements and no pending tasks exist.
