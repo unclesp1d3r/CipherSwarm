@@ -47,6 +47,61 @@ RSpec.describe HashcatStatus do
     it { is_expected.to validate_presence_of(:session) }
     it { is_expected.to validate_presence_of(:target) }
     it { is_expected.to validate_presence_of(:time_start) }
+
+    describe "array length validations" do
+      let(:hashcat_status) { build(:hashcat_status) }
+
+      it "accepts progress with exactly 2 entries" do
+        hashcat_status.progress = [100, 10000]
+        expect(hashcat_status).to be_valid
+      end
+
+      it "rejects progress with more than 2 entries" do
+        hashcat_status.progress = [100, 10000, 999]
+        expect(hashcat_status).not_to be_valid
+        expect(hashcat_status.errors[:progress]).to include("must have exactly 2 entries")
+      end
+
+      it "rejects progress with only 1 entry" do
+        hashcat_status.progress = [100]
+        expect(hashcat_status).not_to be_valid
+        expect(hashcat_status.errors[:progress]).to include("must have exactly 2 entries")
+      end
+
+      it "accepts nil progress" do
+        hashcat_status.progress = nil
+        expect(hashcat_status.errors[:progress]).to be_empty
+      end
+
+      it "rejects recovered_hashes with more than 2 entries" do
+        hashcat_status.recovered_hashes = [1, 2, 3]
+        expect(hashcat_status).not_to be_valid
+        expect(hashcat_status.errors[:recovered_hashes]).to include("must have exactly 2 entries")
+      end
+
+      it "rejects recovered_salts with more than 2 entries" do
+        hashcat_status.recovered_salts = [1, 2, 3]
+        expect(hashcat_status).not_to be_valid
+        expect(hashcat_status.errors[:recovered_salts]).to include("must have exactly 2 entries")
+      end
+
+      it "rejects more than 64 device_statuses" do
+        hashcat_status.save!
+        hashcat_status.device_statuses.clear
+
+        65.times { |i| hashcat_status.device_statuses.build(device_id: i, device_name: "GPU #{i}", device_type: "GPU", speed: 1000, utilization: 50, temperature: 60) }
+        expect(hashcat_status).not_to be_valid
+        expect(hashcat_status.errors[:device_statuses]).to include("must have at most 64 entries")
+      end
+
+      it "accepts up to 64 device_statuses" do
+        hashcat_status.save!
+        hashcat_status.device_statuses.clear
+
+        64.times { |i| hashcat_status.device_statuses.build(device_id: i, device_name: "GPU #{i}", device_type: "GPU", speed: 1000, utilization: 50, temperature: 60) }
+        expect(hashcat_status).to be_valid
+      end
+    end
   end
 
   describe "scopes" do

@@ -72,6 +72,8 @@ class HashcatStatus < ApplicationRecord
   validates :session, presence: true, length: { maximum: 255 }
   validates :target, presence: true, length: { maximum: 255 }
   validates :time_start, presence: true
+  validate :array_lengths_within_limits
+  validate :device_statuses_count_within_limit
 
   accepts_nested_attributes_for :device_statuses, allow_destroy: true
   accepts_nested_attributes_for :hashcat_guess, allow_destroy: true
@@ -233,5 +235,15 @@ class HashcatStatus < ApplicationRecord
     # rubocop:enable Rails/SkipsModelValidations
   rescue StandardError => e
     Rails.logger.error("Failed to update agent metrics for task #{task.id}: #{e.message}")
+  end
+
+  def array_lengths_within_limits
+    errors.add(:progress, "must have exactly 2 entries") if progress.present? && progress.length != 2
+    errors.add(:recovered_hashes, "must have exactly 2 entries") if recovered_hashes.present? && recovered_hashes.length != 2
+    errors.add(:recovered_salts, "must have exactly 2 entries") if recovered_salts.present? && recovered_salts.length != 2
+  end
+
+  def device_statuses_count_within_limit
+    errors.add(:device_statuses, "must have at most 64 entries") if device_statuses.present? && device_statuses.size > 64
   end
 end

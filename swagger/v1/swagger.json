@@ -125,6 +125,7 @@
           },
           "devices": {
             "type": "array",
+            "maxItems": 64,
             "items": {
               "type": "string",
               "description": "The descriptive name of a GPU or CPU device."
@@ -531,6 +532,8 @@
           },
           "progress": {
             "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
             "items": {
               "type": "integer",
               "format": "int64"
@@ -544,6 +547,8 @@
           },
           "recovered_hashes": {
             "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
             "items": {
               "type": "integer"
             },
@@ -551,6 +556,8 @@
           },
           "recovered_salts": {
             "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
             "items": {
               "type": "integer"
             },
@@ -563,6 +570,7 @@
           },
           "device_statuses": {
             "type": "array",
+            "maxItems": 64,
             "items": {
               "$ref": "#/components/schemas/DeviceStatus"
             },
