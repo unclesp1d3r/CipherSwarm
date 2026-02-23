@@ -22,3 +22,6 @@ idiomatic_version_file_enable_tools = [ "ruby", "bun", "python" ]
 
 [settings.npm]
 package_manager = "bun"
+
+[settings.ruby]
+compile = false
