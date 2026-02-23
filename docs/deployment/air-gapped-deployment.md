@@ -17,13 +17,11 @@ On a system with Internet access, pull and save all required images:
 docker pull ghcr.io/unclesp1d3r/cipherswarm:latest
 docker pull postgres:latest
 docker pull redis:latest
-docker pull minio/minio:latest
 
 # Save images to tar archives
 docker save ghcr.io/unclesp1d3r/cipherswarm:latest -o cipherswarm.tar
 docker save postgres:latest -o postgres.tar
 docker save redis:latest -o redis.tar
-docker save minio/minio:latest -o minio.tar
 ```
 
 Transfer the `.tar` files and the CipherSwarm source repository to the air-gapped system via USB drive, network share, or other approved transfer method.
@@ -36,13 +34,12 @@ On the air-gapped system, load the images:
 docker load -i cipherswarm.tar
 docker load -i postgres.tar
 docker load -i redis.tar
-docker load -i minio.tar
 ```
 
 Verify all images are loaded:
 
 ```bash
-docker images | grep -E "cipherswarm|postgres|redis|minio"
+docker images | grep -E "cipherswarm|postgres|redis"
 ```
 
 ## Step 3: Configure Environment
@@ -53,12 +50,96 @@ Create a `.env` file in the CipherSwarm project root (if not already present):
 # Required
 RAILS_MASTER_KEY=<your-master-key>
 POSTGRES_PASSWORD=<strong-password>
-
-# Set to the IP address agents will use to reach MinIO
-MINIO_PUBLIC_IP=<host-ip-or-hostname>
 ```
 
 The `RAILS_MASTER_KEY` is found in `config/master.key` on the system where the app was originally configured. Transfer this file securely.
+
+### Default Local Storage
+
+By default, CipherSwarm uses local disk storage. Files are stored at `/rails/storage` inside the web container, backed by a Docker volume. To inspect or back up stored files:
+
+```bash
+docker compose -f docker-compose-production.yml exec web ls -la /rails/storage
+```
+
+### Optional: S3-Compatible Storage
+
+To use S3-compatible storage instead of local disk, you must deploy an S3-compatible service within the air-gapped environment. Popular options:
+
+| Service                                             | Image                 | Notes                                                                                                   |
+| --------------------------------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------- |
+| [MinIO](https://min.io/)                            | `minio/minio`         | Widely adopted, simple single-binary deployment. Now requires a paid license for production use (AGPL). |
+| [SeaweedFS](https://github.com/seaweedfs/seaweedfs) | `chrislusf/seaweedfs` | Apache 2.0 licensed, S3 gateway mode, lightweight.                                                      |
+| [Garage](https://garagehq.deuxfleurs.fr/)           | `dxflrs/garage`       | AGPL, designed for self-hosting, geo-distributed.                                                       |
+
+**1. Export the storage service image** (on the Internet-connected system, during Step 1):
+
+```bash
+# MinIO example — substitute your chosen service
+docker pull minio/minio:latest
+docker save minio/minio:latest -o storage-service.tar
+
+# SeaweedFS example
+# docker pull chrislusf/seaweedfs:latest
+# docker save chrislusf/seaweedfs:latest -o storage-service.tar
+```
+
+**2. Load the image** (on the air-gapped system, during Step 2):
+
+```bash
+docker load -i storage-service.tar
+```
+
+**3. Add the storage service** to your `docker-compose-production.yml`. Example for MinIO:
+
+```yaml
+services:
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${AWS_ACCESS_KEY_ID}
+      MINIO_ROOT_PASSWORD: ${AWS_SECRET_ACCESS_KEY}
+    volumes:
+      - minio-data:/data
+    ports:
+      - 9000:9000
+      - 9001:9001
+    healthcheck:
+      test: [CMD, mc, ready, local]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  minio-data:
+```
+
+For SeaweedFS, run with `weed server -s3` and point `AWS_ENDPOINT` at the S3 gateway port (default 8333).
+
+**4. Set environment variables** in `.env`:
+
+```bash
+ACTIVE_STORAGE_SERVICE=s3
+AWS_ACCESS_KEY_ID=<access-key>
+AWS_SECRET_ACCESS_KEY=<secret-key>
+AWS_BUCKET=application
+AWS_ENDPOINT=http://minio:9000       # or http://seaweedfs:8333
+AWS_FORCE_PATH_STYLE=true
+AWS_REGION=us-east-1
+```
+
+All `AWS_*` credentials are required when using S3 storage — the application will fail at startup if they are missing.
+
+**5. Create the bucket** before first use:
+
+```bash
+# MinIO CLI example
+docker compose -f docker-compose-production.yml exec minio \
+  mc alias set local http://localhost:9000 <access-key> <secret-key>
+docker compose -f docker-compose-production.yml exec minio \
+  mc mb local/application
+```
 
 ## Step 4: Deploy Services
 
@@ -72,7 +153,7 @@ Verify all services started:
 docker compose -f docker-compose-production.yml ps
 ```
 
-All services should show a healthy status: `web`, `postgres-db`, `redis-db`, `minio`, `sidekiq`.
+All services should show a healthy status: `web`, `postgres-db`, `redis-db`, `sidekiq`.
 
 ## Step 5: Run Database Setup
 
@@ -117,8 +198,59 @@ Run through this checklist after deployment to confirm full offline operation:
 - [ ] Asset precompilation completed (`public/assets/` contains compiled files)
 - [ ] Health check endpoints respond (`/up` and `/system_health`)
 - [ ] Agent API is accessible from agent hosts (`POST /api/v1/client/authenticate`)
-- [ ] File uploads and downloads work via MinIO (hash lists, word lists, rule lists)
+- [ ] File uploads and downloads work (hash lists, word lists, rule lists)
 - [ ] Documentation is available locally in the `docs/` directory
+
+## Migrating from S3/MinIO to Local Disk Storage
+
+If your deployment previously used S3-compatible storage (MinIO, SeaweedFS, AWS S3) and you want to switch to local disk storage, use the built-in migration rake task.
+
+### Prerequisites
+
+- The S3 service must still be accessible (files need to be downloaded)
+- Sufficient disk space on the Docker volume for all stored files
+- If using the old `:minio` config that no longer exists in `storage.yml`, either:
+  - Add a temporary `minio:` entry to `config/storage.yml` pointing to your MinIO instance, or
+  - Use `SOURCE_SERVICE=s3` if your `s3:` entry already points to the same backend
+
+### Running the Migration
+
+**1. Preview what will be migrated (recommended first step):**
+
+```bash
+docker compose -f docker-compose-production.yml exec web \
+  bin/rails storage:migrate_to_local DRY_RUN=true
+```
+
+**2. Run the actual migration:**
+
+```bash
+docker compose -f docker-compose-production.yml exec web \
+  bin/rails storage:migrate_to_local
+```
+
+**3. If blobs reference an old service name (e.g., "minio") but your storage.yml uses "s3":**
+
+```bash
+docker compose -f docker-compose-production.yml exec web \
+  bin/rails storage:migrate_to_local SOURCE_SERVICE=s3
+```
+
+### Safety
+
+- **Idempotent**: Safe to re-run after partial failure. Already-migrated blobs are skipped.
+- **Checksum verified**: Each file is verified against its stored checksum before writing to disk.
+- **Non-destructive**: Source files in S3 are not deleted. Remove them manually after verifying the migration.
+- **Interruptible**: Ctrl+C stops gracefully and prints a progress summary.
+
+### Post-Migration
+
+After successful migration:
+
+1. Update `.env` to set `ACTIVE_STORAGE_SERVICE=local` (or remove the variable — local is the default)
+2. Remove `AWS_*` environment variables if S3 is no longer needed
+3. Remove the S3-compatible storage service from your Docker Compose file
+4. Verify file downloads work in the web UI
 
 ## Upgrading in Air-Gapped Environments
 
@@ -169,7 +301,7 @@ Run through this checklist after deployment to confirm full offline operation:
 | Symptom                    | Cause                  | Solution                                                            |
 | -------------------------- | ---------------------- | ------------------------------------------------------------------- |
 | Assets fail to load (404s) | Precompilation not run | Run `bin/rails assets:precompile` inside the web container          |
-| MinIO connection refused   | Wrong MINIO_ENDPOINT   | Set `MINIO_PUBLIC_IP` to the host IP reachable by agents            |
+| Storage connection refused | Wrong AWS_ENDPOINT     | Verify `AWS_ENDPOINT` points to the correct S3-compatible host      |
 | Agents cannot connect      | Network/firewall       | Verify port 80 is open between agent hosts and the CipherSwarm host |
 | Database connection error  | PostgreSQL not ready   | Wait for `postgres-db` health check to pass before starting web     |
 | Redis connection error     | Redis not started      | Check `redis-db` container status and logs                          |

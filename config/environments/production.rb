@@ -26,9 +26,10 @@ Rails.application.configure do
   # Enable serving of images, stylesheets, and JavaScripts from an asset server.
   # config.asset_host = "http://assets.example.com"
 
-  # Store uploaded files on Minio (S3-compatible storage) by default.
-  # Override with ACTIVE_STORAGE_SERVICE=local for Docker dev without MinIO DNS.
-  config.active_storage.service = ENV.fetch("ACTIVE_STORAGE_SERVICE", "minio").to_sym
+  # Store uploaded files on local disk by default (works with shared volumes in Docker).
+  # Set ACTIVE_STORAGE_SERVICE=s3 and AWS_* env vars to use S3-compatible storage
+  # (AWS S3, MinIO, SeaweedFS, etc.).
+  config.active_storage.service = ENV.fetch("ACTIVE_STORAGE_SERVICE", "local").to_sym
 
   # Assume all access to the app is happening through a SSL-terminating reverse proxy.
   # Can be disabled for local docker development via DISABLE_SSL=true

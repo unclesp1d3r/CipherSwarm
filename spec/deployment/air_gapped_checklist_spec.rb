@@ -148,40 +148,6 @@ RSpec.describe "Air-Gapped Deployment Validation", type: :request do
     end
   end
 
-  describe "MinIO storage configuration" do
-    it "storage.yml includes MinIO configuration for air-gapped S3-compatible storage" do
-      storage_config = YAML.safe_load(
-        Rails.root.join("config/storage.yml").read,
-        permitted_classes: [],
-        aliases: true
-      )
-      expect(storage_config).to have_key("minio")
-    end
-
-    it "MinIO uses local endpoint by default" do
-      storage_content = Rails.root.join("config/storage.yml").read
-      expect(storage_content).to include("endpoint")
-      expect(storage_content).to include("force_path_style: true")
-    end
-
-    it "uploads and downloads a file via MinIO storage (round-trip)" do
-      service = build_minio_service
-      skip "MinIO is not reachable" unless service
-
-      key = "air-gap-test-#{SecureRandom.hex(8)}"
-      content = "CipherSwarm air-gapped deployment round-trip test"
-
-      begin
-        service.upload(key, StringIO.new(content))
-        downloaded = service.download(key)
-
-        expect(downloaded).to eq(content)
-      ensure
-        service.delete(key) rescue nil
-      end
-    end
-  end
-
   describe "production Docker configuration" do
     it "production docker-compose file exists" do
       expect(Rails.root.join("docker-compose-production.yml").exist?).to be(true)
@@ -269,7 +235,7 @@ RSpec.describe "Air-Gapped Deployment Validation", type: :request do
     # 6. Asset precompilation: ✓ asset directories + lockfiles present
     # 7. Health check endpoints: ✓ accessible and returns JSON
     # 8. Agent API accessible: ✓ authentication endpoint accessible
-    # 9. File uploads/downloads with MinIO: ✓ MinIO configured in storage.yml
+    # 9. File uploads/downloads with storage: ✓ local storage configured in storage.yml
     # 10. Documentation accessible offline: ✓ docs directory present
 
     it "Gemfile does not require external fetch during runtime" do
@@ -280,20 +246,6 @@ RSpec.describe "Air-Gapped Deployment Validation", type: :request do
   end
 
   private
-
-  # Build an ActiveStorage service instance from the MinIO config in storage.yml.
-  # Returns nil if MinIO is unreachable (allows the test to skip gracefully).
-  def build_minio_service
-    configs = Rails.application.config.active_storage.service_configurations
-    return nil unless configs&.key?("minio")
-
-    service = ActiveStorage::Service.configure(:minio, configs)
-    # Probe connectivity by listing (an inexpensive S3 operation)
-    service.exist?("__connectivity_probe__")
-    service
-  rescue Aws::Errors::ServiceError, Seahorse::Client::NetworkingError, Errno::ECONNREFUSED => _e
-    nil
-  end
 
   def stub_health_checks
     allow(ActiveRecord::Base.connection).to receive(:execute).and_call_original

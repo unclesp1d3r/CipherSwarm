@@ -506,9 +506,6 @@ curl https://CipherSwarm.example.com/api/v1/web/health/components
 
 # Test database connectivity
 curl https://CipherSwarm.example.com/api/v1/web/health/database
-
-# Check MinIO storage
-curl https://minio.example.com/health/live
 ```
 
 ### Agent Diagnostics

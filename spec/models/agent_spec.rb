@@ -55,6 +55,24 @@ RSpec.describe Agent do
     it { is_expected.to validate_uniqueness_of(:token) }
     it { is_expected.to validate_length_of(:current_activity).is_at_most(50) }
 
+    describe "devices length" do
+      it "accepts up to 64 devices" do
+        agent.devices = Array.new(64) { |i| "GPU #{i}" }
+        expect(agent).to be_valid
+      end
+
+      it "rejects more than 64 devices" do
+        agent.devices = Array.new(65) { |i| "GPU #{i}" }
+        expect(agent).not_to be_valid
+        expect(agent.errors[:devices]).to include("must have at most 64 entries")
+      end
+
+      it "accepts an empty devices array" do
+        agent.devices = []
+        expect(agent).to be_valid
+      end
+    end
+
     describe "current_activity" do
       it "accepts valid activity values" do
         %w[starting benchmarking waiting cracking updating downloading stopping].each do |activity|
@@ -168,6 +186,17 @@ RSpec.describe Agent do
         agent.current_hash_rate = 1000 # 1 KH/s
         display = agent.hash_rate_display
         expect(display).to include("H/s")
+      end
+    end
+
+    describe "#current_running_attack" do
+      it "returns nil when the agent has no running tasks" do
+        expect(agent.current_running_attack).to be_nil
+      end
+
+      it "returns the attack associated with the running task" do
+        task.run!
+        expect(agent.current_running_attack).to eq(task.attack)
       end
     end
   end

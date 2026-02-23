@@ -6,22 +6,16 @@ local:
   service: Disk
   root: <%= Rails.root.join("storage") %>
 
-minio:
+# Generic S3-compatible storage (AWS S3, MinIO, SeaweedFS, etc.)
+# Opt in by setting ACTIVE_STORAGE_SERVICE=s3 plus standard AWS_* env vars.
+s3:
   service: S3
-  bucket: <%= ENV['MINIO_BUCKET'] || 'application' %>
-  endpoint: <%= ENV['MINIO_ENDPOINT'] || 'http://localhost:9000' %>
-  access_key_id: <%= ENV['MINIO_ACCESS_KEY_ID'] || 'minioadmin' %>
-  secret_access_key: <%= ENV['MINIO_SECRET_ACCESS_KEY'] || 'minioadmin' %>
-  region: us-east-1
-  force_path_style: true
-
-# Use bin/rails credentials:edit to set the AWS secrets (as aws:access_key_id|secret_access_key)
-# amazon:
-#   service: S3
-#   access_key_id: <%= Rails.application.credentials.dig(:aws, :access_key_id) %>
-#   secret_access_key: <%= Rails.application.credentials.dig(:aws, :secret_access_key) %>
-#   region: us-east-1
-#   bucket: your_own_bucket-<%= Rails.env %>
+  bucket: <%= ENV.fetch("AWS_BUCKET", "application") %>
+  access_key_id: <%= ENV["AWS_ACCESS_KEY_ID"] %>
+  secret_access_key: <%= ENV["AWS_SECRET_ACCESS_KEY"] %>
+  region: <%= ENV.fetch("AWS_REGION", "us-east-1") %>
+  endpoint: <%= ENV["AWS_ENDPOINT"] %>
+  force_path_style: <%= ENV.fetch("AWS_FORCE_PATH_STYLE", "false") == "true" %>
 
 # Remember not to checkin your GCS keyfile to a repository
 # google:

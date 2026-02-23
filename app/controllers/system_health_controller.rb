@@ -13,7 +13,7 @@ class SystemHealthController < ApplicationController
   SERVICE_NAMES = {
     postgresql: "PostgreSQL",
     redis: "Redis",
-    minio: "MinIO",
+    storage: "Storage",
     sidekiq: "Sidekiq"
   }.freeze
 
@@ -47,7 +47,7 @@ class SystemHealthController < ApplicationController
       details = { "Memory" => check[:used_memory], "Clients" => check[:connected_clients] }
       details["Hit Rate"] = "#{check[:hit_rate]}%" if check[:hit_rate]
       details
-    when :minio
+    when :storage
       { "Storage Used" => check[:storage_used] ? number_to_human_size(check[:storage_used]) : nil, "Buckets" => check[:bucket_count] }
     else
       {}

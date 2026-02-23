@@ -47,7 +47,6 @@ Transfer the following images to the air-gapped environment:
 - CipherSwarm application image
 - PostgreSQL image
 - Redis image
-- MinIO image
 - CipherSwarm agent image (for each agent node)
 
 ### Image Transfer Methods
@@ -63,9 +62,8 @@ On a connected machine:
 docker pull cipherswarm:latest
 docker pull postgres:16
 docker pull redis:7
-docker pull minio/minio:latest
 
-docker save cipherswarm:latest postgres:16 redis:7 minio/minio:latest \
+docker save cipherswarm:latest postgres:16 redis:7 \
   -o cipherswarm-images.tar
 ```
 
@@ -91,7 +89,7 @@ Transfer wordlists, rule files, and other resources to the air-gapped environmen
 1. Package all resource files into an archive
 2. Transfer the archive to the air-gapped environment
 3. Upload resources through the CipherSwarm web interface after deployment
-4. Alternatively, mount resource directories directly into the MinIO container
+4. Alternatively, mount resource directories directly into the storage volume
 
 ---
 
@@ -114,13 +112,11 @@ services:
       - SECRET_KEY_BASE=<generate-a-secure-key>
       - DATABASE_URL=postgres://cipherswarm:<secure-password>@postgres-db:5432/cipherswarm
       - REDIS_URL=redis://redis:6379/0
-      - MINIO_ENDPOINT=http://minio:9000
-      - MINIO_ACCESS_KEY=<minio-access-key>
-      - MINIO_SECRET_KEY=<minio-secret-key>
     depends_on:
       - postgres-db
       - redis
-      - minio
+    volumes:
+      - storage:/rails/storage
 
   postgres-db:
     image: postgres:16
@@ -136,15 +132,6 @@ services:
     volumes:
       - redis_data:/data
 
-  minio:
-    image: minio/minio:latest
-    command: server /data --console-address ":9001"
-    environment:
-      MINIO_ROOT_USER: <minio-access-key>
-      MINIO_ROOT_PASSWORD: <minio-secret-key>
-    volumes:
-      - minio_data:/data
-
   sidekiq:
     image: cipherswarm:latest
     command: bundle exec sidekiq
@@ -155,11 +142,13 @@ services:
     depends_on:
       - postgres-db
       - redis
+    volumes:
+      - storage:/rails/storage
 
 volumes:
+  storage:
   postgres_data:
   redis_data:
-  minio_data:
 ```
 
 ### Step 3: Verify Asset Precompilation
@@ -246,7 +235,7 @@ Use this checklist to verify that your air-gapped deployment is fully functional
 
 - [ ] **7. Health check endpoints work in isolated network**
 
-  Verify that the system health dashboard reports correct status for all services (PostgreSQL, Redis, MinIO, Application) within the isolated network.
+  Verify that the system health dashboard reports correct status for all services (PostgreSQL, Redis, Storage, Application) within the isolated network.
 
 - [ ] **8. Agent API accessible from isolated agents**
 
@@ -256,9 +245,9 @@ Use this checklist to verify that your air-gapped deployment is fully functional
   - Configuration: `GET /api/v1/client/configuration`
   - Task assignment: `GET /api/v1/client/tasks/new`
 
-- [ ] **9. File uploads/downloads work with MinIO (no S3 external calls)**
+- [ ] **9. File uploads/downloads work (no external S3 calls)**
 
-  Upload a test wordlist through the web interface and verify it is stored in the local MinIO instance. Download it from an agent to verify the full round-trip.
+  Upload a test wordlist through the web interface and verify it is stored correctly. Download it from an agent to verify the full round-trip.
 
 - [ ] **10. Documentation accessible offline (bundled in container or separate package)**
 
@@ -373,12 +362,7 @@ curl -s -H "Authorization: Bearer <agent-token>" \
 2. Navigate to **Resources** > **Wordlists**
 3. Upload a small test wordlist file
 4. Verify the upload completes successfully
-5. From an agent, verify the resource can be downloaded:
-
-```bash
-# Check that MinIO is serving files
-curl -s http://<server-ip>:9000/minio/health/ready
-```
+5. From an agent, verify the resource can be downloaded via the API
 
 ### Validating Item 10: Offline Documentation
 
@@ -467,7 +451,6 @@ curl -s http://localhost:3000/docs/README.md
    ```bash
    docker compose exec web ping postgres-db
    docker compose exec web ping redis
-   docker compose exec web ping minio
    ```
 
 2. Check that service names in configuration match `docker-compose.yml` service names
@@ -520,18 +503,14 @@ docker compose exec -T postgres-db \
   psql -U cipherswarm cipherswarm < backup_20260101.sql
 ```
 
-#### MinIO Backup
+#### Storage Backup
 
 ```bash
-# Backup MinIO data
-docker compose exec minio \
-  mc mirror /data /backup/minio_$(date +%Y%m%d)
-
-# Or backup the Docker volume
+# Backup the storage Docker volume
 docker run --rm \
-  -v cipherswarm_minio_data:/data \
+  -v cipherswarm_storage:/data \
   -v $(pwd):/backup \
-  alpine tar czf /backup/minio_backup.tar.gz /data
+  alpine tar czf /backup/storage_backup.tar.gz /data
 ```
 
 #### Full System Backup
@@ -541,7 +520,7 @@ docker run --rm \
 docker compose stop
 
 # Backup all volumes
-for vol in postgres_data redis_data minio_data; do
+for vol in storage postgres_data redis_data; do
   docker run --rm \
     -v cipherswarm_${vol}:/data \
     -v $(pwd)/backups:/backup \
@@ -579,7 +558,7 @@ To add new wordlists, rules, or other resources:
 
 1. Transfer resource files to the air-gapped environment
 2. Upload through the CipherSwarm web interface
-3. Or copy files directly to the MinIO data directory
+3. Or copy files directly to the storage volume
 4. Verify resources are accessible from agents
 
 ---
@@ -595,7 +574,7 @@ To add new wordlists, rules, or other resources:
 
 ### Access Controls
 
-- Use strong passwords for all services (PostgreSQL, Redis, MinIO, admin accounts)
+- Use strong passwords for all services (PostgreSQL, Redis, admin accounts)
 - Rotate passwords on a regular schedule
 - Limit the number of administrator accounts
 - Review audit logs regularly
