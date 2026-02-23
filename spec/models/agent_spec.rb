@@ -188,6 +188,17 @@ RSpec.describe Agent do
         expect(display).to include("H/s")
       end
     end
+
+    describe "#current_running_attack" do
+      it "returns nil when the agent has no running tasks" do
+        expect(agent.current_running_attack).to be_nil
+      end
+
+      it "returns the attack associated with the running task" do
+        task.run!
+        expect(agent.current_running_attack).to eq(task.attack)
+      end
+    end
   end
 
   describe "scopes" do

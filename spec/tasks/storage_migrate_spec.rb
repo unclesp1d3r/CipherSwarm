@@ -233,6 +233,99 @@ RSpec.describe "storage:migrate_to_local", type: :task do
       expect { task.invoke }.not_to raise_error
       expect(output.string).to include("Storage Migration")
     end
+
+    it "shows INTERRUPTED status in summary" do
+      StorageMigration.print_summary({ migrated: 5, skipped: 0, failed: 0, interrupted: true, dry_run: false })
+      expect(output.string).to include("INTERRUPTED (safe to re-run)")
+    end
+
+    it "shows COMPLETE status when not interrupted" do
+      StorageMigration.print_summary({ migrated: 5, skipped: 0, failed: 0, interrupted: false, dry_run: false })
+      expect(output.string).to include("COMPLETE")
+    end
+  end
+
+  describe "print_progress" do
+    it "does not print when total is zero" do
+      StorageMigration.print_progress(0, 0)
+      expect(output.string).to be_empty
+    end
+  end
+
+  describe "configured_service_names" do
+    it "returns empty array when registry internals are not accessible" do
+      registry = ActiveStorage::Blob.services
+      allow(registry).to receive(:instance_variable_get).with(:@configurations).and_return(nil)
+      allow(Rails.logger).to receive(:warn)
+
+      result = StorageMigration.configured_service_names
+
+      expect(result).to eq([])
+      expect(output.string).to include("WARNING")
+    end
+  end
+
+  describe "resolve_source_service" do
+    let(:hash_list) { create(:hash_list) }
+
+    it "returns nil when the service is not in the registry" do
+      blob = hash_list.file.blob
+      blob.update_column(:service_name, "nonexistent") # rubocop:disable Rails/SkipsModelValidations
+
+      result = StorageMigration.resolve_source_service(blob)
+      expect(result).to be_nil
+    end
+  end
+
+  describe "interrupt handling" do
+    let(:hash_list) { create(:hash_list) }
+    let!(:second_list) { create(:hash_list, name: "interrupt-test") }
+
+    before do
+      # Two blobs needed so the second iteration hits `break if interrupted`
+      hash_list.file.blob.update_column(:service_name, "s3") # rubocop:disable Rails/SkipsModelValidations
+      second_list.file.blob.update_column(:service_name, "s3") # rubocop:disable Rails/SkipsModelValidations
+    end
+
+    it "stops processing and reports interrupted status on INT signal" do
+      source_service = stub_source_service("s3")
+      disk_service = ActiveStorage::Blob.services.fetch(:local)
+
+      # Capture the trap handler instead of sending a real SIGINT (which can segfault Ruby).
+      int_handler = nil
+      allow(StorageMigration).to receive(:trap).with("INT") { |&blk| int_handler = blk }
+
+      first_download = true
+      allow(source_service).to receive(:download) do |_key, &block|
+        (int_handler&.call; first_download = false) if first_download
+        block&.call("content")
+      end
+      allow(disk_service).to receive(:exist?).and_return(false)
+      allow(disk_service).to receive(:upload)
+      stub_checksum_match(hash_list.file.blob)
+
+      expect { task.invoke }.to raise_error(SystemExit) { |e| expect(e.status).to eq(1) }
+      expect(output.string).to include("INTERRUPTED (safe to re-run)")
+    end
+  end
+
+  describe "per-blob source service skip" do
+    let(:hash_list) { create(:hash_list) }
+
+    before do
+      hash_list.file.blob.update_column(:service_name, "minio") # rubocop:disable Rails/SkipsModelValidations
+    end
+
+    it "skips blobs when source service is unavailable at runtime" do
+      ENV["SOURCE_SERVICE"] = "s3"
+      allow(StorageMigration).to receive(:resolve_source_service).and_return(nil)
+
+      expect { task.invoke }.not_to raise_error
+
+      expect(output.string).to include("[SKIP]")
+      expect(output.string).to include("source service not configured")
+      expect(output.string).to include("Skipped:  1")
+    end
   end
 
   describe "logging" do

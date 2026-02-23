@@ -45,12 +45,9 @@ module StorageMigration # rubocop:disable Metrics/ModuleLength
       break if interrupted
 
       result = migrate_blob(blob, disk_service, dry_run:)
-      case result
-      when :migrated then migrated += 1
-      when :skipped then skipped += 1
-      when :would_migrate then migrated += 1
-      when :failed then failed += 1
-      end
+      migrated += 1 if result == :migrated || result == :would_migrate
+      skipped += 1 if result == :skipped
+      failed += 1 if result == :failed
 
       print_progress(migrated + skipped + failed, total)
     end
@@ -148,7 +145,7 @@ module StorageMigration # rubocop:disable Metrics/ModuleLength
   rescue StandardError => e
     log "  [ERROR] #{label} — #{e.class}: #{e.message}"
     Rails.logger.error("[StorageMigration] #{label} — #{e.class}: #{e.message}" \
-                       "\n#{e.backtrace&.first(5)&.join("\n")}")
+                       "\n#{Array(e.backtrace).first(5).join("\n")}")
     :failed
   end
 
