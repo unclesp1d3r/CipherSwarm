@@ -143,7 +143,7 @@ RSpec.describe "SystemHealth" do
         allow(ActiveRecord::Base.connection).to receive(:execute)
           .with("SELECT 1")
           .and_raise(PG::ConnectionBad.new("connection refused"))
-        stub_minio_check
+        stub_storage_check
         stub_sidekiq_check
       end
 
@@ -165,7 +165,7 @@ RSpec.describe "SystemHealth" do
         health_result = {
           postgresql: { status: :healthy, latency: 1.5, error: nil, connection_count: 10, database_size: 2_147_483_648 },
           redis: { status: :healthy, latency: 0.5, error: nil, used_memory: "10MB", connected_clients: 5, hit_rate: nil },
-          minio: { status: :healthy, latency: 2.0, error: nil, storage_used: 1_073_741_824, bucket_count: 3 },
+          storage: { status: :healthy, latency: 2.0, error: nil, storage_used: 1_073_741_824, bucket_count: 3 },
           sidekiq: { status: :healthy, latency: 0.3, error: nil, workers: 2, queues: 1, enqueued: 0 },
           application: { rails_version: Rails.version, ruby_version: RUBY_VERSION, uptime: "1d 2h", workers_running: true, worker_count: 2 },
           checked_at: Time.current.iso8601
@@ -186,13 +186,13 @@ RSpec.describe "SystemHealth" do
       end
     end
 
-    context "with MinIO nil storage_used" do
+    context "with Storage nil storage_used" do
       before do
         sign_in regular_user
         health_result = {
           postgresql: { status: :healthy, latency: 1.0, error: nil, connection_count: 5, database_size: 1024 },
           redis: { status: :healthy, latency: 0.5, error: nil, used_memory: "10MB", connected_clients: 3, hit_rate: nil },
-          minio: { status: :healthy, latency: 2.0, error: nil, storage_used: nil, bucket_count: 1 },
+          storage: { status: :healthy, latency: 2.0, error: nil, storage_used: nil, bucket_count: 1 },
           sidekiq: { status: :healthy, latency: 0.1, error: nil, workers: 1, queues: 1, enqueued: 0 },
           application: { rails_version: Rails.version, ruby_version: RUBY_VERSION, uptime: "1h", workers_running: true, worker_count: 1 },
           checked_at: Time.current.iso8601
@@ -200,7 +200,7 @@ RSpec.describe "SystemHealth" do
         allow(SystemHealthCheckService).to receive(:call).and_return(health_result)
       end
 
-      it "renders MinIO details without error when storage_used is nil" do
+      it "renders Storage details without error when storage_used is nil" do
         get system_health_path
         expect(response).to have_http_status(:success)
       end
@@ -219,7 +219,7 @@ RSpec.describe "SystemHealth" do
         health_result = {
           postgresql: { status: :healthy, latency: 1.0, error: nil, connection_count: 5, database_size: nil },
           redis: { status: :healthy, latency: 0.5, error: nil, used_memory: "10MB", connected_clients: 3, hit_rate: nil },
-          minio: { status: :healthy, latency: 2.0, error: nil, storage_used: 500, bucket_count: 1 },
+          storage: { status: :healthy, latency: 2.0, error: nil, storage_used: 500, bucket_count: 1 },
           sidekiq: { status: :healthy, latency: 0.1, error: nil, workers: 1, queues: 1, enqueued: 0 },
           application: { rails_version: Rails.version, ruby_version: RUBY_VERSION, uptime: "1h", workers_running: true, worker_count: 1 },
           checked_at: Time.current.iso8601
@@ -265,12 +265,12 @@ RSpec.describe "SystemHealth" do
   def stub_health_checks
     allow(ActiveRecord::Base.connection).to receive(:execute).and_call_original
     allow(ActiveRecord::Base.connection).to receive(:execute).with("SELECT 1").and_return(true)
-    stub_minio_check
+    stub_storage_check
     stub_sidekiq_check
     stub_application_info
   end
 
-  def stub_minio_check
+  def stub_storage_check
     allow(ActiveStorage::Blob.service).to receive(:exist?).with("health_check").and_return(false)
   end
 

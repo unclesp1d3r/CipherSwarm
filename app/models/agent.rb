@@ -103,6 +103,7 @@ class Agent < ApplicationRecord
   validates :host_name, presence: true, length: { maximum: 255 }
   validates :custom_label, length: { maximum: 255 }, uniqueness: true, allow_nil: true
   validates :current_activity, length: { maximum: 50 }, allow_nil: true
+  validate :devices_length_within_limit
 
   scope :active, -> { where(state: :active) }
   scope :inactive_for, ->(time) { where(last_seen_at: ...time.ago) }
@@ -262,7 +263,7 @@ class Agent < ApplicationRecord
   end
 
   def current_running_attack
-    tasks.running.first&.attack
+    tasks.running.order(:id).first&.attack
   end
 
   # Returns the name of the agent.
@@ -307,18 +308,6 @@ class Agent < ApplicationRecord
     end
   end
 
-  # Sets the update interval for the agent.
-  #
-  # The interval is a random number between 5 and 60 (inclusive).
-  # This interval is then assigned to the "agent_update_interval" key
-  # in the advanced_configuration hash.
-  #
-  # @return [void]
-  def set_update_interval
-    interval = rand(5..60)
-    advanced_configuration["agent_update_interval"] = interval
-  end
-
   # Returns a formatted hash rate display string.
   #
   # - Returns "—" if current_hash_rate is nil
@@ -336,5 +325,23 @@ class Agent < ApplicationRecord
       units: HASH_RATE_UNITS,
       format: "%n %u"
     )
+  end
+
+  private
+
+  def devices_length_within_limit
+    errors.add(:devices, "must have at most 64 entries") if devices.present? && devices.length > 64
+  end
+
+  # Sets the update interval for the agent.
+  #
+  # The interval is a random number between 5 and 60 (inclusive).
+  # This interval is then assigned to the "agent_update_interval" key
+  # in the advanced_configuration hash.
+  #
+  # @return [void]
+  def set_update_interval
+    interval = rand(5..60)
+    advanced_configuration["agent_update_interval"] = interval
   end
 end

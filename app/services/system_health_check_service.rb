@@ -5,7 +5,7 @@
 
 # Performs health checks against core infrastructure services and caches results.
 #
-# Checks PostgreSQL, Redis, MinIO (ActiveStorage), and Sidekiq. Results are
+# Checks PostgreSQL, Redis, Storage (ActiveStorage), and Sidekiq. Results are
 # cached for 1 minute with a Redis-based lock to prevent cache stampede when
 # multiple requests arrive simultaneously.
 #
@@ -87,7 +87,7 @@ class SystemHealthCheckService
           connected_clients: nil,
           hit_rate: nil
         },
-        minio: check_minio,
+        storage: check_storage,
         sidekiq: check_sidekiq,
         application: application_info,
         checked_at: Time.current.iso8601
@@ -105,7 +105,7 @@ class SystemHealthCheckService
     Sidekiq.redis { |conn| conn.set(LOCK_KEY, token, nx: true, ex: LOCK_TTL) }
   end
 
-  def check_minio
+  def check_storage
     start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
     Timeout.timeout(CHECK_TIMEOUT) do
       ActiveStorage::Blob.service.exist?("health_check")
@@ -118,12 +118,12 @@ class SystemHealthCheckService
       storage_used = ActiveStorage::Blob.sum(:byte_size)
       bucket_count = ActiveStorage::Blob.service.respond_to?(:buckets) ? ActiveStorage::Blob.service.buckets.count : nil
     rescue => e
-      Rails.logger.warn("[SystemHealth] MinIO extended metrics failed: #{e.message}")
+      Rails.logger.warn("[SystemHealth] Storage extended metrics failed: #{e.message}")
     end
 
     { status: :healthy, latency: latency, error: nil, storage_used: storage_used, bucket_count: bucket_count }
   rescue => e
-    Rails.logger.error("[SystemHealth] MinIO check failed: #{e.message}\n#{Array(e.backtrace).first(5).join("\n")}")
+    Rails.logger.error("[SystemHealth] Storage check failed: #{e.message}\n#{Array(e.backtrace).first(5).join("\n")}")
     { status: :unhealthy, latency: nil, error: e.message, storage_used: nil, bucket_count: nil }
   end
 
@@ -218,7 +218,7 @@ class SystemHealthCheckService
     {
       postgresql: { status: :checking, latency: nil, error: nil, connection_count: nil, database_size: nil },
       redis: { status: :checking, latency: nil, error: nil, used_memory: nil, connected_clients: nil, hit_rate: nil },
-      minio: { status: :checking, latency: nil, error: nil, storage_used: nil, bucket_count: nil },
+      storage: { status: :checking, latency: nil, error: nil, storage_used: nil, bucket_count: nil },
       sidekiq: { status: :checking, latency: nil, error: nil, workers: 0, queues: 0, enqueued: 0 },
       application: application_info,
       checked_at: Time.current.iso8601
@@ -242,7 +242,7 @@ class SystemHealthCheckService
   end
 
   def perform_all_checks
-    checks = { postgresql: :check_postgresql, redis: :check_redis, minio: :check_minio, sidekiq: :check_sidekiq }
+    checks = { postgresql: :check_postgresql, redis: :check_redis, storage: :check_storage, sidekiq: :check_sidekiq }
     results = checks.transform_values { |m| send(m) }
     results[:application] = application_info
     results[:checked_at] = Time.current.iso8601

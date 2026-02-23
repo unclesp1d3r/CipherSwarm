@@ -155,7 +155,7 @@ RSpec.describe "api/v1/client/agents" do
           host_name: { type: :string, description: "The hostname of the agent" },
           client_signature: { type: :string, description: "The signature of the client" },
           operating_system: { type: :string, description: "The operating system of the agent" },
-          devices: { type: :array, items: { type: :string, description: "The descriptive name of a GPU or CPU device." } }
+          devices: { type: :array, maxItems: 64, items: { type: :string, description: "The descriptive name of a GPU or CPU device." } }
         },
         required: %i[id host_name client_signature operating_system devices]
       }, description: "Agent system information", examples: :agent

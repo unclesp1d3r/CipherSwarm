@@ -108,7 +108,7 @@ RSpec.configure do |config|
               state: { type: :string, description: "The state of the agent",
                        enum: Agent.state_machine.states.map { |s| s.name.to_s }.sort },
               operating_system: { type: :string, description: "The operating system of the agent" },
-              devices: { type: :array, items: { type: :string, description: "The descriptive name of a GPU or CPU device." } },
+              devices: { type: :array, maxItems: 64, items: { type: :string, description: "The descriptive name of a GPU or CPU device." } },
               current_activity: { type: :string, nullable: true, description: "Current agent activity state" },
               advanced_configuration: {
                 "$ref" => "#/components/schemas/AdvancedAgentConfiguration"
@@ -369,12 +369,12 @@ RSpec.configure do |config|
               hashcat_guess: { "$ref" => "#/components/schemas/HashcatGuess" },
               status: { type: :integer, description: "The status of the task" },
               target: { type: :string, description: "The target of the task" },
-              progress: { type: :array, items: { type: :integer, format: :int64 }, description: "The progress of the task" },
+              progress: { type: :array, minItems: 2, maxItems: 2, items: { type: :integer, format: :int64 }, description: "The progress of the task" },
               restore_point: { type: :integer, format: :int64, description: "The restore point of the task" },
-              recovered_hashes: { type: :array, items: { type: :integer }, description: "The number of recovered hashes" },
-              recovered_salts: { type: :array, items: { type: :integer }, description: "The number of recovered salts" },
+              recovered_hashes: { type: :array, minItems: 2, maxItems: 2, items: { type: :integer }, description: "The number of recovered hashes" },
+              recovered_salts: { type: :array, minItems: 2, maxItems: 2, items: { type: :integer }, description: "The number of recovered salts" },
               rejected: { type: :integer, format: :int64, description: "The number of rejected guesses" },
-              device_statuses: { type: :array, items: { "$ref" => "#/components/schemas/DeviceStatus" },
+              device_statuses: { type: :array, maxItems: 64, items: { "$ref" => "#/components/schemas/DeviceStatus" },
                                  description: "The status of the devices used for the task" },
               time_start: { type: :string, format: "date-time", description: "The time the task started." },
               estimated_stop: { type: :string, format: "date-time", description: "The estimated time of completion." }

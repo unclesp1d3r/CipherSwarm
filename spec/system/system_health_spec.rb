@@ -79,13 +79,13 @@ RSpec.describe "System Health Dashboard", skip: ENV["CI"].present? do
   end
 
   describe "service card details" do
-    it "displays all four service cards (PostgreSQL, Redis, MinIO, Sidekiq)", :aggregate_failures do
+    it "displays all four service cards (PostgreSQL, Redis, Storage, Sidekiq)", :aggregate_failures do
       create_and_sign_in_user
       visit system_health_path
 
       expect(page).to have_content("PostgreSQL")
       expect(page).to have_content("Redis")
-      expect(page).to have_content("MinIO")
+      expect(page).to have_content("Storage")
       expect(page).to have_content("Sidekiq")
     end
 
@@ -133,7 +133,7 @@ RSpec.describe "System Health Dashboard", skip: ENV["CI"].present? do
       unhealthy_result = {
         postgresql: { status: :unhealthy, latency: nil, error: "connection refused", connection_count: nil, database_size: nil },
         redis: { status: :healthy, latency: 0.5, error: nil, used_memory: "10MB", connected_clients: 5, hit_rate: nil },
-        minio: { status: :healthy, latency: 2.0, error: nil, storage_used: 1024, bucket_count: 1 },
+        storage: { status: :healthy, latency: 2.0, error: nil, storage_used: 1024, bucket_count: 1 },
         sidekiq: { status: :healthy, latency: 0.3, error: nil, workers: 2, queues: 1, enqueued: 0 },
         application: { rails_version: Rails.version, ruby_version: RUBY_VERSION, uptime: "1h", workers_running: true, worker_count: 2 },
         checked_at: Time.current.iso8601

@@ -226,7 +226,10 @@ class BasePage
   def tom_select_fill_and_choose(select_id, text)
     control = find("##{select_id}-ts-control", visible: true)
     control.click
-    dropdown = find("##{select_id}-ts-dropdown", visible: true)
+    # The dropdown_input plugin places the input inside the .ts-dropdown wrapper,
+    # not inside the #-ts-dropdown content div, so scope to the wrapper.
+    wrapper = control.ancestor(".ts-wrapper")
+    dropdown = wrapper.find(".ts-dropdown", visible: true)
     input = dropdown.find("input.dropdown-input", visible: true)
     input.set(text)
     dropdown.find(".option", text: text, match: :prefer_exact, visible: true).click
