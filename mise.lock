@@ -5,6 +5,17 @@ backend = "aqua:rhysd/actionlint"
 [[tools.bun]]
 version = "1.3.9"
 backend = "core:bun"
+"platforms.linux-arm64" = { checksum = "sha256:a2c2862bcc1fd1c0b3a8dcdc8c7efb5e2acd871eb20ed2f17617884ede81c844", url = "https://github.com/oven-sh/bun/releases/download/bun-v1.3.9/bun-linux-aarch64.zip"}
+"platforms.linux-arm64-musl" = { checksum = "sha256:412e9b2732d148cb127a753d63899b0333c4f4f1bd8dde79316ecfb7ef170270", url = "https://github.com/oven-sh/bun/releases/download/bun-v1.3.9/bun-linux-aarch64-musl.zip"}
+"platforms.linux-x64" = { checksum = "sha256:4680e80e44e32aa718560ceae85d22ecfbf2efb8f3641782e35e4b7efd65a1aa", url = "https://github.com/oven-sh/bun/releases/download/bun-v1.3.9/bun-linux-x64.zip"}
+"platforms.linux-x64-baseline" = { checksum = "sha256:104d4d037f4b35e10215c0507e1779691f39c57bd91ddeefe11cad781e3fc4b9", url = "https://github.com/oven-sh/bun/releases/download/bun-v1.3.9/bun-linux-x64-baseline.zip"}
+"platforms.linux-x64-musl" = { checksum = "sha256:04b7184318937623d317de6b25e82bef7bf5cce0b241501c5d0499513201c72d", url = "https://github.com/oven-sh/bun/releases/download/bun-v1.3.9/bun-linux-x64-musl.zip"}
+"platforms.linux-x64-musl-baseline" = { checksum = "sha256:40ea1b2b209d393a07e06299d2d19a31710f1e55d15811a193bfa7c9dd757e01", url = "https://github.com/oven-sh/bun/releases/download/bun-v1.3.9/bun-linux-x64-musl-baseline.zip"}
+"platforms.macos-arm64" = { checksum = "sha256:cde6a4edf19cf64909158fa5a464a12026fd7f0d79a4a950c10cf0af04266d85", url = "https://github.com/oven-sh/bun/releases/download/bun-v1.3.9/bun-darwin-aarch64.zip"}
+"platforms.macos-x64" = { checksum = "sha256:588f4a48740b9a0c366a00f878810ab3ab5e6734d29b7c3cbdd9484b74a007de", url = "https://github.com/oven-sh/bun/releases/download/bun-v1.3.9/bun-darwin-x64.zip"}
+"platforms.macos-x64-baseline" = { checksum = "sha256:a6e15821aa60795f541ce18fce16bca9f2a94e193068b77f6f33330f4d0a3ad5", url = "https://github.com/oven-sh/bun/releases/download/bun-v1.3.9/bun-darwin-x64-baseline.zip"}
+"platforms.windows-x64" = { checksum = "sha256:f4c1cf3549f6af986dc6535c40b4785ff1a7e7805e59637ec450fc11adb0c874", url = "https://github.com/oven-sh/bun/releases/download/bun-v1.3.9/bun-windows-x64.zip"}
+"platforms.windows-x64-baseline" = { checksum = "sha256:cc22962b3dcc51f279f13bf843675e052479e64a323f85eb29442066cf3942fe", url = "https://github.com/oven-sh/bun/releases/download/bun-v1.3.9/bun-windows-x64-baseline.zip"}
 
 [[tools.docker-cli]]
 version = "29.2.1"
@@ -13,9 +24,20 @@ backend = "aqua:docker/cli"
 [[tools.docker-compose]]
 version = "5.0.2"
 backend = "aqua:docker/compose"
+"platforms.linux-arm64" = { checksum = "sha256:ac7810e0cd56a5b58576688196fafa843e07e8241fb91018a736d549ea20a3f3", url = "https://github.com/docker/compose/releases/download/v5.0.2/docker-compose-linux-aarch64"}
+"platforms.linux-arm64-musl" = { checksum = "sha256:ac7810e0cd56a5b58576688196fafa843e07e8241fb91018a736d549ea20a3f3", url = "https://github.com/docker/compose/releases/download/v5.0.2/docker-compose-linux-aarch64"}
+"platforms.linux-x64" = { checksum = "sha256:2d880f723d3da7c779c54fdaea91a842fca8af55d1397f1ed8d7cbab3dd7af67", url = "https://github.com/docker/compose/releases/download/v5.0.2/docker-compose-linux-x86_64"}
+"platforms.linux-x64-baseline" = { checksum = "sha256:2d880f723d3da7c779c54fdaea91a842fca8af55d1397f1ed8d7cbab3dd7af67", url = "https://github.com/docker/compose/releases/download/v5.0.2/docker-compose-linux-x86_64"}
+"platforms.linux-x64-musl" = { checksum = "sha256:2d880f723d3da7c779c54fdaea91a842fca8af55d1397f1ed8d7cbab3dd7af67", url = "https://github.com/docker/compose/releases/download/v5.0.2/docker-compose-linux-x86_64"}
+"platforms.linux-x64-musl-baseline" = { checksum = "sha256:2d880f723d3da7c779c54fdaea91a842fca8af55d1397f1ed8d7cbab3dd7af67", url = "https://github.com/docker/compose/releases/download/v5.0.2/docker-compose-linux-x86_64"}
+"platforms.macos-arm64" = { checksum = "sha256:72c7e684a1944cfb1765358d7ea7822cd209f25208ca235b914e761d9abb224e", url = "https://github.com/docker/compose/releases/download/v5.0.2/docker-compose-darwin-aarch64"}
+"platforms.macos-x64" = { checksum = "sha256:766d6f9b305d89c3b8fe88cb6fb207fd7f531fbd63982b6136d058c1f98767bd", url = "https://github.com/docker/compose/releases/download/v5.0.2/docker-compose-darwin-x86_64"}
+"platforms.macos-x64-baseline" = { checksum = "sha256:766d6f9b305d89c3b8fe88cb6fb207fd7f531fbd63982b6136d058c1f98767bd", url = "https://github.com/docker/compose/releases/download/v5.0.2/docker-compose-darwin-x86_64"}
+"platforms.windows-x64" = { checksum = "sha256:e6281c7b906eafe8f39114e735f11fc276d8cce2cba93a54911ca15337ba6c49", url = "https://github.com/docker/compose/releases/download/v5.0.2/docker-compose-windows-x86_64.exe"}
+"platforms.windows-x64-baseline" = { checksum = "sha256:e6281c7b906eafe8f39114e735f11fc276d8cce2cba93a54911ca15337ba6c49", url = "https://github.com/docker/compose/releases/download/v5.0.2/docker-compose-windows-x86_64.exe"}
 
 [[tools."gem:rails"]]
-version = "8.1.2"
+version = "8.0.4"
 backend = "gem:rails"
 
 [[tools."gem:rubocop"]]
@@ -38,13 +60,54 @@ backend = "npm:markdownlint-cli2"
 version = "1.49.0"
 backend = "npm:oxlint"
 
+[[tools."pipx:mergify-cli"]]
+version = "2026.2.19.1"
+backend = "pipx:mergify-cli"
+
 [[tools.pre-commit]]
 version = "4.5.1"
 backend = "aqua:pre-commit/pre-commit"
+"platforms.linux-arm64" = { checksum = "sha256:19d00ba35cbf9c04dc3736cd8bb641e8633f3eddd4cedde71809574ae68a2cd1", url = "https://github.com/pre-commit/pre-commit/releases/download/v4.5.1/pre-commit-4.5.1.pyz"}
+"platforms.linux-arm64-musl" = { checksum = "sha256:19d00ba35cbf9c04dc3736cd8bb641e8633f3eddd4cedde71809574ae68a2cd1", url = "https://github.com/pre-commit/pre-commit/releases/download/v4.5.1/pre-commit-4.5.1.pyz"}
+"platforms.linux-x64" = { checksum = "sha256:19d00ba35cbf9c04dc3736cd8bb641e8633f3eddd4cedde71809574ae68a2cd1", url = "https://github.com/pre-commit/pre-commit/releases/download/v4.5.1/pre-commit-4.5.1.pyz"}
+"platforms.linux-x64-baseline" = { checksum = "sha256:19d00ba35cbf9c04dc3736cd8bb641e8633f3eddd4cedde71809574ae68a2cd1", url = "https://github.com/pre-commit/pre-commit/releases/download/v4.5.1/pre-commit-4.5.1.pyz"}
+"platforms.linux-x64-musl" = { checksum = "sha256:19d00ba35cbf9c04dc3736cd8bb641e8633f3eddd4cedde71809574ae68a2cd1", url = "https://github.com/pre-commit/pre-commit/releases/download/v4.5.1/pre-commit-4.5.1.pyz"}
+"platforms.linux-x64-musl-baseline" = { checksum = "sha256:19d00ba35cbf9c04dc3736cd8bb641e8633f3eddd4cedde71809574ae68a2cd1", url = "https://github.com/pre-commit/pre-commit/releases/download/v4.5.1/pre-commit-4.5.1.pyz"}
+"platforms.macos-arm64" = { checksum = "sha256:19d00ba35cbf9c04dc3736cd8bb641e8633f3eddd4cedde71809574ae68a2cd1", url = "https://github.com/pre-commit/pre-commit/releases/download/v4.5.1/pre-commit-4.5.1.pyz"}
+"platforms.macos-x64" = { checksum = "sha256:19d00ba35cbf9c04dc3736cd8bb641e8633f3eddd4cedde71809574ae68a2cd1", url = "https://github.com/pre-commit/pre-commit/releases/download/v4.5.1/pre-commit-4.5.1.pyz"}
+"platforms.macos-x64-baseline" = { checksum = "sha256:19d00ba35cbf9c04dc3736cd8bb641e8633f3eddd4cedde71809574ae68a2cd1", url = "https://github.com/pre-commit/pre-commit/releases/download/v4.5.1/pre-commit-4.5.1.pyz"}
+"platforms.windows-x64" = { checksum = "sha256:19d00ba35cbf9c04dc3736cd8bb641e8633f3eddd4cedde71809574ae68a2cd1", url = "https://github.com/pre-commit/pre-commit/releases/download/v4.5.1/pre-commit-4.5.1.pyz"}
+"platforms.windows-x64-baseline" = { checksum = "sha256:19d00ba35cbf9c04dc3736cd8bb641e8633f3eddd4cedde71809574ae68a2cd1", url = "https://github.com/pre-commit/pre-commit/releases/download/v4.5.1/pre-commit-4.5.1.pyz"}
 
 [[tools.python]]
 version = "3.14.3"
 backend = "core:python"
+"platforms.linux-arm64" = { checksum = "sha256:e9b0aef9baafb6b9e7a4d47b82d6d9778eeafb2c95d23fb5247d3a5f8e52c5a5", url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260211/cpython-3.14.3+20260211-aarch64-unknown-linux-gnu-install_only_stripped.tar.gz"}
+"platforms.linux-arm64-musl" = { checksum = "sha256:e9b0aef9baafb6b9e7a4d47b82d6d9778eeafb2c95d23fb5247d3a5f8e52c5a5", url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260211/cpython-3.14.3+20260211-aarch64-unknown-linux-gnu-install_only_stripped.tar.gz"}
+"platforms.linux-x64" = { checksum = "sha256:759457004082459a402f369225b82565d88ca8257d9fd11c642a1c76ab0cb1cc", url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260211/cpython-3.14.3+20260211-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"}
+"platforms.linux-x64-baseline" = { checksum = "sha256:759457004082459a402f369225b82565d88ca8257d9fd11c642a1c76ab0cb1cc", url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260211/cpython-3.14.3+20260211-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"}
+"platforms.linux-x64-musl" = { checksum = "sha256:759457004082459a402f369225b82565d88ca8257d9fd11c642a1c76ab0cb1cc", url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260211/cpython-3.14.3+20260211-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"}
+"platforms.linux-x64-musl-baseline" = { checksum = "sha256:759457004082459a402f369225b82565d88ca8257d9fd11c642a1c76ab0cb1cc", url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260211/cpython-3.14.3+20260211-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"}
+"platforms.macos-arm64" = { checksum = "sha256:348647e4c13b662f7b0d218ccf472688038679815fb1a429ca664b7dce324237", url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260211/cpython-3.14.3+20260211-aarch64-apple-darwin-install_only_stripped.tar.gz"}
+"platforms.macos-x64" = { checksum = "sha256:107c71b272b5eeecd7b7b607c4fac0796b0f221bc3391e6155a349789cc7eb17", url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260211/cpython-3.14.3+20260211-x86_64-apple-darwin-install_only_stripped.tar.gz"}
+"platforms.macos-x64-baseline" = { checksum = "sha256:107c71b272b5eeecd7b7b607c4fac0796b0f221bc3391e6155a349789cc7eb17", url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260211/cpython-3.14.3+20260211-x86_64-apple-darwin-install_only_stripped.tar.gz"}
+"platforms.windows-x64" = { checksum = "sha256:dc5feea0e16807e7c7b2d20af3f2c18c7153f9cbd4b54063172553fda60c5a1f", url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260211/cpython-3.14.3+20260211-x86_64-pc-windows-msvc-install_only_stripped.tar.gz"}
+"platforms.windows-x64-baseline" = { checksum = "sha256:dc5feea0e16807e7c7b2d20af3f2c18c7153f9cbd4b54063172553fda60c5a1f", url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260211/cpython-3.14.3+20260211-x86_64-pc-windows-msvc-install_only_stripped.tar.gz"}
+
+[[tools.ruby]]
+version = "3.4.5"
+backend = "core:ruby"
+"platforms.linux-arm64" = { checksum = "sha256:1d88d8a27b442fdde4aa06dc99e86b0bbf0b288963d8433112dd5fac798fd5ee", url = "https://cache.ruby-lang.org/pub/ruby/3.4/ruby-3.4.5.tar.gz"}
+"platforms.linux-arm64-musl" = { checksum = "sha256:1d88d8a27b442fdde4aa06dc99e86b0bbf0b288963d8433112dd5fac798fd5ee", url = "https://cache.ruby-lang.org/pub/ruby/3.4/ruby-3.4.5.tar.gz"}
+"platforms.linux-x64" = { checksum = "sha256:1d88d8a27b442fdde4aa06dc99e86b0bbf0b288963d8433112dd5fac798fd5ee", url = "https://cache.ruby-lang.org/pub/ruby/3.4/ruby-3.4.5.tar.gz"}
+"platforms.linux-x64-baseline" = { checksum = "sha256:1d88d8a27b442fdde4aa06dc99e86b0bbf0b288963d8433112dd5fac798fd5ee", url = "https://cache.ruby-lang.org/pub/ruby/3.4/ruby-3.4.5.tar.gz"}
+"platforms.linux-x64-musl" = { checksum = "sha256:1d88d8a27b442fdde4aa06dc99e86b0bbf0b288963d8433112dd5fac798fd5ee", url = "https://cache.ruby-lang.org/pub/ruby/3.4/ruby-3.4.5.tar.gz"}
+"platforms.linux-x64-musl-baseline" = { checksum = "sha256:1d88d8a27b442fdde4aa06dc99e86b0bbf0b288963d8433112dd5fac798fd5ee", url = "https://cache.ruby-lang.org/pub/ruby/3.4/ruby-3.4.5.tar.gz"}
+"platforms.macos-arm64" = { checksum = "sha256:1d88d8a27b442fdde4aa06dc99e86b0bbf0b288963d8433112dd5fac798fd5ee", url = "https://cache.ruby-lang.org/pub/ruby/3.4/ruby-3.4.5.tar.gz"}
+"platforms.macos-x64" = { checksum = "sha256:1d88d8a27b442fdde4aa06dc99e86b0bbf0b288963d8433112dd5fac798fd5ee", url = "https://cache.ruby-lang.org/pub/ruby/3.4/ruby-3.4.5.tar.gz"}
+"platforms.macos-x64-baseline" = { checksum = "sha256:1d88d8a27b442fdde4aa06dc99e86b0bbf0b288963d8433112dd5fac798fd5ee", url = "https://cache.ruby-lang.org/pub/ruby/3.4/ruby-3.4.5.tar.gz"}
+"platforms.windows-x64" = { checksum = "sha256:1d88d8a27b442fdde4aa06dc99e86b0bbf0b288963d8433112dd5fac798fd5ee", url = "https://cache.ruby-lang.org/pub/ruby/3.4/ruby-3.4.5.tar.gz"}
+"platforms.windows-x64-baseline" = { checksum = "sha256:1d88d8a27b442fdde4aa06dc99e86b0bbf0b288963d8433112dd5fac798fd5ee", url = "https://cache.ruby-lang.org/pub/ruby/3.4/ruby-3.4.5.tar.gz"}
 
 [[tools.vacuum]]
 version = "0.23.8"
