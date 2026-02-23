@@ -70,7 +70,7 @@ RSpec.describe HashcatStatus do
 
       it "accepts nil progress" do
         hashcat_status.progress = nil
-        expect(hashcat_status.errors[:progress]).to be_empty
+        expect(hashcat_status).to be_valid
       end
 
       it "rejects recovered_hashes with more than 2 entries" do
@@ -79,8 +79,20 @@ RSpec.describe HashcatStatus do
         expect(hashcat_status.errors[:recovered_hashes]).to include("must have exactly 2 entries")
       end
 
+      it "rejects recovered_hashes with only 1 entry" do
+        hashcat_status.recovered_hashes = [1]
+        expect(hashcat_status).not_to be_valid
+        expect(hashcat_status.errors[:recovered_hashes]).to include("must have exactly 2 entries")
+      end
+
       it "rejects recovered_salts with more than 2 entries" do
         hashcat_status.recovered_salts = [1, 2, 3]
+        expect(hashcat_status).not_to be_valid
+        expect(hashcat_status.errors[:recovered_salts]).to include("must have exactly 2 entries")
+      end
+
+      it "rejects recovered_salts with only 1 entry" do
+        hashcat_status.recovered_salts = [1]
         expect(hashcat_status).not_to be_valid
         expect(hashcat_status.errors[:recovered_salts]).to include("must have exactly 2 entries")
       end

@@ -817,6 +817,7 @@
                   },
                   "devices": {
                     "type": "array",
+                    "maxItems": 64,
                     "items": {
                       "type": "string",
                       "description": "The descriptive name of a GPU or CPU device."

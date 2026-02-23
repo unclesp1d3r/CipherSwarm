@@ -329,6 +329,10 @@ class Agent < ApplicationRecord
 
   private
 
+  def devices_length_within_limit
+    errors.add(:devices, "must have at most 64 entries") if devices.present? && devices.length > 64
+  end
+
   # Sets the update interval for the agent.
   #
   # The interval is a random number between 5 and 60 (inclusive).
@@ -339,9 +343,5 @@ class Agent < ApplicationRecord
   def set_update_interval
     interval = rand(5..60)
     advanced_configuration["agent_update_interval"] = interval
-  end
-
-  def devices_length_within_limit
-    errors.add(:devices, "must have at most 64 entries") if devices.present? && devices.length > 64
   end
 end
