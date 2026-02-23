@@ -54,18 +54,91 @@ POSTGRES_PASSWORD=<strong-password>
 
 The `RAILS_MASTER_KEY` is found in `config/master.key` on the system where the app was originally configured. Transfer this file securely.
 
+### Default Local Storage
+
+By default, CipherSwarm uses local disk storage. Files are stored at `/rails/storage` inside the web container, backed by a Docker volume. To inspect or back up stored files:
+
+```bash
+docker compose -f docker-compose-production.yml exec web ls -la /rails/storage
+```
+
 ### Optional: S3-Compatible Storage
 
-By default, CipherSwarm uses local disk storage (shared via Docker volumes). To use S3-compatible storage (MinIO, SeaweedFS, etc.), add to `.env`:
+To use S3-compatible storage instead of local disk, you must deploy an S3-compatible service within the air-gapped environment. Popular options:
+
+| Service                                             | Image                 | Notes                                                                                                   |
+| --------------------------------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------- |
+| [MinIO](https://min.io/)                            | `minio/minio`         | Widely adopted, simple single-binary deployment. Now requires a paid license for production use (AGPL). |
+| [SeaweedFS](https://github.com/seaweedfs/seaweedfs) | `chrislusf/seaweedfs` | Apache 2.0 licensed, S3 gateway mode, lightweight.                                                      |
+| [Garage](https://garagehq.deuxfleurs.fr/)           | `dxflrs/garage`       | AGPL, designed for self-hosting, geo-distributed.                                                       |
+
+**1. Export the storage service image** (on the Internet-connected system, during Step 1):
+
+```bash
+# MinIO example — substitute your chosen service
+docker pull minio/minio:latest
+docker save minio/minio:latest -o storage-service.tar
+
+# SeaweedFS example
+# docker pull chrislusf/seaweedfs:latest
+# docker save chrislusf/seaweedfs:latest -o storage-service.tar
+```
+
+**2. Load the image** (on the air-gapped system, during Step 2):
+
+```bash
+docker load -i storage-service.tar
+```
+
+**3. Add the storage service** to your `docker-compose-production.yml`. Example for MinIO:
+
+```yaml
+services:
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${AWS_ACCESS_KEY_ID}
+      MINIO_ROOT_PASSWORD: ${AWS_SECRET_ACCESS_KEY}
+    volumes:
+      - minio-data:/data
+    ports:
+      - 9000:9000
+      - 9001:9001
+    healthcheck:
+      test: [CMD, mc, ready, local]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  minio-data:
+```
+
+For SeaweedFS, run with `weed server -s3` and point `AWS_ENDPOINT` at the S3 gateway port (default 8333).
+
+**4. Set environment variables** in `.env`:
 
 ```bash
 ACTIVE_STORAGE_SERVICE=s3
 AWS_ACCESS_KEY_ID=<access-key>
 AWS_SECRET_ACCESS_KEY=<secret-key>
 AWS_BUCKET=application
-AWS_ENDPOINT=http://<storage-host>:9000
+AWS_ENDPOINT=http://minio:9000       # or http://seaweedfs:8333
 AWS_FORCE_PATH_STYLE=true
 AWS_REGION=us-east-1
+```
+
+All `AWS_*` credentials are required when using S3 storage — the application will fail at startup if they are missing.
+
+**5. Create the bucket** before first use:
+
+```bash
+# MinIO CLI example
+docker compose -f docker-compose-production.yml exec minio \
+  mc alias set local http://localhost:9000 <access-key> <secret-key>
+docker compose -f docker-compose-production.yml exec minio \
+  mc mb local/application
 ```
 
 ## Step 4: Deploy Services
