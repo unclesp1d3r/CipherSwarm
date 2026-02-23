@@ -98,10 +98,16 @@ backend = "core:python"
 version = "3.4.5"
 backend = "core:ruby"
 "platforms.linux-arm64" = { checksum = "sha256:1d88d8a27b442fdde4aa06dc99e86b0bbf0b288963d8433112dd5fac798fd5ee", url = "https://cache.ruby-lang.org/pub/ruby/3.4/ruby-3.4.5.tar.gz"}
+"platforms.linux-arm64-musl" = { checksum = "sha256:1d88d8a27b442fdde4aa06dc99e86b0bbf0b288963d8433112dd5fac798fd5ee", url = "https://cache.ruby-lang.org/pub/ruby/3.4/ruby-3.4.5.tar.gz"}
 "platforms.linux-x64" = { checksum = "sha256:1d88d8a27b442fdde4aa06dc99e86b0bbf0b288963d8433112dd5fac798fd5ee", url = "https://cache.ruby-lang.org/pub/ruby/3.4/ruby-3.4.5.tar.gz"}
+"platforms.linux-x64-baseline" = { checksum = "sha256:1d88d8a27b442fdde4aa06dc99e86b0bbf0b288963d8433112dd5fac798fd5ee", url = "https://cache.ruby-lang.org/pub/ruby/3.4/ruby-3.4.5.tar.gz"}
+"platforms.linux-x64-musl" = { checksum = "sha256:1d88d8a27b442fdde4aa06dc99e86b0bbf0b288963d8433112dd5fac798fd5ee", url = "https://cache.ruby-lang.org/pub/ruby/3.4/ruby-3.4.5.tar.gz"}
+"platforms.linux-x64-musl-baseline" = { checksum = "sha256:1d88d8a27b442fdde4aa06dc99e86b0bbf0b288963d8433112dd5fac798fd5ee", url = "https://cache.ruby-lang.org/pub/ruby/3.4/ruby-3.4.5.tar.gz"}
 "platforms.macos-arm64" = { checksum = "sha256:1d88d8a27b442fdde4aa06dc99e86b0bbf0b288963d8433112dd5fac798fd5ee", url = "https://cache.ruby-lang.org/pub/ruby/3.4/ruby-3.4.5.tar.gz"}
 "platforms.macos-x64" = { checksum = "sha256:1d88d8a27b442fdde4aa06dc99e86b0bbf0b288963d8433112dd5fac798fd5ee", url = "https://cache.ruby-lang.org/pub/ruby/3.4/ruby-3.4.5.tar.gz"}
+"platforms.macos-x64-baseline" = { checksum = "sha256:1d88d8a27b442fdde4aa06dc99e86b0bbf0b288963d8433112dd5fac798fd5ee", url = "https://cache.ruby-lang.org/pub/ruby/3.4/ruby-3.4.5.tar.gz"}
 "platforms.windows-x64" = { checksum = "sha256:1d88d8a27b442fdde4aa06dc99e86b0bbf0b288963d8433112dd5fac798fd5ee", url = "https://cache.ruby-lang.org/pub/ruby/3.4/ruby-3.4.5.tar.gz"}
+"platforms.windows-x64-baseline" = { checksum = "sha256:1d88d8a27b442fdde4aa06dc99e86b0bbf0b288963d8433112dd5fac798fd5ee", url = "https://cache.ruby-lang.org/pub/ruby/3.4/ruby-3.4.5.tar.gz"}
 
 [[tools.vacuum]]
 version = "0.23.8"
