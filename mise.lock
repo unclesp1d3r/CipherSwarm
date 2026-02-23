@@ -60,6 +60,10 @@ backend = "npm:markdownlint-cli2"
 version = "1.49.0"
 backend = "npm:oxlint"
 
+[[tools."pipx:mergify-cli"]]
+version = "2026.2.19.1"
+backend = "pipx:mergify-cli"
+
 [[tools.pre-commit]]
 version = "4.5.1"
 backend = "aqua:pre-commit/pre-commit"
