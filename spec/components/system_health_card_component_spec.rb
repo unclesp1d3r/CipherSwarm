@@ -56,7 +56,7 @@ RSpec.describe SystemHealthCardComponent, type: :component do
 
   describe "checking service" do
     before do
-      render_inline(described_class.new(service_name: "MinIO", status: :checking))
+      render_inline(described_class.new(service_name: "Storage", status: :checking))
     end
 
     it "renders warning badge" do

@@ -2,7 +2,6 @@ x-common-env-vars: &common-env-vars
   RAILS_MASTER_KEY: ${RAILS_MASTER_KEY}
   REDIS_URL: redis://redis-db:6379
   DATABASE_URL: postgres://root:${POSTGRES_PASSWORD:-password}@postgres-db/cipherswarm
-  MINIO_ENDPOINT: http://minio:9000
   APPLICATION_HOST: ${APPLICATION_HOST:-localhost}
   DISABLE_SSL: ${DISABLE_SSL:-true}
   ACTIVE_STORAGE_SERVICE: ${ACTIVE_STORAGE_SERVICE:-local}
@@ -17,7 +16,6 @@ services:
     depends_on:
       - redis-db
       - postgres-db
-      - minio
       - sidekiq
     volumes:
       - storage:/rails/storage
@@ -70,26 +68,6 @@ services:
     networks:
       - backend
 
-  minio:
-    image: minio/minio
-    command: server /data --console-address ":9001"
-    ports:
-      - '9000:9000'
-      - '9001:9001'
-    volumes:
-      - minio-data:/data
-    networks:
-      - frontend
-      - backend
-    environment:
-      - MINIO_ROOT_USER=minioadmin
-      - MINIO_ROOT_PASSWORD=minioadmin
-    healthcheck:
-      test: [ "CMD-SHELL", "curl --fail http://localhost:9000/minio/health/live || exit 1" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
   redis-db:
     image: redis
     networks:
@@ -113,7 +91,6 @@ services:
     depends_on:
       - redis-db
       - postgres-db
-      - minio
     volumes:
       - storage:/rails/storage
     networks:
@@ -149,4 +126,3 @@ volumes:
   storage:
   postgres:
   redis-data:
-  minio-data:

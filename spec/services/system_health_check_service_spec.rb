@@ -14,8 +14,8 @@ RSpec.describe SystemHealthCheckService do
   end
 
   describe "individual health checks" do
-    describe "#check_minio (private)" do
-      context "when MinIO is unreachable" do
+    describe "#check_storage (private)" do
+      context "when Storage is unreachable" do
         before do
           allow(ActiveStorage::Blob.service).to receive(:exist?)
             .with("health_check")
@@ -24,18 +24,18 @@ RSpec.describe SystemHealthCheckService do
         end
 
         it "returns unhealthy status" do
-          result = service.send(:check_minio)
+          result = service.send(:check_storage)
           expect(result[:status]).to eq(:unhealthy)
           expect(result[:error]).to include("Connection refused")
         end
 
         it "logs the error" do
-          service.send(:check_minio)
-          expect(Rails.logger).to have_received(:error).with(/MinIO check failed/)
+          service.send(:check_storage)
+          expect(Rails.logger).to have_received(:error).with(/Storage check failed/)
         end
       end
 
-      context "when MinIO is healthy" do
+      context "when Storage is healthy" do
         before do
           allow(ActiveStorage::Blob.service).to receive(:exist?)
             .with("health_check")
@@ -43,7 +43,7 @@ RSpec.describe SystemHealthCheckService do
         end
 
         it "includes storage_used and bucket_count" do
-          result = service.send(:check_minio)
+          result = service.send(:check_storage)
           expect(result).to have_key(:storage_used)
           expect(result).to have_key(:bucket_count)
         end
@@ -59,12 +59,12 @@ RSpec.describe SystemHealthCheckService do
         end
 
         it "returns bucket count" do
-          result = service.send(:check_minio)
+          result = service.send(:check_storage)
           expect(result[:bucket_count]).to eq(2)
         end
       end
 
-      context "when MinIO extended metrics fail" do
+      context "when Storage extended metrics fail" do
         before do
           allow(ActiveStorage::Blob.service).to receive(:exist?)
             .with("health_check")
@@ -76,7 +76,7 @@ RSpec.describe SystemHealthCheckService do
         end
 
         it "returns healthy status with nil extended metrics" do
-          result = service.send(:check_minio)
+          result = service.send(:check_storage)
           expect(result[:status]).to eq(:healthy)
           expect(result[:storage_used]).to be_nil
           expect(result[:bucket_count]).to be_nil
@@ -93,7 +93,7 @@ RSpec.describe SystemHealthCheckService do
         end
 
         it "returns nil bucket_count" do
-          result = service.send(:check_minio)
+          result = service.send(:check_storage)
           expect(result[:status]).to eq(:healthy)
           expect(result[:bucket_count]).to be_nil
         end
@@ -339,7 +339,7 @@ RSpec.describe SystemHealthCheckService do
       it "still performs non-Redis checks" do
         result = service.call
         expect(result[:postgresql][:status]).to eq(:healthy)
-        expect(result[:minio][:status]).to eq(:healthy)
+        expect(result[:storage][:status]).to eq(:healthy)
         expect(result[:sidekiq][:status]).to eq(:healthy)
       end
 
@@ -374,7 +374,7 @@ RSpec.describe SystemHealthCheckService do
 
       it "returns checking status for all services" do
         result = service.call
-        %i[postgresql redis minio sidekiq].each do |check|
+        %i[postgresql redis storage sidekiq].each do |check|
           expect(result[check][:status]).to eq(:checking)
         end
       end

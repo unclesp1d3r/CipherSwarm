@@ -17,13 +17,11 @@ On a system with Internet access, pull and save all required images:
 docker pull ghcr.io/unclesp1d3r/cipherswarm:latest
 docker pull postgres:latest
 docker pull redis:latest
-docker pull minio/minio:latest
 
 # Save images to tar archives
 docker save ghcr.io/unclesp1d3r/cipherswarm:latest -o cipherswarm.tar
 docker save postgres:latest -o postgres.tar
 docker save redis:latest -o redis.tar
-docker save minio/minio:latest -o minio.tar
 ```
 
 Transfer the `.tar` files and the CipherSwarm source repository to the air-gapped system via USB drive, network share, or other approved transfer method.
@@ -36,13 +34,12 @@ On the air-gapped system, load the images:
 docker load -i cipherswarm.tar
 docker load -i postgres.tar
 docker load -i redis.tar
-docker load -i minio.tar
 ```
 
 Verify all images are loaded:
 
 ```bash
-docker images | grep -E "cipherswarm|postgres|redis|minio"
+docker images | grep -E "cipherswarm|postgres|redis"
 ```
 
 ## Step 3: Configure Environment
@@ -53,12 +50,23 @@ Create a `.env` file in the CipherSwarm project root (if not already present):
 # Required
 RAILS_MASTER_KEY=<your-master-key>
 POSTGRES_PASSWORD=<strong-password>
-
-# Set to the IP address agents will use to reach MinIO
-MINIO_PUBLIC_IP=<host-ip-or-hostname>
 ```
 
 The `RAILS_MASTER_KEY` is found in `config/master.key` on the system where the app was originally configured. Transfer this file securely.
+
+### Optional: S3-Compatible Storage
+
+By default, CipherSwarm uses local disk storage (shared via Docker volumes). To use S3-compatible storage (MinIO, SeaweedFS, etc.), add to `.env`:
+
+```bash
+ACTIVE_STORAGE_SERVICE=s3
+AWS_ACCESS_KEY_ID=<access-key>
+AWS_SECRET_ACCESS_KEY=<secret-key>
+AWS_BUCKET=application
+AWS_ENDPOINT=http://<storage-host>:9000
+AWS_FORCE_PATH_STYLE=true
+AWS_REGION=us-east-1
+```
 
 ## Step 4: Deploy Services
 
@@ -72,7 +80,7 @@ Verify all services started:
 docker compose -f docker-compose-production.yml ps
 ```
 
-All services should show a healthy status: `web`, `postgres-db`, `redis-db`, `minio`, `sidekiq`.
+All services should show a healthy status: `web`, `postgres-db`, `redis-db`, `sidekiq`.
 
 ## Step 5: Run Database Setup
 
@@ -117,7 +125,7 @@ Run through this checklist after deployment to confirm full offline operation:
 - [ ] Asset precompilation completed (`public/assets/` contains compiled files)
 - [ ] Health check endpoints respond (`/up` and `/system_health`)
 - [ ] Agent API is accessible from agent hosts (`POST /api/v1/client/authenticate`)
-- [ ] File uploads and downloads work via MinIO (hash lists, word lists, rule lists)
+- [ ] File uploads and downloads work (hash lists, word lists, rule lists)
 - [ ] Documentation is available locally in the `docs/` directory
 
 ## Upgrading in Air-Gapped Environments
@@ -169,7 +177,7 @@ Run through this checklist after deployment to confirm full offline operation:
 | Symptom                    | Cause                  | Solution                                                            |
 | -------------------------- | ---------------------- | ------------------------------------------------------------------- |
 | Assets fail to load (404s) | Precompilation not run | Run `bin/rails assets:precompile` inside the web container          |
-| MinIO connection refused   | Wrong MINIO_ENDPOINT   | Set `MINIO_PUBLIC_IP` to the host IP reachable by agents            |
+| Storage connection refused | Wrong AWS_ENDPOINT     | Verify `AWS_ENDPOINT` points to the correct S3-compatible host      |
 | Agents cannot connect      | Network/firewall       | Verify port 80 is open between agent hosts and the CipherSwarm host |
 | Database connection error  | PostgreSQL not ready   | Wait for `postgres-db` health check to pass before starting web     |
 | Redis connection error     | Redis not started      | Check `redis-db` container status and logs                          |
