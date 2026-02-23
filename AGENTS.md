@@ -757,6 +757,9 @@ TEST_DATABASE_URL=postgres://root:password@127.0.0.1:5432/cipher_swarm_test bund
 - Application code is storage-agnostic via ActiveStorage — no backend-specific APIs used
 - `config/storage.yml` defines `:local`, `:test`, and `:s3` services
 - Health check (`SystemHealthCheckService#check_storage`) works with any backend via `ActiveStorage::Blob.service.exist?`
+- **Migration rake task**: `bin/rails storage:migrate_to_local` migrates files from S3/MinIO to local disk
+  - Supports `DRY_RUN=true` for preview and `SOURCE_SERVICE=<name>` to override the download service
+  - Idempotent, checksum-verified, interruptible — see `docs/deployment/air-gapped-deployment.md`
 
 ### Resources
 

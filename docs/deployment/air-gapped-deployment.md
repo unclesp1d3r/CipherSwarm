@@ -201,6 +201,57 @@ Run through this checklist after deployment to confirm full offline operation:
 - [ ] File uploads and downloads work (hash lists, word lists, rule lists)
 - [ ] Documentation is available locally in the `docs/` directory
 
+## Migrating from S3/MinIO to Local Disk Storage
+
+If your deployment previously used S3-compatible storage (MinIO, SeaweedFS, AWS S3) and you want to switch to local disk storage, use the built-in migration rake task.
+
+### Prerequisites
+
+- The S3 service must still be accessible (files need to be downloaded)
+- Sufficient disk space on the Docker volume for all stored files
+- If using the old `:minio` config that no longer exists in `storage.yml`, either:
+  - Add a temporary `minio:` entry to `config/storage.yml` pointing to your MinIO instance, or
+  - Use `SOURCE_SERVICE=s3` if your `s3:` entry already points to the same backend
+
+### Running the Migration
+
+**1. Preview what will be migrated (recommended first step):**
+
+```bash
+docker compose -f docker-compose-production.yml exec web \
+  bin/rails storage:migrate_to_local DRY_RUN=true
+```
+
+**2. Run the actual migration:**
+
+```bash
+docker compose -f docker-compose-production.yml exec web \
+  bin/rails storage:migrate_to_local
+```
+
+**3. If blobs reference an old service name (e.g., "minio") but your storage.yml uses "s3":**
+
+```bash
+docker compose -f docker-compose-production.yml exec web \
+  bin/rails storage:migrate_to_local SOURCE_SERVICE=s3
+```
+
+### Safety
+
+- **Idempotent**: Safe to re-run after partial failure. Already-migrated blobs are skipped.
+- **Checksum verified**: Each file is verified against its stored checksum before writing to disk.
+- **Non-destructive**: Source files in S3 are not deleted. Remove them manually after verifying the migration.
+- **Interruptible**: Ctrl+C stops gracefully and prints a progress summary.
+
+### Post-Migration
+
+After successful migration:
+
+1. Update `.env` to set `ACTIVE_STORAGE_SERVICE=local` (or remove the variable — local is the default)
+2. Remove `AWS_*` environment variables if S3 is no longer needed
+3. Remove the S3-compatible storage service from your Docker Compose file
+4. Verify file downloads work in the web UI
+
 ## Upgrading in Air-Gapped Environments
 
 1. Export the new CipherSwarm image on the Internet-connected system:
