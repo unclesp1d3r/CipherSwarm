@@ -14,24 +14,24 @@ module Downloadable
   extend ActiveSupport::Concern
 
   def download
-    @resource = controller_path.classify.constantize.find(params[:id])
+    @resource = resource_class.find(params[:id])
     authorize! :read, @resource
 
     redirect_to rails_blob_url @resource.file
   end
 
   def view_file
-    @resource = controller_path.classify.constantize.find(params[:id])
+    @resource = resource_class.find(params[:id])
     authorize! :view_file, @resource
 
     render "shared/attack_resource/view_file"
   end
 
   def view_file_content
-    @resource = controller_path.classify.constantize.find(params[:id])
+    @resource = resource_class.find(params[:id])
     authorize! :view_file_content, @resource
 
-    max_lines = params[:limit] ||= 1000
+    max_lines = (params[:limit].presence || 1000).to_i
     @resource.file.blob.open do |file|
       @file_content = file.read
     end
@@ -41,5 +41,15 @@ module Downloadable
     render turbo_stream: turbo_stream.replace(:file_content,
                                               partial: "shared/attack_resource/file_content",
                                               locals: { file_content: @file_content })
+  end
+
+  private
+
+  def resource_class
+    controller_path.classify.constantize
+  rescue NameError => e
+    raise ArgumentError,
+      "Downloadable: cannot resolve model from controller_path '#{controller_path}'. " \
+      "Ensure the controller name maps to a valid model. (#{e.message})"
   end
 end
