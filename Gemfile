@@ -7,8 +7,8 @@ source "https://rubygems.org"
 
 ruby "3.4.5"
 
-# Rails 8.0+ for modern real-time capabilities and performance improvements
-gem "rails", "~> 8.0.4"
+# Rails 8.1+ for modern real-time capabilities and performance improvements
+gem "rails", "~> 8.1.2"
 
 gem "bcrypt", "~> 3.1"
 gem "bootsnap", "~> 1.18", require: false
@@ -46,7 +46,7 @@ group :development, :test do
   gem "undercover", "~> 0.5", require: false
 
   # Rubocop extensions
-  gem "rswag-specs", "3.0.0.pre", require: false
+  gem "rswag-specs", github: "rswag/rswag", branch: "master", require: false
   gem "rubocop", "~> 1.82", require: false
   gem "rubocop-capybara", "~> 2.22", require: false
   gem "rubocop-factory_bot", "~> 2.28", require: false
@@ -60,7 +60,6 @@ end
 
 group :development do
   gem "annotaterb", "~> 4.11"
-  gem "dockerfile-rails", "~> 1.6"
   gem "erb-formatter", "~> 0.7"
   gem "htmlbeautifier", "~> 1.4"
   gem "squasher", "~> 0.8", require: false
@@ -93,7 +92,8 @@ gem "paranoia", "~> 3.0"
 gem "redis", "~> 5.1"
 gem "rexml", "~> 3.3"
 gem "rolify", "~> 6.0"
-gem "rswag", "3.0.0.pre"
+# Use rswag v3 from GitHub to pick up Rails 8.1 gemspec support (merged upstream, unreleased gem).
+gem "rswag", github: "rswag/rswag", branch: "master"
 gem "sem_version", "~> 2.0"
 gem "show_for", "~> 0.8"
 gem "sidekiq", "~> 8.1"
