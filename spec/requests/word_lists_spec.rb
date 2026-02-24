@@ -298,9 +298,19 @@ RSpec.describe "WordLists" do
           end
         end
       end
+
+      context "when a project user is signed in" do
+        before { sign_in project_user }
+
+        it "redirects to the ActiveStorage blob URL" do
+          get download_word_list_path(sensitive_word_list)
+          expect(response).to have_http_status(:found)
+          expect(response.location).to include("/rails/active_storage/blobs/")
+        end
+      end
     end
 
-    describe "POST /create" do
+  describe "POST /create" do
       let(:file) { Rack::Test::UploadedFile.new(Rails.root.join("spec/fixtures/word_lists/top-passwords.txt")) }
       let(:params) { { word_list: { name: "Test Word List", description: "Test Description", file: file } } }
       let(:private_params) { { word_list: { name: "Test Word List", description: "Test Description", file: file, project_ids: [project.id] } } }
