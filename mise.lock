@@ -37,7 +37,7 @@ backend = "aqua:docker/compose"
 "platforms.windows-x64-baseline" = { checksum = "sha256:e6281c7b906eafe8f39114e735f11fc276d8cce2cba93a54911ca15337ba6c49", url = "https://github.com/docker/compose/releases/download/v5.0.2/docker-compose-windows-x86_64.exe"}
 
 [[tools."gem:rails"]]
-version = "8.0.4"
+version = "8.1.2"
 backend = "gem:rails"
 
 [[tools."gem:rubocop"]]
@@ -57,7 +57,7 @@ version = "0.21.0"
 backend = "npm:markdownlint-cli2"
 
 [[tools.oxlint]]
-version = "1.49.0"
+version = "1.50.0"
 backend = "npm:oxlint"
 
 [[tools."pipx:mergify-cli"]]
@@ -95,19 +95,19 @@ backend = "core:python"
 "platforms.windows-x64-baseline" = { checksum = "sha256:dc5feea0e16807e7c7b2d20af3f2c18c7153f9cbd4b54063172553fda60c5a1f", url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260211/cpython-3.14.3+20260211-x86_64-pc-windows-msvc-install_only_stripped.tar.gz"}
 
 [[tools.ruby]]
-version = "3.4.5"
+version = "4.0.1"
 backend = "core:ruby"
-"platforms.linux-arm64" = { checksum = "sha256:1d88d8a27b442fdde4aa06dc99e86b0bbf0b288963d8433112dd5fac798fd5ee", url = "https://cache.ruby-lang.org/pub/ruby/3.4/ruby-3.4.5.tar.gz"}
-"platforms.linux-arm64-musl" = { checksum = "sha256:1d88d8a27b442fdde4aa06dc99e86b0bbf0b288963d8433112dd5fac798fd5ee", url = "https://cache.ruby-lang.org/pub/ruby/3.4/ruby-3.4.5.tar.gz"}
-"platforms.linux-x64" = { checksum = "sha256:1d88d8a27b442fdde4aa06dc99e86b0bbf0b288963d8433112dd5fac798fd5ee", url = "https://cache.ruby-lang.org/pub/ruby/3.4/ruby-3.4.5.tar.gz"}
-"platforms.linux-x64-baseline" = { checksum = "sha256:1d88d8a27b442fdde4aa06dc99e86b0bbf0b288963d8433112dd5fac798fd5ee", url = "https://cache.ruby-lang.org/pub/ruby/3.4/ruby-3.4.5.tar.gz"}
-"platforms.linux-x64-musl" = { checksum = "sha256:1d88d8a27b442fdde4aa06dc99e86b0bbf0b288963d8433112dd5fac798fd5ee", url = "https://cache.ruby-lang.org/pub/ruby/3.4/ruby-3.4.5.tar.gz"}
-"platforms.linux-x64-musl-baseline" = { checksum = "sha256:1d88d8a27b442fdde4aa06dc99e86b0bbf0b288963d8433112dd5fac798fd5ee", url = "https://cache.ruby-lang.org/pub/ruby/3.4/ruby-3.4.5.tar.gz"}
-"platforms.macos-arm64" = { checksum = "sha256:1d88d8a27b442fdde4aa06dc99e86b0bbf0b288963d8433112dd5fac798fd5ee", url = "https://cache.ruby-lang.org/pub/ruby/3.4/ruby-3.4.5.tar.gz"}
-"platforms.macos-x64" = { checksum = "sha256:1d88d8a27b442fdde4aa06dc99e86b0bbf0b288963d8433112dd5fac798fd5ee", url = "https://cache.ruby-lang.org/pub/ruby/3.4/ruby-3.4.5.tar.gz"}
-"platforms.macos-x64-baseline" = { checksum = "sha256:1d88d8a27b442fdde4aa06dc99e86b0bbf0b288963d8433112dd5fac798fd5ee", url = "https://cache.ruby-lang.org/pub/ruby/3.4/ruby-3.4.5.tar.gz"}
-"platforms.windows-x64" = { checksum = "sha256:1d88d8a27b442fdde4aa06dc99e86b0bbf0b288963d8433112dd5fac798fd5ee", url = "https://cache.ruby-lang.org/pub/ruby/3.4/ruby-3.4.5.tar.gz"}
-"platforms.windows-x64-baseline" = { checksum = "sha256:1d88d8a27b442fdde4aa06dc99e86b0bbf0b288963d8433112dd5fac798fd5ee", url = "https://cache.ruby-lang.org/pub/ruby/3.4/ruby-3.4.5.tar.gz"}
+"platforms.linux-arm64" = { checksum = "sha256:59f6f03b5113afac408248c7b762a8a4d8bbe223917ef3cc56614d061e296f92", url = "https://github.com/jdx/ruby/releases/download/4.0.1/ruby-4.0.1.arm64_linux.tar.gz"}
+"platforms.linux-arm64-musl" = { checksum = "sha256:59f6f03b5113afac408248c7b762a8a4d8bbe223917ef3cc56614d061e296f92", url = "https://github.com/jdx/ruby/releases/download/4.0.1/ruby-4.0.1.arm64_linux.tar.gz"}
+"platforms.linux-x64" = { checksum = "sha256:df9793cc730f782273fb17c70bc205f724fd2e127e95c0c059ae198705110b98", url = "https://github.com/jdx/ruby/releases/download/4.0.1/ruby-4.0.1.x86_64_linux.tar.gz"}
+"platforms.linux-x64-baseline" = { checksum = "sha256:df9793cc730f782273fb17c70bc205f724fd2e127e95c0c059ae198705110b98", url = "https://github.com/jdx/ruby/releases/download/4.0.1/ruby-4.0.1.x86_64_linux.tar.gz"}
+"platforms.linux-x64-musl" = { checksum = "sha256:df9793cc730f782273fb17c70bc205f724fd2e127e95c0c059ae198705110b98", url = "https://github.com/jdx/ruby/releases/download/4.0.1/ruby-4.0.1.x86_64_linux.tar.gz"}
+"platforms.linux-x64-musl-baseline" = { checksum = "sha256:df9793cc730f782273fb17c70bc205f724fd2e127e95c0c059ae198705110b98", url = "https://github.com/jdx/ruby/releases/download/4.0.1/ruby-4.0.1.x86_64_linux.tar.gz"}
+"platforms.macos-arm64" = { checksum = "sha256:d5fd316eabcbe58e33be6b44125c7b22f87da90bae0d7e28ffc6be34abe1476e", url = "https://github.com/jdx/ruby/releases/download/4.0.1/ruby-4.0.1.macos.tar.gz"}
+"platforms.macos-x64" = { checksum = "sha256:3924be2d05db30f4e35f859bf028be85f4b7dd01714142fd823e4af5de2faf9d", url = "https://cache.ruby-lang.org/pub/ruby/4.0/ruby-4.0.1.tar.gz"}
+"platforms.macos-x64-baseline" = { checksum = "sha256:3924be2d05db30f4e35f859bf028be85f4b7dd01714142fd823e4af5de2faf9d", url = "https://cache.ruby-lang.org/pub/ruby/4.0/ruby-4.0.1.tar.gz"}
+"platforms.windows-x64" = { checksum = "sha256:3924be2d05db30f4e35f859bf028be85f4b7dd01714142fd823e4af5de2faf9d", url = "https://cache.ruby-lang.org/pub/ruby/4.0/ruby-4.0.1.tar.gz"}
+"platforms.windows-x64-baseline" = { checksum = "sha256:3924be2d05db30f4e35f859bf028be85f4b7dd01714142fd823e4af5de2faf9d", url = "https://cache.ruby-lang.org/pub/ruby/4.0/ruby-4.0.1.tar.gz"}
 
 [[tools.vacuum]]
 version = "0.23.8"
