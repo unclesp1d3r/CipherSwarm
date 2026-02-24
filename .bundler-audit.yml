@@ -1,0 +1,6 @@
+---
+ignore:
+  # rswag master (0.0.0) includes the CVE-2023-38337 fix (shipped in 2.10.1).
+  # bundle audit flags 0.0.0 < 2.10.1 as vulnerable — false positive.
+  # Remove this ignore when rswag publishes a proper release gem.
+  - CVE-2023-38337
