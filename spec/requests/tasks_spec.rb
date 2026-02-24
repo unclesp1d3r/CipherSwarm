@@ -28,10 +28,10 @@ RSpec.describe "Tasks" do
     end
 
     context "when a non-project user is logged in" do
-      it "returns http unauthorized" do
+      it "returns http forbidden" do
         sign_in(non_project_user)
         get task_path(task)
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:forbidden)
         expect(response).to render_template("errors/not_authorized")
       end
     end
@@ -71,10 +71,10 @@ RSpec.describe "Tasks" do
     end
 
     context "when a non-project user is logged in" do
-      it "returns http unauthorized" do
+      it "returns http forbidden" do
         sign_in(non_project_user)
         post cancel_task_path(task)
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:forbidden)
       end
     end
 
@@ -187,10 +187,10 @@ RSpec.describe "Tasks" do
     context "when a non-project user is logged in" do
       let!(:failed_task) { create(:task, attack: attack, agent: agent, state: "failed") }
 
-      it "returns http unauthorized" do
+      it "returns http forbidden" do
         sign_in(non_project_user)
         post retry_task_path(failed_task)
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:forbidden)
       end
     end
 
@@ -294,10 +294,10 @@ RSpec.describe "Tasks" do
     end
 
     context "when a non-project user is logged in" do
-      it "returns http unauthorized" do
+      it "returns http forbidden" do
         sign_in(non_project_user)
         get logs_task_path(task)
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:forbidden)
       end
     end
 
@@ -395,10 +395,10 @@ RSpec.describe "Tasks" do
     end
 
     context "when a non-project user is logged in" do
-      it "returns http unauthorized" do
+      it "returns http forbidden" do
         sign_in(non_project_user)
         get download_results_task_path(task, format: :csv)
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:forbidden)
       end
     end
 
@@ -522,10 +522,10 @@ RSpec.describe "Tasks" do
     end
 
     context "when a non-project user is logged in" do
-      it "returns http unauthorized" do
+      it "returns http forbidden" do
         sign_in(non_project_user)
         post reassign_task_path(task), params: { agent_id: compatible_agent.id }
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:forbidden)
       end
     end
 

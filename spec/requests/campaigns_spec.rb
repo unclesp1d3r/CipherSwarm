@@ -70,10 +70,10 @@ RSpec.describe "Campaigns" do
     end
 
     context "when a non-project user is logged in" do
-      it "returns http unauthorized" do
+      it "returns http forbidden" do
         sign_in(non_project_user)
         get campaign_path(campaign)
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:forbidden)
         expect(response).to render_template("errors/not_authorized")
       end
     end
@@ -116,10 +116,10 @@ RSpec.describe "Campaigns" do
     end
 
     context "when a non-project user is logged in" do
-      it "returns http unauthorized" do
+      it "returns http forbidden" do
         sign_in(non_project_user)
         get error_log_campaign_path(campaign)
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:forbidden)
       end
     end
 
@@ -211,7 +211,7 @@ RSpec.describe "Campaigns" do
           }
         }
         expect(Campaign.count).to eq(campaigns_before)
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:forbidden)
         expect(response).to render_template("errors/not_authorized")
       end
     end
@@ -260,7 +260,7 @@ RSpec.describe "Campaigns" do
         patch campaign_path(project_campaign), params: {
           campaign: { priority: "high" }
         }
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:forbidden)
         expect(response).to render_template("errors/not_authorized")
         expect(project_campaign.reload.priority).to eq("normal")
       end

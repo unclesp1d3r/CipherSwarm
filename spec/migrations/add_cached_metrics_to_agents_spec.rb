@@ -22,7 +22,7 @@ RSpec.describe "AddCachedMetricsToAgents migration" do
 
       it "has default value of 0" do
         column = ActiveRecord::Base.connection.columns(:agents).find { |c| c.name == "current_hash_rate" }
-        expect(column.default.to_s).to eq("0.0").or eq("0")
+        expect(column.default.to_s).to eq("0.0").or(eq("0")).or(eq("0.00"))
       end
     end
 

@@ -17,7 +17,7 @@ require "pagy"
 # Rescue Behavior:
 # - `bad_request`: Handles client-side bad request errors (400 status).
 # - `not_acceptable`: Handles errors indicating unacceptable client requests (406 status).
-# - `not_authorized`: Handles unauthorized access errors (401 status).
+# - `not_authorized`: Handles forbidden access errors (403 status).
 # - `resource_forbidden`: Handles forbidden resource access errors (403 status).
 # - `resource_not_found`: Handles not found errors for resources (404 status).
 # - `route_not_found`: Handles routing errors for non-existent URLs (404 status).
@@ -81,6 +81,7 @@ class ApplicationController < ActionController::Base
   end
 
   # Handles the case when a user is not authorized to access a certain resource.
+  # Returns HTTP 403 Forbidden (user is authenticated but lacks permission).
   #
   # @param [Exception] error The error that occurred when trying to access the resource.
   #
@@ -88,9 +89,17 @@ class ApplicationController < ActionController::Base
   def not_authorized(error)
     logger.error "not_authorized #{error}"
     respond_to do |format|
-      format.html { render template: "errors/not_authorized", status: :unauthorized }
-      format.json { render json: { error: "Not Authorized", status: 401 }, status: :unauthorized }
-      format.all { head :unauthorized }
+      format.html do
+        if turbo_frame_request?
+          render partial: "errors/not_authorized_frame",
+                 locals: { frame_id: request.headers["Turbo-Frame"] },
+                 status: :forbidden, layout: false
+        else
+          render template: "errors/not_authorized", status: :forbidden
+        end
+      end
+      format.json { render json: { error: "Forbidden", status: 403 }, status: :forbidden }
+      format.all { head :forbidden }
     end
   end
 

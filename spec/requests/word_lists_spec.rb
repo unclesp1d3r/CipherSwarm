@@ -86,10 +86,10 @@ RSpec.describe "WordLists" do
       end
 
       context "when a non-project user is signed in" do
-        it "returns http unauthorized" do
+        it "returns http forbidden" do
           sign_in non_project_user
           get edit_word_list_path(sensitive_word_list)
-          expect(response).to have_http_status(:unauthorized)
+          expect(response).to have_http_status(:forbidden)
         end
       end
 
@@ -111,18 +111,18 @@ RSpec.describe "WordLists" do
         end
 
         context "when a non-project user is signed in" do
-          it "returns http unauthorized" do
+          it "returns http forbidden" do
             sign_in non_project_user
             get edit_word_list_path(public_word_list)
-            expect(response).to have_http_status(:unauthorized)
+            expect(response).to have_http_status(:forbidden)
           end
         end
 
         context "when a project user is signed in" do
-          it "returns http unauthorized" do
+          it "returns http forbidden" do
             sign_in project_user
             get edit_word_list_path(public_word_list)
-            expect(response).to have_http_status(:unauthorized)
+            expect(response).to have_http_status(:forbidden)
           end
         end
       end
@@ -139,10 +139,10 @@ RSpec.describe "WordLists" do
 
     context "when a non-project user is signed in" do
       context "when the word list is sensitive" do
-        it "returns http unauthorized" do
+        it "returns http forbidden" do
           sign_in non_project_user
           get word_list_path(sensitive_word_list)
-          expect(response).to have_http_status(:unauthorized)
+          expect(response).to have_http_status(:forbidden)
         end
       end
 
@@ -184,10 +184,10 @@ RSpec.describe "WordLists" do
 
     context "when a non-project user is signed in" do
       context "when the word list is sensitive" do
-        it "returns http unauthorized" do
+        it "returns http forbidden" do
           sign_in non_project_user
           get view_file_word_list_path(sensitive_word_list)
-          expect(response).to have_http_status(:unauthorized)
+          expect(response).to have_http_status(:forbidden)
         end
       end
 
@@ -229,10 +229,10 @@ RSpec.describe "WordLists" do
 
     context "when a non-project user is signed in" do
       context "when the word list is sensitive" do
-        it "returns http unauthorized" do
+        it "returns http forbidden" do
           sign_in non_project_user
           get view_file_content_word_list_path(sensitive_word_list)
-          expect(response).to have_http_status(:unauthorized)
+          expect(response).to have_http_status(:forbidden)
         end
       end
 
@@ -259,6 +259,43 @@ RSpec.describe "WordLists" do
           sign_in project_user
           get view_file_content_word_list_path(public_word_list)
           expect(response).to have_http_status(:success)
+        end
+      end
+    end
+  end
+
+  describe "GET /download" do
+      context "when user is not signed in" do
+        it "redirects to sign in page" do
+          get download_word_list_path(public_word_list)
+          expect(response).to redirect_to(new_user_session_path)
+        end
+      end
+
+      context "when a non-project user is signed in" do
+        before { sign_in non_project_user }
+
+        context "when the word list is not sensitive" do
+          it "returns forbidden because :download is not in public list abilities" do
+            get download_word_list_path(public_word_list)
+            expect(response).to have_http_status(:forbidden)
+          end
+        end
+
+        context "when the word list is sensitive" do
+          it "returns forbidden" do
+            get download_word_list_path(sensitive_word_list)
+            expect(response).to have_http_status(:forbidden)
+          end
+
+          it "renders a Turbo Frame error when requested via turbo frame" do
+            frame_id = "word-list-download-frame"
+            get download_word_list_path(sensitive_word_list), headers: { "Turbo-Frame" => frame_id }
+
+            expect(response).to have_http_status(:forbidden)
+            expect(response.body).to include("<turbo-frame id=\"#{frame_id}\">")
+            expect(response.body).to include("have permission")
+          end
         end
       end
     end
@@ -371,7 +408,6 @@ RSpec.describe "WordLists" do
         end
       end
     end
-  end
 
   describe "DELETE /destroy" do
     let!(:creator_user) { create(:user) }
@@ -402,7 +438,7 @@ RSpec.describe "WordLists" do
         expect {
           delete word_list_path(other_user_word_list)
         }.not_to change(WordList, :count)
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:forbidden)
       end
     end
 
