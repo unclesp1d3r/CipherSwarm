@@ -24,7 +24,7 @@ repos:
     hooks:
       - id: rubocop
         name: Check Ruby style with rubocop
-        entry: bundle exec rubocop --force-exclusion
+        entry: bin/rubocop --force-exclusion
         language: system
         types: [ruby]
         require_serial: true

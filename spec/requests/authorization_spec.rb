@@ -208,6 +208,24 @@ RSpec.describe "Authorization" do
     end
   end
 
+  describe "downloadable resource authorization" do
+    let!(:sensitive_word_list) { create(:word_list, projects: [project_a], sensitive: true) }
+
+    context "when user outside the project accesses sensitive downloadable actions" do
+      before { sign_in(user_b) }
+
+      it "denies GET /view_file" do
+        get view_file_word_list_path(sensitive_word_list)
+        expect(response).to have_http_status(:unauthorized)
+      end
+
+      it "denies GET /view_file_content" do
+        get view_file_content_word_list_path(sensitive_word_list)
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+  end
+
   describe "system health access control" do
     before do
       Sidekiq.redis { |conn| conn.del(SystemHealthCheckService::LOCK_KEY) }
