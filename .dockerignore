@@ -45,6 +45,29 @@
 
 # Ignore development files
 /.devcontainer
+/.claude
+/.vscode
+/.idea
+
+# Ignore docs and markdown
+*.md
+/docs
+/project_spec
+/CipherSwarm-output
+/V2 Operational Excellence
+
+# Ignore tests and local tooling artifacts
+/spec
+/test
+/coverage
+/chromedriver-mac-arm64
+/justfile
+/mise.toml
+/vitest.config.js
+/vacuum-ruleset.yaml
+
+# Ignore local/runtime noise
+/.DS_Store
 
 # Ignore Docker-related files
 /.dockerignore
