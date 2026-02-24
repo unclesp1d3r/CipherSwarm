@@ -80,6 +80,18 @@ class ApplicationController < ActionController::Base
     end
   end
 
+  # REASONING:
+  # - Summary: Return 403 Forbidden for CanCan::AccessDenied and render a Turbo Frame-specific
+  #   partial to prevent stuck "Loading..." frames.
+  # - Alternatives Considered:
+  #   1. Keep 401 for all authorization errors — incorrect per HTTP semantics (401 = unauthenticated).
+  #   2. Render full-page error template for Turbo Frame requests — causes perpetual loading state
+  #      because the response lacks a matching <turbo-frame> tag.
+  # - Decision: Use 403 with a Turbo Frame-aware partial when turbo_frame_request?, otherwise
+  #   render the standard full-page template or JSON response.
+  # - Performance Implications: Negligible; only frame requests render an extra partial without layout.
+  # - Future Considerations: Keep the frame partial in sync with full-page error templates and i18n.
+
   # Handles the case when a user is not authorized to access a certain resource.
   # Returns HTTP 403 Forbidden (user is authenticated but lacks permission).
   #
