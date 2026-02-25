@@ -185,7 +185,7 @@ RSpec.describe "api/v1/client/tasks" do
       operationId "getNewTask"
 
       let(:project) { create(:project) }
-      let!(:agent) { create(:agent, projects: [project], hashcat_benchmarks: build_list(:hashcat_benchmark, 1)) }
+      let!(:agent) { create(:agent, projects: [project], hashcat_benchmarks: build_list(:hashcat_benchmark, 1, hash_type: 0)) }
 
       response(204, "no new task available") do
         let(:attack) { create(:dictionary_attack) }
@@ -204,7 +204,7 @@ RSpec.describe "api/v1/client/tasks" do
         end
         let!(:campaign) { create(:campaign, project: project, hash_list: hash_list) }
         let!(:attack) { create(:dictionary_attack, state: "running", campaign: campaign) }
-        let(:other_agent) { create(:agent, projects: [project], hashcat_benchmarks: build_list(:hashcat_benchmark, 1)) }
+        let(:other_agent) { create(:agent, projects: [project], hashcat_benchmarks: build_list(:hashcat_benchmark, 1, hash_type: 0)) }
 
         before { create(:task, agent: other_agent, attack: attack, state: :failed) }
 
