@@ -432,6 +432,26 @@ RSpec.describe "api/v1/client/agents" do
         end
       end
 
+      response(422, "all entries invalid, pending agent stays pending") do
+        let(:agent) { create(:agent, state: "pending") }
+        let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
+        let(:id) { agent.id }
+        let(:hashcat_benchmarks) {
+          {
+            hashcat_benchmarks: [
+              { hash_type: 2000, runtime: 500, hash_speed: "0", device: 1 },
+              { hash_type: 3000, runtime: 0, hash_speed: "5000", device: 1 }
+            ]
+          }
+        }
+
+        run_test! do
+          expect(response).to have_http_status(:unprocessable_content)
+          expect(agent.reload.state).to eq("pending")
+          expect(agent.hashcat_benchmarks.count).to eq(0)
+        end
+      end
+
       response(204, "successful, extended benchmarks") do
         let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
         let(:id) { agent.id }

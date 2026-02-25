@@ -33,6 +33,8 @@ class ChangeHashcatBenchmarksUniqueIndex < ActiveRecord::Migration[8.0]
     add_index :hashcat_benchmarks, %i[agent_id hash_type device], unique: true
   end
 
+  # NOTE: Restores the old schema but does NOT recover rows deleted by the
+  # dedup DELETE in `up`. That data loss is irreversible.
   def down
     remove_index :hashcat_benchmarks, %i[agent_id hash_type device]
     add_index :hashcat_benchmarks, %i[agent_id benchmark_date hash_type],

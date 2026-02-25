@@ -20,10 +20,6 @@
 # - by_hash_type(type)
 # - by_device(device)
 # - by_agent(agent)
-# - by_agent_and_date(agent, date)
-# - by_agent_hash_type_and_date(agent, type, date)
-# - by_agent_device_and_date(agent, device, date)
-# - by_agent_hash_type_device_and_date(agent, type, device, date)
 # - by_agent_and_hash_type(agent, type)
 # - by_agent_and_device(agent, device)
 #
@@ -84,10 +80,6 @@ class HashcatBenchmark < ApplicationRecord
   scope :by_hash_type, ->(hash_type) { where(hash_type: hash_type) }
   scope :by_device, ->(device) { where(device: device) }
   scope :by_agent, ->(agent) { where(agent: agent) }
-  scope :by_agent_and_date, ->(agent, date) { where(agent: agent, benchmark_date: date) }
-  scope :by_agent_hash_type_and_date, ->(agent, hash_type, date) { where(agent: agent, hash_type: hash_type, benchmark_date: date) }
-  scope :by_agent_device_and_date, ->(agent, device, date) { where(agent: agent, device: device, benchmark_date: date) }
-  scope :by_agent_hash_type_device_and_date, ->(agent, hash_type, device, date) { where(agent: agent, hash_type: hash_type, device: device, benchmark_date: date) }
   scope :by_agent_and_hash_type, ->(agent, hash_type) { where(agent: agent, hash_type: hash_type) }
   scope :by_agent_and_device, ->(agent, device) { where(agent: agent, device: device) }
 

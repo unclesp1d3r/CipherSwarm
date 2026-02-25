@@ -137,8 +137,8 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 
 **upsert_all:**
 
-- `upsert_all` with `update_only` does NOT auto-update `updated_at` — must be explicitly listed in `update_only` array
-- Without it, `touch: true` associations and cache keys won't invalidate on conflict/update
+- Rails 8.1+ `upsert_all` auto-manages `updated_at` via `CURRENT_TIMESTAMP` on conflict — do NOT list `updated_at` in `update_only` (causes PG `multiple assignments to same column` error)
+- `upsert_all` bypasses AR callbacks, so `touch: true` associations and `broadcasts_refreshes` will not fire — ensure the owning model is saved separately if cache invalidation is needed
 
 **Foreign Key Cascade Strategy:**
 

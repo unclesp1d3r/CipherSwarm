@@ -82,11 +82,11 @@ module Agent::Benchmarking
     pending? && last_seen_at.present? && last_seen_at > 1.minute.ago && !hashcat_benchmarks.exists?
   end
 
-  # Returns the last benchmarks recorded for the agent as an array of strings.
+  # Returns all current benchmarks for the agent as an array of strings.
   #
   # If there are no benchmarks available, it returns nil.
   #
-  # @return [Array<String>, nil] The last benchmarks recorded for the agent, or nil if there are no benchmarks.
+  # @return [Array<String>, nil] All benchmarks for the agent, or nil if there are no benchmarks.
   def benchmarks
     return nil if last_benchmarks.blank?
 
@@ -118,14 +118,14 @@ module Agent::Benchmarking
   #
   # @return [Date, ActiveSupport::TimeWithZone] The date of the last benchmark.
   def last_benchmark_date
-    if hashcat_benchmarks.empty?
+    unless hashcat_benchmarks.exists?
       # If there are no benchmarks, we'll just return the date from a year ago.
       # Guard against nil created_at for unsaved agents.
       base_time = created_at || Time.zone.now
-      base_time - 365.days
-    else
-      hashcat_benchmarks.order(benchmark_date: :desc).first.benchmark_date
+      return base_time - 365.days
     end
+
+    hashcat_benchmarks.order(benchmark_date: :desc).first.benchmark_date
   end
 
   # Returns all current benchmarks recorded for the agent.
@@ -138,7 +138,7 @@ module Agent::Benchmarking
   # @return [ActiveRecord::Relation, nil] All benchmarks for the agent ordered by hash_type,
   #   or nil if there are no benchmarks.
   def last_benchmarks
-    return nil if hashcat_benchmarks.empty?
+    return nil unless hashcat_benchmarks.exists?
 
     hashcat_benchmarks.order(hash_type: :asc)
   end

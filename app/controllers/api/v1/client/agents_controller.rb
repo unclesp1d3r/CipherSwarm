@@ -114,13 +114,12 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
     head :no_content
   end
 
+  # Handles the submission of hashcat benchmarks for an agent.
   #
-  # This method handles the submission of hashcat benchmarks for an agent.
-  # It expects the benchmarks to be provided in the `params[:hashcat_benchmarks]`.
-  # If no benchmarks are submitted, it returns a bad request error.
-  # The method processes each benchmark, creates a new HashcatBenchmark record,
-  # and associates it with the agent. If the benchmarks are successfully saved,
-  # it returns a no content response. Otherwise, it returns an unprocessable entity error.
+  # Validates each submitted benchmark entry and upserts valid records using
+  # the (agent_id, hash_type, device) unique index. Invalid entries are logged
+  # and skipped. Fires the `benchmarked` state machine event only when the
+  # agent has at least one benchmark row after processing.
   #
   # @return [void]
   def submit_benchmark
@@ -129,42 +128,20 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
       return
     end
 
-    now = Time.zone.now
-    valid_records = params[:hashcat_benchmarks].filter_map do |benchmark|
-      hash_speed = benchmark[:hash_speed].to_f
-      runtime = benchmark[:runtime].to_i
-      hash_type = benchmark[:hash_type].to_i
-      device = benchmark[:device].to_i
-
-      if hash_speed <= 0 || runtime <= 0 || hash_type.negative? || device.negative?
-        Rails.logger.warn(
-          "[APIError] BENCHMARK_INVALID_ENTRY - Agent #{@agent.id} - " \
-          "hash_type=#{benchmark[:hash_type]} hash_speed=#{benchmark[:hash_speed]} - skipped - #{Time.current}"
-        )
-        next
-      end
-
-      {
-        agent_id: @agent.id,
-        hash_type: hash_type,
-        device: device,
-        hash_speed: hash_speed,
-        runtime: runtime,
-        benchmark_date: now,
-        created_at: now,
-        updated_at: now
-      }
-    end
+    valid_records = build_valid_benchmark_records(params[:hashcat_benchmarks])
 
     write_success = false
     HashcatBenchmark.transaction do
       if valid_records.any?
-        HashcatBenchmark.upsert_all( # rubocop:disable Rails/SkipsModelValidations -- pre-filtered above; upsert_all is intentional for idempotent bulk writes
+        # rubocop:disable Rails/SkipsModelValidations -- pre-filtered above; upsert_all is intentional for idempotent bulk writes
+        HashcatBenchmark.upsert_all(
           valid_records,
           unique_by: %i[agent_id hash_type device],
           update_only: %i[hash_speed runtime benchmark_date]
         )
+        # rubocop:enable Rails/SkipsModelValidations
       end
+      raise ActiveRecord::Rollback unless @agent.hashcat_benchmarks.exists?
       raise ActiveRecord::Rollback unless @agent.benchmarked
       write_success = true
     end
@@ -174,7 +151,10 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
       return
     end
 
-    Rails.logger.error("[APIError] BENCHMARK_SUBMISSION_FAILED - Agent #{@agent.id} - Error: Failed to submit benchmarks - #{Time.current}")
+    Rails.logger.error(
+      "[APIError] BENCHMARK_SUBMISSION_FAILED - Agent #{@agent.id} - " \
+      "Error: Failed to submit benchmarks - #{Time.current}"
+    )
     render json: { error: "Failed to submit benchmarks" }, status: :unprocessable_content
   end
 
@@ -248,5 +228,42 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
   def agent_params
     params.expect(agent: [:id, :name, :host_name, :client_signature, :operating_system, devices: [],
                                                                                         hashcat_benchmarks: []])
+  end
+
+  # Filters and converts raw benchmark params into hashes suitable for upsert_all.
+  # Invalid entries (non-positive speed/runtime, negative hash_type/device) are
+  # logged and skipped.
+  #
+  # @param benchmarks [Array<ActionController::Parameters>] raw benchmark entries
+  # @return [Array<Hash>] validated records ready for upsert_all
+  def build_valid_benchmark_records(benchmarks)
+    now = Time.zone.now
+
+    benchmarks.filter_map do |benchmark|
+      hash_speed = benchmark[:hash_speed].to_f
+      runtime = benchmark[:runtime].to_i
+      hash_type = benchmark[:hash_type].to_i
+      device = benchmark[:device].to_i
+
+      if hash_speed <= 0 || runtime <= 0 || hash_type.negative? || device.negative?
+        Rails.logger.warn(
+          "[APIError] BENCHMARK_INVALID_ENTRY - Agent #{@agent.id} - " \
+          "hash_type=#{benchmark[:hash_type]} hash_speed=#{benchmark[:hash_speed]} " \
+          "- skipped - #{Time.current}"
+        )
+        next
+      end
+
+      {
+        agent_id: @agent.id,
+        hash_type: hash_type,
+        device: device,
+        hash_speed: hash_speed,
+        runtime: runtime,
+        benchmark_date: now,
+        created_at: now,
+        updated_at: now
+      }
+    end
   end
 end
