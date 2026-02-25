@@ -1,11 +1,12 @@
-[tools]
+# Python, Ruby, and Bun are listed as latest specifically so that they will use the idiomatic version file to determine the version to use. This allows us to have a single source of truth for the versions of these languages, and it also allows us to easily update the versions by simply updating the idiomatic version file.
 
+[tools]
 python            = "latest"
 actionlint        = "1.7.11"
 bun               = "latest"
 docker-cli        = "29.2.1"
 docker-compose    = "5.0.2"
-"gem:rails"       = "8.0.4"
+"gem:rails"       = "latest"
 git-cliff         = "2.12.0"
 just              = "latest"
 markdownlint-cli2 = "0.21.0"
