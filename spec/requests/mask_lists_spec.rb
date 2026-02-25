@@ -86,10 +86,10 @@ RSpec.describe "MaskLists" do
       end
 
       context "when a non-project user is signed in" do
-        it "returns http unauthorized" do
+        it "returns http forbidden" do
           sign_in non_project_user
           get edit_mask_list_path(sensitive_mask_list)
-          expect(response).to have_http_status(:unauthorized)
+          expect(response).to have_http_status(:forbidden)
         end
       end
 
@@ -111,18 +111,18 @@ RSpec.describe "MaskLists" do
         end
 
         context "when a non-project user is signed in" do
-          it "returns http unauthorized" do
+          it "returns http forbidden" do
             sign_in non_project_user
             get edit_mask_list_path(public_mask_list)
-            expect(response).to have_http_status(:unauthorized)
+            expect(response).to have_http_status(:forbidden)
           end
         end
 
         context "when a project user is signed in" do
-          it "returns http unauthorized" do
+          it "returns http forbidden" do
             sign_in project_user
             get edit_mask_list_path(public_mask_list)
-            expect(response).to have_http_status(:unauthorized)
+            expect(response).to have_http_status(:forbidden)
           end
         end
       end
@@ -139,10 +139,10 @@ RSpec.describe "MaskLists" do
 
     context "when a non-project user is signed in" do
       context "when the mask list is sensitive" do
-        it "returns http unauthorized" do
+        it "returns http forbidden" do
           sign_in non_project_user
           get mask_list_path(sensitive_mask_list)
-          expect(response).to have_http_status(:unauthorized)
+          expect(response).to have_http_status(:forbidden)
         end
       end
 
@@ -184,10 +184,10 @@ RSpec.describe "MaskLists" do
 
     context "when a non-project user is signed in" do
       context "when the mask list is sensitive" do
-        it "returns http unauthorized" do
+        it "returns http forbidden" do
           sign_in non_project_user
           get view_file_mask_list_path(sensitive_mask_list)
-          expect(response).to have_http_status(:unauthorized)
+          expect(response).to have_http_status(:forbidden)
         end
       end
 
@@ -229,10 +229,10 @@ RSpec.describe "MaskLists" do
 
     context "when a non-project user is signed in" do
       context "when the mask list is sensitive" do
-        it "returns http unauthorized" do
+        it "returns http forbidden" do
           sign_in non_project_user
           get view_file_content_mask_list_path(sensitive_mask_list)
-          expect(response).to have_http_status(:unauthorized)
+          expect(response).to have_http_status(:forbidden)
         end
       end
 

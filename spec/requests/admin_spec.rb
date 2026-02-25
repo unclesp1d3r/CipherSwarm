@@ -34,10 +34,10 @@ RSpec.describe "Admins" do
       expect(response).to have_http_status(:success)
     end
 
-    it "returns unauthorized for non-admin" do
+    it "returns forbidden for non-admin" do
       sign_in regular_user
       get admin_index_path
-      expect(response).to have_http_status(:unauthorized)
+      expect(response).to have_http_status(:forbidden)
     end
   end
 
@@ -63,7 +63,7 @@ RSpec.describe "Admins" do
       it "returns http failure" do
         sign_in regular_user
         post unlock_user_path(locked_user)
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:forbidden)
       end
     end
   end
@@ -90,7 +90,7 @@ RSpec.describe "Admins" do
       it "returns http failure" do
         sign_in regular_user
         post lock_user_path(unlocked_user)
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:forbidden)
       end
     end
   end
@@ -117,7 +117,7 @@ RSpec.describe "Admins" do
       it "returns http failure" do
         sign_in regular_user
         post create_user_path, params: { user: }
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:forbidden)
       end
     end
   end
@@ -135,7 +135,7 @@ RSpec.describe "Admins" do
       it "returns http failure" do
         sign_in regular_user
         get "/admin/new_user"
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:forbidden)
       end
     end
   end

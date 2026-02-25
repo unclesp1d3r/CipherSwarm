@@ -108,6 +108,8 @@ just security
 just lint-api
 ```
 
+**Always use `just` recipes** instead of raw `bundle exec` commands. The justfile handles binstubs and `mise exec` correctly. Raw `bundle exec rubocop` can fail when Gemfile has GitHub git sources (e.g., rswag from master).
+
 ### Undercover (Change-Based Coverage)
 
 ```bash
@@ -424,6 +426,12 @@ Both unit tests for Stimulus controllers and integration tests via system tests 
 - Partials rendered via Turbo Stream should NOT contain their own `turbo_frame_tag` — let the show page control framing
 - Use `turbo_stream.update` for turbo-frame targets (preserves frame element); use `turbo_stream.replace` for div targets (partial must include wrapper div with same ID)
 
+**Turbo Frame Error Handling:**
+
+- `rescue_from` handlers rendering full-page error templates silently fail for Turbo Frame requests — Turbo drops responses without a matching `<turbo-frame>` tag, leaving the user with a perpetual "Loading..." spinner
+- Check `turbo_frame_request?` in error handlers and render inside the expected frame: `render partial: "errors/not_authorized_frame", locals: { frame_id: request.headers["Turbo-Frame"] }`
+- `app/views/errors/_not_authorized_frame.html.erb` wraps the error alert in a `<turbo-frame>` with the request's frame ID
+
 **Health Check Test Setup:**
 
 - Specs touching `SystemHealthCheckService` require Redis lock cleanup in `before`: `Sidekiq.redis { |conn| conn.del(SystemHealthCheckService::LOCK_KEY) }`
@@ -633,6 +641,15 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 - `authorize!` in controllers
 - Project-based scoping for all resources
 - Admin users have unrestricted access
+- `CanCan::AccessDenied` returns 403 Forbidden (authenticated but lacks permission)
+- Devise unauthenticated non-HTML requests (CSV, JSON) return 401 Unauthorized
+- Administrate dashboard non-admin access returns 401 (separate auth mechanism, not CanCan)
+
+**Bulk Replacements — Be Judicious:**
+
+- Never blindly find-and-replace across test files — different contexts use the same text for different reasons
+- Example: `:unauthorized` (401) appears in both CanCan authorization tests and Devise authentication tests; bulk-replacing all to `:forbidden` breaks the Devise cases
+- Always inspect each occurrence to understand whether it's an authentication failure (401) or an authorization failure (403) before changing
 
 **CanCanCan Nested Associations:**
 

@@ -172,26 +172,26 @@ RSpec.describe "Turbo Stream Updates" do
     let!(:other_project) { create(:project) }
     let!(:other_user) { create(:user, projects: [other_project]) }
 
-    it "returns unauthorized for cross-project task cancel" do
+    it "returns forbidden for cross-project task cancel" do
       sign_in(other_user)
       post cancel_task_path(task), as: :turbo_stream
 
-      expect(response).to have_http_status(:unauthorized)
+      expect(response).to have_http_status(:forbidden)
     end
 
-    it "returns unauthorized for cross-project task retry" do
+    it "returns forbidden for cross-project task retry" do
       failed_task = create(:task, attack: attack, agent: agent, state: "failed", last_error: "Error")
       sign_in(other_user)
       post retry_task_path(failed_task), as: :turbo_stream
 
-      expect(response).to have_http_status(:unauthorized)
+      expect(response).to have_http_status(:forbidden)
     end
 
-    it "returns unauthorized for cross-project task reassign" do
+    it "returns forbidden for cross-project task reassign" do
       sign_in(other_user)
       post reassign_task_path(task), params: { agent_id: agent.id }, as: :turbo_stream
 
-      expect(response).to have_http_status(:unauthorized)
+      expect(response).to have_http_status(:forbidden)
     end
   end
 end

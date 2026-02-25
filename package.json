@@ -13,7 +13,7 @@
     "postcss": "^8.5.6",
     "postcss-cli": "^11.0.1",
     "sass": "^1.97.3",
-    "tom-select": "^2.5.1"
+    "tom-select": "^2.5.2"
   },
   "scripts": {
     "build:css:compile": "sass ./app/assets/stylesheets/application.bootstrap.scss:./app/assets/builds/application.css --no-source-map --load-path=node_modules",

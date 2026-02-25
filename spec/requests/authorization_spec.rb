@@ -34,10 +34,10 @@ RSpec.describe "Authorization" do
     end
 
     context "when user accesses task outside their project" do
-      it "returns unauthorized" do
+      it "returns forbidden" do
         sign_in(user_a)
         get task_path(task_b)
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:forbidden)
         expect(response).to render_template("errors/not_authorized")
       end
     end
@@ -68,10 +68,10 @@ RSpec.describe "Authorization" do
     end
 
     context "when user accesses campaign outside their project" do
-      it "returns unauthorized" do
+      it "returns forbidden" do
         sign_in(user_a)
         get campaign_path(campaign_b)
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:forbidden)
         expect(response).to render_template("errors/not_authorized")
       end
     end
@@ -95,10 +95,10 @@ RSpec.describe "Authorization" do
     end
 
     context "when user accesses agent in different project" do
-      it "returns unauthorized" do
+      it "returns forbidden" do
         sign_in(user_a)
         get agent_path(agent_b)
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:forbidden)
         expect(response).to render_template("errors/not_authorized")
       end
     end
@@ -124,7 +124,7 @@ RSpec.describe "Authorization" do
       it "denies non-project user from cancelling task" do
         sign_in(user_b)
         post cancel_task_path(task_a)
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:forbidden)
       end
     end
 
@@ -141,7 +141,7 @@ RSpec.describe "Authorization" do
       it "denies non-project user from retrying task" do
         sign_in(user_b)
         post retry_task_path(failed_task_a)
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:forbidden)
       end
     end
 
@@ -158,7 +158,7 @@ RSpec.describe "Authorization" do
       it "denies non-project user from reassigning task" do
         sign_in(user_b)
         post reassign_task_path(task_a), params: { agent_id: compatible_agent.id }
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:forbidden)
       end
     end
 
@@ -174,7 +174,7 @@ RSpec.describe "Authorization" do
       it "denies non-project user from downloading results" do
         sign_in(user_b)
         get download_results_task_path(task_a, format: :csv)
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:forbidden)
       end
     end
   end
@@ -192,10 +192,10 @@ RSpec.describe "Authorization" do
     end
 
     context "when user accesses hash list outside their project" do
-      it "returns unauthorized" do
+      it "returns forbidden" do
         sign_in(user_a)
         get hash_list_path(hash_list_b)
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:forbidden)
       end
     end
 
@@ -204,6 +204,60 @@ RSpec.describe "Authorization" do
         sign_in(admin)
         get hash_list_path(hash_list_b)
         expect(response).to have_http_status(:success)
+      end
+    end
+  end
+
+  describe "downloadable resource authorization" do
+    let!(:sensitive_word_list) { create(:word_list, projects: [project_a], sensitive: true) }
+    let!(:public_word_list) { create(:word_list, projects: [project_a], sensitive: false) }
+
+    context "when project member accesses sensitive downloadable actions" do
+      before { sign_in(user_a) }
+
+      it "allows GET /view_file for sensitive list in own project" do
+        get view_file_word_list_path(sensitive_word_list)
+        expect(response).to have_http_status(:success)
+      end
+    end
+
+    context "when user outside the project accesses sensitive downloadable actions" do
+      before { sign_in(user_b) }
+
+      it "denies GET /view_file" do
+        get view_file_word_list_path(sensitive_word_list)
+        expect(response).to have_http_status(:forbidden)
+        expect(response).to render_template("errors/not_authorized")
+      end
+
+      it "denies GET /view_file_content" do
+        get view_file_content_word_list_path(sensitive_word_list)
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
+
+    context "when non-project user accesses public downloadable actions" do
+      before { sign_in(user_b) }
+
+      it "allows GET /view_file for public list" do
+        get view_file_word_list_path(public_word_list)
+        expect(response).to have_http_status(:success)
+      end
+    end
+
+    context "when admin accesses sensitive downloadable actions" do
+      before { sign_in(admin) }
+
+      it "allows GET /view_file" do
+        get view_file_word_list_path(sensitive_word_list)
+        expect(response).to have_http_status(:success)
+      end
+    end
+
+    context "when unauthenticated user accesses downloadable actions" do
+      it "redirects to login" do
+        get view_file_word_list_path(sensitive_word_list)
+        expect(response).to redirect_to(new_user_session_path)
       end
     end
   end
@@ -236,13 +290,13 @@ RSpec.describe "Authorization" do
         sign_in(user_a)
 
         get task_path(task_b)
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:forbidden)
 
         get campaign_path(campaign_b)
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:forbidden)
 
         get agent_path(agent_b)
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:forbidden)
       end
     end
 

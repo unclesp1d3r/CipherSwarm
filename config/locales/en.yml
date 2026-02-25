@@ -30,6 +30,9 @@
 en:
   hello: "Hello world"
 
+  errors:
+    not_authorized: "You don't have permission to access this resource."
+
   components:
     error_modal:
       title: "Error Details"
