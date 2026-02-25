@@ -141,8 +141,9 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
         )
         # rubocop:enable Rails/SkipsModelValidations
       end
-      raise ActiveRecord::Rollback unless @agent.hashcat_benchmarks.exists?
+      raise ActiveRecord::Rollback unless HashcatBenchmark.exists?(agent_id: @agent.id)
       raise ActiveRecord::Rollback unless @agent.benchmarked
+      @agent.touch # rubocop:disable Rails/SkipsModelValidations -- upsert_all bypasses touch: true callback; explicit touch invalidates view caches
       write_success = true
     end
 
