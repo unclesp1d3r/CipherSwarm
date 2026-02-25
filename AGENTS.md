@@ -8,6 +8,10 @@ CipherSwarm is a distributed hash cracking system built on Rails 8.0+ inspired b
 
 **Current Status**: Undergoing V2 upgrade (see docs/v2-upgrade-overview.md)
 
+## Code Quality Policy
+
+- **Zero tolerance for tech debt.** Never dismiss warnings, lint failures, or CI errors as "pre-existing" or "not from our changes." If CI fails, investigate and fix it — regardless of when the issue was introduced. Every session should leave the codebase better than it found it.
+
 ## Privacy in Documentation
 
 - Never include actual usernames, real names, or PII in code/documentation/examples
