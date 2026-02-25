@@ -117,9 +117,9 @@ RSpec.describe Agent::Benchmarking do
 
       before do
         create(:hashcat_benchmark, agent: agent, hash_type: hash_type.hashcat_mode,
-                                   benchmark_date: older_date)
+                                   device: 1, benchmark_date: older_date)
         create(:hashcat_benchmark, agent: agent, hash_type: hash_type.hashcat_mode,
-                                   benchmark_date: most_recent_date)
+                                   device: 2, benchmark_date: most_recent_date)
       end
 
       it "returns the most recent benchmark date" do
@@ -142,15 +142,15 @@ RSpec.describe Agent::Benchmarking do
 
       before do
         create(:hashcat_benchmark, agent: agent, hash_type: hash_type.hashcat_mode,
-                                   benchmark_date: older_date)
+                                   device: 1, benchmark_date: older_date)
         create(:hashcat_benchmark, agent: agent, hash_type: hash_type.hashcat_mode,
-                                   benchmark_date: recent_date)
+                                   device: 2, benchmark_date: recent_date)
       end
 
-      it "returns only benchmarks from the most recent day" do
+      it "returns all benchmarks regardless of benchmark_date" do
         result = agent.last_benchmarks
-        expect(result.count).to eq(1)
-        expect(result.first.benchmark_date).to be_within(1.second).of(recent_date)
+        expect(result.count).to eq(2)
+        expect(result.map(&:hash_type)).to eq(result.map(&:hash_type).sort)
       end
     end
   end

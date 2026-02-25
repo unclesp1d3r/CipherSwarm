@@ -8,18 +8,18 @@
 # Table name: hashcat_benchmarks
 #
 #  id                                                                  :bigint           not null, primary key
-#  benchmark_date(The date and time the benchmark was performed.)      :datetime         not null, uniquely indexed => [agent_id, hash_type]
-#  device(The device used for the benchmark.)                          :integer          not null
+#  benchmark_date(The date and time the benchmark was performed.)      :datetime         not null
+#  device(The device used for the benchmark.)                          :integer          not null, uniquely indexed => [agent_id, hash_type]
 #  hash_speed(The speed of the benchmark. In hashes per second.)       :float            not null
-#  hash_type(The hashcat hash type.)                                   :integer          not null, uniquely indexed => [agent_id, benchmark_date]
+#  hash_type(The hashcat hash type.)                                   :integer          not null, uniquely indexed => [agent_id, device]
 #  runtime(The time taken to complete the benchmark. In milliseconds.) :bigint           not null
 #  created_at                                                          :datetime         not null
 #  updated_at                                                          :datetime         not null
-#  agent_id                                                            :bigint           not null, uniquely indexed => [benchmark_date, hash_type]
+#  agent_id                                                            :bigint           not null, uniquely indexed => [hash_type, device]
 #
 # Indexes
 #
-#  idx_on_agent_id_benchmark_date_hash_type_a667ecb9be  (agent_id,benchmark_date,hash_type) UNIQUE
+#  index_hashcat_benchmarks_on_agent_id_and_hash_type_and_device  (agent_id,hash_type,device) UNIQUE
 #
 # Foreign Keys
 #
@@ -27,10 +27,11 @@
 #
 FactoryBot.define do
   sequence(:benchmark_timestamp) { |n| Time.current - n.seconds }
+  sequence(:benchmark_hash_type) { |n| n }
 
   factory :hashcat_benchmark do
     agent
-    hash_type { 0 }
+    hash_type { generate(:benchmark_hash_type) }
     benchmark_date { generate(:benchmark_timestamp) }
     device { 1 }
     hash_speed { 1000000.0 }
