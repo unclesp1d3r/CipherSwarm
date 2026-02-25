@@ -567,6 +567,7 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 - ALWAYS use Rails generators for migrations
 - Never create migration files manually
 - Use `bin/rails generate migration` or `just db-migration`
+- When replacing a permissive index with a stricter unique index, add a `DELETE` + `DISTINCT ON` cleanup step before `add_index` to remove duplicate rows that would violate the new constraint
 - **Why this is critical:** Running `db:migrate` regenerates `schema.rb` from actual DATABASE state, not from migrations
 - Manual migration creation causes schema drift: unrelated DB changes get committed
 - Schema drift example: Local DB has dropped tables → manual migration → `db:migrate` → schema.rb shows deletions
