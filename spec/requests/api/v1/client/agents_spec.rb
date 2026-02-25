@@ -445,6 +445,8 @@ RSpec.describe "api/v1/client/agents" do
           }
         }
 
+        schema "$ref" => "#/components/schemas/ErrorObject"
+
         run_test! do
           expect(response).to have_http_status(:unprocessable_content)
           expect(agent.reload.state).to eq("pending")

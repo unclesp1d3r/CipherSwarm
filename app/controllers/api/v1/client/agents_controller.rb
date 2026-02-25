@@ -241,12 +241,13 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
     now = Time.zone.now
 
     benchmarks.filter_map do |benchmark|
-      hash_speed = benchmark[:hash_speed].to_f
-      runtime = benchmark[:runtime].to_i
-      hash_type = benchmark[:hash_type].to_i
-      device = benchmark[:device].to_i
+      hash_speed = Float(benchmark[:hash_speed], exception: false)
+      runtime = Integer(benchmark[:runtime], exception: false)
+      hash_type = Integer(benchmark[:hash_type], exception: false)
+      device = Integer(benchmark[:device], exception: false)
 
-      if hash_speed <= 0 || runtime <= 0 || hash_type.negative? || device.negative?
+      if hash_speed.nil? || runtime.nil? || hash_type.nil? || device.nil? ||
+         hash_speed <= 0 || runtime <= 0 || hash_type.negative? || device.negative?
         Rails.logger.warn(
           "[APIError] BENCHMARK_INVALID_ENTRY - Agent #{@agent.id} - " \
           "hash_type=#{benchmark[:hash_type]} hash_speed=#{benchmark[:hash_speed]} " \
