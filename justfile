@@ -52,13 +52,13 @@ check: pre-commit security
 
 # Auto-format all code (RuboCop, ERB)
 format:
-    {{mise_exec}} bundle exec rubocop -A
+    {{mise_exec}} bin/rubocop -A
     {{mise_exec}} bundle exec erb_lint --lint-all --autocorrect
     @echo "✓ Code formatted"
 
 # Run RuboCop linting only
 lint:
-    {{mise_exec}} bundle exec rubocop
+    {{mise_exec}} bin/rubocop
 
 # Run Brakeman security scanner
 security:

@@ -1,0 +1,12 @@
+---
+ignore:
+  # CVE-2023-38337 (CVSS 7.5): directory traversal in rswag-api allows reading
+  # arbitrary JSON/YAML files. Fix shipped in rswag 2.10.1.
+  #
+  # Explicit risk acceptance: rswag master (reported as 0.0.0) post-dates the
+  # 2.10.1 fix. The vulnerable code path is patched in the master branch we
+  # depend on. rswag-api is currently mounted unconditionally in config/routes.rb.
+  #
+  # Remove this ignore when rswag publishes a proper released gem that includes
+  # the fix, and this project adopts it (see #646).
+  - CVE-2023-38337

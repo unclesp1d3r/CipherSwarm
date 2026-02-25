@@ -24,10 +24,10 @@ RSpec.describe "Projects" do
     end
 
     context "when user is a regular user" do
-      it "returns http unauthorized" do
+      it "returns http forbidden" do
         sign_in project_user
         get new_project_path
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:forbidden)
         expect(response).to render_template("errors/not_authorized")
       end
     end
@@ -53,19 +53,19 @@ RSpec.describe "Projects" do
     end
 
     context "when user is not a project member" do
-      it "returns http unauthorized" do
+      it "returns http forbidden" do
         sign_in non_project_user
         get edit_project_path(project)
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:forbidden)
         expect(response).to render_template("errors/not_authorized")
       end
     end
 
     context "when user is a project viewer" do
-      it "returns http unauthorized" do
+      it "returns http forbidden" do
         sign_in project_user
         get edit_project_path(project)
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:forbidden)
       end
     end
   end
@@ -81,10 +81,10 @@ RSpec.describe "Projects" do
     end
 
     context "when user is not a project member" do
-      it "returns http unauthorized" do
+      it "returns http forbidden" do
         sign_in non_project_user
         get project_path(project)
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:forbidden)
         expect(response).to render_template("errors/not_authorized")
       end
     end
