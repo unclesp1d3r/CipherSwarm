@@ -17,7 +17,7 @@ require "pagy"
 # Rescue Behavior:
 # - `bad_request`: Handles client-side bad request errors (400 status).
 # - `not_acceptable`: Handles errors indicating unacceptable client requests (406 status).
-# - `not_authorized`: Handles unauthorized access errors (401 status).
+# - `not_authorized`: Handles forbidden access errors (403 status).
 # - `resource_forbidden`: Handles forbidden resource access errors (403 status).
 # - `resource_not_found`: Handles not found errors for resources (404 status).
 # - `route_not_found`: Handles routing errors for non-existent URLs (404 status).
@@ -80,7 +80,20 @@ class ApplicationController < ActionController::Base
     end
   end
 
+  # REASONING:
+  # - Summary: Return 403 Forbidden for CanCan::AccessDenied and render a Turbo Frame-specific
+  #   partial to prevent stuck "Loading..." frames.
+  # - Alternatives Considered:
+  #   1. Keep 401 for all authorization errors — incorrect per HTTP semantics (401 = unauthenticated).
+  #   2. Render full-page error template for Turbo Frame requests — causes perpetual loading state
+  #      because the response lacks a matching <turbo-frame> tag.
+  # - Decision: Use 403 with a Turbo Frame-aware partial when turbo_frame_request?, otherwise
+  #   render the standard full-page template or JSON response.
+  # - Performance Implications: Negligible; only frame requests render an extra partial without layout.
+  # - Future Considerations: Keep the frame partial in sync with full-page error templates and i18n.
+
   # Handles the case when a user is not authorized to access a certain resource.
+  # Returns HTTP 403 Forbidden (user is authenticated but lacks permission).
   #
   # @param [Exception] error The error that occurred when trying to access the resource.
   #
@@ -88,9 +101,17 @@ class ApplicationController < ActionController::Base
   def not_authorized(error)
     logger.error "not_authorized #{error}"
     respond_to do |format|
-      format.html { render template: "errors/not_authorized", status: :unauthorized }
-      format.json { render json: { error: "Not Authorized", status: 401 }, status: :unauthorized }
-      format.all { head :unauthorized }
+      format.html do
+        if turbo_frame_request?
+          render partial: "errors/not_authorized_frame",
+                 locals: { frame_id: request.headers["Turbo-Frame"] },
+                 status: :forbidden, layout: false
+        else
+          render template: "errors/not_authorized", status: :forbidden
+        end
+      end
+      format.json { render json: { error: "Forbidden", status: 403 }, status: :forbidden }
+      format.all { head :forbidden }
     end
   end
 

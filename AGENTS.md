@@ -114,6 +114,8 @@ just security
 just lint-api
 ```
 
+**Always use `just` recipes** instead of raw `bundle exec` commands. The justfile handles binstubs and `mise exec` correctly. Raw `bundle exec rubocop` can fail when Gemfile has GitHub git sources (e.g., rswag from master).
+
 ### Undercover (Change-Based Coverage)
 
 ```bash
@@ -502,6 +504,15 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 - `authorize!` in controllers
 - Project-based scoping for all resources
 - Admin users have unrestricted access
+- `CanCan::AccessDenied` returns 403 Forbidden (authenticated but lacks permission)
+- Devise unauthenticated non-HTML requests (CSV, JSON) return 401 Unauthorized
+- Administrate dashboard non-admin access returns 401 (separate auth mechanism, not CanCan)
+
+**Bulk Replacements — Be Judicious:**
+
+- Never blindly find-and-replace across test files — different contexts use the same text for different reasons
+- Example: `:unauthorized` (401) appears in both CanCan authorization tests and Devise authentication tests; bulk-replacing all to `:forbidden` breaks the Devise cases
+- Always inspect each occurrence to understand whether it's an authentication failure (401) or an authorization failure (403) before changing
 
 > **More pattern gotchas** (CanCanCan nesting, nullable params, Redis locks, logging, upsert_all, FK cascades, transactions) — see [GOTCHAS.md § Database & ActiveRecord](GOTCHAS.md#database--activerecord) and [GOTCHAS.md § Infrastructure](GOTCHAS.md#infrastructure)
 

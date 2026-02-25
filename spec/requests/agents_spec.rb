@@ -94,10 +94,10 @@ RSpec.describe "Agents" do
     end
 
     context "when a non-admin user tries to access another user's agent" do
-      it "returns http unauthorized" do
+      it "returns http forbidden" do
         sign_in first_regular_user
         get agent_path(second_agent)
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:forbidden)
         expect(response).to render_template("errors/not_authorized")
       end
     end
@@ -230,19 +230,19 @@ RSpec.describe "Agents" do
     end
 
     context "when a non-admin user tries to edit another user's agent in a different project" do
-      it "returns http unauthorized" do
+      it "returns http forbidden" do
         sign_in first_regular_user
         get edit_agent_path(second_agent)
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:forbidden)
         expect(response).to render_template("errors/not_authorized")
       end
     end
 
     context "when a non-admin user tries to edit another user's agent in the same project" do
-      it "returns http unauthorized" do
+      it "returns http forbidden" do
         sign_in third_regular_user
         get edit_agent_path(second_agent)
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:forbidden)
         expect(response).to render_template("errors/not_authorized")
       end
     end
@@ -295,19 +295,19 @@ RSpec.describe "Agents" do
     end
 
     context "when a non-admin user tries to edit another user's agent in a different project" do
-      it "returns http unauthorized" do
+      it "returns http forbidden" do
         sign_in first_regular_user
         patch agent_path(second_agent), params: second_agent_form_params
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:forbidden)
         expect(response).to render_template("errors/not_authorized")
       end
     end
 
     context "when a non-admin user tries to edit another user's agent in the same project" do
-      it "returns http unauthorized" do
+      it "returns http forbidden" do
         sign_in third_regular_user
         patch agent_path(second_agent), params: second_agent_form_params
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:forbidden)
         expect(response).to render_template("errors/not_authorized")
       end
     end
@@ -340,10 +340,10 @@ RSpec.describe "Agents" do
     end
 
     context "when a non-admin user tries to delete another user's agent" do
-      it "returns http unauthorized" do
+      it "returns http forbidden" do
         sign_in first_regular_user
         delete agent_path(second_agent)
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:forbidden)
         expect(response).to render_template("errors/not_authorized")
       end
     end

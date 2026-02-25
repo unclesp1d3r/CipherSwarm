@@ -93,7 +93,9 @@ module Rswag
     end
 
     rswag_version = Gem.loaded_specs["rswag-specs"]&.version&.to_s
-    unless rswag_version == "3.0.0.pre"
+    allowed_versions = ["3.0.0.pre", "0.0.0"]
+
+    unless allowed_versions.include?(rswag_version)
       raise "rswag-specs version changed to #{rswag_version || 'unknown'}. " \
             "Remove spec/support/rswag_polyfills.rb and verify " \
             "request_body_json is natively supported."

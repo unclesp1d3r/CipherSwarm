@@ -24,10 +24,10 @@ RSpec.describe "Attacks" do
     end
 
     context "when a non-project user is logged in" do
-      it "returns http unauthorized" do
+      it "returns http forbidden" do
         sign_in(non_project_user)
         get new_campaign_attack_path(campaign)
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:forbidden)
       end
     end
 
@@ -54,10 +54,10 @@ RSpec.describe "Attacks" do
     end
 
     context "when a non-project user is logged in" do
-      it "returns http unauthorized" do
+      it "returns http forbidden" do
         sign_in non_project_user
         get edit_campaign_attack_path(campaign, attack)
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:forbidden)
       end
     end
 
@@ -84,10 +84,10 @@ RSpec.describe "Attacks" do
     end
 
     context "when a non-project user is logged in" do
-      it "returns http unauthorized" do
+      it "returns http forbidden" do
         sign_in non_project_user
         get campaign_attack_path(campaign, attack)
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:forbidden)
       end
     end
 

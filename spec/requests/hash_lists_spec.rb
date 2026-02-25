@@ -67,10 +67,10 @@ RSpec.describe "HashLists" do
     end
 
     context "when a non-project user is logged in" do
-      it "returns http unauthorized" do
+      it "returns http forbidden" do
         sign_in non_project_user
         get edit_hash_list_path(hash_list)
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:forbidden)
       end
     end
 
@@ -97,10 +97,10 @@ RSpec.describe "HashLists" do
     end
 
     context "when a non-project user is logged in" do
-      it "returns http unauthorized" do
+      it "returns http forbidden" do
         sign_in non_project_user
         get hash_list_path(hash_list)
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:forbidden)
       end
     end
 
@@ -134,10 +134,10 @@ RSpec.describe "HashLists" do
     end
 
     context "when a non-project user is logged in" do
-      it "returns http unauthorized" do
+      it "returns http forbidden" do
         sign_in non_project_user
         patch hash_list_path(hash_list), params: { hash_list: { file: new_file } }
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:forbidden)
       end
     end
 

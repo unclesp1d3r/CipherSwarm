@@ -24,14 +24,14 @@ repos:
     hooks:
       - id: rubocop
         name: Check Ruby style with rubocop
-        entry: bundle exec rubocop --force-exclusion
+        entry: bin/rubocop --force-exclusion
         language: system
         types: [ruby]
         require_serial: true
 
   # 🧪 GitHub Actions validation
   - repo: https://github.com/rhysd/actionlint
-    rev: v1.7.10
+    rev: v1.7.11
     hooks:
       - id: actionlint
         files: ".github/workflows/"
