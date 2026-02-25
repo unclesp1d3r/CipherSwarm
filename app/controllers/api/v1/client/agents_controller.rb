@@ -124,29 +124,47 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
   #
   # @return [void]
   def submit_benchmark
-    # There's a weird bug where the JSON is sometimes in the body and as a param.
     if params[:hashcat_benchmarks].nil?
       render json: { error: "No benchmarks submitted" }, status: :bad_request
       return
     end
 
-    benchmarks = params[:hashcat_benchmarks]
+    now = Time.zone.now
+    valid_records = params[:hashcat_benchmarks].filter_map do |benchmark|
+      hash_speed = benchmark[:hash_speed].to_f
+      runtime = benchmark[:runtime].to_i
+      hash_type = benchmark[:hash_type].to_i
+      device = benchmark[:device].to_i
+
+      if hash_speed <= 0 || runtime <= 0 || hash_type.negative? || device.negative?
+        Rails.logger.warn(
+          "[APIError] BENCHMARK_INVALID_ENTRY - Agent #{@agent.id} - " \
+          "hash_type=#{benchmark[:hash_type]} hash_speed=#{benchmark[:hash_speed]} - skipped - #{Time.current}"
+        )
+        next
+      end
+
+      {
+        agent_id: @agent.id,
+        hash_type: hash_type,
+        device: device,
+        hash_speed: hash_speed,
+        runtime: runtime,
+        benchmark_date: now,
+        created_at: now,
+        updated_at: now
+      }
+    end
 
     write_success = false
     HashcatBenchmark.transaction do
-      @agent.hashcat_benchmarks.clear
-      benchmarks.each do |benchmark|
-        @benchmark = HashcatBenchmark.build(
-          benchmark_date: Time.zone.now,
-          device: benchmark[:device],
-          hash_speed: benchmark[:hash_speed],
-          hash_type: benchmark[:hash_type],
-          runtime: benchmark[:runtime],
-          agent: @agent
+      if valid_records.any?
+        HashcatBenchmark.upsert_all( # rubocop:disable Rails/SkipsModelValidations -- pre-filtered above; upsert_all is intentional for idempotent bulk writes
+          valid_records,
+          unique_by: %i[agent_id hash_type device],
+          update_only: %i[hash_speed runtime benchmark_date]
         )
-        @agent.hashcat_benchmarks << @benchmark if @benchmark.valid?
       end
-      @agent.save!
       raise ActiveRecord::Rollback unless @agent.benchmarked
       write_success = true
     end

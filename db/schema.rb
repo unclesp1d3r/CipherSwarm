@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_02_11_015927) do
+ActiveRecord::Schema[8.0].define(version: 2026_02_25_025422) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -258,7 +258,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_11_015927) do
     t.integer "device", null: false, comment: "The device used for the benchmark."
     t.float "hash_speed", null: false, comment: "The speed of the benchmark. In hashes per second."
     t.bigint "runtime", null: false, comment: "The time taken to complete the benchmark. In milliseconds."
-    t.index ["agent_id", "benchmark_date", "hash_type"], name: "idx_on_agent_id_benchmark_date_hash_type_a667ecb9be", unique: true
+    t.index ["agent_id", "hash_type", "device"], name: "index_hashcat_benchmarks_on_agent_id_and_hash_type_and_device", unique: true
   end
 
   create_table "hashcat_guesses", force: :cascade do |t|

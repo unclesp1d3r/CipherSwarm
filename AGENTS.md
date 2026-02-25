@@ -668,6 +668,11 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 - Use `save!` (bang) inside transactions to trigger rollback on failure
 - Handle `ActiveRecord::RecordInvalid` outside the transaction block
 
+**upsert_all Gotcha:**
+
+- `upsert_all` with `update_only` does NOT auto-update `updated_at` — must be explicitly listed in `update_only` array
+- Without it, `touch: true` associations and cache keys won't invalidate on conflict/update
+
 **Foreign Key Cascade Strategy:**
 
 - Prefer DB-level `on_delete: :cascade` / `:nullify` over relying solely on Rails `dependent:` callbacks

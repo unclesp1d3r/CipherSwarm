@@ -128,17 +128,19 @@ module Agent::Benchmarking
     end
   end
 
-  # Returns the last benchmarks recorded for the agent.
+  # Returns all current benchmarks recorded for the agent.
+  #
+  # With upsert-based ingestion there is exactly one row per (agent_id, hash_type, device),
+  # so no date filtering is needed.
   #
   # If there are no benchmarks available, it returns nil.
   #
-  # @return [ActiveRecord::Relation, nil] The last benchmarks recorded for the agent,
+  # @return [ActiveRecord::Relation, nil] All benchmarks for the agent ordered by hash_type,
   #   or nil if there are no benchmarks.
   def last_benchmarks
     return nil if hashcat_benchmarks.empty?
 
-    max = hashcat_benchmarks.maximum(:benchmark_date)
-    hashcat_benchmarks.where(benchmark_date: max.all_day).order(hash_type: :asc)
+    hashcat_benchmarks.order(hash_type: :asc)
   end
 
   # Checks if the agent meets the minimum performance benchmark for a specific hash type.
