@@ -456,6 +456,7 @@ RSpec.describe TaskAssignmentService do
       it "reclaims the task and resumes the attack" do
         result = service.send(:find_own_paused_task)
         expect(result).to eq(paused_task)
+        expect(result.state).to eq("pending")
         expect(attack.reload.state).to eq("pending")
       end
     end
@@ -481,6 +482,26 @@ RSpec.describe TaskAssignmentService do
 
       it "returns nil" do
         expect(service.send(:find_own_paused_task)).to be_nil
+      end
+    end
+
+    context "when resuming own paused task raises InvalidTransition" do
+      let!(:attack) { create(:dictionary_attack, campaign: campaign, state: :running) }
+
+      before do
+        create(:task, agent: agent, attack: attack, state: :paused,
+                      claimed_by_agent_id: nil, paused_at: 5.minutes.ago)
+        create(:hash_item, hash_list: hash_list, cracked: false)
+        allow(Rails.logger).to receive(:error)
+        allow_any_instance_of(Task).to receive(:resume!).and_raise( # rubocop:disable RSpec/AnyInstance
+          StateMachines::InvalidTransition.new(Task.new, Task.state_machine(:state), :resume)
+        )
+      end
+
+      it "returns nil and logs the error" do
+        result = service.send(:find_own_paused_task)
+        expect(result).to be_nil
+        expect(Rails.logger).to have_received(:error).with(/Failed to resume own paused task/)
       end
     end
   end
@@ -574,6 +595,26 @@ RSpec.describe TaskAssignmentService do
       end
     end
 
+    context "when orphaned task's attack is also paused (shutdown cascade)" do
+      before do
+        create(:task, agent: agent, attack: attack, state: :paused,
+                      claimed_by_agent_id: nil, paused_at: 31.minutes.ago)
+        attack.update!(state: :paused)
+        allow(Rails.logger).to receive(:info)
+        allow(Rails.logger).to receive(:warn)
+      end
+
+      it "resumes the paused attack when another agent claims the orphaned task" do
+        other_service.send(:find_unassigned_paused_task)
+        expect(attack.reload.state).to eq("pending")
+      end
+
+      it "returns the task in pending state" do
+        result = other_service.send(:find_unassigned_paused_task)
+        expect(result.state).to eq("pending")
+      end
+    end
+
     context "when owning agent restarted (active) but grace period expired" do
       let!(:paused_task) do
         # agent is active (default let), task paused 31 min ago
@@ -584,6 +625,31 @@ RSpec.describe TaskAssignmentService do
       it "allows another agent to claim despite owning agent being active" do
         result = other_service.send(:find_unassigned_paused_task)
         expect(result).to eq(paused_task)
+      end
+    end
+
+    context "when resuming orphaned task raises StaleObjectError after ownership reassignment" do
+      let(:offline_agent) { create(:agent, user: user, projects: [project], state: :offline) }
+
+      before do
+        create(:task, agent: offline_agent, attack: attack, state: :paused,
+                      claimed_by_agent_id: nil, paused_at: 31.minutes.ago)
+        create(:hashcat_benchmark, agent: offline_agent, hash_type: 0, hash_speed: 10_000_000)
+        create(:hash_item, hash_list: hash_list, cracked: false)
+        allow(Rails.logger).to receive(:error)
+        allow_any_instance_of(Task).to receive(:resume!).and_raise(ActiveRecord::StaleObjectError) # rubocop:disable RSpec/AnyInstance
+      end
+
+      it "preserves ownership reassignment and returns the task still paused" do
+        result = other_service.send(:find_unassigned_paused_task)
+        expect(result).not_to be_nil
+        expect(result.agent_id).to eq(other_agent.id)
+        expect(result.state).to eq("paused")
+      end
+
+      it "logs the error" do
+        other_service.send(:find_unassigned_paused_task)
+        expect(Rails.logger).to have_received(:error).with(/Failed to resume orphaned task/)
       end
     end
   end
@@ -657,7 +723,7 @@ RSpec.describe TaskAssignmentService do
 
     context "when attack.campaign.priority raises an error" do
       it "returns false without raising error" do
-        allow(attack.campaign).to receive(:priority).and_raise(StandardError)
+        allow(attack.campaign).to receive(:priority).and_raise(ActiveRecord::ActiveRecordError)
         expect(service.send(:should_attempt_preemption?, attack)).to be false
       end
     end
@@ -692,17 +758,17 @@ RSpec.describe TaskAssignmentService do
       end
 
       it "logs the error and returns nil" do
-        allow(agent.tasks).to receive(:create).and_raise(StandardError.new("DB connection lost"))
+        allow(agent.tasks).to receive(:create).and_raise(ActiveRecord::StatementInvalid.new("DB connection lost"))
 
         result = service.send(:create_new_task_if_eligible, attack)
         expect(result).to be_nil
       end
 
       it "logs the error with attack id and error class" do
-        allow(agent.tasks).to receive(:create).and_raise(StandardError.new("DB connection lost"))
+        allow(agent.tasks).to receive(:create).and_raise(ActiveRecord::StatementInvalid.new("DB connection lost"))
 
         service.send(:create_new_task_if_eligible, attack)
-        expect(Rails.logger).to have_received(:error).with(/Error creating task for attack #{attack.id}.*StandardError.*DB connection lost/)
+        expect(Rails.logger).to have_received(:error).with(/Error creating task for attack #{attack.id}.*StatementInvalid.*DB connection lost/)
       end
     end
   end

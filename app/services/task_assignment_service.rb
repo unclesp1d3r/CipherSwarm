@@ -8,6 +8,8 @@
 #
 # This service encapsulates the task assignment algorithm, which considers:
 # - Incomplete tasks already assigned to the agent
+# - Agent's own paused tasks (for restore file reuse after restart)
+# - Orphaned paused tasks from offline/stopped agents (grace period)
 # - Agent's project membership
 # - Supported hash types based on benchmarks
 # - Attack complexity ordering
@@ -51,8 +53,8 @@ class TaskAssignmentService
   # Finds an existing incomplete task assigned to the agent.
   #
   # REASONING:
-  # - Uses NOT EXISTS subquery to filter tasks with fatal errors in SQL rather than
-  #   loading tasks then checking has_fatal_error? per-row (N+1).
+  # - Uses NOT EXISTS subquery to filter tasks with fatal errors in a single SQL query
+  #   rather than iterating tasks and issuing one EXISTS query per task.
   # - Uses EXISTS to confirm uncracked hash items remain, avoiding join row multiplication.
   # - Alternatives: INNER JOIN + DISTINCT (bloated result set), LEFT JOIN + WHERE NOT NULL
   #   (less readable), Ruby iteration (N+1 queries on large task sets).
@@ -78,7 +80,7 @@ class TaskAssignmentService
   #   agent's agent_id, so no cross-agent race is possible.
   # - Only returns tasks where uncracked hashes remain to avoid wasted work.
   #
-  # @return [Task, nil] the agent's own paused task resumed to pending, or nil
+  # @return [Task, nil] the agent's own paused task (transitioned to pending), or nil
   def find_own_paused_task
     task = agent.tasks.with_state(:paused)
                 .where(claimed_by_agent_id: [nil, agent.id])
@@ -95,6 +97,12 @@ class TaskAssignmentService
     end
     task.resume! if task.paused? && task.can_resume?
     task
+  rescue StateMachines::InvalidTransition, ActiveRecord::StaleObjectError => e
+    Rails.logger.error(
+      "[TaskAssignmentService] Failed to resume own paused task #{task&.id} " \
+      "for agent #{agent.id}: #{e.class} - #{e.message}"
+    )
+    nil
   end
 
   # Finds an orphaned paused task from another agent that this agent can work on.
@@ -108,6 +116,9 @@ class TaskAssignmentService
   # - The grace period (agent_considered_offline_time, default 30 min) gives the original
   #   agent time to reclaim its own tasks via find_own_paused_task.
   # - Tasks from offline/stopped agents are available immediately (no grace period).
+  # - tasks.paused_at IS NULL covers legacy paused tasks created before the paused_at
+  #   column was added — these are treated as immediately available since their pause
+  #   time is unknown.
   # - Scoped to the claiming agent's projects and supported hash types for authorization.
   # - Only returns tasks where uncracked hashes remain to avoid wasted work.
   # - On pickup, agent_id is reassigned to the claiming agent within this method.
@@ -142,32 +153,43 @@ class TaskAssignmentService
       task.update_columns(agent_id: agent.id)
       # rubocop:enable Rails/SkipsModelValidations
 
-      # Resume the attack if it was paused due to agent shutdown (not campaign pause).
-      if task.attack.paused? && task.attack.can_resume?
-        task.attack.resume!
-        task.reload # attack.resume_tasks may have already resumed this task
-      end
+      # Resume the attack if it was paused (e.g., due to agent shutdown cascade).
+      # Note: there is no programmatic distinction between shutdown-paused and
+      # campaign-paused attacks; the can_resume? guard prevents invalid transitions.
+      # Wrapped in rescue so ownership reassignment above is preserved even if resume fails.
+      # Next cycle's find_own_paused_task will retry the resume.
+      begin
+        if task.attack.paused? && task.attack.can_resume?
+          task.attack.resume!
+          task.reload # attack.resume_tasks may have already resumed this task
+        end
 
-      # Transition to pending so the new agent can accept the task.
-      # resume! moves paused -> pending and marks stale (so the agent re-downloads cracks).
-      task.resume! if task.paused? && task.can_resume?
+        # Transition to pending so the new agent can accept the task.
+        # resume! moves paused -> pending, marks stale (so the agent re-downloads cracks),
+        # and clears paused_at (removing the task from grace period queries).
+        task.resume! if task.paused? && task.can_resume?
+      rescue StateMachines::InvalidTransition, ActiveRecord::StaleObjectError => e
+        Rails.logger.error(
+          "[TaskAssignmentService] Failed to resume orphaned task #{task.id} " \
+          "for agent #{agent.id}: #{e.class} - #{e.message}"
+        )
+        # Ownership was reassigned; task stays paused but belongs to the new agent.
+        # Next cycle's find_own_paused_task will pick it up.
+      end
     end
 
     task
   end
 
-  # Searches available attacks for a task to assign.
+  # Searches available attacks in priority order and returns the first assignable task.
   #
   # This method is the core of the priority-based scheduling system:
-  # 1. Iterates attacks in priority order (high → normal → deferred)
+  # 1. Iterates attacks in campaign priority order (high → normal → deferred)
   # 2. For each attack, tries to find/create a task
-  # 3. If no task available and attack is high priority, attempts preemption
+  # 3. If no task available and campaign priority is not deferred, attempts preemption
   # 4. Preemption allows high-priority work to interrupt lower-priority tasks
   #
-  ##
-  # Searches the agent's available attacks in priority order and returns the first assignable task.
-  # May attempt preemption on higher-priority attacks when no immediate task is found, and will retry after successful preemption.
-  # @return [Task, nil] The found or newly created task for the agent, or `nil` if no task could be assigned.
+  # @return [Task, nil] the found or newly created task, or nil if none available
   def find_task_from_available_attacks
     return nil if agent.project_ids.blank?
 
@@ -199,26 +221,22 @@ class TaskAssignmentService
     nil
   end
 
-  # Checks if preemption should be attempted for an attack.
-  #
-  # Preemption is only considered for normal and high priority attacks.
-  # Deferred attacks wait naturally and never trigger preemption.
-  #
-  # The defensive nil checks and error handling ensure the assignment
-  # process continues even if campaign data is malformed or missing.
-  #
-  # @param attack [Attack] the attack to check
-  ##
   # Determines whether preemption should be attempted for the given attack.
-  # @param [Attack] attack - The attack to evaluate; may be nil.
-  # @return [Boolean] `true` if the attack's campaign exists and its priority is not `:deferred` (for example normal or high), `false` otherwise or on error.
+  #
+  # Preemption is attempted for any campaign priority except :deferred.
+  # Deferred attacks wait naturally and never trigger preemption.
+  # Defensive nil checks ensure the assignment process continues
+  # even if campaign data is malformed or missing.
+  #
+  # @param attack [Attack] the attack to evaluate; may be nil
+  # @return [Boolean] true if campaign priority is not :deferred, false otherwise or on error
   def should_attempt_preemption?(attack)
     # Only attempt preemption for normal or high priority attacks
     # Deferred attacks wait naturally
     return false if attack.nil? || attack.campaign.nil?
 
     attack.campaign.priority.present? && attack.campaign.priority.to_sym != :deferred
-  rescue StandardError => e
+  rescue ActiveRecord::ActiveRecordError => e
     Rails.logger.error(
       "[TaskAssignmentService] Error checking preemption eligibility for attack #{attack&.id} - " \
       "Error: #{e.class} - #{e.message} - #{Time.current}"
@@ -274,7 +292,7 @@ class TaskAssignmentService
 
       agent.tasks.create(attack: attack, start_date: Time.zone.now)
     end
-  rescue StandardError => e
+  rescue ActiveRecord::ActiveRecordError => e
     Rails.logger.error(
       "[TaskAssignmentService] Error creating task for attack #{attack.id}: " \
       "#{e.class} - #{e.message}"
@@ -282,27 +300,14 @@ class TaskAssignmentService
     nil
   end
 
-  # Checks if the agent has a fatal error for a specific task.
-  #
-  # @param task [Task] the task to check
-  # @return [Boolean] true if there's a fatal error for this task
-  def has_fatal_error?(task)
-    agent.agent_errors.exists?(severity: :fatal, task_id: task.id)
-  end
-
   # Returns attacks available for the agent based on projects and hash types.
   #
   # Ordering strategy:
-  # 1. campaigns.priority DESC: High priority attacks first (high=2, normal=0, deferred=-1)
+  # 1. campaigns.priority DESC: Higher campaign priority first (high=2, normal=0, deferred=-1)
   # 2. attacks.complexity_value: Within same priority, simpler attacks first
   # 3. attacks.created_at: Tie-breaker for same priority and complexity
   #
-  # This ordering ensures high-priority campaigns get resources first,
-  # while still respecting attack complexity within each priority level.
-  #
-  ##
-  # Retrieves attacks that are not complete for campaigns associated with the agent, filtered by the agent's allowed hash types and ordered by campaign priority, attack complexity, then creation time.
-  # @return [ActiveRecord::Relation<Attack>] An ActiveRecord relation of matching Attack records ordered by campaigns.priority DESC, attacks.complexity_value, and attacks.created_at.
+  # @return [ActiveRecord::Relation<Attack>] attacks ordered by campaign priority, complexity, creation time
   def available_attacks
     Attack.incomplete
           .joins(campaign: { hash_list: :hash_type })

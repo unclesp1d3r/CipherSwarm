@@ -23,7 +23,7 @@
 # - reset: Transitions to pending for re-running
 # - resume: Transitions paused to pending
 # - abandon: Transitions running to pending to free for another agent
-module AttackStateMachine
+module AttackStateMachine # rubocop:disable Metrics/ModuleLength
   extend ActiveSupport::Concern
 
   included do
@@ -150,11 +150,19 @@ module AttackStateMachine
   end
 
   def pause_tasks
-    tasks.without_state(:paused).each(&:pause)
+    tasks.without_state(:paused).find_each do |task|
+      unless task.pause
+        Rails.logger.warn("[Attack #{id}] Failed to pause task #{task.id} (state: #{task.state})")
+      end
+    end
   end
 
   def resume_tasks
-    tasks.find_each(&:resume)
+    tasks.find_each do |task|
+      unless task.resume
+        Rails.logger.warn("[Attack #{id}] Failed to resume task #{task.id} (state: #{task.state})")
+      end
+    end
   end
 
   def touch_campaign

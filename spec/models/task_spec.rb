@@ -445,6 +445,33 @@ RSpec.describe Task do
       end
     end
 
+    describe "pause callback" do
+      let(:task) { create(:task, attack: attack, agent: agent, state: "running") }
+
+      before { allow(Rails.logger).to receive(:info) }
+
+      it "sets paused_at timestamp on pause" do
+        task.pause!
+        expect(task.reload.paused_at).to be_within(2.seconds).of(Time.zone.now)
+      end
+    end
+
+    describe "resume callback" do
+      let(:task) { create(:task, attack: attack, agent: agent, state: "paused", paused_at: 5.minutes.ago) }
+
+      before { allow(Rails.logger).to receive(:info) }
+
+      it "clears paused_at timestamp on resume" do
+        task.resume!
+        expect(task.reload.paused_at).to be_nil
+      end
+
+      it "marks task as stale on resume" do
+        task.resume!
+        expect(task.reload.stale).to be true
+      end
+    end
+
     describe "exhausted callback" do
       let(:task) { create(:task, attack: attack, agent: agent, state: "running") }
 

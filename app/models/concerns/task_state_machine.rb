@@ -121,17 +121,13 @@ module TaskStateMachine
       end
 
       after_transition on: :resume do |task|
-        task.send(:log_state_transition, "resumed", "Marking as stale")
-        # rubocop:disable Rails/SkipsModelValidations
-        task.update_columns(stale: true, paused_at: nil)
-        # rubocop:enable Rails/SkipsModelValidations
+        task.send(:log_state_transition, "resumed", "Marking as stale and clearing paused_at")
+        task.send(:mark_resumed_safely)
       end
 
       after_transition to: :paused do |task|
         task.send(:log_state_transition, "paused", "Task execution paused")
-        # rubocop:disable Rails/SkipsModelValidations
-        task.update_column(:paused_at, Time.zone.now)
-        # rubocop:enable Rails/SkipsModelValidations
+        task.send(:mark_paused_safely)
       end
 
       after_transition on: :retry do |task|
@@ -220,12 +216,37 @@ module TaskStateMachine
     # rubocop:disable Rails/SkipsModelValidations
     update_columns(stale: true)
     # rubocop:enable Rails/SkipsModelValidations
-  rescue StandardError => e
+  rescue ActiveRecord::ActiveRecordError => e
     Rails.logger.error(
       "[Task #{id}] Error updating stale flag in abandon callback - " \
       "Error: #{e.class} - #{e.message} - #{Time.current}"
     )
     # Don't re-raise - this is a non-critical update
+  end
+
+  def mark_paused_safely
+    # rubocop:disable Rails/SkipsModelValidations
+    update_column(:paused_at, Time.zone.now)
+    # rubocop:enable Rails/SkipsModelValidations
+  rescue ActiveRecord::ActiveRecordError => e
+    Rails.logger.error(
+      "[Task #{id}] Error setting paused_at in pause callback - " \
+      "Error: #{e.class} - #{e.message} - #{Time.current}"
+    )
+    # Non-critical: task is paused but paused_at not set.
+    # Grace period will treat it as immediately available (paused_at IS NULL).
+  end
+
+  def mark_resumed_safely
+    # rubocop:disable Rails/SkipsModelValidations
+    update_columns(stale: true, paused_at: nil)
+    # rubocop:enable Rails/SkipsModelValidations
+  rescue ActiveRecord::ActiveRecordError => e
+    Rails.logger.error(
+      "[Task #{id}] Error updating stale/paused_at in resume callback - " \
+      "Error: #{e.class} - #{e.message} - #{Time.current}"
+    )
+    # Don't re-raise - task state transition already succeeded
   end
 end
 # rubocop:enable Metrics/ModuleLength
