@@ -56,6 +56,7 @@ Implement task management capabilities allowing users to cancel, retry, reassign
 - [ ] Route: `POST /tasks/:id/reassign`
 - [ ] Validates agent compatibility (hash type, performance, project access)
 - [ ] Updates task agent and resets to pending state
+- [ ] When reassigning a paused task from a paused attack, automatically resumes the attack
 - [ ] Returns error if agent incompatible
 - [ ] Returns Turbo Stream response (update task + show toast)
 - [ ] Authorization: project-based
@@ -122,11 +123,98 @@ Implement task management capabilities allowing users to cancel, retry, reassign
 - [ ] System test: Reassign to incompatible agent, verify error
 - [ ] System test: Download results CSV, verify content
 - [ ] Authorization specs for task actions
+- [ ] Task pause/resume actions respect the grace period for reassignment
+- [ ] Reassigning a paused task from a paused attack triggers attack resume
+- [ ] Paused tasks can be reclaimed by their original agent without waiting for grace period
+- [ ] Task state transitions properly set/clear the paused_at timestamp
+
+## Related State Transitions
+
+### Task Pause/Resume Mechanism
+
+Tasks can be paused during agent shutdown or disconnection. The pause/resume mechanism tracks task state across agent lifecycle events:
+
+**Pause Behavior:**
+
+- The `pause` event sets `paused_at: Time.current` using `update_columns` to bypass optimistic locking
+- Claim fields (`claimed_by_agent_id`, `claimed_at`, `expires_at`) are cleared during agent shutdown
+- The `agent_id` column (NOT NULL) is retained, pointing to the original owning agent
+- This prevents `StaleObjectError` during cascaded operations when multiple tasks are paused simultaneously
+
+**Resume Behavior:**
+
+- The `resume` event clears `paused_at: nil` and sets `stale: true`, also using `update_columns`
+- `stale: true` ensures the resuming agent re-downloads crack data
+- This bypasses optimistic locking to avoid concurrent update conflicts
+- See Task State Machine Transitions documentation for full state machine details
+
+**Grace Period for Reassignment:**
+
+- After pausing, tasks use the `paused_at` timestamp to determine reassignment eligibility
+- Within the grace period (`agent_considered_offline_time`, default 30 minutes), only the original agent can reclaim the task
+- After the grace period expires, any compatible agent can claim the orphaned task
+- Tasks from offline/stopped agents are available for reassignment immediately, bypassing the grace period
+- This two-stage reclamation prevents tasks from being stolen during brief agent disconnections
+
+**Task Assignment Priority:**
+
+TaskAssignmentService uses two-stage task reclamation:
+
+1. **Own paused tasks first**: Agents reclaim their own paused tasks to leverage restore files and minimize redundant work
+2. **Orphaned tasks second**: After the grace period, agents can claim paused tasks from other agents
+
+When reassigning a paused task from a paused attack (e.g., during shutdown cascade), the attack is automatically resumed to maintain consistent state.
+
+### Agent Shutdown Impact
+
+When an agent shuts down (via `agent.shutdown!` or agent disconnection), it triggers a cascade of state transitions:
+
+**Task Pausing:**
+
+- All running tasks are paused and their claim fields cleared
+- The `paused_at` timestamp is set to track when the pause occurred
+- The `agent_id` remains set to the original agent for reclamation
+
+**Attack Pausing:**
+
+- Attacks with no remaining active (non-paused) tasks are automatically paused during shutdown
+- This updates the Activity page to reflect that work has stopped
+- Paused attacks must be resumed when their tasks are reclaimed by other agents
+
+**Reassignment Considerations:**
+
+- Paused tasks from a paused attack require the attack to be resumed during reassignment
+- TaskAssignmentService automatically resumes paused attacks when claiming their tasks
+- This prevents inconsistent state where tasks are active but their attack remains paused
+- Cross-reference the Agent Shutdown Cascade documentation for complete shutdown behavior
+
+### State Machine Integration
+
+Task state machine transitions use `update_columns` to avoid optimistic locking issues:
+
+**Why `update_columns`:**
+
+- The pause/resume events bypass ActiveRecord callbacks and validations
+- This prevents `StaleObjectError` during cascaded operations (e.g., attack shutdown pausing multiple tasks)
+- The `lock_version` counter is not incremented, avoiding version conflicts
+- See StaleObjectError From Cascading Resume documentation for handling concurrent updates
+
+**State Transition Sequence:**
+
+```
+pause event: task.update_columns(paused_at: Time.current)
+resume event: task.update_columns(stale: true, paused_at: nil)
+```
+
+This approach ensures consistent state management across the task lifecycle without introducing race conditions during bulk operations.
 
 ## Technical References
 
 - **Core Flows**: spec:50650885-e043-4e99-960b-672342fc4139/c565e255-83e7-4d16-a4ec-d45011fa5cad (Flow 3: Task Detail Investigation)
 - **Tech Plan**: spec:50650885-e043-4e99-960b-672342fc4139/f3c30678-d7af-45ab-a95b-0d0714906b9e (TasksController, State Machine Extensions, Authorization)
+- **Task State Machine Transitions**: For detailed pause/resume behavior and `paused_at` timestamp management
+- **Agent Shutdown Cascade**: For agent shutdown impact on task and attack state
+- **StaleObjectError From Cascading Resume**: For handling concurrent updates during attack resume
 
 ## Dependencies
 
