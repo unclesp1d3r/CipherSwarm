@@ -362,7 +362,7 @@ Rails.application.routes.draw do
 
   # Defines the root path route ("/")
   authenticated :user do
-    root to: "home#index", as: :authenticated_root
+    root to: "campaigns#index", as: :authenticated_root
   end
 
   authenticate :user, ->(u) { u.admin? } do
