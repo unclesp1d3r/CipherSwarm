@@ -112,7 +112,29 @@ class Agent < ApplicationRecord
 
   # Broadcast tab-specific updates instead of full page refresh
   # This prevents resetting the active tab state when agent data changes
-  after_update_commit :broadcast_tab_updates
+  after_update_commit :broadcast_tab_updates, :broadcast_index_state, :broadcast_index_last_seen
+
+  # Replaces just the state pill on index cards when the agent's state transitions.
+  # Index cards subscribe to the bare agent stream via turbo_stream_from(agent).
+  # Only fires on state transitions to avoid excessive updates from heartbeats.
+  def broadcast_index_state
+    return unless saved_change_to_state?
+
+    broadcast_replace_later_to self,
+      target: ActionView::RecordIdentifier.dom_id(self, :index_state),
+      partial: "agents/index_state",
+      locals: { agent: self }
+  end
+
+  # Replaces just the "Last Seen" value on index cards when last_seen_at changes.
+  def broadcast_index_last_seen
+    return unless saved_change_to_last_seen_at?
+
+    broadcast_replace_later_to self,
+      target: ActionView::RecordIdentifier.dom_id(self, :index_last_seen),
+      partial: "agents/index_last_seen",
+      locals: { agent: self }
+  end
 
   # Broadcasts updates to individual tab streams instead of the root agent stream.
   # This allows each tab panel to update independently without affecting the active tab state.

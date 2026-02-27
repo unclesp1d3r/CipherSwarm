@@ -235,10 +235,13 @@ class HashcatStatus < ApplicationRecord
     )
     # rubocop:enable Rails/SkipsModelValidations
 
-    # Broadcast updates since update_columns bypasses after_update_commit callbacks.
-    # Refresh the index page cards (subscribed to the bare agent stream) and
-    # replace the overview tab on the show page (subscribed to [agent, :overview]).
-    agent.broadcast_refresh_later
+    # Broadcast targeted updates since update_columns bypasses after_update_commit callbacks.
+    # Replace just the hash rate value on index cards (subscribed to the bare agent stream)
+    # and the overview tab on the show page (subscribed to [agent, :overview]).
+    agent.broadcast_replace_later_to agent,
+      target: ActionView::RecordIdentifier.dom_id(agent, :index_hash_rate),
+      partial: "agents/index_hash_rate",
+      locals: { agent: agent }
     agent.broadcast_replace_later_to [agent, :overview],
       target: ActionView::RecordIdentifier.dom_id(agent, :overview),
       partial: "agents/overview_tab",

@@ -1,0 +1,2 @@
+<%# locals: (agent:) -%>
+<span id="<%= dom_id(agent, :index_state) %>"><%= render StatusPillComponent.new(status: agent.state) %></span>

@@ -9,29 +9,22 @@
             <%= agent.name %>
           </a>
         </h5>
-        <%= render StatusPillComponent.new(status: agent.state) %>
+        <%= render "agents/index_state", agent: agent %>
       </div>
     <% end %>
 
     <% card.with_body do %>
       <div class="mb-2">
         <%= helpers.icon("speedometer2") %>
-        <strong>Hash Rate:</strong> <%= agent.hash_rate_display %>
+        <strong>Hash Rate:</strong> <%= render "agents/index_hash_rate", agent: agent %>
       </div>
 
-      <div class="mb-2 <%= "text-danger" if error_count_last_24h.positive? %>">
-        <%= helpers.icon("exclamation-triangle-fill") %>
-        <strong>Errors (24h):</strong> <%= error_count_last_24h %>
-      </div>
+      <%= render "agents/index_errors", agent: agent %>
 
       <div class="mb-0">
         <%= helpers.icon("clock") %>
         <strong>Last Seen:</strong>
-        <% if agent.last_seen_at.present? %>
-          <%= helpers.time_ago_in_words(agent.last_seen_at) %> ago
-        <% else %>
-          Not seen yet
-        <% end %>
+        <%= render "agents/index_last_seen", agent: agent %>
       </div>
     <% end %>
 
