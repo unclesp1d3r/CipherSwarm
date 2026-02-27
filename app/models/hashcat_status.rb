@@ -234,6 +234,15 @@ class HashcatStatus < ApplicationRecord
       metrics_updated_at: Time.zone.now
     )
     # rubocop:enable Rails/SkipsModelValidations
+
+    # Broadcast updates since update_columns bypasses after_update_commit callbacks.
+    # Refresh the index page cards (subscribed to the bare agent stream) and
+    # replace the overview tab on the show page (subscribed to [agent, :overview]).
+    agent.broadcast_refresh_later
+    agent.broadcast_replace_later_to [agent, :overview],
+      target: ActionView::RecordIdentifier.dom_id(agent, :overview),
+      partial: "agents/overview_tab",
+      locals: { agent: agent }
   rescue StandardError => e
     Rails.logger.error("Failed to update agent metrics for task #{task.id}: #{e.message}")
   end
