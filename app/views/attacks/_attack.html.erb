@@ -2,7 +2,7 @@
 <% unless current_user.hide_completed_activities? && attack.state == "completed" %>
   <tr id="<%= dom_id attack %>" class="<%= "table-active" if attack.running? %>">
     <td>
-      <%= render(StatusPillComponent.new(status: attack.state)) %>
+      <%= render partial: "attacks/index_state", locals: { attack: attack } %>
     </td>
     <td>
       <%= icon("activity") %>

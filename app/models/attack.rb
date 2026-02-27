@@ -195,6 +195,7 @@ class Attack < ApplicationRecord
 
   # Callbacks
   after_commit :broadcast_attack_progress_update, on: [:update]
+  after_update_commit :broadcast_index_state, if: :saved_change_to_state?
 
   def to_full_label
     "#{campaign.name} - #{to_label}"
@@ -219,6 +220,15 @@ class Attack < ApplicationRecord
   # @return [AgentError, nil] the most recent agent error, or nil if none exist.
   def latest_agent_error
     AgentError.joins(:task).where(tasks: { attack_id: id }).order(created_at: :desc).first
+  end
+
+  # Replaces the attack state pill on the Activity (campaigns index) page when state changes.
+  # Each attack row subscribes to turbo_stream_from(attack) in the partial.
+  def broadcast_index_state
+    broadcast_replace_later_to self,
+      target: ActionView::RecordIdentifier.dom_id(self, :index_state),
+      partial: "attacks/index_state",
+      locals: { attack: self }
   end
 
   def broadcast_attack_progress_update

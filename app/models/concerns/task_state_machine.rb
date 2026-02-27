@@ -122,11 +122,16 @@ module TaskStateMachine
 
       after_transition on: :resume do |task|
         task.send(:log_state_transition, "resumed", "Marking as stale")
-        task.update(stale: true)
+        # rubocop:disable Rails/SkipsModelValidations
+        task.update_columns(stale: true, paused_at: nil)
+        # rubocop:enable Rails/SkipsModelValidations
       end
 
       after_transition to: :paused do |task|
         task.send(:log_state_transition, "paused", "Task execution paused")
+        # rubocop:disable Rails/SkipsModelValidations
+        task.update_column(:paused_at, Time.zone.now)
+        # rubocop:enable Rails/SkipsModelValidations
       end
 
       after_transition on: :retry do |task|
