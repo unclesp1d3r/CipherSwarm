@@ -49,6 +49,7 @@ Four targeted partials handle independent Turbo Stream broadcasts for agent inde
 - [x] `_index_errors.html.erb` - Shows error count badge for last 24 hours (excluding info severity). Entire `<div>` has DOM ID: `dom_id(agent, :index_errors)`. Text turns red when error count > 0.
 
 Each partial:
+
 - Has a stable DOM ID for targeted replacement
 - Is broadcast via `broadcast_replace_later_to` callback (runs in background job)
 - Runs WITHOUT access to `current_user` or session (background job context)

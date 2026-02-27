@@ -226,6 +226,18 @@ RSpec.describe HashcatStatus do
         # Verify the error was logged
         expect(Rails.logger).to have_received(:error).with(/Failed to update agent metrics for task #{task.id}/)
       end
+
+      it "rescues broadcast errors separately from metrics errors" do
+        hashcat_status = build(:hashcat_status, task: task, status: :running)
+        hashcat_status.device_statuses << fast_device_status
+
+        allow(agent).to receive(:broadcast_replace_later_to).and_raise(StandardError.new("Redis down"))
+        allow(Rails.logger).to receive(:error)
+
+        expect { hashcat_status.save! }.not_to raise_error
+
+        expect(Rails.logger).to have_received(:error).with(/Failed to broadcast agent metrics for task #{task.id}/)
+      end
     end
   end
 

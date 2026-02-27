@@ -24,9 +24,10 @@ RSpec.describe "api/v1/client" do
                    config: {
                      "$ref" => "#/components/schemas/AdvancedAgentConfiguration"
                    },
-                   api_version: { type: :integer, description: "The minimum accepted version of the API" }
+                   api_version: { type: :integer, description: "The minimum accepted version of the API" },
+                   benchmarks_needed: { type: :boolean, description: "Whether the agent needs to run benchmarks" }
                  },
-                 required: %i[config api_version]
+                 required: %i[config api_version benchmarks_needed]
 
           after do |example|
             content = example.metadata[:response][:content] || {}
