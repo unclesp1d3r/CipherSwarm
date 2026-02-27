@@ -17,6 +17,7 @@ Welcome to the CipherSwarm development team! This guide will help you understand
 09. [Real-Time Features](#real-time-features)
 10. [Database Conventions](#database-conventions)
 11. [Common Tasks](#common-tasks)
+12. [Common Gotchas](#common-gotchas)
 
 ---
 
@@ -167,6 +168,33 @@ Three models use state machines (via `state_machines-activerecord`):
 **Task States**: `pending → running → completed/exhausted/failed/paused`
 
 See `docs/architecture/diagrams.md` for visual state machine diagrams.
+
+### Agent Shutdown Cascade Behavior
+
+When an agent shuts down, it triggers a cascade of state changes:
+
+- Running tasks are automatically paused via `pause_incomplete_attacks`
+- Task claim fields (`claimed_by_agent_id`, `claimed_at`, `expires_at`) are cleared
+- Tasks are marked with `paused_at` timestamp for grace period tracking
+- Attacks with no remaining active (non-paused) tasks are automatically paused
+- The `paused_at` timestamp enables time-based orphaned task recovery
+
+### Task Pause/Resume with Grace Period
+
+Tasks track pause state for efficient recovery:
+
+- `paused_at` datetime column records when task was paused
+- Orphaned task recovery uses time-based grace periods instead of agent state checks
+- Agents prioritize reclaiming their own paused tasks (to leverage restore files)
+- After grace period expires, any agent can claim orphaned tasks from other agents
+- Resume callbacks use `update_columns` to bypass optimistic locking and avoid StaleObjectError
+
+Example:
+```ruby
+after_transition on: :resume do
+  update_columns(stale: true, paused_at: nil)  # Bypass locking, clear pause timestamp
+end
+```
 
 ---
 
@@ -621,6 +649,34 @@ class Task < ApplicationRecord
 end
 ```
 
+### Targeted Partial Updates with Turbo Streams
+
+For more efficient real-time updates, broadcast specific partial updates instead of full pages:
+
+```ruby
+class Agent < ApplicationRecord
+  # Broadcast only when specific fields change
+  after_update_commit :broadcast_index_state, if: -> { saved_change_to_state? }
+  
+  def broadcast_index_state
+    broadcast_replace_later_to(
+      self,
+      target: dom_id(self, :index_state),  # Stable DOM ID
+      partial: "agents/index_state",
+      locals: { agent: self }
+    )
+  end
+end
+```
+
+**Critical Gotcha**: Broadcast partials run in background jobs with NO access to `current_user`, `session`, or request context. Partials must be completely self-contained and only use data passed in locals.
+
+See examples in:
+- `app/views/agents/_index_state.html.erb`
+- `app/views/agents/_index_hash_rate.html.erb`
+- `app/views/agents/_index_errors.html.erb`
+- `app/views/agents/_index_last_seen.html.erb`
+
 ### Stimulus Controllers
 
 ```javascript
@@ -700,6 +756,16 @@ Task.select(:id, :state, :progress).where(agent: agent)
 Attack.all.each { |a| puts a.campaign.name }
 ```
 
+### Partial Indexes for State-Based Queries
+
+The codebase uses partial indexes to optimize common queries. Example from tasks table:
+
+```ruby
+add_index :tasks, :paused_at, where: "state = 'paused'"
+```
+
+This improves performance for orphaned task recovery queries that only target paused tasks. Partial indexes reduce index size and improve query speed by indexing only relevant rows.
+
 ---
 
 ## Common Tasks
@@ -738,10 +804,41 @@ bin/rails generate component AgentStatus agent
 
 ---
 
+## Common Gotchas
+
+### Turbo Stream Broadcast Partials
+
+- Broadcast partials (`broadcast_replace_to`, `broadcast_replace_later_to`) run in background jobs
+- NO access to: `current_user`, `session`, `cookies`, `request`, or any controller context
+- Must be completely self-contained and use only data passed via `locals`
+- See GOTCHAS.md and Turbo Stream Broadcast Constraints documentation
+- Use stable DOM IDs with `dom_id(record, :suffix)` for targeted updates
+
+### State Machine Cascades
+
+- Agent shutdown can cascade to attack pause, which can cascade to task pause
+- Task reclaim can trigger attack resume, which needs reload handling
+- Use `update_columns` in state machine callbacks to avoid StaleObjectError
+- See Agent Shutdown Cascade and StaleObjectError From Cascading Resume documentation
+
+### Testing Turbo Streams
+
+- Turbo Stream broadcasts can be tested with `assert_turbo_stream` helpers
+- System tests may need to wait for broadcast updates with appropriate timeouts
+- Background job processing (broadcasts use `_later_to`) must be enabled in test environment
+
+---
+
 ## Getting Help
 
 - **AGENTS.md**: Project conventions and patterns
+- **GOTCHAS.md**: Common pitfalls and debugging tips
 - **Architecture Docs**: `docs/architecture/`
 - **API Reference**: `docs/api/`
+- **Internal Documentation**:
+  - Turbo Stream Broadcast Constraints
+  - Agent Shutdown Cascade
+  - Task State Machine Transitions
+  - StaleObjectError From Cascading Resume
 - **GitHub Issues**: For bugs and feature requests
 - **PR Reviews**: Tag @unclesp1d3r for review
