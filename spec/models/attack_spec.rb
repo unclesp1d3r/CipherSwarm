@@ -216,6 +216,15 @@ RSpec.describe Attack do
     let(:attack) { create(:dictionary_attack, :running) }
     let(:agent) { create(:agent, state: :active) }
 
+    it "pauses non-paused tasks successfully" do
+      task = create(:task, attack: attack, agent: agent, state: :running)
+      allow(Rails.logger).to receive(:info)
+
+      attack.send(:pause_tasks)
+
+      expect(task.reload.state).to eq("paused")
+    end
+
     it "logs warning when task.pause returns false" do
       task = create(:task, attack: attack, agent: agent, state: :running)
       allow(task).to receive(:pause).and_return(false)

@@ -955,7 +955,17 @@
         "parameters": [],
         "responses": {
           "204": {
-            "description": "successful, extended benchmarks"
+            "description": "successful, multi-batch submission preserves all rows"
+          },
+          "422": {
+            "description": "all entries invalid, pending agent stays pending",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
           },
           "400": {
             "description": "Bad request",
@@ -1783,7 +1793,7 @@
                     },
                     "benchmarks_needed": {
                       "type": "boolean",
-                      "description": "Whether the agent needs to run benchmarks. False when the server already has valid benchmarks for this agent."
+                      "description": "Whether the agent needs to run benchmarks"
                     }
                   },
                   "required": [

@@ -214,8 +214,10 @@ RSpec.describe HashcatStatus do
         hashcat_status = build(:hashcat_status, task: task, status: :running)
         hashcat_status.device_statuses << fast_device_status
 
-        # Mock the agent's update_columns to raise an error in the callback
-        allow(agent).to receive(:update_columns).and_raise(StandardError.new("Database error"))
+        # Mock the agent's update_columns to raise an error with backtrace
+        error = StandardError.new("Database error")
+        error.set_backtrace(["line1", "line2"])
+        allow(agent).to receive(:update_columns).and_raise(error)
 
         # Setup logger as a spy to verify error logging
         allow(Rails.logger).to receive(:error)
@@ -223,8 +225,22 @@ RSpec.describe HashcatStatus do
         # The callback should rescue the error and not raise it
         expect { hashcat_status.save! }.not_to raise_error
 
-        # Verify the error was logged
+        # Verify the error was logged with backtrace
         expect(Rails.logger).to have_received(:error).with(/Failed to update agent metrics for task #{task.id}/)
+      end
+
+      it "handles errors with nil backtrace" do
+        hashcat_status = build(:hashcat_status, task: task, status: :running)
+        hashcat_status.device_statuses << fast_device_status
+
+        # Raise an error without backtrace (nil backtrace)
+        error = StandardError.new("Database error")
+        allow(error).to receive(:backtrace).and_return(nil)
+        allow(agent).to receive(:update_columns).and_raise(error)
+        allow(Rails.logger).to receive(:error)
+
+        expect { hashcat_status.save! }.not_to raise_error
+        expect(Rails.logger).to have_received(:error).with(/Failed to update agent metrics/)
       end
 
       it "rescues broadcast errors separately from metrics errors" do

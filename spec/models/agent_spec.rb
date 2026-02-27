@@ -427,6 +427,21 @@ RSpec.describe Agent do
         end
       end
 
+      it "skips attacks that cannot be paused" do
+        agent = create(:agent, state: :active)
+        attack = create(:dictionary_attack, :running)
+        create(:task, attack: attack, agent: agent, state: :running)
+        allow(Rails.logger).to receive(:info)
+
+        # Stub can_pause? on all Attack instances to return false
+        allow_any_instance_of(Attack).to receive(:can_pause?).and_return(false) # rubocop:disable RSpec/AnyInstance
+
+        agent.shutdown
+
+        # Attack should remain running since can_pause? returned false
+        expect(attack.reload.state).to eq("running")
+      end
+
       it "logs error and continues when attack.pause! raises" do
         agent = create(:agent, state: :active)
         attack = create(:dictionary_attack, :running)
