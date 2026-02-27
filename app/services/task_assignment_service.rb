@@ -99,7 +99,7 @@ class TaskAssignmentService
     task
   rescue StateMachines::InvalidTransition, ActiveRecord::StaleObjectError => e
     Rails.logger.error(
-      "[TaskAssignmentService] Failed to resume own paused task #{task&.id} " \
+      "[TaskAssignmentService] Failed to resume own paused task #{task.id} " \
       "for agent #{agent.id}: #{e.class} - #{e.message}"
     )
     nil
