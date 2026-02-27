@@ -61,6 +61,9 @@ class AgentError < ApplicationRecord
 
   broadcasts_refreshes
 
+  # Replace just the error count value on the agent's index card when a new error is created.
+  after_create_commit :broadcast_index_errors
+
   # Scopes for common query patterns
   scope :for_campaign, lambda { |campaign_id|
     joins(task: :attack).where(attacks: { campaign_id: campaign_id })
@@ -120,5 +123,14 @@ class AgentError < ApplicationRecord
   # @return [String] the formatted string representation of the agent error
   def to_s
     "#{created_at.to_fs(:short)} #{severity}: #{message}"
+  end
+
+  private
+
+  def broadcast_index_errors
+    agent.broadcast_replace_later_to agent,
+      target: ActionView::RecordIdentifier.dom_id(agent, :index_errors),
+      partial: "agents/index_errors",
+      locals: { agent: agent }
   end
 end

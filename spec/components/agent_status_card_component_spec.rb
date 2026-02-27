@@ -145,22 +145,6 @@ RSpec.describe AgentStatusCardComponent, type: :component do
   describe "helper methods" do
     subject(:component) { described_class.new(agent: agent) }
 
-    describe "#error_count_last_24h" do
-      let(:recent_errors) do
-        create_list(:agent_error, 3, agent: agent, created_at: 12.hours.ago)
-      end
-
-      let(:old_errors) do
-        create_list(:agent_error, 2, agent: agent, created_at: 30.hours.ago)
-      end
-
-      it "returns count of errors from last 24 hours only" do
-        recent_errors
-        old_errors
-        expect(component.error_count_last_24h).to eq(3)
-      end
-    end
-
     describe "#status_badge_variant" do
       it "returns success for active state" do
         agent.state = "active"

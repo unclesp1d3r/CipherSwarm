@@ -1,0 +1,2 @@
+<%# locals: (agent:) -%>
+<span id="<%= dom_id(agent, :index_last_seen) %>"><% if agent.last_seen_at.present? %><%= time_ago_in_words(agent.last_seen_at) %> ago<% else %>Not seen yet<% end %></span>

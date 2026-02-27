@@ -1,0 +1,6 @@
+<%# locals: (agent:) -%>
+<% error_count = agent.agent_errors.where(created_at: 24.hours.ago..).where.not(severity: :info).count %>
+<div id="<%= dom_id(agent, :index_errors) %>" class="mb-2 <%= "text-danger" if error_count.positive? %>">
+  <%= icon("exclamation-triangle-fill") %>
+  <strong>Errors (24h):</strong> <%= error_count %>
+</div>
