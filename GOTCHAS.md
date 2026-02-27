@@ -11,6 +11,14 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 - `benchmarked` is an EVENT (not a state) — transitions pending→active after benchmarks complete
 - Agent factory defaults to `state: "active"` — use `create(:agent, state: "pending")` for pending-state tests
 
+**Agent Shutdown Cascade:**
+
+- `agent.shutdown!` pauses running tasks AND pauses attacks with no remaining active tasks
+- Shutdown clears task claim fields (`claimed_by_agent_id`, `claimed_at`, `expires_at`)
+- Other pause paths (attack cascade via `attack.pause!`, campaign cascade) do NOT clear claim fields
+- `attack.resume!` triggers `resume_tasks` callback which resumes all tasks — calling `task.resume!` after will raise `ActiveRecord::StaleObjectError` unless you `task.reload` first
+- Campaign has NO `state` column — `campaign.paused?` is computed from attack states
+
 **Attack Scope:**
 
 - `Attack.incomplete` excludes `:running` and `:paused` (only matches pending/failed) — use `without_states(:completed, :exhausted)` when you need all unfinished work including running attacks
@@ -22,6 +30,7 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 - The `retry` event already handles incrementing `retry_count` and clearing `last_error`
 - `accept` only transitions from `pending` or `running` — orphaned paused tasks must be `resume!`d to `pending` before a new agent can accept them
 - `resume!` marks the task as `stale: true`, ensuring the new agent re-downloads crack data
+- Tasks have a `paused_at` timestamp set on pause and cleared on resume — used for grace period in orphaned task recovery
 - `accept_status` only allows transitions from active states (pending/running → running, paused → same) — finished states (completed/exhausted/failed) are blocked to prevent task resurrection
 
 ## Testing
@@ -179,6 +188,11 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 - `conn.set(key, value, nx: true)` returns `true` on success, `nil` on contention (not `false`) — never use `rescue => nil` around lock acquisition, as it makes contention indistinguishable from Redis failure
 - Always capture lock errors in a separate variable (`lock_error`) to distinguish "lock contended" from "Redis down"
 - See `SystemHealthCheckService#call` for the canonical lock-with-error-capture pattern
+
+**Turbo Stream Broadcasts:**
+
+- Broadcast partials (rendered by `broadcast_replace_to`/`broadcast_replace_later_to`) run in background jobs with NO `current_user` — partials must not reference `current_user` or session data
+- For targeted broadcasts, extract small partials (e.g., `_index_state.html.erb`) that wrap a single element with a stable DOM ID, following the Agent `broadcast_index_state` pattern
 
 **Logging Patterns:**
 
