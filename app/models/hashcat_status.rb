@@ -217,7 +217,8 @@ class HashcatStatus < ApplicationRecord
 
     # Calculate aggregate metrics from device statuses
     current_hash_rate = device_statuses.sum(&:speed)
-    current_temperature = device_statuses.map(&:temperature).compact.max || 0
+    available_temps = device_statuses.map(&:temperature).compact.reject(&:negative?)
+    current_temperature = available_temps.max || -1
     current_utilization = if device_statuses.any?
                            (device_statuses.sum(&:utilization).to_f / device_statuses.count).round
     else

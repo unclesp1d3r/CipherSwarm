@@ -47,7 +47,7 @@
                 <span class="me-2"><%= icon("thermometer-half") %></span>
                 <div>
                   <small class="text-muted d-block">Temperature</small>
-                  <strong><%= agent.current_temperature %>°C</strong>
+                  <strong><%= agent.current_temperature >= 0 ? "#{agent.current_temperature}°C" : "Unknown" %></strong>
                 </div>
               </div>
             </div>
