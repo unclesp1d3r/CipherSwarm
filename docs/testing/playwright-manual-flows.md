@@ -82,6 +82,116 @@ This document lists the manual UI flows tested via Playwright during development
 - Check action button icons
 - Check status indicator icons
 
+## Multi-Tenant Authorization Testing
+
+These flows verify project-based resource isolation between users. They require admin access to set up users and projects.
+
+### 10. Admin Setup: Create Projects and Users
+
+- Log in as admin
+- Navigate to Admin page
+- **Create Project Alpha:**
+  - Click "New Project"
+  - Name: "Project Alpha"
+  - Submit
+- **Create User 1 (alice):**
+  - Click "New User"
+  - Name: alice, Email: <alice@example.com>, Password: password
+  - Submit
+  - Unlock user (click unlock button in user row)
+  - Navigate to Default Project > Edit > Add alice to project
+- **Create User 2 (bob):**
+  - Click "New User"
+  - Name: bob, Email: <bob@example.com>, Password: password
+  - Submit
+  - Unlock user (click unlock button in user row)
+  - Navigate to Project Alpha > Edit > Add bob to project
+- Log out as admin
+
+### 11. User 1 (Alice): Create Resources on Default Project
+
+- Log in as alice (password: password)
+- **Word List:** Tools > Word Lists > New
+  - Name: "Alice Top Passwords"
+  - File: `spec/fixtures/word_lists/top-passwords.txt`
+  - Project: Default Project (checked)
+  - Submit, verify success
+- **Rule List:** Tools > Rule Lists > New
+  - Name: "Alice Dive Rules"
+  - File: `spec/fixtures/rule_lists/dive.rule`
+  - Project: Default Project (checked)
+  - Submit, verify success
+- **Mask List:** Tools > Mask Lists > New
+  - Name: "Alice RockYou Masks"
+  - File: `spec/fixtures/mask_lists/rockyou-1-60.hcmask`
+  - Project: Default Project (checked)
+  - Submit, verify success
+- **Hash List:** Hash Lists > New
+  - Name: "Alice MD5 Hashes"
+  - File: `spec/fixtures/hash_lists/example_hashes.txt`
+  - Hash Type: 0 (MD5)
+  - Project: Default Project
+  - Submit, verify success
+- **Campaign:** Activity > New Campaign
+  - Name: "Alice MD5 Campaign"
+  - Hash List: Alice MD5 Hashes (auto-selected)
+  - Submit, verify success
+- **Attack:** Click "Add Dictionary Attack" on campaign
+  - Name: "Alice Dictionary Attack"
+  - Word List: Alice Top Passwords (auto-selected)
+  - Rule List: Alice Dive Rules
+  - Submit, verify attack appears in campaign
+- Log out as alice
+
+### 12. User 2 (Bob): Create Resources on Project Alpha
+
+- Log in as bob (password: password)
+- Verify Activity page shows no campaigns (blank slate)
+- **Word List:** Tools > Word Lists > New
+  - Name: "Bob Top Passwords"
+  - File: `spec/fixtures/word_lists/top-passwords.txt`
+  - Project: Project Alpha (checked)
+  - Verify only "Project Alpha" appears as project option (not Default Project)
+  - Submit, verify success
+- **Rule List:** Tools > Rule Lists > New
+  - Name: "Bob Dive Rules"
+  - File: `spec/fixtures/rule_lists/dive.rule`
+  - Project: Project Alpha (checked)
+  - Submit, verify success
+- **Mask List:** Tools > Mask Lists > New
+  - Name: "Bob RockYou Masks"
+  - File: `spec/fixtures/mask_lists/rockyou-1-60.hcmask`
+  - Project: Project Alpha (checked)
+  - Submit, verify success
+- **Hash List:** Hash Lists > New
+  - Name: "Bob SHA1 Hashes"
+  - File: `spec/fixtures/hash_lists/example_hashes.txt`
+  - Hash Type: 100 (SHA1) — use a different type than Alice for distinction
+  - Project: Project Alpha
+  - Submit, verify success
+- **Campaign:** Activity > New Campaign
+  - Name: "Bob SHA1 Campaign"
+  - Hash List: Bob SHA1 Hashes (auto-selected)
+  - Submit, verify success
+- **Attack:** Click "Add Dictionary Attack" on campaign
+  - Name: "Bob Dictionary Attack"
+  - Word List: Bob Top Passwords (auto-selected)
+  - Rule List: Bob Dive Rules
+  - Verify only Bob's resources appear in dropdowns (not Alice's)
+  - Submit, verify attack appears in campaign
+- Log out as bob
+
+### 13. Verify Resource Isolation
+
+- Log in as alice (password: password)
+- **Activity:** Verify only "Alice MD5 Campaign" appears (no "Bob SHA1 Campaign")
+- **Word Lists:** Verify only "Alice Top Passwords" appears (no "Bob Top Passwords")
+- **Rule Lists:** Verify only "Alice Dive Rules" appears (no "Bob Dive Rules")
+- **Mask Lists:** Verify only "Alice RockYou Masks" appears (no "Bob RockYou Masks")
+- **Hash Lists:** Verify only "Alice MD5 Hashes" appears (no "Bob SHA1 Hashes")
+- All resources should show "Default Project" as the project
+- Log out as alice
+
 ## Prerequisites for Testing
 
 Before running these flows:
@@ -116,7 +226,18 @@ Before running these flows:
 
 ## Notes
 
+- Admin-created users are locked by default and must be unlocked before they can log in
+
+- If a user's password doesn't work after Docker rebuild, reset it via Rails runner:
+
+  ```bash
+  docker exec csdev-web-1 bin/rails runner 'u = User.find_by(name: "alice"); u.update(password: "password", password_confirmation: "password")'
+  ```
+
 - Word list complexity shows as "0" or "pending" until Sidekiq processes the file
+
 - Mask list complexity is calculated from mask patterns (can be very large numbers)
+
 - Hash list shows "importing..." until ProcessHashListJob completes
+
 - ERB strict locals require proper magic comments: `<%# locals: (var:) -%>`
