@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_27_025225) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_27_044751) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -495,6 +495,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_27_025225) do
     t.text "last_error"
     t.integer "lock_version", default: 0, null: false
     t.integer "max_retries", default: 3, null: false
+    t.datetime "paused_at"
     t.integer "preemption_count", default: 0, null: false
     t.integer "retry_count", default: 0, null: false
     t.boolean "stale", default: false, null: false, comment: "If new cracks since the last check, the task is stale and the new cracks need to be downloaded."
@@ -507,6 +508,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_27_025225) do
     t.index ["attack_id"], name: "index_tasks_on_attack_id"
     t.index ["claimed_by_agent_id"], name: "index_tasks_on_claimed_by_agent_id"
     t.index ["expires_at"], name: "index_tasks_on_expires_at"
+    t.index ["paused_at"], name: "index_tasks_on_paused_at", where: "((state)::text = 'paused'::text)"
     t.index ["preemption_count"], name: "index_tasks_on_preemption_count"
     t.index ["state", "claimed_by_agent_id"], name: "index_tasks_on_state_and_claimed_by_agent_id"
     t.index ["state"], name: "index_tasks_on_state"
