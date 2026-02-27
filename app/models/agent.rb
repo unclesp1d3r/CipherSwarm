@@ -186,12 +186,23 @@ class Agent < ApplicationRecord
         "running_tasks_paused=#{paused_count} timestamp=#{Time.zone.now}"
       )
 
+      affected_attacks = Set.new
       running_tasks.find_each do |task|
         task.pause! if task.can_pause?
         # Clear claim fields so other agents can pick up the orphaned task.
         # Keep agent_id populated (NOT NULL column) — TaskAssignmentService
         # reassigns ownership when another agent claims the paused task.
         task.update_columns(claimed_by_agent_id: nil, claimed_at: nil, expires_at: nil) # rubocop:disable Rails/SkipsModelValidations
+        affected_attacks << task.attack
+      end
+
+      # Pause attacks that have no more active (non-paused) tasks.
+      # This updates the Activity page to reflect that work has stopped.
+      affected_attacks.each do |attack|
+        next unless attack.can_pause?
+        next if attack.tasks.without_states(:paused, :completed, :exhausted, :failed).exists?
+
+        attack.pause!
       end
     end
 

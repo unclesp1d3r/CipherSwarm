@@ -329,7 +329,7 @@ RSpec.describe Agent do
         expect { agent.shutdown }.not_to change(Task, :count)
       end
 
-      it "does not force-reset attack state" do
+      it "pauses attack when all tasks are paused" do
         agent = create(:agent, state: :active)
         attack = create(:dictionary_attack, :running)
         create(:task, attack: attack, agent: agent, state: :running)
@@ -337,7 +337,7 @@ RSpec.describe Agent do
 
         agent.shutdown
 
-        expect(attack.reload.state).to eq("running")
+        expect(attack.reload.state).to eq("paused")
       end
 
       it "skips pause for a running task where can_pause? returns false" do

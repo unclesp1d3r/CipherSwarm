@@ -349,11 +349,11 @@ RSpec.describe TaskAssignmentService do
       end
     end
 
-    context "when paused task belongs to an active agent" do
+    context "when paused task belongs to an active agent within grace period" do
       before do
         active_agent = create(:agent, user: user, projects: [project], state: :active)
         attack = create(:dictionary_attack, campaign: campaign, state: :running)
-        create(:task, agent: active_agent, attack: attack, state: :paused)
+        create(:task, agent: active_agent, attack: attack, state: :paused, paused_at: 5.minutes.ago)
         create(:hash_item, hash_list: hash_list, cracked: false)
       end
 
@@ -389,6 +389,201 @@ RSpec.describe TaskAssignmentService do
 
       it "returns nil" do
         expect(service.send(:find_unassigned_paused_task)).to be_nil
+      end
+    end
+  end
+
+  describe "#find_own_paused_task" do
+    context "when agent has its own paused task with cleared claim fields" do
+      let!(:attack) { create(:dictionary_attack, campaign: campaign, state: :running) }
+      let!(:paused_task) do
+        create(:task, agent: agent, attack: attack, state: :paused, claimed_by_agent_id: nil, paused_at: 5.minutes.ago)
+      end
+
+      before do
+        create(:hash_item, hash_list: hash_list, cracked: false)
+      end
+
+      it "returns the agent's own paused task" do
+        result = service.send(:find_own_paused_task)
+        expect(result).to eq(paused_task)
+      end
+
+      it "resumes the task to pending" do
+        result = service.send(:find_own_paused_task)
+        expect(result.state).to eq("pending")
+      end
+
+      it "marks the task as stale" do
+        service.send(:find_own_paused_task)
+        expect(paused_task.reload.stale).to be true
+      end
+
+      it "clears paused_at on resume" do
+        service.send(:find_own_paused_task)
+        expect(paused_task.reload.paused_at).to be_nil
+      end
+    end
+
+    context "when agent has a paused task with claimed_by_agent_id still set" do
+      let!(:attack) { create(:dictionary_attack, campaign: campaign, state: :running) }
+      let!(:paused_task) do
+        create(:task, agent: agent, attack: attack, state: :paused,
+                      claimed_by_agent_id: agent.id, paused_at: 5.minutes.ago)
+      end
+
+      before do
+        create(:hash_item, hash_list: hash_list, cracked: false)
+      end
+
+      it "still finds the task (claim not cleared, e.g. attack cascade pause)" do
+        result = service.send(:find_own_paused_task)
+        expect(result).to eq(paused_task)
+      end
+    end
+
+    context "when agent has a paused task and the attack is also paused (agent shutdown cascade)" do
+      let!(:attack) { create(:dictionary_attack, campaign: campaign, state: :paused) }
+      let!(:paused_task) do
+        create(:task, agent: agent, attack: attack, state: :paused,
+                      claimed_by_agent_id: nil, paused_at: 5.minutes.ago)
+      end
+
+      before do
+        create(:hash_item, hash_list: hash_list, cracked: false)
+      end
+
+      it "reclaims the task and resumes the attack" do
+        result = service.send(:find_own_paused_task)
+        expect(result).to eq(paused_task)
+        expect(attack.reload.state).to eq("pending")
+      end
+    end
+
+
+    context "when agent has no paused tasks" do
+      before do
+        create(:hash_item, hash_list: hash_list, cracked: false)
+      end
+
+      it "returns nil" do
+        expect(service.send(:find_own_paused_task)).to be_nil
+      end
+    end
+
+    context "when paused task has no uncracked hashes" do
+      let!(:attack) { create(:dictionary_attack, campaign: campaign, state: :running) }
+
+      before do
+        create(:task, agent: agent, attack: attack, state: :paused, claimed_by_agent_id: nil, paused_at: 5.minutes.ago)
+        HashItem.where(hash_list_id: hash_list.id).update_all(cracked: true) # rubocop:disable Rails/SkipsModelValidations
+      end
+
+      it "returns nil" do
+        expect(service.send(:find_own_paused_task)).to be_nil
+      end
+    end
+  end
+
+  describe "#find_own_paused_task takes priority in find_next_task" do
+    let!(:attack) { create(:dictionary_attack, campaign: campaign, state: :running) }
+    let!(:paused_task) do
+      create(:task, agent: agent, attack: attack, state: :paused, claimed_by_agent_id: nil, paused_at: 5.minutes.ago)
+    end
+
+    before do
+      create(:hash_item, hash_list: hash_list, cracked: false)
+    end
+
+    it "reclaims own paused task via find_next_task" do
+      result = service.find_next_task
+      expect(result).to eq(paused_task)
+      expect(result.state).to eq("pending")
+    end
+  end
+
+  describe "orphaned task grace period" do
+    let(:other_agent) { create(:agent, user: user, projects: [project], state: :active) }
+    let(:other_service) { described_class.new(other_agent) }
+    let!(:attack) { create(:dictionary_attack, campaign: campaign, state: :running) }
+
+    before do
+      create(:hashcat_benchmark, agent: other_agent, hash_type: 0, hash_speed: 10_000_000)
+      create(:hash_item, hash_list: hash_list, cracked: false)
+    end
+
+    context "when task was paused recently (within grace period)" do
+      let!(:paused_task) do
+        create(:task, agent: agent, attack: attack, state: :paused,
+                      claimed_by_agent_id: nil, paused_at: 5.minutes.ago)
+      end
+
+      it "does not allow another agent to claim the task" do
+        expect(other_service.send(:find_unassigned_paused_task)).to be_nil
+      end
+
+      it "allows the original agent to reclaim via find_own_paused_task" do
+        expect(service.send(:find_own_paused_task)).to eq(paused_task)
+      end
+    end
+
+    context "when task has been paused beyond the grace period" do
+      let!(:paused_task) do
+        create(:task, agent: agent, attack: attack, state: :paused,
+                      claimed_by_agent_id: nil, paused_at: 31.minutes.ago)
+      end
+
+      it "allows another agent to claim the task" do
+        result = other_service.send(:find_unassigned_paused_task)
+        expect(result).to eq(paused_task)
+        expect(result.state).to eq("pending")
+      end
+
+      it "reassigns agent_id to the claiming agent" do
+        other_service.send(:find_unassigned_paused_task)
+        expect(paused_task.reload.agent_id).to eq(other_agent.id)
+      end
+    end
+
+    context "when owning agent is offline (immediate availability)" do
+      let(:offline_agent) { create(:agent, user: user, projects: [project], state: :offline) }
+      let!(:paused_task) do
+        create(:task, agent: offline_agent, attack: attack, state: :paused,
+                      claimed_by_agent_id: nil, paused_at: 1.minute.ago)
+      end
+
+      before do
+        create(:hashcat_benchmark, agent: offline_agent, hash_type: 0, hash_speed: 10_000_000)
+      end
+
+      it "allows another agent to claim the task immediately" do
+        result = other_service.send(:find_unassigned_paused_task)
+        expect(result).to eq(paused_task)
+      end
+    end
+
+    context "when task has NULL paused_at (pre-migration)" do
+      let!(:paused_task) do
+        create(:task, agent: agent, attack: attack, state: :paused,
+                      claimed_by_agent_id: nil, paused_at: nil)
+      end
+
+      it "treats NULL paused_at as available (no grace period)" do
+        result = other_service.send(:find_unassigned_paused_task)
+        expect(result).to eq(paused_task)
+      end
+    end
+
+    context "when owning agent restarted (active) but grace period expired" do
+      let!(:paused_task) do
+        # agent is active (default let), task paused 31 min ago
+        create(:task, agent: agent, attack: attack, state: :paused,
+                      claimed_by_agent_id: nil, paused_at: 31.minutes.ago)
+      end
+
+      it "allows another agent to claim despite owning agent being active" do
+        result = other_service.send(:find_unassigned_paused_task)
+        expect(result).to eq(paused_task)
       end
     end
   end

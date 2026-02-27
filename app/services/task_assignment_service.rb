@@ -32,13 +32,16 @@ class TaskAssignmentService
   #
   # The assignment algorithm follows this priority:
   # 1. Returns any incomplete task already assigned to the agent (without fatal errors)
-  # 2. Searches for failed tasks that can be retried
-  # 3. Returns pending tasks from existing attacks
-  # 4. Creates a new task for attacks without pending tasks
+  # 2. Reclaims the agent's own paused tasks (e.g. after restart, to use restore files)
+  # 3. Claims orphaned paused tasks from other agents (after grace period)
+  # 4. Searches for failed tasks that can be retried
+  # 5. Returns pending tasks from existing attacks
+  # 6. Creates a new task for attacks without pending tasks
   #
   # @return [Task, nil] the next task to work on, or nil if no tasks are available
   def find_next_task
     find_existing_incomplete_task ||
+      find_own_paused_task ||
       find_unassigned_paused_task ||
       find_task_from_available_attacks
   end
@@ -65,19 +68,49 @@ class TaskAssignmentService
          .first
   end
 
-  # Finds an orphaned paused task that the agent can work on.
+  # Reclaims the agent's own paused tasks after a restart.
+  #
+  # REASONING:
+  # - When an agent shuts down, its running tasks are paused and claim fields cleared.
+  # - On restart, the agent should reclaim its own paused tasks first to leverage
+  #   restore files and avoid redundant work.
+  # - No FOR UPDATE SKIP LOCKED needed because agent.tasks already scopes to this
+  #   agent's agent_id, so no cross-agent race is possible.
+  # - Only returns tasks where uncracked hashes remain to avoid wasted work.
+  #
+  # @return [Task, nil] the agent's own paused task resumed to pending, or nil
+  def find_own_paused_task
+    task = agent.tasks.with_state(:paused)
+                .where(claimed_by_agent_id: [nil, agent.id])
+                .joins(attack: { campaign: :hash_list })
+                .where("EXISTS (SELECT 1 FROM hash_items WHERE hash_items.hash_list_id = hash_lists.id AND hash_items.cracked = false)")
+                .order(:id)
+                .first
+
+    return nil unless task
+
+    if task.attack.paused? && task.attack.can_resume?
+      task.attack.resume!
+      task.reload # attack.resume_tasks may have already resumed this task
+    end
+    task.resume! if task.paused? && task.can_resume?
+    task
+  end
+
+  # Finds an orphaned paused task from another agent that this agent can work on.
   #
   # REASONING:
   # - When agents shut down, their running tasks are paused and claim fields are cleared.
   # - agent_id remains populated (NOT NULL column) pointing to the original agent.
-  # - This method discovers orphaned tasks by checking the owning agent is offline/stopped.
+  # - This method discovers orphaned tasks using a time-based grace period (paused_at)
+  #   instead of checking the owning agent's state. This ensures tasks become available
+  #   even if the original agent restarts but doesn't reclaim the task.
+  # - The grace period (agent_considered_offline_time, default 30 min) gives the original
+  #   agent time to reclaim its own tasks via find_own_paused_task.
+  # - Tasks from offline/stopped agents are available immediately (no grace period).
   # - Scoped to the claiming agent's projects and supported hash types for authorization.
   # - Only returns tasks where uncracked hashes remain to avoid wasted work.
   # - On pickup, agent_id is reassigned to the claiming agent within this method.
-  # - Alternatives: Setting agent_id to nil (violates NOT NULL), separate cleanup job
-  #   (adds latency and complexity).
-  # - Decision: Query by owning agent state (offline/stopped) + cleared claim fields,
-  #   then reassign agent_id to the new agent atomically.
   # - Uses FOR UPDATE SKIP LOCKED to prevent two agents from racing to claim the same task.
   #
   # @return [Task, nil] a reassigned paused task, or nil
@@ -89,7 +122,11 @@ class TaskAssignmentService
                  .where(claimed_by_agent_id: nil)
                  .where.not(agent_id: agent.id)
                  .joins(:agent)
-                 .where(agents: { state: %w[offline stopped] })
+                 .where(
+                   "tasks.paused_at IS NULL OR tasks.paused_at < :grace_cutoff OR agents.state IN (:orphan_states)",
+                   grace_cutoff: ApplicationConfig.agent_considered_offline_time.ago,
+                   orphan_states: %w[offline stopped]
+                 )
                  .joins(attack: { campaign: :hash_list })
                  .where(campaigns: { project_id: agent.project_ids })
                  .where(hash_lists: { hash_type_id: allowed_hash_type_ids })
@@ -105,9 +142,15 @@ class TaskAssignmentService
       task.update_columns(agent_id: agent.id)
       # rubocop:enable Rails/SkipsModelValidations
 
+      # Resume the attack if it was paused due to agent shutdown (not campaign pause).
+      if task.attack.paused? && task.attack.can_resume?
+        task.attack.resume!
+        task.reload # attack.resume_tasks may have already resumed this task
+      end
+
       # Transition to pending so the new agent can accept the task.
       # resume! moves paused -> pending and marks stale (so the agent re-downloads cracks).
-      task.resume!
+      task.resume! if task.paused? && task.can_resume?
     end
 
     task
