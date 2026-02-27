@@ -10,29 +10,29 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_02_25_025422) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_27_025225) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
   create_table "active_storage_attachments", force: :cascade do |t|
-    t.string "name", null: false
-    t.string "record_type", null: false
-    t.bigint "record_id", null: false
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.bigint "record_id", null: false
+    t.string "record_type", null: false
     t.index ["blob_id"], name: "index_active_storage_attachments_on_blob_id"
     t.index ["record_type", "record_id", "name", "blob_id"], name: "index_active_storage_attachments_uniqueness", unique: true
   end
 
   create_table "active_storage_blobs", force: :cascade do |t|
-    t.string "key", null: false
-    t.string "filename", null: false
-    t.string "content_type"
-    t.text "metadata"
-    t.string "service_name", null: false
     t.bigint "byte_size", null: false
     t.string "checksum"
+    t.string "content_type"
     t.datetime "created_at", null: false
+    t.string "filename", null: false
+    t.string "key", null: false
+    t.text "metadata"
+    t.string "service_name", null: false
     t.index ["key"], name: "index_active_storage_blobs_on_key", unique: true
   end
 
@@ -44,11 +44,11 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_25_025422) do
 
   create_table "agent_errors", force: :cascade do |t|
     t.bigint "agent_id", null: false, comment: "The agent that caused the error"
+    t.datetime "created_at", null: false
     t.string "message", null: false, comment: "The error message"
+    t.jsonb "metadata", default: {}, null: false, comment: "Additional metadata about the error"
     t.integer "severity", default: 0, null: false, comment: "The severity of the error"
     t.bigint "task_id", comment: "The task that caused the error, if any"
-    t.jsonb "metadata", default: {}, null: false, comment: "Additional metadata about the error"
-    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["agent_id"], name: "index_agent_errors_on_agent_id"
     t.index ["created_at"], name: "index_agent_errors_on_created_at"
@@ -56,25 +56,25 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_25_025422) do
   end
 
   create_table "agents", force: :cascade do |t|
-    t.text "client_signature", comment: "The signature of the agent"
-    t.boolean "enabled", default: true, null: false, comment: "Is the agent active"
-    t.string "last_ipaddress", default: "", comment: "Last known IP address"
-    t.datetime "last_seen_at", comment: "Last time the agent checked in"
-    t.string "host_name", default: "", null: false, comment: "Name of the agent"
-    t.integer "operating_system", default: 0, comment: "Operating system of the agent"
-    t.string "token", limit: 24, comment: "Token used to authenticate the agent"
-    t.bigint "user_id", null: false, comment: "The user that the agent is associated with"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.string "devices", default: [], comment: "Devices that the agent supports", array: true
     t.jsonb "advanced_configuration", default: {}, comment: "Advanced configuration for the agent."
-    t.string "state", default: "pending", null: false, comment: "The state of the agent"
-    t.string "custom_label", comment: "Custom label for the agent"
+    t.text "client_signature", comment: "The signature of the agent"
+    t.datetime "created_at", null: false
+    t.string "current_activity", comment: "Current agent activity state (e.g., cracking, waiting, benchmarking)"
     t.decimal "current_hash_rate", precision: 20, scale: 2, default: "0.0", comment: "Current hash rate in H/s, updated from HashcatStatus"
     t.integer "current_temperature", default: 0, comment: "Current device temperature in Celsius, updated from HashcatStatus"
     t.integer "current_utilization", default: 0, comment: "Current device utilization percentage, updated from HashcatStatus"
+    t.string "custom_label", comment: "Custom label for the agent"
+    t.string "devices", default: [], comment: "Devices that the agent supports", array: true
+    t.boolean "enabled", default: true, null: false, comment: "Is the agent active"
+    t.string "host_name", default: "", null: false, comment: "Name of the agent"
+    t.string "last_ipaddress", default: "", comment: "Last known IP address"
+    t.datetime "last_seen_at", comment: "Last time the agent checked in"
     t.datetime "metrics_updated_at", comment: "Timestamp of last metrics update for throttling"
-    t.string "current_activity", comment: "Current agent activity state (e.g., cracking, waiting, benchmarking)"
+    t.integer "operating_system", default: 0, comment: "Operating system of the agent"
+    t.string "state", default: "pending", null: false, comment: "The state of the agent"
+    t.string "token", limit: 24, comment: "Token used to authenticate the agent"
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false, comment: "The user that the agent is associated with"
     t.index ["current_activity"], name: "index_agents_on_current_activity"
     t.index ["custom_label"], name: "index_agents_on_custom_label", unique: true
     t.index ["metrics_updated_at"], name: "index_agents_on_metrics_updated_at"
@@ -92,48 +92,48 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_25_025422) do
   end
 
   create_table "application_settings", force: :cascade do |t|
-    t.string "key", null: false, comment: "Unique setting key"
-    t.text "value", comment: "Setting value (JSON serialized)"
-    t.text "description", comment: "Human-readable description of the setting"
     t.datetime "created_at", null: false
+    t.text "description", comment: "Human-readable description of the setting"
+    t.string "key", null: false, comment: "Unique setting key"
     t.datetime "updated_at", null: false
+    t.text "value", comment: "Setting value (JSON serialized)"
     t.index ["key"], name: "index_application_settings_on_key", unique: true
   end
 
   create_table "attacks", force: :cascade do |t|
-    t.string "name", default: "", null: false, comment: "Attack name"
-    t.text "description", default: "", comment: "Attack description"
     t.integer "attack_mode", default: 0, null: false, comment: "Hashcat attack mode"
-    t.string "mask", default: "", comment: "Hashcat mask (e.g. ?a?a?a?a?a?a?a?a)"
-    t.boolean "increment_mode", default: false, null: false, comment: "Is the attack using increment mode?"
-    t.integer "increment_minimum", default: 0, comment: "Hashcat increment minimum"
-    t.integer "increment_maximum", default: 0, comment: "Hashcat increment maximum"
-    t.boolean "optimized", default: false, null: false, comment: "Is the attack optimized?"
-    t.boolean "slow_candidate_generators", default: false, null: false, comment: "Are slow candidate generators enabled?"
-    t.integer "workload_profile", default: 3, null: false, comment: "Hashcat workload profile (e.g. 1 for low, 2 for medium, 3 for high, 4 for insane)"
-    t.boolean "disable_markov", default: false, null: false, comment: "Is Markov chain disabled?"
+    t.bigint "campaign_id", null: false
     t.boolean "classic_markov", default: false, null: false, comment: "Is classic Markov chain enabled?"
-    t.integer "markov_threshold", default: 0, comment: "Hashcat Markov threshold (e.g. 1000)"
-    t.string "type"
-    t.string "left_rule", default: "", comment: "Left rule"
-    t.string "right_rule", default: "", comment: "Right rule"
+    t.decimal "complexity_value", default: "0.0", null: false, comment: "Complexity value of the attack"
+    t.datetime "created_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.bigint "creator_id", comment: "The user who created this attack"
     t.string "custom_charset_1", default: "", comment: "Custom charset 1"
     t.string "custom_charset_2", default: "", comment: "Custom charset 2"
     t.string "custom_charset_3", default: "", comment: "Custom charset 3"
     t.string "custom_charset_4", default: "", comment: "Custom charset 4"
-    t.bigint "campaign_id", null: false
-    t.datetime "created_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
-    t.datetime "updated_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
-    t.integer "priority", default: 0, null: false, comment: "The priority of the attack, higher numbers are higher priority."
-    t.string "state"
-    t.datetime "start_time", comment: "The time the attack started."
-    t.datetime "end_time", comment: "The time the attack ended."
-    t.bigint "rule_list_id", comment: "The rule list used for the attack."
-    t.bigint "word_list_id", comment: "The word list used for the attack."
-    t.bigint "mask_list_id", comment: "The mask list used for the attack."
     t.datetime "deleted_at"
-    t.decimal "complexity_value", default: "0.0", null: false, comment: "Complexity value of the attack"
-    t.bigint "creator_id", comment: "The user who created this attack"
+    t.text "description", default: "", comment: "Attack description"
+    t.boolean "disable_markov", default: false, null: false, comment: "Is Markov chain disabled?"
+    t.datetime "end_time", comment: "The time the attack ended."
+    t.integer "increment_maximum", default: 0, comment: "Hashcat increment maximum"
+    t.integer "increment_minimum", default: 0, comment: "Hashcat increment minimum"
+    t.boolean "increment_mode", default: false, null: false, comment: "Is the attack using increment mode?"
+    t.string "left_rule", default: "", comment: "Left rule"
+    t.integer "markov_threshold", default: 0, comment: "Hashcat Markov threshold (e.g. 1000)"
+    t.string "mask", default: "", comment: "Hashcat mask (e.g. ?a?a?a?a?a?a?a?a)"
+    t.bigint "mask_list_id", comment: "The mask list used for the attack."
+    t.string "name", default: "", null: false, comment: "Attack name"
+    t.boolean "optimized", default: false, null: false, comment: "Is the attack optimized?"
+    t.integer "priority", default: 0, null: false, comment: "The priority of the attack, higher numbers are higher priority."
+    t.string "right_rule", default: "", comment: "Right rule"
+    t.bigint "rule_list_id", comment: "The rule list used for the attack."
+    t.boolean "slow_candidate_generators", default: false, null: false, comment: "Are slow candidate generators enabled?"
+    t.datetime "start_time", comment: "The time the attack started."
+    t.string "state"
+    t.string "type"
+    t.datetime "updated_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.bigint "word_list_id", comment: "The word list used for the attack."
+    t.integer "workload_profile", default: 3, null: false, comment: "Hashcat workload profile (e.g. 1 for low, 2 for medium, 3 for high, 4 for insane)"
     t.index ["attack_mode"], name: "index_attacks_on_attack_mode"
     t.index ["campaign_id", "state"], name: "index_attacks_on_campaign_id_and_state"
     t.index ["campaign_id"], name: "index_attacks_campaign_id"
@@ -147,20 +147,20 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_25_025422) do
   end
 
   create_table "audits", force: :cascade do |t|
-    t.bigint "auditable_id"
-    t.string "auditable_type"
+    t.string "action"
     t.integer "associated_id"
     t.string "associated_type"
+    t.bigint "auditable_id"
+    t.string "auditable_type"
+    t.jsonb "audited_changes"
+    t.string "comment"
+    t.datetime "created_at"
+    t.string "remote_address"
+    t.string "request_uuid"
     t.integer "user_id"
     t.string "user_type"
     t.string "username"
-    t.string "action"
-    t.jsonb "audited_changes"
     t.integer "version", default: 0
-    t.string "comment"
-    t.string "remote_address"
-    t.string "request_uuid"
-    t.datetime "created_at"
     t.index ["associated_type", "associated_id"], name: "associated_index"
     t.index ["auditable_type", "auditable_id", "version"], name: "auditable_index"
     t.index ["created_at"], name: "index_audits_on_created_at"
@@ -169,16 +169,16 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_25_025422) do
   end
 
   create_table "campaigns", force: :cascade do |t|
-    t.string "name", null: false
-    t.bigint "hash_list_id", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.bigint "project_id", null: false
     t.integer "attacks_count", default: 0, null: false
-    t.text "description"
-    t.datetime "deleted_at"
-    t.integer "priority", default: 0, null: false, comment: "-1: Deferred, 0: Normal, 2: High"
+    t.datetime "created_at", null: false
     t.bigint "creator_id", comment: "The user who created this campaign"
+    t.datetime "deleted_at"
+    t.text "description"
+    t.bigint "hash_list_id", null: false
+    t.string "name", null: false
+    t.integer "priority", default: 0, null: false, comment: "-1: Deferred, 0: Normal, 2: High"
+    t.bigint "project_id", null: false
+    t.datetime "updated_at", null: false
     t.index ["creator_id"], name: "index_campaigns_on_creator_id"
     t.index ["deleted_at"], name: "index_campaigns_on_deleted_at"
     t.index ["hash_list_id"], name: "index_campaigns_on_hash_list_id"
@@ -188,29 +188,29 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_25_025422) do
   end
 
   create_table "device_statuses", force: :cascade do |t|
-    t.bigint "hashcat_status_id", null: false
+    t.datetime "created_at", null: false
     t.integer "device_id", null: false, comment: "Device ID"
     t.string "device_name", null: false, comment: "Device Name"
     t.string "device_type", null: false, comment: "Device Type"
+    t.bigint "hashcat_status_id", null: false
     t.bigint "speed", null: false, comment: "Speed "
-    t.integer "utilization", null: false, comment: "Utilization Percentage"
     t.integer "temperature", null: false, comment: "Temperature in Celsius (-1 if not available)"
-    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "utilization", null: false, comment: "Utilization Percentage"
     t.index ["hashcat_status_id"], name: "index_device_statuses_on_hashcat_status_id"
   end
 
   create_table "hash_items", force: :cascade do |t|
-    t.boolean "cracked", default: false, null: false, comment: "Is the hash cracked?"
-    t.string "plain_text", comment: "Plaintext value of the hash"
-    t.datetime "cracked_time", comment: "Time when the hash was cracked"
-    t.text "hash_value", null: false, comment: "Hash value"
-    t.text "salt", comment: "Salt of the hash"
-    t.bigint "hash_list_id", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
     t.bigint "attack_id", comment: "The attack that cracked this hash"
+    t.boolean "cracked", default: false, null: false, comment: "Is the hash cracked?"
+    t.datetime "cracked_time", comment: "Time when the hash was cracked"
+    t.datetime "created_at", null: false
+    t.bigint "hash_list_id", null: false
+    t.text "hash_value", null: false, comment: "Hash value"
     t.jsonb "metadata", default: {}, null: false, comment: "Optional metadata fields for the hash item."
+    t.string "plain_text", comment: "Plaintext value of the hash"
+    t.text "salt", comment: "Salt of the hash"
+    t.datetime "updated_at", null: false
     t.index ["attack_id"], name: "index_hash_items_on_attack_id"
     t.index ["cracked_time"], name: "index_hash_items_on_cracked_time"
     t.index ["hash_list_id"], name: "index_hash_items_on_hash_list_id"
@@ -219,17 +219,17 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_25_025422) do
   end
 
   create_table "hash_lists", force: :cascade do |t|
-    t.string "name", null: false, comment: "Name of the hash list"
-    t.text "description", comment: "Description of the hash list"
-    t.boolean "sensitive", default: false, null: false, comment: "Is the hash list sensitive?"
-    t.bigint "project_id", null: false, comment: "Project that the hash list belongs to"
     t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.string "separator", limit: 1, default: ":", null: false, comment: "Separator used in the hash list file to separate the hash from the password or other metadata. Default is \":\"."
-    t.boolean "processed", default: false, null: false, comment: "Is the hash list processed into hash items?"
-    t.bigint "hash_type_id", null: false
-    t.integer "hash_items_count", default: 0
     t.bigint "creator_id", comment: "The user who created this hash list"
+    t.text "description", comment: "Description of the hash list"
+    t.integer "hash_items_count", default: 0
+    t.bigint "hash_type_id", null: false
+    t.string "name", null: false, comment: "Name of the hash list"
+    t.boolean "processed", default: false, null: false, comment: "Is the hash list processed into hash items?"
+    t.bigint "project_id", null: false, comment: "Project that the hash list belongs to"
+    t.boolean "sensitive", default: false, null: false, comment: "Is the hash list sensitive?"
+    t.string "separator", limit: 1, default: ":", null: false, comment: "Separator used in the hash list file to separate the hash from the password or other metadata. Default is \":\"."
+    t.datetime "updated_at", null: false
     t.index ["creator_id"], name: "index_hash_lists_on_creator_id"
     t.index ["hash_type_id"], name: "index_hash_lists_on_hash_type_id"
     t.index ["name"], name: "index_hash_lists_on_name", unique: true
@@ -237,13 +237,13 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_25_025422) do
   end
 
   create_table "hash_types", force: :cascade do |t|
-    t.integer "hashcat_mode", null: false, comment: "The hashcat mode number"
-    t.string "name", null: false, comment: "The name of the hash type"
-    t.integer "category", default: 0, null: false, comment: "The category of the hash type"
     t.boolean "built_in", default: false, null: false, comment: "Whether the hash type is built-in"
-    t.boolean "enabled", default: true, null: false, comment: "Whether the hash type is enabled"
-    t.boolean "is_slow", default: false, null: false, comment: "Whether the hash type is slow"
+    t.integer "category", default: 0, null: false, comment: "The category of the hash type"
     t.datetime "created_at", null: false
+    t.boolean "enabled", default: true, null: false, comment: "Whether the hash type is enabled"
+    t.integer "hashcat_mode", null: false, comment: "The hashcat mode number"
+    t.boolean "is_slow", default: false, null: false, comment: "Whether the hash type is slow"
+    t.string "name", null: false, comment: "The name of the hash type"
     t.datetime "updated_at", null: false
     t.index ["hashcat_mode"], name: "index_hash_types_on_hashcat_mode", unique: true
     t.index ["name"], name: "index_hash_types_on_name", unique: true
@@ -251,18 +251,18 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_25_025422) do
 
   create_table "hashcat_benchmarks", force: :cascade do |t|
     t.bigint "agent_id", null: false
-    t.integer "hash_type", null: false, comment: "The hashcat hash type."
     t.datetime "benchmark_date", null: false, comment: "The date and time the benchmark was performed."
     t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
     t.integer "device", null: false, comment: "The device used for the benchmark."
     t.float "hash_speed", null: false, comment: "The speed of the benchmark. In hashes per second."
+    t.integer "hash_type", null: false, comment: "The hashcat hash type."
     t.bigint "runtime", null: false, comment: "The time taken to complete the benchmark. In milliseconds."
+    t.datetime "updated_at", null: false
     t.index ["agent_id", "hash_type", "device"], name: "index_hashcat_benchmarks_on_agent_id_and_hash_type_and_device", unique: true
   end
 
   create_table "hashcat_guesses", force: :cascade do |t|
-    t.bigint "hashcat_status_id", null: false
+    t.datetime "created_at", null: false
     t.string "guess_base", null: false, comment: "The base value used for the guess (for example, the mask)"
     t.bigint "guess_base_count", null: false, comment: "The number of times the base value was used"
     t.bigint "guess_base_offset", null: false, comment: "The offset of the base value"
@@ -272,26 +272,26 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_25_025422) do
     t.bigint "guess_mod_offset", null: false, comment: "The offset of the modifier"
     t.decimal "guess_mod_percentage", null: false, comment: "The percentage completion of the modifier"
     t.integer "guess_mode", null: false, comment: "The mode used for the guess"
-    t.datetime "created_at", null: false
+    t.bigint "hashcat_status_id", null: false
     t.datetime "updated_at", null: false
     t.index ["hashcat_status_id"], name: "index_hashcat_guesses_hashcat_status_id", unique: true
   end
 
   create_table "hashcat_statuses", force: :cascade do |t|
-    t.bigint "task_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "estimated_stop", comment: "The estimated time of completion"
     t.text "original_line", comment: "The original line from the hashcat output"
-    t.string "session", null: false, comment: "The session name"
-    t.datetime "time", null: false, comment: "The time of the status"
-    t.integer "status", null: false, comment: "The status code"
-    t.string "target", null: false, comment: "The target file"
     t.bigint "progress", comment: "The progress in percentage", array: true
-    t.bigint "restore_point", comment: "The restore point"
     t.bigint "recovered_hashes", comment: "The number of recovered hashes", array: true
     t.bigint "recovered_salts", comment: "The number of recovered salts", array: true
     t.bigint "rejected", comment: "The number of rejected hashes"
+    t.bigint "restore_point", comment: "The restore point"
+    t.string "session", null: false, comment: "The session name"
+    t.integer "status", null: false, comment: "The status code"
+    t.string "target", null: false, comment: "The target file"
+    t.bigint "task_id", null: false
+    t.datetime "time", null: false, comment: "The time of the status"
     t.datetime "time_start", null: false, comment: "The time the task started"
-    t.datetime "estimated_stop", comment: "The estimated time of completion"
-    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["task_id", "status", "time"], name: "index_hashcat_statuses_on_task_status_time", order: { time: :desc }
     t.index ["task_id"], name: "index_hashcat_statuses_on_task_id"
@@ -299,15 +299,15 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_25_025422) do
   end
 
   create_table "mask_lists", force: :cascade do |t|
+    t.decimal "complexity_value", default: "0.0", comment: "Total attemptable password values"
+    t.datetime "created_at", null: false
+    t.bigint "creator_id", comment: "The user who created this list"
     t.text "description", comment: "Description of the mask list"
     t.bigint "line_count", comment: "Number of lines in the mask list"
     t.string "name", limit: 255, null: false, comment: "Name of the mask list"
     t.boolean "processed", default: false, null: false, comment: "Has the mask list been processed?"
     t.boolean "sensitive", default: false, null: false, comment: "Is the mask list sensitive?"
-    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.decimal "complexity_value", default: "0.0", comment: "Total attemptable password values"
-    t.bigint "creator_id", comment: "The user who created this list"
     t.index ["creator_id"], name: "index_mask_lists_on_creator_id"
     t.index ["name"], name: "index_mask_lists_on_name", unique: true
     t.index ["processed"], name: "index_mask_lists_on_processed"
@@ -321,26 +321,26 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_25_025422) do
   end
 
   create_table "project_users", force: :cascade do |t|
-    t.bigint "user_id", null: false
+    t.datetime "created_at", null: false
     t.bigint "project_id", null: false
     t.integer "role", default: 0, null: false, comment: "The role of the user in the project."
-    t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
     t.index ["project_id"], name: "index_project_users_on_project_id"
     t.index ["user_id"], name: "index_project_users_on_user_id"
   end
 
   create_table "projects", force: :cascade do |t|
-    t.string "name", limit: 100, null: false, comment: "Name of the project"
-    t.text "description", comment: "Description of the project"
     t.datetime "created_at", null: false
+    t.text "description", comment: "Description of the project"
+    t.string "name", limit: 100, null: false, comment: "Name of the project"
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_projects_on_name", unique: true
   end
 
   create_table "projects_rule_lists", id: false, force: :cascade do |t|
-    t.bigint "rule_list_id", null: false
     t.bigint "project_id", null: false
+    t.bigint "rule_list_id", null: false
     t.index ["project_id"], name: "index_projects_rule_lists_on_project_id"
     t.index ["rule_list_id"], name: "index_projects_rule_lists_on_rule_list_id"
   end
@@ -353,78 +353,78 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_25_025422) do
   end
 
   create_table "roles", force: :cascade do |t|
-    t.string "name"
-    t.string "resource_type"
-    t.bigint "resource_id"
     t.datetime "created_at", null: false
+    t.string "name"
+    t.bigint "resource_id"
+    t.string "resource_type"
     t.datetime "updated_at", null: false
     t.index ["name", "resource_type", "resource_id"], name: "index_roles_on_name_and_resource_type_and_resource_id"
     t.index ["resource_type", "resource_id"], name: "index_roles_on_resource"
   end
 
   create_table "rule_lists", force: :cascade do |t|
-    t.string "name", null: false, comment: "Name of the rule list"
+    t.datetime "created_at", null: false
+    t.bigint "creator_id", comment: "The user who created this list"
     t.text "description", comment: "Description of the rule list"
     t.bigint "line_count", default: 0, comment: "Number of lines in the rule list"
-    t.boolean "sensitive", default: false, null: false, comment: "Sensitive rule list"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.string "name", null: false, comment: "Name of the rule list"
     t.boolean "processed", default: false, null: false
-    t.bigint "creator_id", comment: "The user who created this list"
+    t.boolean "sensitive", default: false, null: false, comment: "Sensitive rule list"
+    t.datetime "updated_at", null: false
     t.index ["creator_id"], name: "index_rule_lists_on_creator_id"
     t.index ["name"], name: "index_rule_lists_on_name", unique: true
   end
 
   create_table "sessions", force: :cascade do |t|
-    t.bigint "user_id", null: false
-    t.string "ip_address"
-    t.string "user_agent"
     t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.datetime "last_activity_at", comment: "Last time the session was active"
     t.datetime "expires_at", comment: "When the session expires"
+    t.string "ip_address"
+    t.datetime "last_activity_at", comment: "Last time the session was active"
+    t.datetime "updated_at", null: false
+    t.string "user_agent"
+    t.bigint "user_id", null: false
     t.index ["expires_at"], name: "index_sessions_on_expires_at"
     t.index ["last_activity_at"], name: "index_sessions_on_last_activity_at"
     t.index ["user_id"], name: "index_sessions_on_user_id"
   end
 
   create_table "solid_queue_blocked_executions", force: :cascade do |t|
-    t.bigint "job_id", null: false
-    t.string "queue_name", null: false
-    t.integer "priority", default: 0, null: false
     t.string "concurrency_key", null: false
-    t.datetime "expires_at", null: false
     t.datetime "created_at", null: false
+    t.datetime "expires_at", null: false
+    t.bigint "job_id", null: false
+    t.integer "priority", default: 0, null: false
+    t.string "queue_name", null: false
     t.index ["concurrency_key", "priority", "job_id"], name: "index_solid_queue_blocked_executions_for_release"
     t.index ["expires_at", "concurrency_key"], name: "index_solid_queue_blocked_executions_for_maintenance"
     t.index ["job_id"], name: "index_solid_queue_blocked_executions_on_job_id", unique: true
   end
 
   create_table "solid_queue_claimed_executions", force: :cascade do |t|
+    t.datetime "created_at", null: false
     t.bigint "job_id", null: false
     t.bigint "process_id"
-    t.datetime "created_at", null: false
     t.index ["job_id"], name: "index_solid_queue_claimed_executions_on_job_id", unique: true
     t.index ["process_id", "job_id"], name: "index_solid_queue_claimed_executions_on_process_id_and_job_id"
   end
 
   create_table "solid_queue_failed_executions", force: :cascade do |t|
-    t.bigint "job_id", null: false
-    t.text "error"
     t.datetime "created_at", null: false
+    t.text "error"
+    t.bigint "job_id", null: false
     t.index ["job_id"], name: "index_solid_queue_failed_executions_on_job_id", unique: true
   end
 
   create_table "solid_queue_jobs", force: :cascade do |t|
-    t.string "queue_name", null: false
-    t.string "class_name", null: false
-    t.text "arguments"
-    t.integer "priority", default: 0, null: false
     t.string "active_job_id"
-    t.datetime "scheduled_at"
-    t.datetime "finished_at"
+    t.text "arguments"
+    t.string "class_name", null: false
     t.string "concurrency_key"
     t.datetime "created_at", null: false
+    t.datetime "finished_at"
+    t.integer "priority", default: 0, null: false
+    t.string "queue_name", null: false
+    t.datetime "scheduled_at"
     t.datetime "updated_at", null: false
     t.index ["active_job_id"], name: "index_solid_queue_jobs_on_active_job_id"
     t.index ["class_name"], name: "index_solid_queue_jobs_on_class_name"
@@ -434,73 +434,73 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_25_025422) do
   end
 
   create_table "solid_queue_pauses", force: :cascade do |t|
-    t.string "queue_name", null: false
     t.datetime "created_at", null: false
+    t.string "queue_name", null: false
     t.index ["queue_name"], name: "index_solid_queue_pauses_on_queue_name", unique: true
   end
 
   create_table "solid_queue_processes", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "hostname"
     t.string "kind", null: false
     t.datetime "last_heartbeat_at", null: false
-    t.bigint "supervisor_id"
-    t.integer "pid", null: false
-    t.string "hostname"
     t.text "metadata"
-    t.datetime "created_at", null: false
+    t.integer "pid", null: false
+    t.bigint "supervisor_id"
     t.index ["last_heartbeat_at"], name: "index_solid_queue_processes_on_last_heartbeat_at"
     t.index ["supervisor_id"], name: "index_solid_queue_processes_on_supervisor_id"
   end
 
   create_table "solid_queue_ready_executions", force: :cascade do |t|
-    t.bigint "job_id", null: false
-    t.string "queue_name", null: false
-    t.integer "priority", default: 0, null: false
     t.datetime "created_at", null: false
+    t.bigint "job_id", null: false
+    t.integer "priority", default: 0, null: false
+    t.string "queue_name", null: false
     t.index ["job_id"], name: "index_solid_queue_ready_executions_on_job_id", unique: true
     t.index ["priority", "job_id"], name: "index_solid_queue_poll_all"
     t.index ["queue_name", "priority", "job_id"], name: "index_solid_queue_poll_by_queue"
   end
 
   create_table "solid_queue_scheduled_executions", force: :cascade do |t|
-    t.bigint "job_id", null: false
-    t.string "queue_name", null: false
-    t.integer "priority", default: 0, null: false
-    t.datetime "scheduled_at", null: false
     t.datetime "created_at", null: false
+    t.bigint "job_id", null: false
+    t.integer "priority", default: 0, null: false
+    t.string "queue_name", null: false
+    t.datetime "scheduled_at", null: false
     t.index ["job_id"], name: "index_solid_queue_scheduled_executions_on_job_id", unique: true
     t.index ["scheduled_at", "priority", "job_id"], name: "index_solid_queue_dispatch_all"
   end
 
   create_table "solid_queue_semaphores", force: :cascade do |t|
-    t.string "key", null: false
-    t.integer "value", default: 1, null: false
-    t.datetime "expires_at", null: false
     t.datetime "created_at", null: false
+    t.datetime "expires_at", null: false
+    t.string "key", null: false
     t.datetime "updated_at", null: false
+    t.integer "value", default: 1, null: false
     t.index ["expires_at"], name: "index_solid_queue_semaphores_on_expires_at"
     t.index ["key", "value"], name: "index_solid_queue_semaphores_on_key_and_value"
     t.index ["key"], name: "index_solid_queue_semaphores_on_key", unique: true
   end
 
   create_table "tasks", force: :cascade do |t|
-    t.bigint "attack_id", null: false, comment: "The attack that the task is associated with."
-    t.bigint "agent_id", null: false, comment: "The agent that the task is assigned to, if any."
-    t.datetime "start_date", null: false, comment: "The date and time that the task was started."
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
     t.datetime "activity_timestamp", comment: "The timestamp of the last activity on the task"
+    t.bigint "agent_id", null: false, comment: "The agent that the task is assigned to, if any."
+    t.bigint "attack_id", null: false, comment: "The attack that the task is associated with."
+    t.datetime "claimed_at"
+    t.bigint "claimed_by_agent_id"
+    t.datetime "created_at", null: false
+    t.datetime "expires_at"
     t.integer "keyspace_limit", default: 0, comment: "The maximum number of keyspace values to process."
     t.integer "keyspace_offset", default: 0, comment: "The starting keyspace offset."
-    t.string "state", default: "pending", null: false
-    t.boolean "stale", default: false, null: false, comment: "If new cracks since the last check, the task is stale and the new cracks need to be downloaded."
-    t.bigint "claimed_by_agent_id"
-    t.datetime "claimed_at"
+    t.text "last_error"
     t.integer "lock_version", default: 0, null: false
     t.integer "max_retries", default: 3, null: false
-    t.integer "retry_count", default: 0, null: false
-    t.text "last_error"
-    t.datetime "expires_at"
     t.integer "preemption_count", default: 0, null: false
+    t.integer "retry_count", default: 0, null: false
+    t.boolean "stale", default: false, null: false, comment: "If new cracks since the last check, the task is stale and the new cracks need to be downloaded."
+    t.datetime "start_date", null: false, comment: "The date and time that the task was started."
+    t.string "state", default: "pending", null: false
+    t.datetime "updated_at", null: false
     t.index ["activity_timestamp"], name: "index_tasks_on_activity_timestamp"
     t.index ["agent_id", "state"], name: "index_tasks_on_agent_id_and_state"
     t.index ["agent_id"], name: "index_tasks_on_agent_id"
@@ -513,26 +513,26 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_25_025422) do
   end
 
   create_table "users", force: :cascade do |t|
+    t.boolean "auth_migrated", default: false, null: false
+    t.datetime "created_at", null: false
+    t.datetime "current_sign_in_at"
+    t.string "current_sign_in_ip"
     t.string "email", limit: 50, default: "", null: false
     t.string "encrypted_password", default: "", null: false
-    t.string "reset_password_token"
-    t.datetime "reset_password_sent_at"
-    t.datetime "remember_created_at"
-    t.integer "sign_in_count", default: 0, null: false
-    t.datetime "current_sign_in_at"
-    t.datetime "last_sign_in_at"
-    t.string "current_sign_in_ip"
-    t.string "last_sign_in_ip"
     t.integer "failed_attempts", default: 0, null: false
-    t.string "unlock_token"
-    t.datetime "locked_at"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.string "name", null: false, comment: "Unique username. Used for login."
-    t.integer "role", default: 0, comment: "The role of the user, either basic or admin"
-    t.string "password_digest"
-    t.boolean "auth_migrated", default: false, null: false
     t.boolean "hide_completed_activities", default: false, null: false
+    t.datetime "last_sign_in_at"
+    t.string "last_sign_in_ip"
+    t.datetime "locked_at"
+    t.string "name", null: false, comment: "Unique username. Used for login."
+    t.string "password_digest"
+    t.datetime "remember_created_at"
+    t.datetime "reset_password_sent_at"
+    t.string "reset_password_token"
+    t.integer "role", default: 0, comment: "The role of the user, either basic or admin"
+    t.integer "sign_in_count", default: 0, null: false
+    t.string "unlock_token"
+    t.datetime "updated_at", null: false
     t.index ["auth_migrated"], name: "index_users_on_auth_migrated"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["name"], name: "index_users_on_name", unique: true
@@ -541,22 +541,22 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_25_025422) do
   end
 
   create_table "users_roles", id: false, force: :cascade do |t|
-    t.bigint "user_id"
     t.bigint "role_id"
+    t.bigint "user_id"
     t.index ["role_id"], name: "index_users_roles_on_role_id"
     t.index ["user_id", "role_id"], name: "index_users_roles_on_user_id_and_role_id"
     t.index ["user_id"], name: "index_users_roles_on_user_id"
   end
 
   create_table "word_lists", force: :cascade do |t|
-    t.string "name", null: false, comment: "Name of the word list"
+    t.datetime "created_at", null: false
+    t.bigint "creator_id", comment: "The user who created this list"
     t.text "description", comment: "Description of the word list"
     t.bigint "line_count", comment: "Number of lines in the word list"
-    t.boolean "sensitive", null: false, comment: "Is the word list sensitive?"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.string "name", null: false, comment: "Name of the word list"
     t.boolean "processed", default: false, null: false
-    t.bigint "creator_id", comment: "The user who created this list"
+    t.boolean "sensitive", null: false, comment: "Is the word list sensitive?"
+    t.datetime "updated_at", null: false
     t.index ["creator_id"], name: "index_word_lists_on_creator_id"
     t.index ["name"], name: "index_word_lists_on_name", unique: true
     t.index ["processed"], name: "index_word_lists_on_processed"
