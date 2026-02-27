@@ -16,7 +16,7 @@
     <%= f.simple_fields_for :advanced_configuration do |a| %>
       <%= a.input :agent_update_interval,
                   hint: "Specifies the frequency, in seconds, that the agent calls in to request a new task" %>
-      <%= a.input :use_native_hashcat,
+      <%= a.input :use_native_hashcat, as: :boolean,
                   hint: "Use the hashcat already installed on the system" %>
       <%= a.input :backend_device,
                   hint: "Backend devices to use, separated with commas, leave blank to let hashcat decide" %>
