@@ -190,6 +190,7 @@ Tasks track pause state for efficient recovery:
 - Resume callbacks use `update_columns` to bypass optimistic locking and avoid StaleObjectError
 
 Example:
+
 ```ruby
 after_transition on: :resume do
   update_columns(stale: true, paused_at: nil)  # Bypass locking, clear pause timestamp
@@ -672,6 +673,7 @@ end
 **Critical Gotcha**: Broadcast partials run in background jobs with NO access to `current_user`, `session`, or request context. Partials must be completely self-contained and only use data passed in locals.
 
 See examples in:
+
 - `app/views/agents/_index_state.html.erb`
 - `app/views/agents/_index_hash_rate.html.erb`
 - `app/views/agents/_index_errors.html.erb`

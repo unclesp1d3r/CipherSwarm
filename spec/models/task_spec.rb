@@ -454,6 +454,16 @@ RSpec.describe Task do
         task.pause!
         expect(task.reload.paused_at).to be_within(2.seconds).of(Time.zone.now)
       end
+
+      it "logs error and continues when update_column fails" do
+        allow(task).to receive(:update_column).and_raise(ActiveRecord::ActiveRecordError, "DB error")
+        allow(Rails.logger).to receive(:error)
+
+        task.pause!
+
+        expect(task.reload.state).to eq("paused")
+        expect(Rails.logger).to have_received(:error).with(/Error setting paused_at/)
+      end
     end
 
     describe "resume callback" do
@@ -469,6 +479,16 @@ RSpec.describe Task do
       it "marks task as stale on resume" do
         task.resume!
         expect(task.reload.stale).to be true
+      end
+
+      it "logs error and continues when update_columns fails" do
+        allow(task).to receive(:update_columns).and_raise(ActiveRecord::ActiveRecordError, "DB error")
+        allow(Rails.logger).to receive(:error)
+
+        task.resume!
+
+        expect(task.reload.state).to eq("pending")
+        expect(Rails.logger).to have_received(:error).with(/Error updating stale\/paused_at/)
       end
     end
 

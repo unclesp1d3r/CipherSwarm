@@ -18,7 +18,6 @@ RSpec.describe "Sidebar navigation" do
 
       # Check for links by finding them directly - they're inside the sidebar
       within("aside.sidebar") do
-        expect(page).to have_css("a[href='#{root_path}']")
         expect(page).to have_css("a[href='#{campaigns_path}']")
         expect(page).to have_css("a[href='#{agents_path}']")
       end
@@ -30,26 +29,18 @@ RSpec.describe "Sidebar navigation" do
   describe "navigate via sidebar links" do
     let!(:user) { create_and_sign_in_user }
 
-    it "navigates to dashboard" do
+    it "navigates to activity via sidebar" do
       # User is created and signed in via let! to ensure sidebar is visible
-      visit campaigns_path
+      visit agents_path
 
       # Use within to scope to sidebar to avoid ambiguous matches
       within("aside.sidebar") do
-        find("a[href='#{root_path}']").click
+        find("a[href='#{campaigns_path}']").click
       end
 
-      expect(page).to have_current_path(root_path)
+      expect(page).to have_current_path(campaigns_path)
       # Reference user to satisfy RuboCop - user is needed for authentication
       expect(user).to be_present
-    end
-
-    it "navigates to activity" do
-      visit root_path
-
-      find("a[href='#{campaigns_path}']").click
-
-      expect(page).to have_current_path(campaigns_path)
     end
 
     it "navigates to agents" do

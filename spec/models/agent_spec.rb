@@ -426,6 +426,21 @@ RSpec.describe Agent do
           expect(succeeding_task.claimed_by_agent_id).to be_nil
         end
       end
+
+      it "logs error and continues when attack.pause! raises" do
+        agent = create(:agent, state: :active)
+        attack = create(:dictionary_attack, :running)
+        create(:task, attack: attack, agent: agent, state: :running)
+        allow(Rails.logger).to receive(:info)
+        allow(Rails.logger).to receive(:error)
+
+        allow(attack).to receive(:pause!).and_raise(ActiveRecord::StaleObjectError)
+        # Stub attack lookup so our stubbed attack is returned
+        allow_any_instance_of(Task).to receive(:attack).and_return(attack) # rubocop:disable RSpec/AnyInstance
+
+        expect { agent.shutdown }.not_to raise_error
+        expect(Rails.logger).to have_received(:error).with(/Failed to pause attack/)
+      end
     end
 
     describe "#activate" do

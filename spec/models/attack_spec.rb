@@ -211,4 +211,38 @@ RSpec.describe Attack do
       end
     end
   end
+
+  describe "#pause_tasks" do
+    let(:attack) { create(:dictionary_attack, :running) }
+    let(:agent) { create(:agent, state: :active) }
+
+    it "logs warning when task.pause returns false" do
+      task = create(:task, attack: attack, agent: agent, state: :running)
+      allow(task).to receive(:pause).and_return(false)
+      relation = double("relation") # rubocop:disable RSpec/VerifiedDoubles
+      allow(relation).to receive(:find_each).and_yield(task)
+      allow(attack).to receive_message_chain(:tasks, :without_state).and_return(relation) # rubocop:disable RSpec/MessageChain
+      allow(Rails.logger).to receive(:warn)
+
+      attack.send(:pause_tasks)
+
+      expect(Rails.logger).to have_received(:warn).with(/Failed to pause task #{task.id}/)
+    end
+  end
+
+  describe "#resume_tasks" do
+    let(:attack) { create(:dictionary_attack, :running) }
+    let(:agent) { create(:agent, state: :active) }
+
+    it "logs warning when task.resume returns false" do
+      task = create(:task, attack: attack, agent: agent, state: :paused, paused_at: 5.minutes.ago)
+      allow(task).to receive(:resume).and_return(false)
+      allow(attack).to receive_message_chain(:tasks, :find_each).and_yield(task) # rubocop:disable RSpec/MessageChain
+      allow(Rails.logger).to receive(:warn)
+
+      attack.send(:resume_tasks)
+
+      expect(Rails.logger).to have_received(:warn).with(/Failed to resume task #{task.id}/)
+    end
+  end
 end
