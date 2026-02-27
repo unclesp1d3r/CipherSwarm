@@ -7,3 +7,4 @@ json.config do
   json.partial! "api/v1/client/agents/advanced_configuration", agent: @agent
 end
 json.api_version 1
+json.benchmarks_needed @agent.needs_benchmark?

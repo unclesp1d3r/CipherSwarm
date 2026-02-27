@@ -1780,11 +1780,16 @@
                     "api_version": {
                       "type": "integer",
                       "description": "The minimum accepted version of the API"
+                    },
+                    "benchmarks_needed": {
+                      "type": "boolean",
+                      "description": "Whether the agent needs to run benchmarks. False when the server already has valid benchmarks for this agent."
                     }
                   },
                   "required": [
                     "config",
-                    "api_version"
+                    "api_version",
+                    "benchmarks_needed"
                   ]
                 }
               }
