@@ -104,6 +104,16 @@ Before running these flows:
    bin/rails db:seed
    ```
 
+4. **Sample Files** — Use the fixture files in `spec/fixtures/` for uploads:
+
+   - `spec/fixtures/word_lists/top-passwords.txt` — Word list
+   - `spec/fixtures/rule_lists/dive.rule` — Rule list
+   - `spec/fixtures/mask_lists/rockyou-1-60.hcmask` — Mask list
+   - `spec/fixtures/hash_lists/example_hashes.txt` — Hash list
+   - `spec/fixtures/hash_lists/hashcat_example0.txt` — Hash list (alternative)
+   - `spec/fixtures/files/test_mask_file.hcmask` — Mask file (alternative)
+   - `spec/fixtures/cracker_binaries/hashcat.7z` — Cracker binary
+
 ## Notes
 
 - Word list complexity shows as "0" or "pending" until Sidekiq processes the file
