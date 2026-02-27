@@ -29,7 +29,7 @@
           <h5 class="card-title mb-0">Supported Hash Types</h5>
         </div>
         <div class="card-body">
-          <% benchmarks = agent.aggregate_benchmarks %>
+          <% benchmarks = agent.last_benchmarks %>
           <% if benchmarks&.any? %>
             <% cache agent do %>
               <% if agent.last_benchmark_date.present? %>
@@ -49,13 +49,13 @@
                   <thead>
                     <tr>
                       <th>Hash Type</th>
-                      <th>Runtime</th>
+                      <th>Device</th>
                       <th>Hash Rate</th>
                     </tr>
                   </thead>
                   <tbody>
                     <% benchmarks.each do |benchmark| %>
-                      <%= render partial: "agents/benchmark", locals: { benchmark: benchmark } %>
+                      <%= render partial: "agents/benchmark", locals: { benchmark: benchmark, devices: agent.devices } %>
                     <% end %>
                   </tbody>
                 </table>

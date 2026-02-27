@@ -1,4 +1,12 @@
-<%# locals: (benchmark:) %>
+<%# locals: (benchmark:, devices: []) %>
+<%
+  hash_type_name = Rails.cache.fetch("hash_type/#{benchmark.hash_type}", expires_in: 1.day) do
+    HashType.find_by(hashcat_mode: benchmark.hash_type)&.name
+  end
+  device_name = devices[benchmark.device - 1] || "Device #{benchmark.device}"
+%>
 <tr>
-  <td colspan="3"><%= benchmark %></td>
+  <td><%= benchmark.hash_type %><%= " (#{hash_type_name})" if hash_type_name %></td>
+  <td><%= device_name %></td>
+  <td><%= number_to_human(benchmark.hash_speed, prefix: :si) %> hashes/sec</td>
 </tr>
