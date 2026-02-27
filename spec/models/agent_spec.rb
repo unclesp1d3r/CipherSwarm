@@ -355,13 +355,28 @@ RSpec.describe Agent do
         expect(running_task.reload.state).to eq("running")
       end
 
-      it "still clears claim fields even when task cannot be paused" do
+      it "does not pause attack when another agent still has an active task" do
+        agent = create(:agent, state: :active)
+        other_agent = create(:agent, state: :active)
+        attack = create(:dictionary_attack, :running)
+        create(:task, attack: attack, agent: agent, state: :running)
+        create(:task, attack: attack, agent: other_agent, state: :running)
+        allow(Rails.logger).to receive(:info)
+
+        agent.shutdown
+
+        expect(attack.reload.state).to eq("running")
+      end
+
+      it "preserves claim fields when task cannot be paused" do
         agent = create(:agent, state: :active)
         attack = create(:dictionary_attack, :running)
+        claimed_at_time = Time.zone.now
+        expires_at_time = 1.hour.from_now
         running_task = create(
           :task,
           attack: attack, agent: agent, state: :running,
-          claimed_by_agent_id: agent.id, claimed_at: Time.zone.now, expires_at: 1.hour.from_now
+          claimed_by_agent_id: agent.id, claimed_at: claimed_at_time, expires_at: expires_at_time
         )
         allow(Rails.logger).to receive(:info)
 
@@ -370,9 +385,46 @@ RSpec.describe Agent do
         agent.shutdown
 
         running_task.reload
-        expect(running_task.claimed_by_agent_id).to be_nil
-        expect(running_task.claimed_at).to be_nil
-        expect(running_task.expires_at).to be_nil
+        expect(running_task.claimed_by_agent_id).to eq(agent.id)
+        expect(running_task.claimed_at).to be_within(1.second).of(claimed_at_time)
+        expect(running_task.expires_at).to be_within(1.second).of(expires_at_time)
+      end
+
+      context "when pause! raises StaleObjectError on one task" do
+        let(:shutdown_agent) { create(:agent, state: :active) }
+        let(:shutdown_attack) { create(:dictionary_attack, :running) }
+        let!(:failing_task) do
+          create(:task, attack: shutdown_attack, agent: shutdown_agent, state: :running,
+                        claimed_by_agent_id: shutdown_agent.id, claimed_at: Time.zone.now, expires_at: 1.hour.from_now)
+        end
+        let!(:succeeding_task) do
+          create(:task, attack: shutdown_attack, agent: shutdown_agent, state: :running,
+                        claimed_by_agent_id: shutdown_agent.id, claimed_at: Time.zone.now, expires_at: 1.hour.from_now)
+        end
+
+        before do
+          allow(Rails.logger).to receive(:info)
+          allow(Rails.logger).to receive(:error)
+          original_pause = Task.instance_method(:pause!)
+          allow_any_instance_of(Task).to receive(:pause!) do |task_instance| # rubocop:disable RSpec/AnyInstance
+            raise ActiveRecord::StaleObjectError if task_instance.id == failing_task.id
+
+            original_pause.bind_call(task_instance)
+          end
+          shutdown_agent.shutdown
+        end
+
+        it "keeps failing task running with claim fields intact" do
+          failing_task.reload
+          expect(failing_task.state).to eq("running")
+          expect(failing_task.claimed_by_agent_id).to eq(shutdown_agent.id)
+        end
+
+        it "pauses succeeding task and clears its claim fields" do
+          succeeding_task.reload
+          expect(succeeding_task.state).to eq("paused")
+          expect(succeeding_task.claimed_by_agent_id).to be_nil
+        end
       end
     end
 

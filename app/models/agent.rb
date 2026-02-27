@@ -188,21 +188,42 @@ class Agent < ApplicationRecord
 
       affected_attacks = Set.new
       running_tasks.find_each do |task|
-        task.pause! if task.can_pause?
-        # Clear claim fields so other agents can pick up the orphaned task.
-        # Keep agent_id populated (NOT NULL column) — TaskAssignmentService
-        # reassigns ownership when another agent claims the paused task.
-        task.update_columns(claimed_by_agent_id: nil, claimed_at: nil, expires_at: nil) # rubocop:disable Rails/SkipsModelValidations
+        paused = false
+        begin
+          if task.can_pause?
+            task.pause!
+            paused = true
+          end
+        rescue StateMachines::InvalidTransition, ActiveRecord::StaleObjectError => e
+          Rails.logger.error(
+            "[AgentLifecycle] shutdown: Failed to pause task #{task.id} " \
+            "for agent #{agent.id}: #{e.class} - #{e.message}"
+          )
+        end
+        # Only clear claim fields on successfully paused tasks.
+        # Running tasks with cleared claims would be an inconsistent state
+        # not handled by any recovery path. If pause failed, the heartbeat
+        # timeout will eventually detect the agent as offline and handle the task.
+        if paused
+          task.update_columns(claimed_by_agent_id: nil, claimed_at: nil, expires_at: nil) # rubocop:disable Rails/SkipsModelValidations
+        end
         affected_attacks << task.attack
       end
 
-      # Pause attacks that have no more active (non-paused) tasks.
+      # Pause attacks that have no remaining in-progress tasks (pending or running).
       # This updates the Activity page to reflect that work has stopped.
       affected_attacks.each do |attack|
         next unless attack.can_pause?
         next if attack.tasks.without_states(:paused, :completed, :exhausted, :failed).exists?
 
-        attack.pause!
+        begin
+          attack.pause!
+        rescue StateMachines::InvalidTransition, ActiveRecord::StaleObjectError => e
+          Rails.logger.error(
+            "[AgentLifecycle] shutdown: Failed to pause attack #{attack.id} " \
+            "for agent #{agent.id}: #{e.class} - #{e.message}"
+          )
+        end
       end
     end
 
@@ -309,23 +330,12 @@ class Agent < ApplicationRecord
     custom_label.presence || host_name
   end
 
-  # Returns the next task for the agent to work on, based on various criteria.
+  # Finds the next task for the agent via TaskAssignmentService.
   #
-  # First, the method checks for any incomplete tasks already assigned to the agent.
-  # - If an incomplete task exists and has no associated fatal errors, it is returned.
-  #
-  # If there are no existing tasks assigned to the agent, the method proceeds to find
-  # pending tasks across the projects the agent is associated with.
-  # - It retrieves tasks from hash types the agent supports.
-  #
-  # For each pending task found, the method:
-  # - Checks if the task has any uncracked hashes.
-  # - Returns tasks in a 'failed' state first, if there are no fatal errors for these tasks.
-  # - Returns a task in a 'pending' state if found.
-  #
-  # If there are no incomplete tasks for an attack, creates a new task.
-  #
-  # If no pending tasks are found or created, returns `nil`.
+  # The assignment algorithm considers (in priority order):
+  # incomplete tasks, own paused tasks, orphaned paused tasks,
+  # failed retryable tasks, pending tasks, and new task creation.
+  # See TaskAssignmentService#find_next_task for full details.
   #
   # @return [Task, nil] The next task for the agent, or nil if no task is found.
   def new_task

@@ -238,16 +238,27 @@ class HashcatStatus < ApplicationRecord
     # Broadcast targeted updates since update_columns bypasses after_update_commit callbacks.
     # Replace just the hash rate value on index cards (subscribed to the bare agent stream)
     # and the overview tab on the show page (subscribed to [agent, :overview]).
-    agent.broadcast_replace_later_to agent,
-      target: ActionView::RecordIdentifier.dom_id(agent, :index_hash_rate),
-      partial: "agents/index_hash_rate",
-      locals: { agent: agent }
-    agent.broadcast_replace_later_to [agent, :overview],
-      target: ActionView::RecordIdentifier.dom_id(agent, :overview),
-      partial: "agents/overview_tab",
-      locals: { agent: agent }
+    begin
+      agent.broadcast_replace_later_to agent,
+        target: ActionView::RecordIdentifier.dom_id(agent, :index_hash_rate),
+        partial: "agents/index_hash_rate",
+        locals: { agent: agent }
+      agent.broadcast_replace_later_to [agent, :overview],
+        target: ActionView::RecordIdentifier.dom_id(agent, :overview),
+        partial: "agents/overview_tab",
+        locals: { agent: agent }
+    rescue StandardError => e
+      Rails.logger.error(
+        "[HashcatStatus] Failed to broadcast agent metrics for task #{task.id}: " \
+        "#{e.class} - #{e.message}"
+      )
+    end
   rescue StandardError => e
-    Rails.logger.error("Failed to update agent metrics for task #{task.id}: #{e.message}")
+    Rails.logger.error(
+      "[HashcatStatus] Failed to update agent metrics for task #{task.id}: " \
+      "#{e.class} - #{e.message}\n" \
+      "Backtrace: #{e.backtrace&.first(5)&.join("\n           ")}"
+    )
   end
 
   def array_lengths_within_limits
