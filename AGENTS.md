@@ -494,7 +494,10 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 - Agents request tasks via `GET /api/v1/client/tasks/new`
 - **Security:** Task queries in service objects must be scoped to the current agent (`.where(agent: agent)`) to prevent authorization bypass
 - Tasks claimed with `claimed_by_agent_id` and `expires_at`
-- **`tasks.agent_id` is NOT NULL** — never set to nil. On agent shutdown, tasks are paused and claim fields (`claimed_by_agent_id`, `claimed_at`, `expires_at`) are cleared. `TaskAssignmentService#find_unassigned_paused_task` detects orphans by checking the owning agent's state (offline/stopped), then reassigns `agent_id` and calls `resume!` on pickup.
+- **`tasks.agent_id` is NOT NULL** — never set to nil. On agent shutdown, tasks are paused and claim fields (`claimed_by_agent_id`, `claimed_at`, `expires_at`) are cleared. `TaskAssignmentService#find_unassigned_paused_task` detects orphans using a `paused_at` grace period, then reassigns `agent_id` and calls `resume!` on pickup.
+- `TaskAssignmentService#find_own_paused_task` runs before `find_unassigned_paused_task` — returning agents reclaim their own paused tasks first (to use restore files)
+- Grace period (`agent_considered_offline_time`, default 30 min) via `paused_at` column: within the period, only the original agent can reclaim; after, any agent can. Tasks from offline/stopped agents are available immediately.
+- When reclaiming a paused task whose attack was also paused (shutdown cascade), the attack is resumed automatically
 - Agents submit status updates via `POST /api/v1/client/tasks/:id/submit_status`
 - Agents submit cracks via `POST /api/v1/client/tasks/:id/submit_crack`
 
