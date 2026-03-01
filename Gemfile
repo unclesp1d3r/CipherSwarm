@@ -100,6 +100,6 @@ gem "simple_form", "~> 5.3"
 gem "state_machines-activerecord", "~> 0.9"
 gem "store_model", "~> 4.5"
 gem "thruster", "~> 0.1"
-gem "view_component", "~> 4.4"
+gem "view_component", "~> 4.5"
 
 gem "openssl", "~> 4.0"
