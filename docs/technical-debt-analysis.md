@@ -11,12 +11,12 @@
 **Key Findings**:
 
 - 70 skipped/pending tests representing deferred test coverage
-- 5 major dependency updates available (security & performance benefits)
+- 4 major dependency updates available (security & performance benefits)
 - 3 God classes requiring refactoring (Attack: 678 lines, Agent: 428 lines, Task: 363 lines)
 - Change hotspots indicate fragile areas (Task & Agent models)
 - Overall code quality is **good** (0 security warnings, 0 TODO markers)
 
-**Recommended Investment**: 320 hours over 6 months **Expected ROI**: 185% over 12 months **Priority**: Address skipped tests and God classes first
+**Recommended Investment**: 256 hours over 6 months **Expected ROI**: 153% over 12 months **Priority**: Address skipped tests and God classes first
 
 ---
 
@@ -180,34 +180,30 @@ Uncovered code paths = increased bug risk
 
 #### 🟡 Medium: Outdated Major Versions
 
-| Gem                | Current | Latest | Lag         | Security Risk | Performance Gain          |
-| ------------------ | ------- | ------ | ----------- | ------------- | ------------------------- |
-| **pagy**           | 8.6.3   | 43.2.3 | 34 versions | Low           | Significant (~30% faster) |
-| **rspec-rails**    | 6.1.5   | 8.0.2  | 2 major     | Low           | Better syntax, faster     |
-| **sidekiq**        | 7.3.10  | 8.1.0  | 1 major     | Low           | Better monitoring         |
-| **sidekiq-cron**   | 1.12.0  | 2.3.1  | 1 major     | Low           | Improved scheduling       |
-| **store_model**    | 2.4.0   | 4.4.0  | 2 major     | Low           | Better JSON handling      |
-| **view_component** | 3.24.0  | 4.2.0  | 1 major     | Low           | Performance improvements  |
+| Gem                | Current | Latest | Lag       | Security Risk | Performance Gain         |
+| ------------------ | ------- | ------ | --------- | ------------- | ------------------------ |
+| **rspec-rails**    | 6.1.5   | 8.0.2  | 2 major   | Low           | Better syntax, faster    |
+| **sidekiq**        | 7.3.10  | 8.1.0  | 1 major   | Low           | Better monitoring        |
+| **sidekiq-cron**   | 1.12.0  | 2.3.1  | 1 major   | Low           | Improved scheduling      |
+| **store_model**    | 2.4.0   | 4.4.0  | 2 major   | Low           | Better JSON handling     |
+| **view_component** | 4.5.0   | 4.5.0  | Current   | N/A           | ✅ Up-to-date            |
 
-**Total Outdated**: 6 major version updates
+**Total Outdated**: 4 major version updates
 
 **Impact**:
 
-- Missing performance improvements (especially pagy)
 - Missing security patches
 - Harder to upgrade later (debt compounds)
 
 **Effort**:
 
-- pagy upgrade: 8 hours (pagination changes)
 - rspec-rails: 12 hours (test syntax updates)
 - sidekiq: 6 hours (config changes)
-- Others: 10 hours total
-- **Total**: 36 hours
+- Others: 8 hours total
+- **Total**: 26 hours
 
 **Benefits**:
 
-- 30% pagination performance improvement
 - Better test tooling (rspec 8)
 - Improved background job monitoring
 - Reduced future upgrade cost
@@ -312,7 +308,7 @@ Code_Quality_Metrics:
     low_risk_files: majority
 
 Dependency_Health:
-  outdated_major: 6
+  outdated_major: 4
   outdated_minor: 14
   security_vulnerabilities: 0  # ✅ Excellent
   deprecated_apis: 0           # ✅ Good
@@ -340,6 +336,8 @@ Recent Improvements (Last 3 Months):
 ✅ Authorization centralized (CanCanCan)
 ✅ N+1 queries eliminated (eager loading)
 ✅ 40+ tests added
+✅ Pagy upgraded to 43.3.1 (performance improvements)
+✅ view_component upgraded to 4.5.0 (bug fixes)
 
 Debt Reduction: ~15% in last quarter
 Projection: If current pace continues, debt score will reach 5.0 (Good) in 6 months
@@ -371,26 +369,7 @@ ROI:
 - Payback: <1 month
 ```
 
-#### Task 1.2: Upgrade pagy (Performance Win)
-
-```
-Effort: 8 hours
-Impact: 30% pagination performance improvement
-
-Steps:
-1. Read pagy 43.x migration guide
-2. Update Gemfile
-3. Fix breaking changes (pagination helpers)
-4. Test all paginated views
-5. Deploy
-
-ROI:
-- User experience improvement
-- Faster list pages (campaigns, tasks, agents)
-- Sets foundation for other upgrades
-```
-
-#### Task 1.3: Extract Attack Complexity Calculator
+#### Task 1.2: Extract Attack Complexity Calculator
 
 ```
 Effort: 12 hours
@@ -409,7 +388,7 @@ Benefits:
 - Reduces coupling
 ```
 
-**Phase 1 Total**: 48 hours **Phase 1 Savings**: $5,400/month (ROI positive immediately)
+**Phase 1 Total**: 40 hours **Phase 1 Savings**: $3,000/month (ROI positive after 2 months)
 
 ---
 
@@ -557,12 +536,11 @@ Benefits:
 #### Task 3.4: Remaining Dependency Upgrades
 
 ```
-Effort: 10 hours
+Effort: 8 hours
 Impact: Up-to-date dependencies
 
 Upgrades:
 - store_model 2 → 4
-- view_component 3 → 4
 - sidekiq-cron 1 → 2
 - Minor version updates
 
@@ -570,9 +548,11 @@ Benefits:
 - Latest features
 - Security patches
 - Future-proof
+
+Note: view_component upgrade completed (4.5.0)
 ```
 
-**Phase 3 Total**: 110 hours **Phase 3 Savings**: $2,100/month (long-term stability)
+**Phase 3 Total**: 108 hours **Phase 3 Savings**: $2,100/month (long-term stability)
 
 ---
 
@@ -580,12 +560,12 @@ Benefits:
 
 | Phase                 | Duration     | Effort             | Monthly Savings | Cumulative ROI       |
 | --------------------- | ------------ | ------------------ | --------------- | -------------------- |
-| Phase 1 (Quick Wins)  | 2 weeks      | 48h ($7,200)       | $5,400          | 175% (1 month)       |
+| Phase 1 (Quick Wins)  | 2 weeks      | 40h ($6,000)       | $3,000          | 100% (2 months)      |
 | Phase 2 (Medium-term) | 2 months     | 108h ($16,200)     | $3,000          | 115% (3-4 months)    |
-| Phase 3 (Long-term)   | 4 months     | 110h ($16,500)     | $2,100          | 75% (6-7 months)     |
-| **Total**             | **6 months** | **266h ($39,900)** | **$10,500**     | **185% (12 months)** |
+| Phase 3 (Long-term)   | 4 months     | 108h ($16,200)     | $2,100          | 78% (6-7 months)     |
+| **Total**             | **6 months** | **256h ($38,400)** | **$8,100**      | **153% (12 months)** |
 
-**Annual Savings**: $126,000 **Net Benefit (Year 1)**: $86,100
+**Annual Savings**: $97,200 **Net Benefit (Year 1)**: $58,800
 
 ---
 
@@ -829,7 +809,6 @@ Track These Metrics:
 
 - [ ] Complete Phase 1 (Quick Wins)
 - [ ] Reduce skipped tests to 40 (from 70)
-- [ ] Upgrade pagy to 43.x
 - [ ] Extract AttackComplexityCalculator
 
 **Q2 2026 Goals**:
@@ -882,14 +861,14 @@ end
 
 ```bash
 # Always create rollback commit
-git commit -m "feat: upgrade pagy to 43.x"
+git commit -m "feat: upgrade sidekiq to 8.x"
 # Tag before deployment
-git tag before-pagy-upgrade
+git tag before-sidekiq-upgrade
 
 # Rollback if needed:
 git revert <commit-hash>
 # Or
-git reset --hard before-pagy-upgrade
+git reset --hard before-sidekiq-upgrade
 ```
 
 ---
@@ -907,19 +886,19 @@ Current Debt Score: 6.2/10 (Medium)
 Trend: ↓ Improving (-0.3 from Dec)
 
 This Month:
-✅ Completed: Attack complexity extraction
+✅ Completed: Pagy upgrade to 43.3.1
 ✅ Completed: 20 skipped tests implemented
-🔄 In Progress: Pagy upgrade
+🔄 In Progress: Attack complexity extraction
 
 Next Month:
 - Attack model refactoring (reduce 40%)
 - Additional test coverage (+10%)
-- Dependency upgrades
+- Remaining dependency upgrades
 
 ROI Update:
-- Investment YTD: $12,000
-- Savings realized: $8,100
-- On track for 185% annual ROI
+- Investment YTD: $10,000
+- Savings realized: $6,000
+- On track for 150% annual ROI
 ```
 
 ### 9.2 Developer Communication
@@ -955,7 +934,7 @@ Next week focus:
 
 - 70 skipped tests represent significant risk
 - 3 God classes slow development
-- 6 major dependency updates overdue
+- 4 major dependency updates overdue
 - Test coverage below industry standard
 
 **Critical Risks** 🔴:
@@ -977,8 +956,7 @@ Next week focus:
 
 1. Complete Phase 1 (Quick Wins)
 2. Reduce skipped tests by 30% (70 → 50)
-3. Upgrade pagy for immediate performance gain
-4. Extract first service (AttackComplexityCalculator)
+3. Extract first service (AttackComplexityCalculator)
 
 **Quarter 1 Goals**:
 
@@ -997,7 +975,7 @@ Next week focus:
 - ✅ All God classes refactored (\<300 lines)
 - ✅ All dependencies up-to-date
 - ✅ 35% improvement in development velocity
-- ✅ $126,000 annual savings realized
+- ✅ $97,200 annual savings realized
 
 ---
 
@@ -1019,7 +997,6 @@ Next week focus:
 
 See detailed upgrade paths for each major version update in separate documents:
 
-- `docs/upgrades/pagy-43-migration.md` (to be created)
 - `docs/upgrades/rspec-8-migration.md` (to be created)
 - `docs/upgrades/sidekiq-8-migration.md` (to be created)
 
