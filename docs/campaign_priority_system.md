@@ -271,7 +271,7 @@ Tasks preserve progress when preempted:
 
 ### Setting Priority via API
 
-```json
+```http
 POST /campaigns
 {
   "campaign": {
@@ -292,7 +292,7 @@ POST /campaigns
 
 ### Checking Campaign Status
 
-```json
+```http
 GET /campaigns/{id}
 {
   "id": 123,
