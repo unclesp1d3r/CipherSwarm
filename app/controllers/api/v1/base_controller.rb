@@ -53,7 +53,7 @@ class Api::V1::BaseController < ApplicationController
   rescue_from ActiveRecord::RecordNotUnique do |e|
     agent_id = @agent&.id || "unknown"
     Rails.logger.error("[APIError] DUPLICATE_RECORD - Agent #{agent_id} - #{request.method} #{request.path} - Error: #{e.message} - #{Time.current}")
-    render json: { error: "Duplicate record", details: e.message }, status: :conflict
+    render json: { error: "Duplicate record" }, status: :conflict
   end
 
   private
@@ -78,8 +78,6 @@ class Api::V1::BaseController < ApplicationController
   def authenticate_agent_with_token
     authenticate_with_http_token do |token, _options|
       @agent = Agent.find_by(token: token)
-      update_last_seen
-      @agent # Explicitly return agent for authenticate_with_http_token
     end
   end
 

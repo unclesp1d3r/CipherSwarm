@@ -1104,4 +1104,42 @@ RSpec.describe "api/v1/client/agents" do
       end
     end
   end
+
+  describe "submit_error metadata size validation" do
+    let(:agent) { create(:agent) }
+    let(:headers) { { "Authorization" => "Bearer #{agent.token}", "Content-Type" => "application/json" } }
+
+    context "when metadata exceeds 10KB" do
+      it "returns bad_request with metadata too large error" do
+        large_metadata = { data: "x" * 11_000 }
+
+        post "/api/v1/client/agents/#{agent.id}/submit_error",
+             headers: headers,
+             params: {
+               message: "test error",
+               severity: "info",
+               metadata: large_metadata
+             }.to_json
+
+        expect(response).to have_http_status(:bad_request)
+        expect(response.parsed_body["error"]).to eq("Metadata too large (maximum 10KB)")
+      end
+    end
+
+    context "when metadata is within 10KB limit" do
+      it "accepts the error submission" do
+        small_metadata = { error_date: Time.zone.now, key: "value" }
+
+        post "/api/v1/client/agents/#{agent.id}/submit_error",
+             headers: headers,
+             params: {
+               message: "test error",
+               severity: "info",
+               metadata: small_metadata
+             }.to_json
+
+        expect(response).to have_http_status(:no_content)
+      end
+    end
+  end
 end
