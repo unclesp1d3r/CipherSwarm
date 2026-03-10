@@ -112,16 +112,14 @@ class TaskPreemptionService
     # Filter out tasks that shouldn't be preempted
     error_count = 0
     preemptable_tasks = lower_priority_tasks.select do |task|
-      begin
-        task.preemptable?
-      rescue StandardError => e
-        error_count += 1
-        Rails.logger.error(
-          "[TaskPreemption] Error checking if task #{task.id} is preemptable: " \
-          "#{e.message} - Backtrace: #{Array(e.backtrace).first(5).join(' | ')}"
-        )
-        false
-      end
+      task.preemptable?
+    rescue StandardError => e
+      error_count += 1
+      Rails.logger.error(
+        "[TaskPreemption] Error checking if task #{task.id} is preemptable: " \
+        "#{e.message} - Backtrace: #{Array(e.backtrace).first(5).join(' | ')}"
+      )
+      false
     end
 
     if preemptable_tasks.empty? && error_count.positive?
