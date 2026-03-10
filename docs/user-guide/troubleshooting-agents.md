@@ -547,7 +547,69 @@ Common task errors and their solutions:
 
 ## Common Scenarios
 
-### Scenario 1: Attack Abandoned While Agent Processing
+### Scenario 1: Task Acceptance Failures (404 vs Other Errors)
+
+This scenario describes what happens when an agent tries to accept a task but encounters an error.
+
+#### 404 During Task Acceptance
+
+**Symptoms:**
+
+- Agent requests a new task from server
+- Agent receives task assignment
+- Agent attempts to accept task via `/tasks/{id}/accept_task`
+- Server responds with 404 Not Found
+- Error type: `ErrTaskAcceptNotFound`
+
+**Cause:**
+
+This is a normal race condition when multiple agents compete for the same task. The task was deleted between when it was offered and when the agent tried to accept it. Another agent may have claimed it first, or the attack was abandoned.
+
+**Agent Behavior:**
+
+1. Immediately abandons the local task reference
+2. Does NOT call the abandon endpoint (task already deleted on server)
+3. Performs local cleanup only (removes downloaded files)
+4. Returns to waiting state without delay
+5. Requests next available task immediately
+
+**This is not an error condition** - it's expected behavior in a multi-agent environment. No troubleshooting needed.
+
+**Troubleshooting Tip:** If agents appear to skip tasks rapidly, check server logs for 404s on `accept_task` - this indicates healthy competition for tasks, not a problem.
+
+#### Other Errors During Task Acceptance
+
+**Symptoms:**
+
+- Agent attempts to accept task
+- Server returns 5xx error, network timeout, or other non-404 failure
+- Error type: `ErrTaskAcceptFailed`
+
+**Cause:**
+
+Genuine failure during task acceptance:
+
+- Server experiencing issues (500, 503 errors)
+- Network connectivity problems
+- Invalid task state on server
+- Database errors
+
+**Agent Behavior:**
+
+1. Calls abandon endpoint to notify server (uses `context.Background()` - must complete)
+2. Performs local cleanup
+3. Sleeps for configured `SleepOnFailure` duration
+4. Returns to waiting state
+5. Server makes task available to other agents
+
+**Troubleshooting:**
+
+- Check server health and logs
+- Verify network connectivity
+- Review agent error logs for specific failure details
+- Monitor for persistent failures that might indicate configuration issues
+
+### Scenario 2: Attack Abandoned While Agent Processing
 
 **Symptoms:**
 
@@ -579,6 +641,8 @@ Server abandoned the attack, destroying all associated tasks. Common reasons:
 4. Agent requests new task via `GET /api/v1/client/tasks/new`
 5. Agent continues with new work
 
+**Important:** The retry behavior (exponential backoff, 3 attempts) applies to 404s **during task execution** (submit_status, etc.). 404s **during task acceptance** are handled immediately without retries to prevent infinite retry loops.
+
 **Prevention:**
 
 - Monitor campaign priorities
@@ -586,7 +650,7 @@ Server abandoned the attack, destroying all associated tasks. Common reasons:
 - Implement graceful handling of stale task detection
 - Check task status before expensive operations
 
-### Scenario 2: Network Interruption Causing Stale References
+### Scenario 3: Network Interruption Causing Stale References
 
 **Symptoms:**
 
@@ -626,7 +690,7 @@ During network outage:
 - Re-authenticate after network issues
 - Implement connection retry logic with backoff
 
-### Scenario 3: Multiple Agents Competing for Same Task
+### Scenario 4: Multiple Agents Competing for Same Task
 
 **Symptoms:**
 
@@ -662,7 +726,7 @@ During network outage:
 - Implement atomic task claiming logic on server
 - Monitor for frequent task conflicts
 
-### Scenario 4: Server Restart Causing Task Reassignment
+### Scenario 5: Server Restart Causing Task Reassignment
 
 **Symptoms:**
 
