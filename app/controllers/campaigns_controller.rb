@@ -20,7 +20,7 @@ class CampaignsController < ApplicationController
 
   # GET /campaigns or /campaigns.json
   def index
-    @campaigns = @campaigns.by_priority
+    @campaigns = @campaigns.includes(:project, :hash_list, :attacks).by_priority
   end
 
   # GET /campaigns/1 or /campaigns/1.json

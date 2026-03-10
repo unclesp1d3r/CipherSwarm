@@ -31,13 +31,16 @@ module Downloadable
     @resource = resource_class.find(params[:id])
     authorize! :view_file_content, @resource
 
-    max_lines = (params[:limit].presence || 1000).to_i
+    max_lines = [(params[:limit].presence || 1000).to_i, 5000].min
+    lines = []
     @resource.file.blob.open do |file|
-      @file_content = file.read
+      file.each_line do |line|
+        break if lines.size >= max_lines
+
+        lines << line
+      end
     end
-    if @file_content.lines.count > max_lines
-      @file_content = @file_content.lines.first(max_lines).join
-    end
+    @file_content = lines.join
     render turbo_stream: turbo_stream.replace(:file_content,
                                               partial: "shared/attack_resource/file_content",
                                               locals: { file_content: @file_content })

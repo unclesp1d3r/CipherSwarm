@@ -47,7 +47,7 @@ class UpdateStatusJob < ApplicationJob
   private
 
   def abandon_inactive_tasks
-    Task.with_state(:running).inactive_for(ApplicationConfig.task_considered_abandoned_age).each { |task| task.abandon }
+    Task.with_state(:running).inactive_for(ApplicationConfig.task_considered_abandoned_age).find_each(&:abandon)
   end
 
   ##

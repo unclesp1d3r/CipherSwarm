@@ -178,7 +178,7 @@ class Agent < ApplicationRecord
     end
 
     after_transition on: :shutdown do |agent|
-      running_tasks = agent.tasks.with_states(:running)
+      running_tasks = agent.tasks.with_states(:running).includes(:attack)
       paused_count = running_tasks.count
 
       Rails.logger.info(
@@ -317,7 +317,7 @@ class Agent < ApplicationRecord
   end
 
   def current_running_attack
-    tasks.running.order(:id).first&.attack
+    tasks.running.includes(:attack).order(:id).first&.attack
   end
 
   # Returns the name of the agent.
