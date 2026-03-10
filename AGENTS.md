@@ -476,7 +476,7 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 
 - Campaign priority enum: deferred (-1) → normal (0) → high (2)
 - Higher priority campaigns use intelligent preemption to acquire resources from lower priority ones
-- Callback `pause_lower_priority_campaigns` in Campaign model
+- Callback `trigger_priority_rebalance_if_needed` enqueues `CampaignPriorityRebalanceJob` when priority is raised
 
 **Task Action State Requirements (TaskActionsComponent):**
 

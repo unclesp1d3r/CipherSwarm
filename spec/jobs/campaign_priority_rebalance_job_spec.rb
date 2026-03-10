@@ -123,6 +123,34 @@ RSpec.describe CampaignPriorityRebalanceJob do
       end
     end
 
+    context "when a per-attack database error occurs" do
+      let!(:attack) { create(:dictionary_attack, campaign: campaign) }
+
+      before do
+        create(:hash_item, hash_list: campaign.hash_list, plain_text: nil)
+      end
+
+      it "propagates ConnectionNotEstablished for Sidekiq retry" do
+        service = instance_double(TaskPreemptionService)
+        allow(TaskPreemptionService).to receive(:new).with(attack).and_return(service)
+        allow(service).to receive(:preempt_if_needed)
+          .and_raise(ActiveRecord::ConnectionNotEstablished.new("connection lost"))
+
+        expect { described_class.new.perform(campaign.id) }
+          .to raise_error(ActiveRecord::ConnectionNotEstablished)
+      end
+
+      it "propagates StatementInvalid for Sidekiq retry" do
+        service = instance_double(TaskPreemptionService)
+        allow(TaskPreemptionService).to receive(:new).with(attack).and_return(service)
+        allow(service).to receive(:preempt_if_needed)
+          .and_raise(ActiveRecord::StatementInvalid.new("PG::Error"))
+
+        expect { described_class.new.perform(campaign.id) }
+          .to raise_error(ActiveRecord::StatementInvalid)
+      end
+    end
+
     context "when the campaign has no incomplete attacks" do
       before do
         create(:dictionary_attack, campaign: campaign, state: "completed")

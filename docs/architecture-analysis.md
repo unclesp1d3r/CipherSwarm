@@ -133,7 +133,7 @@ app/models/concerns/
 
 **Background Jobs** (Simple ✅):
 
-- 6 jobs: ProcessHashList, CalculateMaskComplexity, CountFileLines, UpdateStatus, CampaignPriorityRebalance
+- 6 jobs: ProcessHashList, CalculateMaskComplexity, CountFileLines, UpdateStatus, CampaignPriorityRebalance, DataCleanup
 - Using Sidekiq with Sidekiq-Cron for scheduling
 - Clean job boundaries
 - `CampaignPriorityRebalanceJob`: Event-driven task preemption triggered when campaign priority increases (after_commit callback pattern)

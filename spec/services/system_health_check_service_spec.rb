@@ -261,7 +261,8 @@ RSpec.describe SystemHealthCheckService do
         allow(Rails.application.config).to receive(:respond_to?).and_call_original
         allow(Rails.application.config).to receive(:respond_to?).with(:booted_at).and_return(true)
         # Use exact seconds to avoid DST boundary issues with duration subtraction
-        allow(Rails.application.config).to receive(:booted_at).and_return(Time.current - 2.days.to_i - 3.hours.to_i - 15.minutes.to_i)
+        boot_time = Time.current - 2.days.to_i - 3.hours.to_i - 15.minutes.to_i
+        allow(Rails.application.config).to receive(:booted_at).and_return(boot_time)
       end
 
       it "formats with days, hours, and minutes" do

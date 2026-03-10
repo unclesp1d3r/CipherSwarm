@@ -92,9 +92,10 @@ class TaskPreemptionService
   # The chosen task must belong to a campaign with a strictly lower priority than the current attack's
   # campaign and respond true to `preemptable?`. When multiple candidates exist, the task with the
   # lowest campaign priority and then the smallest progress percentage (least complete) is returned.
-  # If no suitable task is found or an error occurs while evaluating candidates, `nil` is returned
-  # (errors are logged).
-  # @return [Task, nil] The task to preempt, or `nil` if none suitable or an error occurred.
+  # Returns `nil` when no suitable task is found. Per-candidate errors during `preemptable?` checks
+  # are logged and the candidate is skipped; if ALL candidates error, a warning is logged. Unexpected
+  # errors from the outer query or sorting are re-raised for the caller to handle.
+  # @return [Task, nil] The task to preempt, or `nil` if none suitable.
   def find_preemptable_task
     # Get all running tasks from lower-priority campaigns in the same project.
     # Pre-filter preemption_count in SQL to avoid loading tasks that can never be preempted.
