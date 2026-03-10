@@ -208,13 +208,15 @@ RSpec.describe UpdateStatusJob do
 
       it "skips attacks with zero uncracked hashes" do
         high_campaign = create(:campaign, project: project, priority: :high)
+        create(:dictionary_attack, campaign: high_campaign)
 
-        # All hashes cracked — uncracked_count is zero
-        high_attack = create(:dictionary_attack, campaign: high_campaign)
+        allow_any_instance_of(HashList).to receive(:uncracked_count).and_return(0) # rubocop:disable RSpec/AnyInstance
 
-        allow(TaskPreemptionService).to receive(:new)
+        service_double = instance_double(TaskPreemptionService)
+        allow(TaskPreemptionService).to receive(:new).and_return(service_double)
+        allow(service_double).to receive(:preempt_if_needed)
 
-        described_class.new.perform
+        described_class.new.send(:rebalance_task_assignments)
 
         expect(TaskPreemptionService).not_to have_received(:new)
       end
