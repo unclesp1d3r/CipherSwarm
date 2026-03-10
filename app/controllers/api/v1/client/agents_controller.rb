@@ -191,6 +191,11 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
       return
     end
 
+    if params[:metadata].present? && params[:metadata].to_json.bytesize > 10_000
+      render json: { error: "Metadata too large (maximum 10KB)" }, status: :bad_request
+      return
+    end
+
     error_record = @agent.agent_errors.new
     error_record.message = params[:message]
 

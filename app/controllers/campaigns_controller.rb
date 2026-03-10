@@ -16,6 +16,7 @@
 class CampaignsController < ApplicationController
   before_action :authenticate_user!
   load_and_authorize_resource
+  skip_load_resource only: :toggle_paused
   before_action :set_hash_lists, only: %i[new edit create update]
 
   # GET /campaigns or /campaigns.json
@@ -132,6 +133,7 @@ class CampaignsController < ApplicationController
     else
       @campaign.pause
     end
+    redirect_to campaign_path(@campaign)
   end
 
   private

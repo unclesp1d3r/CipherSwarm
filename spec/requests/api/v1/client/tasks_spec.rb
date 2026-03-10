@@ -975,4 +975,66 @@ RSpec.describe "api/v1/client/tasks" do
       end
     end
   end
+
+  describe "RecordNotUnique error handling" do
+    let(:agent) { create(:agent) }
+    let(:attack) { create(:dictionary_attack) }
+    let(:task) { create(:task, agent: agent, attack: attack, state: "running") }
+    let(:headers) { { "Authorization" => "Bearer #{agent.token}", "Content-Type" => "application/json" } }
+
+    it "returns conflict with generic Duplicate record message" do
+      allow(Rails.logger).to receive(:error)
+
+      # Stub the controller action to raise RecordNotUnique
+      allow_any_instance_of(Api::V1::Client::TasksController).to receive(:submit_status) # rubocop:disable RSpec/AnyInstance
+        .and_raise(ActiveRecord::RecordNotUnique.new("Duplicate entry"))
+
+      post "/api/v1/client/tasks/#{task.id}/submit_status",
+           headers: headers,
+           params: {}.to_json
+
+      expect(response).to have_http_status(:conflict)
+      expect(response.parsed_body["error"]).to eq("Duplicate record")
+    end
+  end
+
+  describe "submit_crack parameter validation" do
+    let(:agent) { create(:agent) }
+    let(:attack) { create(:dictionary_attack) }
+    let(:task) { create(:task, agent: agent, attack: attack, state: "running") }
+    let(:headers) { { "Authorization" => "Bearer #{agent.token}", "Content-Type" => "application/json" } }
+
+    context "when hash parameter is missing" do
+      it "returns bad_request with missing parameters error" do
+        post "/api/v1/client/tasks/#{task.id}/submit_crack",
+             headers: headers,
+             params: { plain_text: "plaintext" }.to_json
+
+        expect(response).to have_http_status(:bad_request)
+        expect(response.parsed_body["error"]).to include("Missing required parameters")
+      end
+    end
+
+    context "when plain_text parameter is missing" do
+      it "returns bad_request with missing parameters error" do
+        post "/api/v1/client/tasks/#{task.id}/submit_crack",
+             headers: headers,
+             params: { hash: "somehash" }.to_json
+
+        expect(response).to have_http_status(:bad_request)
+        expect(response.parsed_body["error"]).to include("Missing required parameters")
+      end
+    end
+
+    context "when both hash and plain_text are blank" do
+      it "returns bad_request with missing parameters error" do
+        post "/api/v1/client/tasks/#{task.id}/submit_crack",
+             headers: headers,
+             params: { hash: "", plain_text: "" }.to_json
+
+        expect(response).to have_http_status(:bad_request)
+        expect(response.parsed_body["error"]).to include("Missing required parameters")
+      end
+    end
+  end
 end
