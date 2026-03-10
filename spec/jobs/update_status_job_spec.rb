@@ -206,6 +206,19 @@ RSpec.describe UpdateStatusJob do
         expect(running_task_1.reload.stale).to be true
       end
 
+      it "skips attacks with zero uncracked hashes" do
+        high_campaign = create(:campaign, project: project, priority: :high)
+
+        # All hashes cracked — uncracked_count is zero
+        high_attack = create(:dictionary_attack, campaign: high_campaign)
+
+        allow(TaskPreemptionService).to receive(:new)
+
+        described_class.new.perform
+
+        expect(TaskPreemptionService).not_to have_received(:new)
+      end
+
       it "does not preempt when nodes are available" do
         high_campaign = create(:campaign, project: project, priority: :high)
         normal_campaign = create(:campaign, project: project, priority: :normal)
