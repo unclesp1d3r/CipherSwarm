@@ -69,9 +69,7 @@ end
 gem "active_storage_validations", "~> 3.0"
 gem "administrate", "~> 1.0"
 gem "administrate-field-active_storage", "~> 1.0"
-# gem "administrate-field-enum" # Temporarily disabled - incompatible with Rails 8
 gem "administrate-field-jsonb", "~> 0.4"
-# gem "administrate-field-nested_has_many" # Temporarily disabled - incompatible with administrate 1.0
 gem "anyway_config", "~> 2.6"
 gem "ar_lazy_preload", "~> 2.1"
 gem "audited", "~> 5.5"
