@@ -47,7 +47,7 @@ group :development, :test do
 
   # Rubocop extensions
   gem "rswag-specs", github: "rswag/rswag", branch: "master", require: false
-  gem "rubocop", "~> 1.82", require: false
+  gem "rubocop", "~> 1.85", require: false
   gem "rubocop-capybara", "~> 2.22", require: false
   gem "rubocop-factory_bot", "~> 2.28", require: false
   gem "rubocop-ordered_methods", "~> 0.14", require: false
