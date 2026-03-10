@@ -347,7 +347,7 @@ RSpec.describe TaskPreemptionService do
         result = service.preempt_if_needed
 
         expect(result).to be_nil
-        expect(Rails.logger).to have_received(:warn).with(/All \d+ candidate tasks raised errors/)
+        expect(Rails.logger).to have_received(:warn).with(/No preemptable tasks found.*\d+ of \d+ candidate\(s\) raised errors/)
       end
     end
 
