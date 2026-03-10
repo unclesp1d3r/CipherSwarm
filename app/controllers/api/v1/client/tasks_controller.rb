@@ -182,6 +182,11 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
   # @return [nil] if any error occurs or when completing the process successfully. Renders appropriate responses.
   def submit_crack
     hash = params[:hash]
+    if hash.blank? || params[:plain_text].blank?
+      render json: { error: "Missing required parameters: hash and plain_text are required" }, status: :bad_request
+      return
+    end
+
     Rails.logger.info("[Agent #{@agent.id}] Task #{@task.id} - Submitting crack for hash: #{hash[0..15]}...")
 
     result = CrackSubmissionService.new(

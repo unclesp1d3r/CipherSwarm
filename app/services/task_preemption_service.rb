@@ -96,7 +96,8 @@ class TaskPreemptionService
   # (errors are logged).
   # @return [Task, nil] The task to preempt, or `nil` if none suitable or an error occurred.
   def find_preemptable_task
-    # Get all running tasks from lower-priority campaigns in the same project
+    # Get all running tasks from lower-priority campaigns in the same project.
+    # Pre-filter preemption_count in SQL to avoid loading tasks that can never be preempted.
     priority_value = Campaign.priorities[attack.campaign.priority.to_sym]
     lower_priority_tasks = Task.with_state(:running)
                                .joins(attack: :campaign)
@@ -104,6 +105,7 @@ class TaskPreemptionService
                                # rubocop:disable Rails/WhereRange
                                .where("campaigns.priority < ?", priority_value)
                                # rubocop:enable Rails/WhereRange
+                               .where("COALESCE(tasks.preemption_count, 0) < 2")
                                .includes(attack: :campaign)
                                .includes(:hashcat_statuses)
 

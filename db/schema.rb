@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_27_044751) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_10_033817) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -213,6 +213,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_27_044751) do
     t.datetime "updated_at", null: false
     t.index ["attack_id"], name: "index_hash_items_on_attack_id"
     t.index ["cracked_time"], name: "index_hash_items_on_cracked_time"
+    t.index ["hash_list_id", "attack_id"], name: "index_hash_items_on_hash_list_id_and_attack_id"
     t.index ["hash_list_id"], name: "index_hash_items_on_hash_list_id"
     t.index ["hash_value", "cracked"], name: "index_hash_items_on_hash_value_and_cracked"
     t.index ["hash_value", "hash_list_id"], name: "index_hash_items_on_hash_value_and_hash_list_id"
@@ -505,6 +506,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_27_044751) do
     t.index ["activity_timestamp"], name: "index_tasks_on_activity_timestamp"
     t.index ["agent_id", "state"], name: "index_tasks_on_agent_id_and_state"
     t.index ["agent_id"], name: "index_tasks_on_agent_id"
+    t.index ["attack_id", "state"], name: "index_tasks_on_attack_id_and_state"
     t.index ["attack_id"], name: "index_tasks_on_attack_id"
     t.index ["claimed_by_agent_id"], name: "index_tasks_on_claimed_by_agent_id"
     t.index ["expires_at"], name: "index_tasks_on_expires_at"

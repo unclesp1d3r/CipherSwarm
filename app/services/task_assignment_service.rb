@@ -321,7 +321,7 @@ class TaskAssignmentService
   #
   # @return [Array<Integer>] array of allowed hash type IDs
   def allowed_hash_type_ids
-    Rails.cache.fetch("#{agent.cache_key_with_version}/allowed_hash_types", expires_in: 1.hour) do
+    @allowed_hash_type_ids ||= Rails.cache.fetch("#{agent.cache_key_with_version}/allowed_hash_types", expires_in: 1.hour) do
       HashType.where(hashcat_mode: agent.allowed_hash_types).pluck(:id)
     end
   end

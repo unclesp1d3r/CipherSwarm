@@ -21,6 +21,8 @@
 # @param id [Integer] the ID of the record to process
 # @param type [String] the class name of the record to process
 class CountFileLinesJob < ApplicationJob
+  ALLOWED_TYPES = %w[WordList RuleList MaskList HashList].freeze
+
   queue_as :ingest
   retry_on ActiveStorage::FileNotFoundError, wait: :polynomially_longer, attempts: 3
   discard_on ActiveRecord::RecordNotFound
@@ -34,6 +36,11 @@ class CountFileLinesJob < ApplicationJob
   # This method finds the record by its ID and type, checks if it has already been processed or if the file is missing,
   # and if not, it opens the file, counts the number of lines, and updates the record with the line count and marks it as processed.
   def perform(id, type)
+    unless ALLOWED_TYPES.include?(type)
+      Rails.logger.error("[CountFileLinesJob] Invalid type '#{type}' - must be one of #{ALLOWED_TYPES.join(', ')}")
+      return
+    end
+
     klass = type.constantize
     record = klass.find_by(id: id)
     return if record.nil?

@@ -16,7 +16,9 @@ class AgentsController < ApplicationController
   load_and_authorize_resource
 
   # GET /agents or /agents.json
-  def index; end
+  def index
+    @agents = @agents.includes(:projects)
+  end
 
   # GET /agents/cards
   # Returns agent cards for turbo frame lazy loading

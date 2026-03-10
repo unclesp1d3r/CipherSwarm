@@ -199,6 +199,8 @@ RSpec.describe Campaign do
   describe "#trigger_priority_rebalance_if_needed" do
     include ActiveJob::TestHelper
 
+    before { ActiveJob::Base.queue_adapter = :test }
+
     let(:campaign) { create(:campaign, priority: :normal) }
 
     after { clear_enqueued_jobs }

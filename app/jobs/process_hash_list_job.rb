@@ -163,30 +163,37 @@ class ProcessHashListJob < ApplicationJob
 
       # Update any items that should be marked as cracked
       if cracked_hashes.any?
-        updates = []
+        now = Time.zone.now
+        cracked_ids = []
+        update_values = {}
+
         inserted_items.each do |inserted|
           if (cracked = cracked_hashes[inserted["hash_value"]])
-            updates << {
-              id: inserted["id"],
+            item_id = inserted["id"]
+            cracked_ids << item_id
+            update_values[item_id] = {
               plain_text: cracked.plain_text,
-              cracked: true,
-              cracked_time: Time.zone.now,
               attack_id: cracked.attack_id
             }
           end
         end
 
-        updates.each do |attrs|
+        if cracked_ids.any?
           # rubocop:disable Rails/SkipsModelValidations
-          # Intentionally skipping validations for performance during bulk update of cracked items
-          HashItem.where(id: attrs[:id]).update_all(
-            plain_text: attrs[:plain_text],
-            cracked: attrs[:cracked],
-            cracked_time: attrs[:cracked_time],
-            attack_id: attrs[:attack_id]
-          )
+          # Intentionally skipping validations for performance during bulk update of cracked items.
+          # Build upsert records for a single bulk UPDATE instead of N individual queries.
+          upsert_records = cracked_ids.map do |item_id|
+            {
+              id: item_id,
+              plain_text: update_values[item_id][:plain_text],
+              cracked: true,
+              cracked_time: now,
+              attack_id: update_values[item_id][:attack_id]
+            }
+          end
+          HashItem.upsert_all(upsert_records, update_only: %i[plain_text cracked cracked_time attack_id])
           # rubocop:enable Rails/SkipsModelValidations
-        end if updates.any?
+        end
       end
     end
   rescue ActiveRecord::StatementInvalid => e
