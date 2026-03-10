@@ -24,14 +24,6 @@ url = "https://github.com/rhysd/actionlint/releases/download/v1.7.11/actionlint_
 version = "1.3.10"
 backend = "core:bun"
 
-[tools.bun."platforms.linux-arm64"]
-checksum = "sha256:fa5ecb25cafa8e8f5c87a0f833719d46dd0af0a86c7837d806531212d55636d3"
-url = "https://github.com/oven-sh/bun/releases/download/bun-v1.3.10/bun-linux-aarch64.zip"
-
-[tools.bun."platforms.linux-arm64-musl"]
-checksum = "sha256:d2c81365a2e529b78a42330d3a0056e8dbd7896b4a6782c8e392b6532141e34d"
-url = "https://github.com/oven-sh/bun/releases/download/bun-v1.3.10/bun-linux-aarch64-musl.zip"
-
 [tools.bun."platforms.linux-x64"]
 checksum = "sha256:f57bc0187e39623de716ba3a389fda5486b2d7be7131a980ba54dc7b733d2e08"
 url = "https://github.com/oven-sh/bun/releases/download/bun-v1.3.10/bun-linux-x64.zip"
@@ -72,65 +64,23 @@ url = "https://github.com/oven-sh/bun/releases/download/bun-v1.3.10/bun-windows-
 version = "29.3.0"
 backend = "aqua:docker/cli"
 
-[tools.docker-cli."platforms.linux-arm64"]
-url = "https://download.docker.com/linux/static/stable/aarch64/docker-29.3.0.tgz"
-
-[tools.docker-cli."platforms.linux-arm64-musl"]
-url = "https://download.docker.com/linux/static/stable/aarch64/docker-29.3.0.tgz"
-
 [tools.docker-cli."platforms.linux-x64"]
 url = "https://download.docker.com/linux/static/stable/x86_64/docker-29.3.0.tgz"
 
-[tools.docker-cli."platforms.linux-x64-baseline"]
-url = "https://download.docker.com/linux/static/stable/x86_64/docker-29.3.0.tgz"
-
-[tools.docker-cli."platforms.linux-x64-musl"]
-url = "https://download.docker.com/linux/static/stable/x86_64/docker-29.3.0.tgz"
-
-[tools.docker-cli."platforms.linux-x64-musl-baseline"]
-url = "https://download.docker.com/linux/static/stable/x86_64/docker-29.3.0.tgz"
-
 [tools.docker-cli."platforms.macos-arm64"]
-checksum = "blake3:e0f987762cbcb9fa7640f4a5f8b58e0e534442d48cc293b8023a81291906ccac"
 url = "https://download.docker.com/mac/static/stable/aarch64/docker-29.3.0.tgz"
 
 [tools.docker-cli."platforms.macos-x64"]
 url = "https://download.docker.com/mac/static/stable/x86_64/docker-29.3.0.tgz"
 
-[tools.docker-cli."platforms.macos-x64-baseline"]
-url = "https://download.docker.com/mac/static/stable/x86_64/docker-29.3.0.tgz"
-
 [tools.docker-cli."platforms.windows-x64"]
-url = "https://download.docker.com/win/static/stable/x86_64/docker-29.3.0.zip"
-
-[tools.docker-cli."platforms.windows-x64-baseline"]
 url = "https://download.docker.com/win/static/stable/x86_64/docker-29.3.0.zip"
 
 [[tools.docker-compose]]
 version = "5.0.2"
 backend = "aqua:docker/compose"
 
-[tools.docker-compose."platforms.linux-arm64"]
-checksum = "sha256:ac7810e0cd56a5b58576688196fafa843e07e8241fb91018a736d549ea20a3f3"
-url = "https://github.com/docker/compose/releases/download/v5.0.2/docker-compose-linux-aarch64"
-
-[tools.docker-compose."platforms.linux-arm64-musl"]
-checksum = "sha256:ac7810e0cd56a5b58576688196fafa843e07e8241fb91018a736d549ea20a3f3"
-url = "https://github.com/docker/compose/releases/download/v5.0.2/docker-compose-linux-aarch64"
-
 [tools.docker-compose."platforms.linux-x64"]
-checksum = "sha256:2d880f723d3da7c779c54fdaea91a842fca8af55d1397f1ed8d7cbab3dd7af67"
-url = "https://github.com/docker/compose/releases/download/v5.0.2/docker-compose-linux-x86_64"
-
-[tools.docker-compose."platforms.linux-x64-baseline"]
-checksum = "sha256:2d880f723d3da7c779c54fdaea91a842fca8af55d1397f1ed8d7cbab3dd7af67"
-url = "https://github.com/docker/compose/releases/download/v5.0.2/docker-compose-linux-x86_64"
-
-[tools.docker-compose."platforms.linux-x64-musl"]
-checksum = "sha256:2d880f723d3da7c779c54fdaea91a842fca8af55d1397f1ed8d7cbab3dd7af67"
-url = "https://github.com/docker/compose/releases/download/v5.0.2/docker-compose-linux-x86_64"
-
-[tools.docker-compose."platforms.linux-x64-musl-baseline"]
 checksum = "sha256:2d880f723d3da7c779c54fdaea91a842fca8af55d1397f1ed8d7cbab3dd7af67"
 url = "https://github.com/docker/compose/releases/download/v5.0.2/docker-compose-linux-x86_64"
 
@@ -142,15 +92,7 @@ url = "https://github.com/docker/compose/releases/download/v5.0.2/docker-compose
 checksum = "sha256:766d6f9b305d89c3b8fe88cb6fb207fd7f531fbd63982b6136d058c1f98767bd"
 url = "https://github.com/docker/compose/releases/download/v5.0.2/docker-compose-darwin-x86_64"
 
-[tools.docker-compose."platforms.macos-x64-baseline"]
-checksum = "sha256:766d6f9b305d89c3b8fe88cb6fb207fd7f531fbd63982b6136d058c1f98767bd"
-url = "https://github.com/docker/compose/releases/download/v5.0.2/docker-compose-darwin-x86_64"
-
 [tools.docker-compose."platforms.windows-x64"]
-checksum = "sha256:e6281c7b906eafe8f39114e735f11fc276d8cce2cba93a54911ca15337ba6c49"
-url = "https://github.com/docker/compose/releases/download/v5.0.2/docker-compose-windows-x86_64.exe"
-
-[tools.docker-compose."platforms.windows-x64-baseline"]
 checksum = "sha256:e6281c7b906eafe8f39114e735f11fc276d8cce2cba93a54911ca15337ba6c49"
 url = "https://github.com/docker/compose/releases/download/v5.0.2/docker-compose-windows-x86_64.exe"
 
@@ -214,27 +156,7 @@ backend = "npm:oxlint"
 version = "4.5.1"
 backend = "aqua:pre-commit/pre-commit"
 
-[tools.pre-commit."platforms.linux-arm64"]
-checksum = "sha256:19d00ba35cbf9c04dc3736cd8bb641e8633f3eddd4cedde71809574ae68a2cd1"
-url = "https://github.com/pre-commit/pre-commit/releases/download/v4.5.1/pre-commit-4.5.1.pyz"
-
-[tools.pre-commit."platforms.linux-arm64-musl"]
-checksum = "sha256:19d00ba35cbf9c04dc3736cd8bb641e8633f3eddd4cedde71809574ae68a2cd1"
-url = "https://github.com/pre-commit/pre-commit/releases/download/v4.5.1/pre-commit-4.5.1.pyz"
-
 [tools.pre-commit."platforms.linux-x64"]
-checksum = "sha256:19d00ba35cbf9c04dc3736cd8bb641e8633f3eddd4cedde71809574ae68a2cd1"
-url = "https://github.com/pre-commit/pre-commit/releases/download/v4.5.1/pre-commit-4.5.1.pyz"
-
-[tools.pre-commit."platforms.linux-x64-baseline"]
-checksum = "sha256:19d00ba35cbf9c04dc3736cd8bb641e8633f3eddd4cedde71809574ae68a2cd1"
-url = "https://github.com/pre-commit/pre-commit/releases/download/v4.5.1/pre-commit-4.5.1.pyz"
-
-[tools.pre-commit."platforms.linux-x64-musl"]
-checksum = "sha256:19d00ba35cbf9c04dc3736cd8bb641e8633f3eddd4cedde71809574ae68a2cd1"
-url = "https://github.com/pre-commit/pre-commit/releases/download/v4.5.1/pre-commit-4.5.1.pyz"
-
-[tools.pre-commit."platforms.linux-x64-musl-baseline"]
 checksum = "sha256:19d00ba35cbf9c04dc3736cd8bb641e8633f3eddd4cedde71809574ae68a2cd1"
 url = "https://github.com/pre-commit/pre-commit/releases/download/v4.5.1/pre-commit-4.5.1.pyz"
 
@@ -246,45 +168,13 @@ url = "https://github.com/pre-commit/pre-commit/releases/download/v4.5.1/pre-com
 checksum = "sha256:19d00ba35cbf9c04dc3736cd8bb641e8633f3eddd4cedde71809574ae68a2cd1"
 url = "https://github.com/pre-commit/pre-commit/releases/download/v4.5.1/pre-commit-4.5.1.pyz"
 
-[tools.pre-commit."platforms.macos-x64-baseline"]
-checksum = "sha256:19d00ba35cbf9c04dc3736cd8bb641e8633f3eddd4cedde71809574ae68a2cd1"
-url = "https://github.com/pre-commit/pre-commit/releases/download/v4.5.1/pre-commit-4.5.1.pyz"
-
-[tools.pre-commit."platforms.windows-x64"]
-checksum = "sha256:19d00ba35cbf9c04dc3736cd8bb641e8633f3eddd4cedde71809574ae68a2cd1"
-url = "https://github.com/pre-commit/pre-commit/releases/download/v4.5.1/pre-commit-4.5.1.pyz"
-
-[tools.pre-commit."platforms.windows-x64-baseline"]
-checksum = "sha256:19d00ba35cbf9c04dc3736cd8bb641e8633f3eddd4cedde71809574ae68a2cd1"
-url = "https://github.com/pre-commit/pre-commit/releases/download/v4.5.1/pre-commit-4.5.1.pyz"
-
 [[tools.python]]
 version = "3.14.3"
 backend = "core:python"
 
-[tools.python."platforms.linux-arm64"]
-checksum = "sha256:e9b0aef9baafb6b9e7a4d47b82d6d9778eeafb2c95d23fb5247d3a5f8e52c5a5"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260211/cpython-3.14.3+20260211-aarch64-unknown-linux-gnu-install_only_stripped.tar.gz"
-
-[tools.python."platforms.linux-arm64-musl"]
-checksum = "sha256:e9b0aef9baafb6b9e7a4d47b82d6d9778eeafb2c95d23fb5247d3a5f8e52c5a5"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260211/cpython-3.14.3+20260211-aarch64-unknown-linux-gnu-install_only_stripped.tar.gz"
-
 [tools.python."platforms.linux-x64"]
 checksum = "sha256:0a73413f89efd417871876c9accaab28a9d1e3cd6358fbfff171a38ec99302f0"
 url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260303/cpython-3.14.3+20260303-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"
-
-[tools.python."platforms.linux-x64-baseline"]
-checksum = "sha256:759457004082459a402f369225b82565d88ca8257d9fd11c642a1c76ab0cb1cc"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260211/cpython-3.14.3+20260211-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"
-
-[tools.python."platforms.linux-x64-musl"]
-checksum = "sha256:759457004082459a402f369225b82565d88ca8257d9fd11c642a1c76ab0cb1cc"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260211/cpython-3.14.3+20260211-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"
-
-[tools.python."platforms.linux-x64-musl-baseline"]
-checksum = "sha256:759457004082459a402f369225b82565d88ca8257d9fd11c642a1c76ab0cb1cc"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260211/cpython-3.14.3+20260211-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"
 
 [tools.python."platforms.macos-arm64"]
 checksum = "sha256:4703cdf18b26798fde7b49b6b66149674c25f97127be6a10dbcf29309bdcdcdb"
@@ -294,98 +184,37 @@ url = "https://github.com/astral-sh/python-build-standalone/releases/download/20
 checksum = "sha256:76f1cc26e3d262eae8ca546a93e8bded10cf0323613f7e246fea2e10a8115eb7"
 url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260303/cpython-3.14.3+20260303-x86_64-apple-darwin-install_only_stripped.tar.gz"
 
-[tools.python."platforms.macos-x64-baseline"]
-checksum = "sha256:107c71b272b5eeecd7b7b607c4fac0796b0f221bc3391e6155a349789cc7eb17"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260211/cpython-3.14.3+20260211-x86_64-apple-darwin-install_only_stripped.tar.gz"
-
 [tools.python."platforms.windows-x64"]
 checksum = "sha256:950c5f21a015c1bdd1337f233456df2470fab71e4d794407d27a84cb8b9909a0"
 url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260303/cpython-3.14.3+20260303-x86_64-pc-windows-msvc-install_only_stripped.tar.gz"
 
-[tools.python."platforms.windows-x64-baseline"]
-checksum = "sha256:dc5feea0e16807e7c7b2d20af3f2c18c7153f9cbd4b54063172553fda60c5a1f"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260211/cpython-3.14.3+20260211-x86_64-pc-windows-msvc-install_only_stripped.tar.gz"
-
 [[tools.ruby]]
-version = "4.0.1"
+version = "3.4.5"
 backend = "core:ruby"
 
-[tools.ruby."platforms.linux-arm64"]
-checksum = "sha256:59f6f03b5113afac408248c7b762a8a4d8bbe223917ef3cc56614d061e296f92"
-url = "https://github.com/jdx/ruby/releases/download/4.0.1/ruby-4.0.1.arm64_linux.tar.gz"
-provenance = "github-attestations"
-
-[tools.ruby."platforms.linux-arm64-musl"]
-checksum = "sha256:59f6f03b5113afac408248c7b762a8a4d8bbe223917ef3cc56614d061e296f92"
-url = "https://github.com/jdx/ruby/releases/download/4.0.1/ruby-4.0.1.arm64_linux.tar.gz"
-provenance = "github-attestations"
-
 [tools.ruby."platforms.linux-x64"]
-checksum = "sha256:df9793cc730f782273fb17c70bc205f724fd2e127e95c0c059ae198705110b98"
-url = "https://github.com/jdx/ruby/releases/download/4.0.1/ruby-4.0.1.x86_64_linux.tar.gz"
-provenance = "github-attestations"
-
-[tools.ruby."platforms.linux-x64-baseline"]
-checksum = "sha256:df9793cc730f782273fb17c70bc205f724fd2e127e95c0c059ae198705110b98"
-url = "https://github.com/jdx/ruby/releases/download/4.0.1/ruby-4.0.1.x86_64_linux.tar.gz"
-provenance = "github-attestations"
-
-[tools.ruby."platforms.linux-x64-musl"]
-checksum = "sha256:df9793cc730f782273fb17c70bc205f724fd2e127e95c0c059ae198705110b98"
-url = "https://github.com/jdx/ruby/releases/download/4.0.1/ruby-4.0.1.x86_64_linux.tar.gz"
-provenance = "github-attestations"
-
-[tools.ruby."platforms.linux-x64-musl-baseline"]
-checksum = "sha256:df9793cc730f782273fb17c70bc205f724fd2e127e95c0c059ae198705110b98"
-url = "https://github.com/jdx/ruby/releases/download/4.0.1/ruby-4.0.1.x86_64_linux.tar.gz"
+checksum = "sha256:ce7f0a6347b4aaaac995ca2ce635874ae4f169619b39c8345b80dc78be628c90"
+url = "https://github.com/jdx/ruby/releases/download/3.4.5/ruby-3.4.5.x86_64_linux.tar.gz"
 provenance = "github-attestations"
 
 [tools.ruby."platforms.macos-arm64"]
-checksum = "sha256:d5fd316eabcbe58e33be6b44125c7b22f87da90bae0d7e28ffc6be34abe1476e"
-url = "https://github.com/jdx/ruby/releases/download/4.0.1/ruby-4.0.1.macos.tar.gz"
+checksum = "sha256:49ba77f4ef04e2ced7f3a5a043e489b16bd29fee450d9f61b741ff752fb7dd3a"
+url = "https://github.com/jdx/ruby/releases/download/3.4.5/ruby-3.4.5.macos.tar.gz"
 provenance = "github-attestations"
 
 [tools.ruby."platforms.macos-x64"]
-checksum = "sha256:3924be2d05db30f4e35f859bf028be85f4b7dd01714142fd823e4af5de2faf9d"
-url = "https://cache.ruby-lang.org/pub/ruby/4.0/ruby-4.0.1.tar.gz"
-
-[tools.ruby."platforms.macos-x64-baseline"]
-checksum = "sha256:3924be2d05db30f4e35f859bf028be85f4b7dd01714142fd823e4af5de2faf9d"
-url = "https://cache.ruby-lang.org/pub/ruby/4.0/ruby-4.0.1.tar.gz"
+checksum = "sha256:1d88d8a27b442fdde4aa06dc99e86b0bbf0b288963d8433112dd5fac798fd5ee"
+url = "https://cache.ruby-lang.org/pub/ruby/3.4/ruby-3.4.5.tar.gz"
 
 [tools.ruby."platforms.windows-x64"]
-checksum = "sha256:45cd5ac6aa0fdd976acbc0b0c768e38e8f5357b1b07d2c803cccafd7de758fb1"
-url = "https://github.com/oneclick/rubyinstaller2/releases/download/RubyInstaller-4.0.1-1/rubyinstaller-4.0.1-1-x64.7z"
-
-[tools.ruby."platforms.windows-x64-baseline"]
-checksum = "sha256:45cd5ac6aa0fdd976acbc0b0c768e38e8f5357b1b07d2c803cccafd7de758fb1"
-url = "https://github.com/oneclick/rubyinstaller2/releases/download/RubyInstaller-4.0.1-1/rubyinstaller-4.0.1-1-x64.7z"
+checksum = "sha256:61634b204f808deec191a6819e4c25c7b3005d84537b24c4fbe7c604aeece89f"
+url = "https://github.com/oneclick/rubyinstaller2/releases/download/RubyInstaller-3.4.5-1/rubyinstaller-3.4.5-1-x64.7z"
 
 [[tools.vacuum]]
 version = "0.24.0"
 backend = "aqua:daveshanley/vacuum"
 
-[tools.vacuum."platforms.linux-arm64"]
-checksum = "sha256:626a31d19ab21c90b74cedcadfd9198e2b193fdb4bf009481b93c0fbf7b33a6d"
-url = "https://github.com/daveshanley/vacuum/releases/download/v0.24.0/vacuum_0.24.0_linux_arm64.tar.gz"
-
-[tools.vacuum."platforms.linux-arm64-musl"]
-checksum = "sha256:626a31d19ab21c90b74cedcadfd9198e2b193fdb4bf009481b93c0fbf7b33a6d"
-url = "https://github.com/daveshanley/vacuum/releases/download/v0.24.0/vacuum_0.24.0_linux_arm64.tar.gz"
-
 [tools.vacuum."platforms.linux-x64"]
-checksum = "sha256:5c181e7a057e39dd6a15b9c7673d1c1e16767536be35c0001f54988636f32148"
-url = "https://github.com/daveshanley/vacuum/releases/download/v0.24.0/vacuum_0.24.0_linux_x86_64.tar.gz"
-
-[tools.vacuum."platforms.linux-x64-baseline"]
-checksum = "sha256:5c181e7a057e39dd6a15b9c7673d1c1e16767536be35c0001f54988636f32148"
-url = "https://github.com/daveshanley/vacuum/releases/download/v0.24.0/vacuum_0.24.0_linux_x86_64.tar.gz"
-
-[tools.vacuum."platforms.linux-x64-musl"]
-checksum = "sha256:5c181e7a057e39dd6a15b9c7673d1c1e16767536be35c0001f54988636f32148"
-url = "https://github.com/daveshanley/vacuum/releases/download/v0.24.0/vacuum_0.24.0_linux_x86_64.tar.gz"
-
-[tools.vacuum."platforms.linux-x64-musl-baseline"]
 checksum = "sha256:5c181e7a057e39dd6a15b9c7673d1c1e16767536be35c0001f54988636f32148"
 url = "https://github.com/daveshanley/vacuum/releases/download/v0.24.0/vacuum_0.24.0_linux_x86_64.tar.gz"
 
@@ -397,15 +226,7 @@ url = "https://github.com/daveshanley/vacuum/releases/download/v0.24.0/vacuum_0.
 checksum = "sha256:64e00d9a0c2ca88683a9f76a4e2de20faec4fdf1c69271f38251fdfcbe1724aa"
 url = "https://github.com/daveshanley/vacuum/releases/download/v0.24.0/vacuum_0.24.0_darwin_x86_64.tar.gz"
 
-[tools.vacuum."platforms.macos-x64-baseline"]
-checksum = "sha256:64e00d9a0c2ca88683a9f76a4e2de20faec4fdf1c69271f38251fdfcbe1724aa"
-url = "https://github.com/daveshanley/vacuum/releases/download/v0.24.0/vacuum_0.24.0_darwin_x86_64.tar.gz"
-
 [tools.vacuum."platforms.windows-x64"]
-checksum = "sha256:1430f9f535a615fc4e87aa7e800f5c741fe7f48c8843371f0aa9376ce20f7be8"
-url = "https://github.com/daveshanley/vacuum/releases/download/v0.24.0/vacuum_0.24.0_windows_x86_64.tar.gz"
-
-[tools.vacuum."platforms.windows-x64-baseline"]
 checksum = "sha256:1430f9f535a615fc4e87aa7e800f5c741fe7f48c8843371f0aa9376ce20f7be8"
 url = "https://github.com/daveshanley/vacuum/releases/download/v0.24.0/vacuum_0.24.0_windows_x86_64.tar.gz"
 

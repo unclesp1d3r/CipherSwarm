@@ -15,13 +15,24 @@ pre-commit        = "4.5.1"
 vale              = "3.13.1"
 "gem:rubocop"     = "latest"
 vacuum            = "0.24.0"
-ruby              = "latest"
+ruby              = "3.4.5"
 
+# Many of these settings are defaults, but we are explicit in case they change in the future and to make it clear to users what is enabled.
 [settings]
+activate_aggressive                 = true
 idiomatic_version_file_enable_tools = [ "ruby", "bun", "python" ]
+env_cache                           = true
+exec_auto_install                   = true
+github_attestations                 = true
+lockfile                            = true
+pin                                 = true
+slsa                                = true
 
 [settings.npm]
 package_manager = "bun"
+
+[settings.pipx]
+uvx = true
 
 [settings.ruby]
 compile = false
