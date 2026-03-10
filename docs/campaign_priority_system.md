@@ -59,7 +59,7 @@ The system ensures efficient resource usage:
 
 - **No Idle Nodes**: All available agents work simultaneously when possible
 - **Fair Distribution**: Lower priority campaigns run when capacity exists
-- **Dynamic Rebalancing**: Background job periodically checks for preemption opportunities
+- **Dynamic Rebalancing**: Task preemption is triggered automatically when campaign priority increases and periodically for non-deferred campaigns
 - **Graceful Degradation**: Deferred campaigns wait naturally without preemption attempts
 
 ## Usage Scenarios
@@ -169,9 +169,9 @@ Check logs to verify preemption behavior and identify potential issues.
 
 From an operator perspective, preemption looks like this:
 
-- When you start a **high-priority** campaign while all nodes are busy with **normal/deferred** work, one of the lower-priority tasks will move from **Running → Pending** and be marked **stale**.
+- When you start a **high-priority** campaign while all nodes are busy with **normal/deferred** work, or when you raise an existing campaign's priority, one of the lower-priority tasks will move from **Running → Pending** and be marked **stale**.
 - On the **dashboard**, you will see:
-  - The new high-priority attack start running on at least one agent.
+  - The new or newly-prioritized high-priority attack start running on at least one agent.
   - One or more lower-priority tasks transition to **Pending** with their last progress preserved.
 - In **logs**, you will see a `[TaskPreemption] Preempting task ...` entry with the task ID, campaign priority, and progress percentage at the moment of preemption.
 - When capacity frees up, preempted tasks will be rescheduled automatically. Because they are marked **stale**, agents will re-sync crack results before resuming.
@@ -181,7 +181,7 @@ If preemption is not happening when you expect it to:
 - Confirm there is at least one **high-priority** campaign with remaining uncracked hashes.
 - Verify all agents are already busy with **normal** or **deferred** campaigns in the same project.
 - Check that the running tasks are not protected by the rules (e.g., >90% complete or preempted 2+ times).
-- Review logs for `[TaskPreemption]` and `[UpdateStatusJob]` entries to see why no candidate tasks were eligible.
+- Review logs for `[TaskPreemption]`, `[TaskRebalance]`, and `[UpdateStatusJob]` entries to see why no candidate tasks were eligible.
 
 ## Migration from 7-Tier System
 
@@ -206,8 +206,32 @@ The previous system used 7 priority levels with hard pausing:
 - **Campaign Model**: Priority enum and manual pause/resume methods
 - **TaskAssignmentService**: Priority-aware attack ordering
 - **TaskPreemptionService**: Intelligent task preemption logic
-- **UpdateStatusJob**: Background rebalancing for high-priority attacks
+- **CampaignPriorityRebalanceJob**: Automatic task rebalancing when campaign priority increases
+- **UpdateStatusJob**: Periodic task rebalancing for non-deferred campaigns
 - **Task Model**: Preemption tracking and preemptability checks
+
+### Automatic Priority-Based Rebalancing
+
+When a campaign's priority is increased, the system automatically triggers task preemption to free up resources for the higher-priority work:
+
+- **Trigger Mechanism**: The `Campaign` model includes an `after_commit` callback (`trigger_priority_rebalance_if_needed`) that fires after a priority change is committed to the database
+- **Condition**: The callback only enqueues a job when priority increases (e.g., normal → high), not when it decreases or remains unchanged
+- **Job Execution**: `CampaignPriorityRebalanceJob` is enqueued immediately (not scheduled) to provide responsive task preemption
+- **Preemption Logic**: The job iterates through the campaign's incomplete attacks and calls `TaskPreemptionService.preempt_if_needed` for each attack with remaining uncracked hashes
+- **Error Handling**: Errors during preemption of individual attacks are logged and skipped, allowing the job to process remaining attacks
+
+This event-driven approach ensures that when an operator raises a campaign's priority, lower-priority tasks are preempted immediately without waiting for the next periodic rebalancing cycle.
+
+### Periodic Background Rebalancing
+
+In addition to event-driven rebalancing, the system performs periodic checks for preemption opportunities:
+
+- **UpdateStatusJob**: Runs on a scheduled interval (configurable via `Settings.update_status_job_frequency`) to perform various maintenance tasks
+- **Rebalancing Scope**: Checks for incomplete attacks in **non-deferred** campaigns (both normal and high priority) that have no running tasks
+- **Preemption Evaluation**: For each attack with remaining work, the job calls `TaskPreemptionService.preempt_if_needed` to evaluate whether lower-priority tasks should be preempted
+- **Complementary Mechanisms**: Both automatic (priority increase) and periodic (scheduled job) rebalancing work together to ensure efficient resource allocation
+
+The periodic rebalancing provides a safety net to handle edge cases and ensures that normal-priority campaigns can also benefit from preemption when appropriate.
 
 ### Database Schema
 
@@ -271,7 +295,7 @@ Tasks preserve progress when preempted:
 
 ### Setting Priority via API
 
-```http
+```json
 POST /campaigns
 {
   "campaign": {
@@ -292,7 +316,7 @@ POST /campaigns
 
 ### Checking Campaign Status
 
-```http
+```json
 GET /campaigns/{id}
 {
   "id": 123,
@@ -309,3 +333,4 @@ GET /campaigns/{id}
 - [API Documentation](api-reference-agent-auth.md)
 - [Task Assignment Algorithm](../app/services/task_assignment_service.rb)
 - [Preemption Service](../app/services/task_preemption_service.rb)
+- [Campaign Priority Rebalance Job](../app/jobs/campaign_priority_rebalance_job.rb)
