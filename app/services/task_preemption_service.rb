@@ -108,15 +108,25 @@ class TaskPreemptionService
                                .includes(:hashcat_statuses)
 
     # Filter out tasks that shouldn't be preempted
+    error_count = 0
     preemptable_tasks = lower_priority_tasks.select do |task|
       begin
         task.preemptable?
       rescue StandardError => e
+        error_count += 1
         Rails.logger.error(
-          "[TaskPreemption] Error checking if task #{task.id} is preemptable: #{e.message}"
+          "[TaskPreemption] Error checking if task #{task.id} is preemptable: " \
+          "#{e.message} - Backtrace: #{e.backtrace&.first(5)&.join(' | ')}"
         )
         false
       end
+    end
+
+    if preemptable_tasks.empty? && error_count.positive?
+      Rails.logger.warn(
+        "[TaskPreemption] All #{error_count} candidate tasks raised errors during " \
+        "preemptable? check for attack #{attack.id}"
+      )
     end
 
     return nil if preemptable_tasks.empty?
@@ -129,9 +139,9 @@ class TaskPreemptionService
   rescue StandardError => e
     Rails.logger.error(
       "[TaskPreemption] Error finding preemptable task for attack #{attack.id}: " \
-      "#{e.message}\n#{e.backtrace.first(5).join("\n")}"
+      "#{e.message}\n#{e.backtrace&.first(5)&.join("\n")}"
     )
-    nil
+    raise # Let the per-attack rescue in the caller handle this with proper context
   end
 
   # Preempts a task using the dedicated preempt state machine event.

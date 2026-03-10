@@ -115,14 +115,11 @@ RSpec.describe CampaignPriorityRebalanceJob do
     end
 
     context "when an unexpected error occurs outside the attack loop" do
-      it "logs the error and does not re-raise" do
+      it "propagates the error for Sidekiq retry" do
         allow(Campaign).to receive(:find).with(campaign.id).and_return(campaign)
         allow(campaign).to receive_message_chain(:attacks, :incomplete, :includes).and_raise(StandardError.new("connection lost")) # rubocop:disable RSpec/MessageChain
-        allow(Rails.logger).to receive(:error)
 
-        expect { described_class.new.perform(campaign.id) }.not_to raise_error
-
-        expect(Rails.logger).to have_received(:error).with(/Error in campaign priority rebalance.*connection lost/)
+        expect { described_class.new.perform(campaign.id) }.to raise_error(StandardError, "connection lost")
       end
     end
 

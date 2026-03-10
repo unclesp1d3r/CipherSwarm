@@ -298,8 +298,17 @@ class Campaign < ApplicationRecord
     return unless saved_change_to_priority?
 
     old_priority, new_priority = saved_change_to_priority
-    return unless Campaign.priorities[new_priority] > Campaign.priorities[old_priority]
+    old_value = Campaign.priorities[old_priority]
+    new_value = Campaign.priorities[new_priority]
+
+    return if old_value.nil? || new_value.nil?
+    return unless new_value > old_value
 
     CampaignPriorityRebalanceJob.perform_later(id)
+  rescue StandardError => e
+    Rails.logger.error(
+      "[Campaign##{id}] Failed to enqueue priority rebalance: #{e.class} - #{e.message}"
+    )
+    # Don't re-raise in after_commit — the save already succeeded
   end
 end

@@ -232,6 +232,14 @@ RSpec.describe Campaign do
         campaign.update!(priority: :normal)
       }.to have_enqueued_job(CampaignPriorityRebalanceJob).with(campaign.id)
     end
+
+    it "does not raise when enqueuing fails" do
+      allow(CampaignPriorityRebalanceJob).to receive(:perform_later).and_raise(StandardError.new("Redis down"))
+      allow(Rails.logger).to receive(:error)
+
+      expect { campaign.update!(priority: :high) }.not_to raise_error
+      expect(Rails.logger).to have_received(:error).with(/Failed to enqueue priority rebalance.*Redis down/)
+    end
   end
 
   # Tests for manual pause/resume functionality
