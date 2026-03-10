@@ -77,17 +77,13 @@ Attacks within a campaign are executed based on their configured priority. Each 
 
 CipherSwarm uses a priority system to manage campaign execution order:
 
-| Priority           | Value | Use Case                                        |
-| ------------------ | ----- | ----------------------------------------------- |
-| **Deferred**       | -1    | Low-priority background work                    |
-| **Routine**        | 0     | Standard operations (default)                   |
-| **Priority**       | 1     | Important campaigns that should run soon        |
-| **Urgent**         | 2     | Time-sensitive campaigns                        |
-| **Immediate**      | 3     | Must run now, pauses routine/priority campaigns |
-| **Flash**          | 4     | Emergency cracking requests                     |
-| **Flash Override** | 5     | Highest priority, pauses everything else        |
+| Priority     | Value | Use Case                                           |
+| ------------ | ----- | -------------------------------------------------- |
+| **Deferred** | -1    | Low-priority background work                       |
+| **Normal**   | 0     | Standard operations (default)                      |
+| **High**     | 2     | Time-sensitive campaigns requiring immediate focus |
 
-When a higher-priority campaign starts, all lower-priority campaigns are automatically paused. They resume when the higher-priority campaign completes or is manually paused.
+When a higher-priority campaign starts, the system uses priority-based preemption to acquire resources from lower-priority campaigns. Preempted campaigns resume when the higher-priority campaign completes or is manually paused.
 
 Additionally, when you increase a campaign's priority (for example, from Routine to Urgent), the system immediately triggers task preemption to allow the campaign to acquire resources from lower-priority tasks. This ensures that urgent campaigns can start processing without waiting for periodic system checks.
 

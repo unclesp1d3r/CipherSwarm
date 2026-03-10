@@ -615,12 +615,12 @@ end
 
 ### Queue Priorities
 
-| Queue    | Use Case                    |
-| -------- | --------------------------- |
-| default  | General background work     |
-| critical | Time-sensitive operations   |
+| Queue    | Use Case                                            |
+| -------- | --------------------------------------------------- |
+| default  | General background work                             |
+| critical | Time-sensitive operations                           |
 | high     | Priority-sensitive operations like task rebalancing |
-| low      | Non-urgent batch processing |
+| low      | Non-urgent batch processing                         |
 
 ### Task Preemption and Priority Rebalancing
 
