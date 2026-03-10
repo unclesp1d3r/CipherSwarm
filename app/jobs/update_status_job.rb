@@ -183,7 +183,7 @@ class UpdateStatusJob < ApplicationJob
       rescue StandardError => e
         Rails.logger.error(
           "[TaskRebalance] Error preempting tasks for attack #{attack.id} - " \
-          "Error: #{e.class} - #{e.message} - Backtrace: #{e.backtrace&.first(5)&.join(' | ')}"
+          "Error: #{e.class} - #{e.message} - Backtrace: #{Array(e.backtrace).first(5).join(' | ')}"
         )
         # Continue with next attack
       end

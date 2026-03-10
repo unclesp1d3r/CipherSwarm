@@ -265,9 +265,9 @@ RSpec.describe UpdateStatusJob do
 
         allow(Rails.logger).to receive(:error)
 
-        # Should not raise error and should log
+        # Should not raise error and should log with backtrace
         expect { described_class.new.perform }.not_to raise_error
-        expect(Rails.logger).to have_received(:error).with(/Error preempting tasks for attack/)
+        expect(Rails.logger).to have_received(:error).with(/Error preempting tasks for attack.*Backtrace:/)
       end
 
       it "propagates database errors for Sidekiq retry" do

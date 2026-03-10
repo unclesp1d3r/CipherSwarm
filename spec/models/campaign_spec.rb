@@ -233,6 +233,17 @@ RSpec.describe Campaign do
       }.to have_enqueued_job(CampaignPriorityRebalanceJob).with(campaign.id)
     end
 
+    it "does not enqueue a job when priority value is unrecognized" do
+      allow(campaign).to receive_messages(
+        saved_change_to_priority?: true,
+        saved_change_to_priority: %w[normal unknown_priority]
+      )
+
+      expect {
+        campaign.send(:trigger_priority_rebalance_if_needed)
+      }.not_to have_enqueued_job(CampaignPriorityRebalanceJob)
+    end
+
     it "does not raise when enqueuing fails" do
       allow(CampaignPriorityRebalanceJob).to receive(:perform_later).and_raise(StandardError.new("Redis down"))
       allow(Rails.logger).to receive(:error)

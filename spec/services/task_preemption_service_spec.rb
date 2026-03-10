@@ -323,8 +323,31 @@ RSpec.describe TaskPreemptionService do
 
         expect(preempted).to eq(task_2)
         expect(Rails.logger).to have_received(:error).with(
-          /\[TaskPreemption\] Error checking if task #{task_1.id} is preemptable: Unexpected error/
+          /\[TaskPreemption\] Error checking if task #{task_1.id} is preemptable: Unexpected error.*Backtrace:/
         )
+      end
+
+      it "warns when all candidate tasks raise errors" do
+        agent_1 = agents[0]
+        agent_2 = agents[1]
+
+        normal_attack = create(:dictionary_attack, campaign: normal_priority_campaign)
+        create(:task, attack: normal_attack, agent: agent_1, state: :running)
+        create(:task, attack: normal_attack, agent: agent_2, state: :running)
+
+        high_attack = create(:dictionary_attack, campaign: high_priority_campaign)
+        service = described_class.new(high_attack)
+
+        # Make preemptable? raise for ALL tasks
+        allow_any_instance_of(Task).to receive(:preemptable?).and_raise(StandardError.new("broken")) # rubocop:disable RSpec/AnyInstance
+        allow(Rails.logger).to receive(:error)
+        allow(Rails.logger).to receive(:warn)
+        allow(Rails.logger).to receive(:info)
+
+        result = service.preempt_if_needed
+
+        expect(result).to be_nil
+        expect(Rails.logger).to have_received(:warn).with(/All \d+ candidate tasks raised errors/)
       end
     end
 
