@@ -266,6 +266,7 @@ Business logic is extracted into service objects and models:
   - `CalculateMaskComplexityJob` - Calculate mask complexity
   - `CountFileLinesJob` - Count lines in uploaded files
   - `UpdateStatusJob` - Update task status
+  - `CampaignPriorityRebalanceJob` - Trigger task preemption when campaign priority is raised
 
 ### File Storage
 
