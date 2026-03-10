@@ -35,6 +35,11 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 
 ## Testing
 
+**ActiveRecord N+1 Query Counting:**
+
+- `payload[:name]` in `sql.active_record` notifications is the model name (e.g., `"Attack Load"`, `"Campaign Load"`), NOT `"SQL"` — filtering by `payload[:name] == "SQL"` captures zero queries and makes N+1 tests silently pass
+- Correct pattern: exclude noise (`SCHEMA`, `CACHE`, transaction statements like `BEGIN`/`COMMIT`/`SAVEPOINT`/`RELEASE`/`SHOW`/`SET`) and count everything else
+
 **CI Test Scope:**
 
 - GitHub CI excludes `spec/system/` via `--exclude-pattern` — system tests only run locally via `just ci-check`
