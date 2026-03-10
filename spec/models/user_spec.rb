@@ -189,6 +189,30 @@ RSpec.describe User do
     end
   end
 
+  describe "#assign_default_role" do
+    context "when user has no roles" do
+      it "assigns the basic role" do
+        user = create(:user)
+        expect(user.has_role?(:basic)).to be true
+      end
+    end
+
+    context "when user already has a role" do
+      it "does not add the basic role again" do
+        user = create(:user)
+        user.add_role(:admin)
+        user.roles.where(name: "basic").destroy_all
+
+        # Trigger the callback manually
+        user.send(:assign_default_role)
+
+        # Should not re-add basic since user already has admin role
+        expect(user.has_role?(:basic)).to be false
+        expect(user.has_role?(:admin)).to be true
+      end
+    end
+  end
+
   describe "#toggle_hide_completed_activities" do
     it "toggles from false to true" do
       user = create(:user)
