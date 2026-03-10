@@ -28,15 +28,8 @@ module CipherSwarm
     # These settings can be overridden in specific environments using the files
     # in config/environments, which are processed later.
 
-    # Autoload ViewComponent path
-    # `config.autoload_paths` may be frozen in newer Rails versions, so avoid mutating it in-place.
-    config.autoload_paths = config.autoload_paths + [Rails.root.join("app/components")]
-
     # Set time zone
     config.time_zone = "Eastern Time (US & Canada)"
-
-    # Enable Gzip compression for responses
-    config.middleware.use Rack::Deflater
 
     # Use Sidekiq for background jobs
     config.active_job.queue_adapter = :sidekiq
