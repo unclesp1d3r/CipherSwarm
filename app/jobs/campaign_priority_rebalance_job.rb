@@ -26,17 +26,15 @@ class CampaignPriorityRebalanceJob < ApplicationJob
                       .includes(:campaign, campaign: :hash_list)
 
     attacks.each do |attack|
-      begin
-        next if attack.uncracked_count.zero?
+      next if attack.uncracked_count.zero?
 
-        TaskPreemptionService.new(attack).preempt_if_needed
-      rescue StandardError => e
-        Rails.logger.error(
-          "[TaskRebalance] Error preempting tasks for attack #{attack.id} - " \
-          "Error: #{e.class} - #{e.message} - Backtrace: #{Array(e.backtrace).first(5).join(' | ')}"
-        )
-        # Continue with next attack
-      end
+      TaskPreemptionService.new(attack).preempt_if_needed
+    rescue StandardError => e
+      Rails.logger.error(
+        "[TaskRebalance] Error preempting tasks for attack #{attack.id} - " \
+        "Error: #{e.class} - #{e.message} - Backtrace: #{Array(e.backtrace).first(5).join(' | ')}"
+      )
+      # Continue with next attack
     end
   end
 end

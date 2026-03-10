@@ -35,6 +35,23 @@ RSpec.describe CountFileLinesJob do
   end
 
   describe "#perform" do
+    context "when the type is not in ALLOWED_TYPES" do
+      it "logs an error and returns without processing" do
+        allow(Rails.logger).to receive(:error)
+
+        described_class.perform_now(1, "User")
+
+        expect(Rails.logger).to have_received(:error).with(/Invalid type 'User'/)
+      end
+
+      it "does not attempt to find a record" do
+        allow(Rails.logger).to receive(:error)
+
+        # Should not raise even with a valid ID, because type check short-circuits
+        expect { described_class.perform_now(1, "SomeBogusClass") }.not_to raise_error
+      end
+    end
+
     context "when the record does not exist" do
       it "discards the job without raising an error" do
         expect { described_class.perform_now(-1, "RuleList") }.not_to raise_error
