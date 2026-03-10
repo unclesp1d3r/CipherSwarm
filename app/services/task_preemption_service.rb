@@ -125,8 +125,8 @@ class TaskPreemptionService
 
     if preemptable_tasks.empty? && error_count.positive?
       Rails.logger.warn(
-        "[TaskPreemption] All #{error_count} candidate tasks raised errors during " \
-        "preemptable? check for attack #{attack.id}"
+        "[TaskPreemption] No preemptable tasks found for attack #{attack.id}; " \
+        "#{error_count} of #{lower_priority_tasks.size} candidate(s) raised errors during preemptable? check"
       )
     end
 
