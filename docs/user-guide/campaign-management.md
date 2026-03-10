@@ -272,18 +272,21 @@ Deleted campaigns use soft delete and can potentially be recovered by an adminis
 CipherSwarm's priority system uses both immediate (event-driven) and periodic (time-driven) task rebalancing to ensure that the most important work runs first:
 
 **Immediate Rebalancing:**
+
 - When you increase a campaign's priority, the system immediately triggers task preemption
 - Higher-priority campaigns can immediately acquire resources by preempting lower-priority tasks
 - This happens automatically as soon as you save the priority change
 - Lower-priority running tasks are paused to free resources for the higher-priority campaign
 
 **Periodic Rebalancing:**
+
 - The system performs periodic checks to ensure optimal task distribution over time
 - Lowering a campaign's priority does not trigger immediate preemption
 - The system will rebalance affected campaigns during the next periodic check
 - This maintains system stability while ensuring efficient resource allocation
 
 **Behavior Summary:**
+
 1. When a campaign starts, the system checks for lower-priority running campaigns
 2. Lower-priority campaigns are automatically paused
 3. All available agents are directed to the highest-priority campaigns
