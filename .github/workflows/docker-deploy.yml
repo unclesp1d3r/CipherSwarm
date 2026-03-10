@@ -38,7 +38,25 @@ jobs:
         uses: docker/metadata-action@v5.10.0
         with: { images: "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}" }
 
-      - name: Build and push the Docker image
+      - name: Build image for vulnerability scanning (amd64 only)
+        uses: docker/build-push-action@v6.19.2
+        with:
+          context: .
+          platforms: linux/amd64
+          pull: true
+          push: false
+          load: true
+          tags: ${{ steps.meta.outputs.tags }}
+
+      - name: Scan container image for vulnerabilities
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}
+          format: 'table'
+          exit-code: '1'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Build and push the Docker image (multi-platform)
         uses: docker/build-push-action@v6.19.2
         with:
           context: .
