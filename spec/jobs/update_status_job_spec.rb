@@ -148,7 +148,7 @@ RSpec.describe UpdateStatusJob do
       end
     end
 
-    context "when rebalancing task assignments for high-priority campaigns" do
+    context "when rebalancing task assignments for non-deferred campaigns" do
       let!(:project) { create(:project) }
       let!(:agents) { create_list(:agent, 2, state: :active) }
 
@@ -167,6 +167,33 @@ RSpec.describe UpdateStatusJob do
         # Create high-priority attack with no running tasks but remaining work
         high_attack = create(:dictionary_attack, campaign: high_campaign)
         create(:hash_item, hash_list: high_campaign.hash_list, plain_text: nil)
+
+        # Before running the job, verify the task is running
+        expect(running_task_1.reload.state).to eq("running")
+
+        # Run the job
+        described_class.new.perform
+
+        # After running, task should be preempted (pending) and stale
+        expect(running_task_1.reload.state).to eq("pending")
+        expect(running_task_1.reload.stale).to be true
+      end
+
+      it "triggers preemption for pending normal-priority attacks with no running tasks" do
+        normal_campaign = create(:campaign, project: project, priority: :normal)
+        deferred_campaign = create(:campaign, project: project, priority: :deferred)
+
+        # Create running tasks from deferred-priority campaign to fill capacity (both agents)
+        deferred_attack_1 = create(:dictionary_attack, campaign: deferred_campaign)
+        deferred_attack_2 = create(:dictionary_attack, campaign: deferred_campaign)
+        running_task_1 = create(:task, attack: deferred_attack_1, agent: agents[0], state: :running)
+        running_task_2 = create(:task, attack: deferred_attack_2, agent: agents[1], state: :running)
+        create(:hashcat_status, task: running_task_1, progress: [25, 100], status: :running)
+        create(:hashcat_status, task: running_task_2, progress: [50, 100], status: :running)
+
+        # Create normal-priority attack with no running tasks but remaining work
+        normal_attack = create(:dictionary_attack, campaign: normal_campaign)
+        create(:hash_item, hash_list: normal_campaign.hash_list, plain_text: nil)
 
         # Before running the job, verify the task is running
         expect(running_task_1.reload.state).to eq("running")
@@ -265,30 +292,37 @@ RSpec.describe UpdateStatusJob do
         expect(Rails.logger).to have_received(:error).with(/Backtrace:/)
       end
 
-      it "avoids N+1 queries when checking multiple high-priority attacks" do
-        # Create 3 high-priority attacks to detect N+1 queries
-        3.times do
+      it "avoids N+1 queries when checking multiple non-deferred attacks" do
+        # Create a mix of normal and high-priority attacks to detect N+1 queries
+        2.times do
           campaign = create(:campaign, project: project, priority: :high)
           attack = create(:dictionary_attack, campaign: campaign)
           create(:hash_item, hash_list: campaign.hash_list, plain_text: nil)
         end
+        normal_campaign = create(:campaign, project: project, priority: :normal)
+        normal_attack = create(:dictionary_attack, campaign: normal_campaign)
+        create(:hash_item, hash_list: normal_campaign.hash_list, plain_text: nil)
 
         # Track queries - without includes, this would generate N queries for campaign and hash_list
         queries = []
+        noise = /\A(BEGIN|COMMIT|SAVEPOINT|RELEASE|SHOW|SET)\b/i
         query_counter = lambda do |_name, _started, _finished, _unique_id, payload|
-          queries << payload[:sql] if payload[:name] == "SQL" && payload[:sql] !~ /^(BEGIN|COMMIT|SAVEPOINT|RELEASE)/
+          next if payload[:name] == "SCHEMA" || payload[:name] == "CACHE"
+          next if payload[:sql].blank? || payload[:sql].match?(noise)
+
+          queries << payload[:sql]
         end
 
         ActiveSupport::Notifications.subscribed(query_counter, "sql.active_record") do
           described_class.new.send(:rebalance_task_assignments)
         end
 
-        # Should only have:
-        # 1. Query to load attacks with includes (campaign and hash_list)
-        # 2. Query to check for running tasks
-        # Without includes, there would be 3 queries per attack (1 for campaign, 1 for hash_list for each attack.uncracked_count call)
-        # With 3 attacks, that would be 9+ queries. With includes, should be ~2-3 queries total.
-        expect(queries.count).to be <= 5
+        # With eager loading (includes(:campaign, campaign: :hash_list)):
+        #   Fixed set of queries regardless of attack count (~10 for 3 attacks)
+        # Without eager loading (N+1):
+        #   Would add 2 queries per attack (campaign + hash_list), ~16+ for 3 attacks
+        # Budget of 12 catches N+1 regressions while allowing headroom for the fixed query set.
+        expect(queries.count).to be <= 12
       end
     end
   end
