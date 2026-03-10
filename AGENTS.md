@@ -6,7 +6,7 @@ This file provides guidance to Agents when working with code in this repository.
 
 ## Project Overview
 
-CipherSwarm is a distributed hash cracking system built on Rails 8.0+ inspired by Hashtopolis. It manages hash-cracking tasks across multiple agents using a web-based interface with real-time capabilities via Hotwire.
+CipherSwarm is a distributed hash cracking system built on Rails 8.1+ inspired by Hashtopolis. It manages hash-cracking tasks across multiple agents using a web-based interface with real-time capabilities via Hotwire.
 
 **Current Status**: Undergoing V2 upgrade (see docs/v2-upgrade-overview.md)
 
@@ -191,8 +191,8 @@ CipherSwarm is built around four hierarchical concepts:
 1. **Campaigns** - Top-level unit of work targeting a single hash list
 
    - Contains multiple Attacks executed based on priority
-   - Priority-based execution model (deferred → routine → priority → urgent → immediate → flash → flash_override)
-   - Higher priority campaigns pause all lower priority campaigns
+   - Priority-based execution model (deferred (-1) → normal (0) → high (2))
+   - Higher priority campaigns use intelligent preemption to acquire resources from lower priority campaigns
    - Belongs to a Project and HashList
 
 2. **Attacks** - Specific hashcat work unit with defined attack type, word lists, and rules
@@ -250,7 +250,7 @@ Three core models use state_machines-activerecord:
 
 **Task States:** pending → running → completed/exhausted/failed/paused
 
-- Transitions: accept, run, complete, pause, resume, error, exhaust, cancel, abandon
+- Transitions: accept, run, complete, pause, resume, error, exhaust, cancel, abandon, preempt, retry
 - Tasks track progress via associated HashcatStatus records
 
 > **Critical gotchas** for all three state machines — see [GOTCHAS.md § State Machines](GOTCHAS.md#state-machines)
@@ -267,6 +267,7 @@ Business logic is extracted into service objects and models:
   - `CountFileLinesJob` - Count lines in uploaded files
   - `UpdateStatusJob` - Update task status
   - `CampaignPriorityRebalanceJob` - Trigger task preemption when campaign priority is raised
+  - `DataCleanupJob` - Data retention enforcement (old errors, audits, hashcat statuses)
 
 ### File Storage
 
@@ -403,7 +404,7 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 
 **File Structure:**
 
-- Business logic: app/models/ and app/services/ (6 service objects)
+- Business logic: app/models/ and app/services/ (7 service objects)
 - API endpoints: app/controllers/api/v1/
 - View components: app/components/
 - Custom validations: app/validators/
@@ -473,8 +474,8 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 
 **Priority-Based Execution:**
 
-- Campaign priority enum: deferred (-1) → flash_override (5)
-- Higher priority campaigns automatically pause lower priority ones
+- Campaign priority enum: deferred (-1) → normal (0) → high (2)
+- Higher priority campaigns use intelligent preemption to acquire resources from lower priority ones
 - Callback `pause_lower_priority_campaigns` in Campaign model
 
 **Task Action State Requirements (TaskActionsComponent):**
