@@ -236,7 +236,7 @@ class Campaign < ApplicationRecord
   # @return [Time, nil] the max ETA of running attacks, or nil if none are running
   # @see CampaignEtaCalculator#current_eta
   def calculate_current_eta
-    eta_calculator.send(:calculate_current_eta)
+    CampaignEtaCalculator.new(self, cache: false).current_eta
   end
 
   # Calculates the total ETA for all incomplete attacks without caching.
@@ -248,7 +248,7 @@ class Campaign < ApplicationRecord
   # @return [Time, nil] the estimated total completion time, or nil if no incomplete attacks
   # @see CampaignEtaCalculator#total_eta
   def calculate_total_eta
-    eta_calculator.send(:calculate_total_eta)
+    CampaignEtaCalculator.new(self, cache: false).total_eta
   end
 
   # Returns the ETA calculator service for this campaign.
