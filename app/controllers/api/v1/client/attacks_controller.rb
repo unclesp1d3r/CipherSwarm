@@ -46,6 +46,6 @@ class Api::V1::Client::AttacksController < Api::V1::BaseController
     return if @attack
 
     Rails.logger.error("[APIError] ATTACK_NOT_FOUND - Agent #{@agent&.id || 'unknown'} - Attack ID: #{params[:id]} - #{Time.current}")
-    render json: { error: "Attack not found." }, status: :not_found
+    render(json: { error: "Attack not found." }, status: :not_found) && return
   end
 end

@@ -25,10 +25,15 @@ class CampaignPriorityRebalanceJob < ApplicationJob
     attacks = campaign.attacks.incomplete
                       .includes(:campaign, campaign: :hash_list)
 
+    # NOTE: Each call to TaskPreemptionService#preempt_if_needed runs 2 COUNT queries
+    # via nodes_available?. This is acceptable because campaigns typically have a small
+    # number of attacks (single digits), so the overhead is negligible.
     attacks.each do |attack|
       next if attack.uncracked_count.zero?
 
       TaskPreemptionService.new(attack).preempt_if_needed
+    rescue ActiveRecord::ConnectionNotEstablished, ActiveRecord::StatementInvalid
+      raise # Let DB connection errors propagate for Sidekiq retry
     rescue StandardError => e
       Rails.logger.error(
         "[TaskRebalance] Error preempting tasks for attack #{attack.id} - " \

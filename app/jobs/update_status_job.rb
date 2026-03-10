@@ -15,7 +15,6 @@
 #
 # Methods:
 # - perform(*_args): Executes the status update operations within a database connection pool.
-#   Ensures that active connections are cleared and closed after execution.
 class UpdateStatusJob < ApplicationJob
   queue_as :high
 
@@ -30,7 +29,7 @@ class UpdateStatusJob < ApplicationJob
   ##
   # Executes periodic status maintenance tasks (agent heartbeats, task status cleanup, task abandonment, and assignment rebalancing)
   #
-  # Runs the sequence of status-update operations: check agents' online status, remove status records for finished and incomplete tasks, clean up old agent errors, abandon inactive running tasks, and rebalance task assignments for non-deferred (normal and high) priority campaigns. Ensures the ActiveRecord connection pool is cleared of active connections after execution to avoid connection leaks.
+  # Runs the sequence of status-update operations: check agents' online status, remove status records for finished and incomplete tasks, clean up old agent errors, abandon inactive running tasks, and rebalance task assignments for non-deferred (normal and high) priority campaigns.
   def perform(*_args)
     ActiveRecord::Base.connection_pool.with_connection do
       check_agents_online_status
@@ -157,12 +156,11 @@ class UpdateStatusJob < ApplicationJob
     Rails.logger.error("[StatusCleanup] Error removing incomplete task statuses: #{e.message}")
   end
 
-  # Rebalances task assignments by checking for pending non-deferred (normal and high) priority attacks
-  # and attempting to preempt lower-priority tasks if needed.
-  # Includes comprehensive error handling to ensure individual failures don't
   ##
   # Rebalances task assignments by ensuring non-deferred attacks can acquire workers through preemption when needed.
-  # Iterates incomplete attacks in non-deferred (normal and high) priority campaigns that have no running tasks and, for each attack with remaining work (`uncracked_count > 0`), attempts to preempt lower-priority tasks. Per-attack errors are logged and skipped; any error during the overall rebalance is logged and not re-raised.
+  # Iterates incomplete attacks in non-deferred (normal and high) priority campaigns that have no running tasks and,
+  # for each attack with remaining work (`uncracked_count > 0`), attempts to preempt lower-priority tasks.
+  # Per-attack errors are logged and skipped to prevent one failing attack from blocking rebalancing of others.
   def rebalance_task_assignments
     # Find non-deferred priority attacks with no running tasks
     # Eager load campaign and hash_list to avoid N+1 queries when checking uncracked_count
@@ -177,6 +175,8 @@ class UpdateStatusJob < ApplicationJob
 
       # Attempt preemption
       TaskPreemptionService.new(attack).preempt_if_needed
+    rescue ActiveRecord::ConnectionNotEstablished, ActiveRecord::StatementInvalid
+      raise # Let DB connection errors propagate for Sidekiq retry
     rescue StandardError => e
       Rails.logger.error(
         "[TaskRebalance] Error preempting tasks for attack #{attack.id} - " \

@@ -294,6 +294,20 @@ RSpec.describe UpdateStatusJob do
         expect { described_class.new.perform }.to raise_error(ActiveRecord::StatementInvalid, /Database connection lost/)
       end
 
+      it "propagates per-attack ConnectionNotEstablished for Sidekiq retry" do
+        high_campaign = create(:campaign, project: project, priority: :high)
+        high_attack = create(:dictionary_attack, campaign: high_campaign)
+        create(:hash_item, hash_list: high_campaign.hash_list, plain_text: nil)
+
+        service_double = instance_double(TaskPreemptionService)
+        allow(TaskPreemptionService).to receive(:new).and_return(service_double)
+        allow(service_double).to receive(:preempt_if_needed)
+          .and_raise(ActiveRecord::ConnectionNotEstablished.new("connection lost"))
+
+        expect { described_class.new.perform }
+          .to raise_error(ActiveRecord::ConnectionNotEstablished)
+      end
+
       it "avoids N+1 queries when checking multiple non-deferred attacks" do
         # Create a mix of normal and high-priority attacks to detect N+1 queries
         2.times do
