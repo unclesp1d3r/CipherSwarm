@@ -116,7 +116,7 @@ class TaskPreemptionService
         error_count += 1
         Rails.logger.error(
           "[TaskPreemption] Error checking if task #{task.id} is preemptable: " \
-          "#{e.message} - Backtrace: #{e.backtrace&.first(5)&.join(' | ')}"
+          "#{e.message} - Backtrace: #{Array(e.backtrace).first(5).join(' | ')}"
         )
         false
       end
@@ -139,7 +139,7 @@ class TaskPreemptionService
   rescue StandardError => e
     Rails.logger.error(
       "[TaskPreemption] Error finding preemptable task for attack #{attack.id}: " \
-      "#{e.message}\n#{e.backtrace&.first(5)&.join("\n")}"
+      "#{e.message}\n#{Array(e.backtrace).first(5).join("\n")}"
     )
     raise # Let the per-attack rescue in the caller handle this with proper context
   end

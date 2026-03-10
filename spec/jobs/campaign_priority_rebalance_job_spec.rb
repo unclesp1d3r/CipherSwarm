@@ -77,7 +77,7 @@ RSpec.describe CampaignPriorityRebalanceJob do
         create(:hash_item, hash_list: campaign.hash_list, plain_text: nil)
       end
 
-      it "logs the error and continues with the next attack" do
+      it "logs the error with backtrace and continues with the next attack" do
         failing_service = instance_double(TaskPreemptionService)
         allow(TaskPreemptionService).to receive(:new).with(failing_attack).and_return(failing_service)
         allow(failing_service).to receive(:preempt_if_needed).and_raise(StandardError.new("boom"))
@@ -90,7 +90,7 @@ RSpec.describe CampaignPriorityRebalanceJob do
 
         described_class.new.perform(campaign.id)
 
-        expect(Rails.logger).to have_received(:error).with(/Error preempting tasks for attack #{failing_attack.id}/)
+        expect(Rails.logger).to have_received(:error).with(/Error preempting tasks for attack #{failing_attack.id}.*Backtrace:/)
         expect(succeeding_service).to have_received(:preempt_if_needed)
       end
     end
