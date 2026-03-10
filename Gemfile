@@ -46,7 +46,7 @@ group :development, :test do
   gem "undercover", "~> 0.5", require: false
 
   # Rubocop extensions
-  gem "rswag-specs", github: "rswag/rswag", branch: "master", require: false
+  gem "rswag-specs", github: "rswag/rswag", ref: "0a5a04983b5fe16f1698f2acf7ec787bf08ebf08", require: false
   gem "rubocop", "~> 1.82", require: false
   gem "rubocop-capybara", "~> 2.22", require: false
   gem "rubocop-factory_bot", "~> 2.28", require: false
@@ -89,7 +89,8 @@ gem "redis", "~> 5.1"
 gem "rexml", "~> 3.3"
 gem "rolify", "~> 6.0"
 # Use rswag v3 from GitHub to pick up Rails 8.1 gemspec support (merged upstream, unreleased gem).
-gem "rswag", github: "rswag/rswag", branch: "master"
+# Pinned to specific commit SHA for reproducible builds. Update by checking rswag/rswag master.
+gem "rswag", github: "rswag/rswag", ref: "0a5a04983b5fe16f1698f2acf7ec787bf08ebf08"
 gem "show_for", "~> 0.8"
 gem "sidekiq", "~> 8.1"
 gem "sidekiq_alive", "~> 2.4", groups: %i[production development]

@@ -1,7 +1,7 @@
 GIT
   remote: https://github.com/rswag/rswag.git
   revision: 0a5a04983b5fe16f1698f2acf7ec787bf08ebf08
-  branch: master
+  ref: 0a5a04983b5fe16f1698f2acf7ec787bf08ebf08
   specs:
     rswag (0.0.0)
       rswag-api (= 0.0.0)
