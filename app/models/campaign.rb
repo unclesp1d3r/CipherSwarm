@@ -132,6 +132,7 @@ class Campaign < ApplicationRecord
   # Callbacks
   after_commit :mark_attacks_complete, on: [:update]
   after_commit :broadcast_eta_update, on: [:update]
+  after_commit :trigger_priority_rebalance_if_needed, on: [:update]
 
   # Provides a label indicating the number of incomplete attacks out of the total number of attacks.
   #
@@ -284,5 +285,21 @@ class Campaign < ApplicationRecord
   # @return [void]
   def mark_attacks_complete
     attacks.without_state(:completed).each(&:complete) if completed?
+  end
+
+  # Enqueues a task preemption rebalance when the campaign's priority is raised.
+  #
+  # Only fires when priority increases (e.g. normal → high), not on decreases or
+  # unchanged saves. Uses Campaign.priorities to compare integer values of the
+  # old and new priority strings returned by saved_change_to_priority.
+  #
+  # @return [void]
+  def trigger_priority_rebalance_if_needed
+    return unless saved_change_to_priority?
+
+    old_priority, new_priority = saved_change_to_priority
+    return unless Campaign.priorities[new_priority] > Campaign.priorities[old_priority]
+
+    CampaignPriorityRebalanceJob.perform_later(id)
   end
 end

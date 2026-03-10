@@ -196,6 +196,44 @@ RSpec.describe Campaign do
     end
   end
 
+  describe "#trigger_priority_rebalance_if_needed" do
+    include ActiveJob::TestHelper
+
+    let(:campaign) { create(:campaign, priority: :normal) }
+
+    after { clear_enqueued_jobs }
+
+    it "enqueues CampaignPriorityRebalanceJob when priority is raised" do
+      expect {
+        campaign.update!(priority: :high)
+      }.to have_enqueued_job(CampaignPriorityRebalanceJob).with(campaign.id)
+    end
+
+    it "does not enqueue a job when priority is lowered" do
+      campaign.update!(priority: :high)
+      clear_enqueued_jobs
+
+      expect {
+        campaign.update!(priority: :normal)
+      }.not_to have_enqueued_job(CampaignPriorityRebalanceJob)
+    end
+
+    it "does not enqueue a job when priority is unchanged" do
+      expect {
+        campaign.update!(name: "Renamed Campaign")
+      }.not_to have_enqueued_job(CampaignPriorityRebalanceJob)
+    end
+
+    it "enqueues a job when priority is raised from deferred to normal" do
+      campaign.update!(priority: :deferred)
+      clear_enqueued_jobs
+
+      expect {
+        campaign.update!(priority: :normal)
+      }.to have_enqueued_job(CampaignPriorityRebalanceJob).with(campaign.id)
+    end
+  end
+
   # Tests for manual pause/resume functionality
   describe "manual campaign control" do
     context "when pausing a campaign" do

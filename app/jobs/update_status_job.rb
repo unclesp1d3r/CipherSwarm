@@ -25,12 +25,12 @@ class UpdateStatusJob < ApplicationJob
   # 3. Removes running status for incomplete tasks.
   # 4. Cleans up agent error records older than the configured retention period.
   # 5. Abandons tasks that have been running for more than a configurable amount of time without activity.
-  # 6. Rebalances task assignments for high-priority campaigns.
+  # 6. Rebalances task assignments for non-deferred (normal and high) priority campaigns.
   #
   ##
   # Executes periodic status maintenance tasks (agent heartbeats, task status cleanup, task abandonment, and assignment rebalancing)
   #
-  # Runs the sequence of status-update operations: check agents' online status, remove status records for finished and incomplete tasks, clean up old agent errors, abandon inactive running tasks, and rebalance task assignments for high-priority campaigns. Ensures the ActiveRecord connection pool is cleared of active connections after execution to avoid connection leaks.
+  # Runs the sequence of status-update operations: check agents' online status, remove status records for finished and incomplete tasks, clean up old agent errors, abandon inactive running tasks, and rebalance task assignments for non-deferred (normal and high) priority campaigns. Ensures the ActiveRecord connection pool is cleared of active connections after execution to avoid connection leaks.
   def perform(*_args)
     ActiveRecord::Base.connection_pool.with_connection do
       check_agents_online_status
@@ -159,23 +159,23 @@ class UpdateStatusJob < ApplicationJob
     Rails.logger.error("[StatusCleanup] Error removing incomplete task statuses: #{e.message}")
   end
 
-  # Rebalances task assignments by checking for pending high-priority attacks
+  # Rebalances task assignments by checking for pending non-deferred (normal and high) priority attacks
   # and attempting to preempt lower-priority tasks if needed.
   # Includes comprehensive error handling to ensure individual failures don't
   ##
-  # Rebalances task assignments by ensuring high-priority attacks can acquire workers through preemption when needed.
-  # Iterates incomplete attacks in high-priority campaigns that have no running tasks and, for each attack with remaining work (`uncracked_count > 0`), attempts to preempt lower-priority tasks. Per-attack errors are logged and skipped; any error during the overall rebalance is logged and not re-raised.
+  # Rebalances task assignments by ensuring non-deferred attacks can acquire workers through preemption when needed.
+  # Iterates incomplete attacks in non-deferred (normal and high) priority campaigns that have no running tasks and, for each attack with remaining work (`uncracked_count > 0`), attempts to preempt lower-priority tasks. Per-attack errors are logged and skipped; any error during the overall rebalance is logged and not re-raised.
   def rebalance_task_assignments
     begin
-      # Find high-priority attacks with no running tasks
+      # Find non-deferred priority attacks with no running tasks
       # Eager load campaign and hash_list to avoid N+1 queries when checking uncracked_count
-      high_priority_attacks = Attack.incomplete
-                                     .joins(:campaign)
-                                     .includes(:campaign, campaign: :hash_list)
-                                     .where(campaigns: { priority: Campaign.priorities[:high] })
-                                     .where.not(id: Task.with_state(:running).select(:attack_id))
+      preemptable_attacks = Attack.incomplete
+                                  .joins(:campaign)
+                                  .includes(:campaign, campaign: :hash_list)
+                                  .where(campaigns: { priority: [Campaign.priorities[:normal], Campaign.priorities[:high]] })
+                                  .where.not(id: Task.with_state(:running).select(:attack_id))
 
-      high_priority_attacks.each do |attack|
+      preemptable_attacks.each do |attack|
         begin
           next if attack.uncracked_count.zero?
 
