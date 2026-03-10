@@ -268,7 +268,7 @@ RSpec.describe TaskPreemptionService do
     end
 
     context "when handling errors during preemption" do
-      it "logs error and returns nil if database query fails" do
+      it "logs error and re-raises if database query fails" do
         agent_1 = agents[0]
         agent_2 = agents[1]
 
@@ -285,8 +285,7 @@ RSpec.describe TaskPreemptionService do
         allow(Campaign).to receive(:priorities).and_raise(ActiveRecord::StatementInvalid.new("Database error"))
         allow(Rails.logger).to receive(:error)
 
-        result = service.preempt_if_needed
-        expect(result).to be_nil
+        expect { service.preempt_if_needed }.to raise_error(ActiveRecord::StatementInvalid, /Database error/)
         expect(Rails.logger).to have_received(:error).with(
           /\[TaskPreemption\] Error finding preemptable task for attack #{high_attack.id}: Database error/
         )
@@ -324,7 +323,7 @@ RSpec.describe TaskPreemptionService do
 
         expect(preempted).to eq(task_2)
         expect(Rails.logger).to have_received(:error).with(
-          "[TaskPreemption] Error checking if task #{task_1.id} is preemptable: Unexpected error"
+          /\[TaskPreemption\] Error checking if task #{task_1.id} is preemptable: Unexpected error/
         )
       end
     end

@@ -166,35 +166,27 @@ class UpdateStatusJob < ApplicationJob
   # Rebalances task assignments by ensuring non-deferred attacks can acquire workers through preemption when needed.
   # Iterates incomplete attacks in non-deferred (normal and high) priority campaigns that have no running tasks and, for each attack with remaining work (`uncracked_count > 0`), attempts to preempt lower-priority tasks. Per-attack errors are logged and skipped; any error during the overall rebalance is logged and not re-raised.
   def rebalance_task_assignments
-    begin
-      # Find non-deferred priority attacks with no running tasks
-      # Eager load campaign and hash_list to avoid N+1 queries when checking uncracked_count
-      preemptable_attacks = Attack.incomplete
-                                  .joins(:campaign)
-                                  .includes(:campaign, campaign: :hash_list)
-                                  .where(campaigns: { priority: [Campaign.priorities[:normal], Campaign.priorities[:high]] })
-                                  .where.not(id: Task.with_state(:running).select(:attack_id))
+    # Find non-deferred priority attacks with no running tasks
+    # Eager load campaign and hash_list to avoid N+1 queries when checking uncracked_count
+    preemptable_attacks = Attack.incomplete
+                                .joins(:campaign)
+                                .includes(:campaign, campaign: :hash_list)
+                                .where(campaigns: { priority: [Campaign.priorities[:normal], Campaign.priorities[:high]] })
+                                .where.not(id: Task.with_state(:running).select(:attack_id))
 
-      preemptable_attacks.each do |attack|
-        begin
-          next if attack.uncracked_count.zero?
+    preemptable_attacks.each do |attack|
+      begin
+        next if attack.uncracked_count.zero?
 
-          # Attempt preemption
-          TaskPreemptionService.new(attack).preempt_if_needed
-        rescue StandardError => e
-          Rails.logger.error(
-            "[TaskRebalance] Error preempting tasks for attack #{attack.id} - " \
-            "Error: #{e.class} - #{e.message}"
-          )
-          # Continue with next attack
-        end
+        # Attempt preemption
+        TaskPreemptionService.new(attack).preempt_if_needed
+      rescue StandardError => e
+        Rails.logger.error(
+          "[TaskRebalance] Error preempting tasks for attack #{attack.id} - " \
+          "Error: #{e.class} - #{e.message} - Backtrace: #{e.backtrace&.first(5)&.join(' | ')}"
+        )
+        # Continue with next attack
       end
-    rescue StandardError => e
-      Rails.logger.error(
-        "[TaskRebalance] Error in rebalance_task_assignments - " \
-        "Error: #{e.class} - #{e.message} - Backtrace: #{e.backtrace.first(5).join(' | ')}"
-      )
-      # Don't re-raise - this is a background job that should complete
     end
   end
 end

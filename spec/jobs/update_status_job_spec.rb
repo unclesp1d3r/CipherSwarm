@@ -270,26 +270,13 @@ RSpec.describe UpdateStatusJob do
         expect(Rails.logger).to have_received(:error).with(/Error preempting tasks for attack/)
       end
 
-      it "handles database errors in query gracefully" do
+      it "propagates database errors for Sidekiq retry" do
         high_campaign = create(:campaign, project: project, priority: :high)
 
-        # Simulate database error
+        # Simulate database error — should propagate so Sidekiq can retry
         allow(Attack).to receive(:incomplete).and_raise(ActiveRecord::StatementInvalid.new("Database connection lost"))
-        allow(Rails.logger).to receive(:error)
 
-        expect { described_class.new.perform }.not_to raise_error
-        expect(Rails.logger).to have_received(:error).with(/Error in rebalance_task_assignments/)
-      end
-
-      it "logs errors with backtrace for debugging" do
-        high_campaign = create(:campaign, project: project, priority: :high)
-
-        allow(Attack).to receive(:incomplete).and_raise(StandardError.new("Test error"))
-        allow(Rails.logger).to receive(:error)
-
-        described_class.new.perform
-
-        expect(Rails.logger).to have_received(:error).with(/Backtrace:/)
+        expect { described_class.new.perform }.to raise_error(ActiveRecord::StatementInvalid, /Database connection lost/)
       end
 
       it "avoids N+1 queries when checking multiple non-deferred attacks" do

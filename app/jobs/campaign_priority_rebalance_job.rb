@@ -33,18 +33,10 @@ class CampaignPriorityRebalanceJob < ApplicationJob
       rescue StandardError => e
         Rails.logger.error(
           "[TaskRebalance] Error preempting tasks for attack #{attack.id} - " \
-          "Error: #{e.class} - #{e.message}"
+          "Error: #{e.class} - #{e.message} - Backtrace: #{e.backtrace&.first(5)&.join(' | ')}"
         )
         # Continue with next attack
       end
     end
-  rescue ActiveRecord::RecordNotFound
-    raise # Let discard_on handle deleted campaigns
-  rescue StandardError => e
-    Rails.logger.error(
-      "[TaskRebalance] Error in campaign priority rebalance for campaign #{campaign_id} - " \
-      "Error: #{e.class} - #{e.message} - Backtrace: #{e.backtrace.first(5).join(' | ')}"
-    )
-    # Don't re-raise - this is a background job that should complete
   end
 end
