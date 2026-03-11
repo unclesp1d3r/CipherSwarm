@@ -14,7 +14,7 @@ Rails.application.configure do
     policy.object_src  :none
     policy.script_src  :self
     policy.style_src   :self, :unsafe_inline
-    policy.connect_src :self, :wss
+    policy.connect_src :self, :ws, :wss
     policy.frame_ancestors :none
     policy.base_uri    :self
     policy.form_action :self
