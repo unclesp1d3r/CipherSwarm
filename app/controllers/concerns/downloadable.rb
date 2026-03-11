@@ -31,7 +31,7 @@ module Downloadable
     @resource = resource_class.find(params[:id])
     authorize! :view_file_content, @resource
 
-    max_lines = [(params[:limit].presence || 1000).to_i, 5000].min
+    max_lines = [[(params[:limit].presence || 1000).to_i, 1].max, 5000].min
     lines = []
     @resource.file.blob.open do |file|
       file.each_line do |line|
