@@ -67,7 +67,6 @@ RSpec.shared_examples "downloadable file preview" do |resource_type|
 
     context "with no-newline input (byte cap)" do
       it "returns a bounded preview without crashing" do
-        # Simulate a file with no newlines — buffer would grow unbounded without the byte cap
         content = "a" * 1024
         resource = create(resource_type, sensitive: false, projects: [])
         resource.file.attach(io: StringIO.new(content), filename: "no-newlines.txt")
@@ -76,6 +75,20 @@ RSpec.shared_examples "downloadable file preview" do |resource_type|
 
         expect(response).to have_http_status(:success)
         expect(response.body).to include("a" * 1024)
+      end
+
+      it "terminates streaming at the byte cap to prevent unbounded downloads" do
+        # Stub the byte cap to a small value to exercise the byte-cap branch
+        stub_const("Downloadable::MAX_PREVIEW_BYTES", 64)
+        content = "a" * 256
+        resource = create(resource_type, sensitive: false, projects: [])
+        resource.file.attach(io: StringIO.new(content), filename: "no-newlines-large.txt")
+
+        get view_file_content_path.call(resource)
+
+        # The byte cap fires after the first chunk, preventing further downloads
+        expect(response).to have_http_status(:success)
+        expect(response.body).to include("turbo-stream")
       end
     end
 
