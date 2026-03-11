@@ -307,7 +307,8 @@ class Campaign < ApplicationRecord
     CampaignPriorityRebalanceJob.perform_later(id)
   rescue StandardError => e
     Rails.logger.error(
-      "[Campaign##{id}] Failed to enqueue priority rebalance: #{e.class} - #{e.message}"
+      "[Campaign##{id}] Failed to enqueue priority rebalance: #{e.class} - #{e.message} - " \
+      "Backtrace: #{Array(e.backtrace).first(5).join(' | ')}"
     )
     # Don't re-raise in after_commit — the save already succeeded
   end
