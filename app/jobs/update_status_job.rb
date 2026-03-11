@@ -16,6 +16,8 @@
 # Methods:
 # - perform(*_args): Executes the status update operations within a database connection pool.
 class UpdateStatusJob < ApplicationJob
+  include AttackPreemptionLoop
+
   queue_as :high
 
   # Performs the following tasks:
@@ -170,19 +172,6 @@ class UpdateStatusJob < ApplicationJob
                                 .where(campaigns: { priority: [Campaign.priorities[:normal], Campaign.priorities[:high]] })
                                 .where.not(id: Task.with_state(:running).select(:attack_id))
 
-    preemptable_attacks.each do |attack|
-      next if attack.uncracked_count.zero?
-
-      # Attempt preemption
-      TaskPreemptionService.new(attack).preempt_if_needed
-    rescue ActiveRecord::ConnectionNotEstablished, ActiveRecord::StatementInvalid
-      raise # Let DB connection errors propagate for Sidekiq retry
-    rescue StandardError => e
-      Rails.logger.error(
-        "[TaskRebalance] Error preempting tasks for attack #{attack.id} - " \
-        "Error: #{e.class} - #{e.message} - Backtrace: #{Array(e.backtrace).first(5).join(' | ')}"
-      )
-      # Continue with next attack
-    end
+    preempt_attacks(preemptable_attacks)
   end
 end

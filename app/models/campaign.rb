@@ -305,11 +305,12 @@ class Campaign < ApplicationRecord
     return unless new_value > old_value
 
     CampaignPriorityRebalanceJob.perform_later(id)
-  rescue StandardError => e
+  rescue Redis::BaseConnectionError => e
     Rails.logger.error(
       "[Campaign##{id}] Failed to enqueue priority rebalance: #{e.class} - #{e.message} - " \
       "Backtrace: #{Array(e.backtrace).first(5).join(' | ')}"
     )
-    # Don't re-raise in after_commit — the save already succeeded
+    # Don't re-raise in after_commit — the save already succeeded; the periodic
+    # rebalance in UpdateStatusJob will catch up.
   end
 end
