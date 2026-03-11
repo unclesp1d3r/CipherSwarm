@@ -12,6 +12,7 @@
 # - Abandons tasks that have been running for more than a configurable amount of time without activity.
 # - Rebalances task assignments for non-deferred (normal and high) priority campaigns via preemption.
 #
+# Runs within an explicit connection pool checkout to avoid leaking connections.
 # Scheduled via sidekiq-cron (see config/schedule.yml, default: every 3 minutes).
 # Executed with a high priority queue.
 class UpdateStatusJob < ApplicationJob
@@ -19,18 +20,14 @@ class UpdateStatusJob < ApplicationJob
 
   queue_as :high
 
-  # Performs the following tasks:
-  # 1. Checks the online status of agents that have been offline for more than a configurable amount of time.
-  # 2. Removes old status for tasks in a finished state.
-  # 3. Removes running status for incomplete tasks.
-  # 4. Cleans up agent error records older than the configured retention period.
-  # 5. Abandons tasks that have been running for more than a configurable amount of time without activity.
-  # 6. Rebalances task assignments for non-deferred (normal and high) priority campaigns.
-  #
   ##
-  # Executes periodic status maintenance tasks (agent heartbeats, task status cleanup, task abandonment, and assignment rebalancing)
+  # Executes periodic status maintenance tasks within an explicit connection pool checkout.
   #
-  # Runs the sequence of status-update operations: check agents' online status, remove status records for finished and incomplete tasks, clean up old agent errors, abandon inactive running tasks, and rebalance task assignments for non-deferred (normal and high) priority campaigns.
+  # Runs the sequence of status-update operations: check agents' online status, remove
+  # status records for finished and incomplete tasks, clean up old agent errors, abandon
+  # inactive running tasks, and rebalance task assignments for non-deferred campaigns.
+  # Individual sub-tasks rescue their own errors to prevent one failure from blocking
+  # the rest; however, connection-level errors in rebalancing propagate for Sidekiq retry.
   def perform(*_args)
     ActiveRecord::Base.connection_pool.with_connection do
       check_agents_online_status
@@ -169,7 +166,7 @@ class UpdateStatusJob < ApplicationJob
   # Rebalances task assignments by ensuring non-deferred attacks can acquire workers through preemption when needed.
   # Iterates incomplete attacks in non-deferred (normal and high) priority campaigns that have no running tasks and,
   # for each attack with remaining work (`uncracked_count > 0`), attempts to preempt lower-priority tasks.
-  # Per-attack errors are logged and skipped to prevent one failing attack from blocking rebalancing of others.
+  # Per-attack errors are logged and skipped; connection-level errors propagate for Sidekiq retry.
   def rebalance_task_assignments
     # Find non-deferred priority attacks with no running tasks
     # Eager load campaign and hash_list to avoid N+1 queries when checking uncracked_count
