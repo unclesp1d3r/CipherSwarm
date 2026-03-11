@@ -15,24 +15,32 @@ module AttackPreemptionLoop
 
   # Iterates attacks and attempts preemption for each, with per-attack error isolation.
   #
-  # Database connection errors propagate for Sidekiq retry. All other errors are
-  # logged with backtrace and skipped so one failing attack doesn't block others.
+  # True database connection errors (ConnectionNotEstablished, or StatementInvalid
+  # wrapping PG::ConnectionBad/PG::UnableToSend) propagate for Sidekiq retry.
+  # All other errors are logged with backtrace and skipped so one failing attack
+  # doesn't block others.
   #
-  # @param attacks [ActiveRecord::Relation<Attack>] attacks to evaluate for preemption
+  # @param attacks [Enumerable<Attack>] attacks to evaluate for preemption
   # @return [void]
   def preempt_attacks(attacks)
     attacks.each do |attack|
       next if attack.uncracked_count.zero?
 
       TaskPreemptionService.new(attack).preempt_if_needed
-    rescue ActiveRecord::ConnectionNotEstablished, ActiveRecord::StatementInvalid
-      raise # Let DB connection errors propagate for Sidekiq retry
+    rescue ActiveRecord::ConnectionNotEstablished
+      raise
+    rescue ActiveRecord::StatementInvalid => e
+      raise if e.cause.is_a?(PG::ConnectionBad) || e.cause.is_a?(PG::UnableToSend)
+
+      Rails.logger.error(
+        "[TaskRebalance] SQL error preempting tasks for attack #{attack.id} - " \
+        "Error: #{e.class} - #{e.message} - Backtrace: #{Array(e.backtrace).first(5).join(' | ')}"
+      )
     rescue StandardError => e
       Rails.logger.error(
         "[TaskRebalance] Error preempting tasks for attack #{attack.id} - " \
         "Error: #{e.class} - #{e.message} - Backtrace: #{Array(e.backtrace).first(5).join(' | ')}"
       )
-      # Continue with next attack
     end
   end
 end

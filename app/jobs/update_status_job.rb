@@ -10,11 +10,10 @@
 # - Removes running status for incomplete tasks.
 # - Cleans up agent error records older than the configured retention period.
 # - Abandons tasks that have been running for more than a configurable amount of time without activity.
+# - Rebalances task assignments for non-deferred (normal and high) priority campaigns via preemption.
 #
-# The job is executed with a high priority queue.
-#
-# Methods:
-# - perform(*_args): Executes the status update operations within a database connection pool.
+# Scheduled via sidekiq-cron (see config/schedule.yml, default: every 3 minutes).
+# Executed with a high priority queue.
 class UpdateStatusJob < ApplicationJob
   include AttackPreemptionLoop
 
@@ -58,7 +57,10 @@ class UpdateStatusJob < ApplicationJob
       Rails.logger.info("[AgentErrorCleanup] Removed #{deleted_count} agent errors older than #{ApplicationConfig.agent_error_retention}")
     end
   rescue StandardError => e
-    Rails.logger.error("[AgentErrorCleanup] Error cleaning up old agent errors: #{e.message}")
+    Rails.logger.error(
+      "[AgentErrorCleanup] Error cleaning up old agent errors: #{e.class} - #{e.message} - " \
+      "Backtrace: #{Array(e.backtrace).first(5).join(' | ')}"
+    )
   end
 
   ##
@@ -84,8 +86,7 @@ class UpdateStatusJob < ApplicationJob
   #   (device_statuses and hashcat_guess have dependent: :destroy, touch: true on task).
   # - Alternatives considered:
   #   1. delete_all (faster but skips callbacks, orphans dependent records)
-  #   2. destroy_all on full set (chosen - ensures data integrity)
-  #   3. in_batches.destroy_all (unnecessary complexity for typical volumes)
+  #   2. destroy_all on full set (simple but loads all records into memory)
   # - Decision: Use in_batches.destroy_all for memory efficiency while preserving callbacks.
   # - Performance: Slightly slower than delete_all but maintains referential integrity.
   def remove_finished_tasks_status
@@ -97,7 +98,10 @@ class UpdateStatusJob < ApplicationJob
       Rails.logger.info("[StatusCleanup] Removed #{deleted_count} hashcat_statuses for finished tasks")
     end
   rescue StandardError => e
-    Rails.logger.error("[StatusCleanup] Error removing finished task statuses: #{e.message}")
+    Rails.logger.error(
+      "[StatusCleanup] Error removing finished task statuses: #{e.class} - #{e.message} - " \
+      "Backtrace: #{Array(e.backtrace).first(5).join(' | ')}"
+    )
   end
 
   ##
@@ -155,7 +159,10 @@ class UpdateStatusJob < ApplicationJob
       end
     end
   rescue StandardError => e
-    Rails.logger.error("[StatusCleanup] Error removing incomplete task statuses: #{e.message}")
+    Rails.logger.error(
+      "[StatusCleanup] Error removing incomplete task statuses: #{e.class} - #{e.message} - " \
+      "Backtrace: #{Array(e.backtrace).first(5).join(' | ')}"
+    )
   end
 
   ##

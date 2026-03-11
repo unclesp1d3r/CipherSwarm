@@ -19,9 +19,10 @@ class CampaignPriorityRebalanceJob < ApplicationJob
 
   # Performs task preemption evaluation for all incomplete attacks in the campaign.
   #
-  # NOTE: Each call to TaskPreemptionService#preempt_if_needed runs 2 COUNT queries
-  # via nodes_available?. This is acceptable because campaigns typically have a small
-  # number of attacks (single digits), so the overhead is negligible.
+  # NOTE: Each call to TaskPreemptionService#preempt_if_needed runs at least 2 COUNT
+  # queries via nodes_available?, plus additional queries if preemption candidates must
+  # be evaluated. This is acceptable because campaigns typically have a small number of
+  # attacks (single digits), so the overhead is negligible.
   #
   # @param campaign_id [Integer] the ID of the Campaign whose priority was raised
   # @return [void]
