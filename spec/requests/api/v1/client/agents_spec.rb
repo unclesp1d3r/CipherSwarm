@@ -1122,7 +1122,7 @@ RSpec.describe "api/v1/client/agents" do
              }.to_json
 
         expect(response).to have_http_status(:bad_request)
-        expect(response.parsed_body["error"]).to eq("Metadata too large (maximum 10KB)")
+        expect(response.parsed_body["error"]).to eq("Metadata too large (maximum 10,000 bytes)")
       end
     end
 
