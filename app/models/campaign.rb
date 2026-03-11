@@ -182,15 +182,10 @@ class Campaign < ApplicationRecord
     attacks.without_states(%i[paused completed]).empty? && attacks.with_state(:paused).any?
   end
 
-  # Converts the campaign's priority to a corresponding emoji.
+  # Maps the campaign's priority to an emoji representation.
   #
-  # @return [String] the emoji representing the campaign's priority.
-  #   - "deferred" => "🕰"
-  #   - "normal" => "🔄"
-  #   - "high" => "🔴"
-  ##
-  # Maps the campaign's priority to a single emoji representing that priority.
-  # @return [String] The emoji for the campaign's priority: "🕰" for deferred, "🔄" for normal, "🔴" for high, "❓" for any other or unknown value.
+  # @return [String] the emoji for the campaign's priority:
+  #   "🕰" for deferred, "🔄" for normal, "🔴" for high, "❓" for unknown.
   def priority_to_emoji
     case priority
     when "deferred"
@@ -304,13 +299,15 @@ class Campaign < ApplicationRecord
     return if old_value.nil? || new_value.nil?
     return unless new_value > old_value
 
-    CampaignPriorityRebalanceJob.perform_later(id)
-  rescue Redis::BaseConnectionError => e
-    Rails.logger.error(
-      "[Campaign##{id}] Failed to enqueue priority rebalance: #{e.class} - #{e.message} - " \
-      "Backtrace: #{Array(e.backtrace).first(5).join(' | ')}"
-    )
-    # Don't re-raise in after_commit — the save already succeeded; the periodic
-    # rebalance in UpdateStatusJob will catch up.
+    begin
+      CampaignPriorityRebalanceJob.perform_later(id)
+    rescue StandardError => e
+      Rails.logger.error(
+        "[Campaign##{id}] Failed to enqueue priority rebalance: #{e.class} - #{e.message} - " \
+        "Backtrace: #{Array(e.backtrace).first(5).join(' | ')}"
+      )
+      # Don't re-raise in after_commit — the save already succeeded; the periodic
+      # rebalance in UpdateStatusJob will catch up.
+    end
   end
 end
