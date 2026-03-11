@@ -113,6 +113,30 @@ RSpec.describe UpdateStatusJob do
       end
     end
 
+    context "when remove_finished_tasks_status encounters an error" do
+      it "logs the error with class and backtrace and continues" do
+        allow(HashcatStatus).to receive(:where).and_raise(StandardError.new("query failed"))
+        allow(Rails.logger).to receive(:error)
+
+        expect { described_class.new.perform }.not_to raise_error
+        expect(Rails.logger).to have_received(:error).with(
+          /\[StatusCleanup\] Error removing finished task statuses: StandardError - query failed - Backtrace:/
+        )
+      end
+    end
+
+    context "when remove_incomplete_tasks_status encounters an error" do
+      it "logs the error with class and backtrace and continues" do
+        allow(ApplicationConfig).to receive(:task_status_limit).and_raise(StandardError.new("config error"))
+        allow(Rails.logger).to receive(:error)
+
+        expect { described_class.new.perform }.not_to raise_error
+        expect(Rails.logger).to have_received(:error).with(
+          /\[StatusCleanup\] Error removing incomplete task statuses: StandardError - config error - Backtrace:/
+        )
+      end
+    end
+
     context "when managing campaign priorities" do
       it "completes successfully with no active campaigns" do
         campaign = create(:campaign)
@@ -296,7 +320,7 @@ RSpec.describe UpdateStatusJob do
 
       it "propagates per-attack ConnectionNotEstablished for Sidekiq retry" do
         high_campaign = create(:campaign, project: project, priority: :high)
-        high_attack = create(:dictionary_attack, campaign: high_campaign)
+        create(:dictionary_attack, campaign: high_campaign)
         create(:hash_item, hash_list: high_campaign.hash_list, plain_text: nil)
 
         service_double = instance_double(TaskPreemptionService)
@@ -306,6 +330,40 @@ RSpec.describe UpdateStatusJob do
 
         expect { described_class.new.perform }
           .to raise_error(ActiveRecord::ConnectionNotEstablished)
+      end
+
+      it "propagates per-attack StatementInvalid wrapping PG::ConnectionBad" do
+        high_campaign = create(:campaign, project: project, priority: :high)
+        create(:dictionary_attack, campaign: high_campaign)
+        create(:hash_item, hash_list: high_campaign.hash_list, plain_text: nil)
+
+        service_double = instance_double(TaskPreemptionService)
+        allow(TaskPreemptionService).to receive(:new).and_return(service_double)
+
+        # Build a StatementInvalid with PG::ConnectionBad as its cause via exception chaining
+        allow(service_double).to receive(:preempt_if_needed) do
+          raise PG::ConnectionBad, "server closed the connection unexpectedly"
+        rescue PG::ConnectionBad
+          raise ActiveRecord::StatementInvalid, "PG::ConnectionBad: server closed"
+        end
+
+        expect { described_class.new.perform }
+          .to raise_error(ActiveRecord::StatementInvalid)
+      end
+
+      it "logs and skips per-attack StatementInvalid without connection cause" do
+        high_campaign = create(:campaign, project: project, priority: :high)
+        attack = create(:dictionary_attack, campaign: high_campaign)
+        create(:hash_item, hash_list: high_campaign.hash_list, plain_text: nil)
+
+        service_double = instance_double(TaskPreemptionService)
+        allow(TaskPreemptionService).to receive(:new).and_return(service_double)
+        allow(service_double).to receive(:preempt_if_needed)
+          .and_raise(ActiveRecord::StatementInvalid.new("PG::UndefinedTable"))
+        allow(Rails.logger).to receive(:error)
+
+        expect { described_class.new.perform }.not_to raise_error
+        expect(Rails.logger).to have_received(:error).with(/SQL error preempting tasks for attack #{attack.id}/)
       end
 
       it "avoids N+1 queries when checking multiple non-deferred attacks" do
