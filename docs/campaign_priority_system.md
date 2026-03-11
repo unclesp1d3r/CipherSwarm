@@ -226,7 +226,7 @@ This event-driven approach ensures that when an operator raises a campaign's pri
 
 In addition to event-driven rebalancing, the system performs periodic checks for preemption opportunities:
 
-- **UpdateStatusJob**: Runs on a scheduled interval (configurable via `Settings.update_status_job_frequency`) to perform various maintenance tasks
+- **UpdateStatusJob**: Runs on a scheduled interval (configured via `config/schedule.yml` with sidekiq-cron, default: every 3 minutes) to perform various maintenance tasks
 - **Rebalancing Scope**: Checks for incomplete attacks in **non-deferred** campaigns (both normal and high priority) that have no running tasks
 - **Preemption Evaluation**: For each attack with remaining work, the job calls `TaskPreemptionService.preempt_if_needed` to evaluate whether lower-priority tasks should be preempted
 - **Complementary Mechanisms**: Both automatic (priority increase) and periodic (scheduled job) rebalancing work together to ensure efficient resource allocation
@@ -249,7 +249,7 @@ preemption_count: integer, default: 0, null: false
 
 Tasks preserve progress when preempted:
 
-1. Running task receives `abandon` event
+1. Running task receives `preempt` event
 2. Task transitions to `pending` state
 3. `stale` flag set to indicate new cracks may exist
 4. `preemption_count` incremented
