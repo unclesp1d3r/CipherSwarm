@@ -218,7 +218,7 @@ Stopped campaigns cannot be resumed. To re-run, create a new campaign with the s
 You can edit campaign details while it is running:
 
 - **Name** and **Description**: Can be changed at any time
-- **Priority**: Raising a campaign's priority enqueues a rebalance job that may trigger task preemption for lower-priority campaigns. Lowering priority does not trigger immediate preemption; the system rebalances during the next periodic check.
+- **Priority**: Raising a campaign's priority enqueues a rebalance job that may trigger task preemption for lower-priority campaigns. Lowering priority has no immediate effect; the lowered campaign's tasks continue running until they complete or are preempted by higher-priority campaigns during the normal periodic rebalancing cycle.
 - **Attacks**: Adding new attacks to a running campaign is supported
 - **Editing running attacks**: Modifying a running or completed attack resets it to pending state. A confirmation dialog warns about this behavior.
 
@@ -302,7 +302,7 @@ Time 2: Campaign B completes
 
 - Only campaigns within the same project interact via priority
 - Raising a campaign's priority enqueues an asynchronous rebalance job that triggers task preemption
-- Lowering priority rebalances during the next periodic system check
+- Lowering priority has no immediate effect; the campaign's tasks continue running until completed or preempted
 - Lower-priority running tasks are preempted (transitioned to pending) when you raise a campaign's priority
 - This is intended behavior to ensure urgent campaigns get resources quickly
 - Agents can only work on one task at a time
