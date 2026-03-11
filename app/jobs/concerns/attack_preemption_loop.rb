@@ -8,6 +8,10 @@
 #     - Inline duplication: simpler but error-prone when updating error handling.
 #     - Service object: adds unnecessary indirection for a simple iteration pattern.
 #   Decision: ActiveSupport::Concern keeps the logic close to the jobs that use it.
+#   Performance: Uses find_each for batched loading; per-attack preemption runs
+#     2+ COUNT queries via TaskPreemptionService#nodes_available?, acceptable for
+#     campaigns with single-digit attack counts.
+#   Future: If campaigns grow to many attacks, consider memoizing node capacity.
 module AttackPreemptionLoop
   extend ActiveSupport::Concern
 

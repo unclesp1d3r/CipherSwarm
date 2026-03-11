@@ -631,18 +631,15 @@ CipherSwarm uses two mechanisms to ensure high-priority campaigns can preempt lo
 ```ruby
 # app/jobs/campaign_priority_rebalance_job.rb
 class CampaignPriorityRebalanceJob < ApplicationJob
+  include AttackPreemptionLoop  # shared iteration with per-attack error isolation
+
   queue_as :high
   discard_on ActiveRecord::RecordNotFound
 
   def perform(campaign_id)
     campaign = Campaign.find(campaign_id)
-    attacks = campaign.attacks.incomplete
-                      .includes(:campaign, campaign: :hash_list)
-
-    attacks.each do |attack|
-      next if attack.uncracked_count.zero?
-      TaskPreemptionService.new(attack).preempt_if_needed
-    end
+    attacks = campaign.attacks.incomplete.includes(campaign: :hash_list)
+    preempt_attacks(attacks)  # provided by AttackPreemptionLoop
   end
 end
 ```

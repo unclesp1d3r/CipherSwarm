@@ -21,12 +21,15 @@
 # @param id [Integer] the ID of the record to process
 # @param type [String] the class name of the record to process
 class CountFileLinesJob < ApplicationJob
+  # Raised when the type argument is not in ALLOWED_TYPES.
+  class InvalidTypeError < ArgumentError; end
+
   ALLOWED_TYPES = %w[WordList RuleList MaskList HashList].freeze
 
   queue_as :ingest
   retry_on ActiveStorage::FileNotFoundError, wait: :polynomially_longer, attempts: 3
   discard_on ActiveRecord::RecordNotFound
-  discard_on ArgumentError
+  discard_on InvalidTypeError
 
   # Performs the job to count the number of lines in a file associated with a given record.
   #
@@ -38,7 +41,7 @@ class CountFileLinesJob < ApplicationJob
   # and if not, it opens the file, counts the number of lines, and updates the record with the line count and marks it as processed.
   def perform(id, type)
     unless ALLOWED_TYPES.include?(type)
-      raise ArgumentError, "[CountFileLinesJob] Invalid type '#{type}' - must be one of #{ALLOWED_TYPES.join(', ')}"
+      raise InvalidTypeError, "[CountFileLinesJob] Invalid type '#{type}' - must be one of #{ALLOWED_TYPES.join(', ')}"
     end
 
     klass = type.constantize
