@@ -20,10 +20,11 @@ module AttackPreemptionLoop
   # All other errors are logged with backtrace and skipped so one failing attack
   # doesn't block others.
   #
-  # @param attacks [Enumerable<Attack>] attacks to evaluate for preemption
+  # @param attacks [ActiveRecord::Relation, Enumerable<Attack>] attacks to evaluate for preemption
   # @return [void]
   def preempt_attacks(attacks)
-    attacks.each do |attack|
+    method = attacks.is_a?(ActiveRecord::Relation) ? :find_each : :each
+    attacks.public_send(method) do |attack|
       next if attack.uncracked_count.zero?
 
       TaskPreemptionService.new(attack).preempt_if_needed
