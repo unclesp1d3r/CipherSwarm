@@ -406,6 +406,7 @@ Rails.logger.info("Task preempted")
 - `[AttackAbandon]` - Attack abandonment events
 - `[JobDiscarded]` - Background job failures
 - `[TaskPreemption]` - Task preemption events
+- `[TaskRebalance]` - Campaign priority rebalancing events
 
 ---
 
@@ -614,11 +615,38 @@ end
 
 ### Queue Priorities
 
-| Queue    | Use Case                    |
-| -------- | --------------------------- |
-| default  | General background work     |
-| critical | Time-sensitive operations   |
-| low      | Non-urgent batch processing |
+| Queue    | Use Case                                            |
+| -------- | --------------------------------------------------- |
+| default  | General background work                             |
+| critical | Time-sensitive operations                           |
+| high     | Priority-sensitive operations like task rebalancing |
+| low      | Non-urgent batch processing                         |
+
+### Task Preemption and Priority Rebalancing
+
+CipherSwarm uses two mechanisms to ensure high-priority campaigns can preempt lower-priority tasks:
+
+**Event-driven Rebalancing**: `CampaignPriorityRebalanceJob` triggers immediately when a campaign's priority is raised. This job iterates through the campaign's incomplete attacks and invokes `TaskPreemptionService` to evaluate whether any lower-priority tasks should be preempted.
+
+```ruby
+# app/jobs/campaign_priority_rebalance_job.rb
+class CampaignPriorityRebalanceJob < ApplicationJob
+  include AttackPreemptionLoop  # shared iteration with per-attack error isolation
+
+  queue_as :high
+  discard_on ActiveRecord::RecordNotFound
+
+  def perform(campaign_id)
+    campaign = Campaign.find(campaign_id)
+    attacks = campaign.attacks.incomplete.includes(campaign: :hash_list)
+    preempt_attacks(attacks)  # provided by AttackPreemptionLoop
+  end
+end
+```
+
+**Time-driven Rebalancing**: `UpdateStatusJob` runs periodically (via Sidekiq-Cron) to rebalance task assignments for all non-deferred (normal and high) priority campaigns. This ensures preemption logic runs even if priority changes are missed or occur during system downtime.
+
+Enqueued by: `Campaign#trigger_priority_rebalance_if_needed` after_commit callback when priority increases.
 
 ### Scheduled Jobs
 

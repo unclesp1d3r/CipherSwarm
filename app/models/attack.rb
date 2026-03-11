@@ -144,7 +144,7 @@ class Attack < ApplicationRecord
     validate :validate_mask_or_mask_list
     validates :word_list, absence: true
     validates :increment_minimum, numericality: { greater_than_or_equal_to: 0 }, allow_blank: true, if: -> { increment_mode? }
-    validates :increment_minimum, numericality: { greater_than_or_equal_to: 0 }, allow_blank: true, if: -> { increment_mode? }
+    validates :increment_maximum, numericality: { greater_than_or_equal_to: 0 }, allow_blank: true, if: -> { increment_mode? }
     validates :rule_list, absence: true, allow_blank: true
     validates :markov_threshold, comparison: { equal_to: 0 }, allow_blank: true
   end

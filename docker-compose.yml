@@ -52,7 +52,7 @@ services:
           action: rebuild
 
   postgres-db:
-    image: postgres:17
+    image: postgres:17.2-alpine
     environment:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
@@ -69,7 +69,7 @@ services:
       - backend
 
   redis-db:
-    image: redis
+    image: redis:7.2-alpine
     networks:
       - backend
     deploy:

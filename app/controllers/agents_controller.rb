@@ -16,7 +16,9 @@ class AgentsController < ApplicationController
   load_and_authorize_resource
 
   # GET /agents or /agents.json
-  def index; end
+  def index
+    @agents = @agents.includes(:projects)
+  end
 
   # GET /agents/cards
   # Returns agent cards for turbo frame lazy loading
@@ -89,7 +91,6 @@ class AgentsController < ApplicationController
   def agent_params
     permitted = [:client_signature, :command_parameters, :cpu_only, :ignore_errors,
       :enabled, :trusted, :last_ipaddress, :last_seen_at, :custom_label, :operating_system,
-      :token,
       advanced_configuration_attributes: %i[agent_update_interval use_native_hashcat backend_device opencl_devices],
       project_ids: []]
     # Allow admins to assign agents to users

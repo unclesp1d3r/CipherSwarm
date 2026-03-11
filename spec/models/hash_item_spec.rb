@@ -16,14 +16,15 @@
 #  salt(Salt of the hash)                                :text
 #  created_at                                            :datetime         not null
 #  updated_at                                            :datetime         not null
-#  attack_id(The attack that cracked this hash)          :bigint           indexed
-#  hash_list_id                                          :bigint           not null, indexed, indexed => [hash_value]
+#  attack_id(The attack that cracked this hash)          :bigint           indexed, indexed => [hash_list_id]
+#  hash_list_id                                          :bigint           not null, indexed, indexed => [attack_id], indexed => [hash_value]
 #
 # Indexes
 #
 #  index_hash_items_on_attack_id                    (attack_id)
 #  index_hash_items_on_cracked_time                 (cracked_time)
 #  index_hash_items_on_hash_list_id                 (hash_list_id)
+#  index_hash_items_on_hash_list_id_and_attack_id   (hash_list_id,attack_id)
 #  index_hash_items_on_hash_value_and_cracked       (hash_value,cracked)
 #  index_hash_items_on_hash_value_and_hash_list_id  (hash_value,hash_list_id)
 #

@@ -87,11 +87,11 @@
 #  retry_count                                                                                            :integer          default(0), not null
 #  stale(If new cracks since the last check, the task is stale and the new cracks need to be downloaded.) :boolean          default(FALSE), not null
 #  start_date(The date and time that the task was started.)                                               :datetime         not null
-#  state                                                                                                  :string           default("pending"), not null, indexed => [agent_id], indexed, indexed => [claimed_by_agent_id]
+#  state                                                                                                  :string           default("pending"), not null, indexed => [agent_id], indexed => [attack_id], indexed, indexed => [claimed_by_agent_id]
 #  created_at                                                                                             :datetime         not null
 #  updated_at                                                                                             :datetime         not null
 #  agent_id(The agent that the task is assigned to, if any.)                                              :bigint           not null, indexed, indexed => [state]
-#  attack_id(The attack that the task is associated with.)                                                :bigint           not null, indexed
+#  attack_id(The attack that the task is associated with.)                                                :bigint           not null, indexed, indexed => [state]
 #  claimed_by_agent_id                                                                                    :bigint           indexed, indexed => [state]
 #
 # Indexes
@@ -100,6 +100,7 @@
 #  index_tasks_on_agent_id                       (agent_id)
 #  index_tasks_on_agent_id_and_state             (agent_id,state)
 #  index_tasks_on_attack_id                      (attack_id)
+#  index_tasks_on_attack_id_and_state            (attack_id,state)
 #  index_tasks_on_claimed_by_agent_id            (claimed_by_agent_id)
 #  index_tasks_on_expires_at                     (expires_at)
 #  index_tasks_on_paused_at                      (paused_at) WHERE ((state)::text = 'paused'::text)

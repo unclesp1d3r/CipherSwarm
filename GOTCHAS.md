@@ -14,7 +14,7 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 **Agent Shutdown Cascade:**
 
 - `agent.shutdown!` pauses running tasks AND pauses attacks with no remaining active tasks
-- Shutdown clears task claim fields (`claimed_by_agent_id`, `claimed_at`, `expires_at`)
+- Shutdown clears task claim fields (`claimed_by_agent_id`, `claimed_at`, `expires_at`) ONLY when `pause!` succeeds — if pause fails, claim fields are preserved to avoid inconsistent state
 - Other pause paths (attack cascade via `attack.pause!`, campaign cascade) do NOT clear claim fields
 - `attack.resume!` triggers `resume_tasks` callback which resumes all tasks — calling `task.resume!` after will raise `ActiveRecord::StaleObjectError` unless you `task.reload` first
 - Campaign has NO `state` column — `campaign.paused?` is computed from attack states
@@ -34,6 +34,11 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 - `accept_status` only allows transitions from active states (pending/running → running, paused → same) — finished states (completed/exhausted/failed) are blocked to prevent task resurrection
 
 ## Testing
+
+**ActiveRecord N+1 Query Counting:**
+
+- `payload[:name]` in `sql.active_record` notifications is the model name (e.g., `"Attack Load"`, `"Campaign Load"`), NOT `"SQL"` — filtering by `payload[:name] == "SQL"` captures zero queries and makes N+1 tests silently pass
+- Correct pattern: exclude noise (`SCHEMA`, `CACHE`, transaction statements like `BEGIN`/`COMMIT`/`SAVEPOINT`/`RELEASE`/`SHOW`/`SET`) and count everything else
 
 **CI Test Scope:**
 
@@ -71,11 +76,20 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 - `transition any => same` always succeeds unless the save fails
 - To test failure paths: invalidate the model via `update_column` (bypassing validations) so save fails during transition
 - Beware DB NOT NULL constraints - use columns with only Rails-level validations (e.g., `workload_profile` numericality)
+- `can_pause?`/`can_resume?` always return true for events with `transition any => same` — undercover flags the false branch as uncovered; use `allow_any_instance_of(Model).to receive(:can_pause?).and_return(false)` stubs
+- `find_each` on relations can't be tested with plain arrays — use `double("relation")` with `allow(relation).to receive(:find_each).and_yield(task)`
 
 **Deterministic Ordering:**
 
 - When using `min_by`, `sort_by`, or `ORDER BY` with columns that can tie, always add a tiebreaker (typically `.id`)
 - Example: `tasks.min_by { |t| [t.priority, t.progress, t.id] }` — without `t.id`, CI may return different results than local
+
+**Undercover (Change-Based Coverage):**
+
+- Undercover flags ALL uncovered branches in changed lines, even "impossible" ones — must cover with stubs
+- `obj&.method` safe navigation creates an unreachable nil branch when nil is guarded earlier — remove the `&` if nil is impossible
+- Rescue blocks in changed code need explicit error-path tests — stub the failing call with `and_raise`
+- `swagger/v1/swagger.json` changes from `rails rswag` must be committed — schema mismatches cause rswag CI failures
 
 **Database Deadlock in Tests:**
 

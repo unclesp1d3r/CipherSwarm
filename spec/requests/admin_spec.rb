@@ -23,7 +23,7 @@ RSpec.describe "Admins" do
     it "returns http failure" do
       sign_in regular_user
       get admin_root_path
-      expect(response).to have_http_status(:unauthorized)
+      expect(response).to have_http_status(:forbidden)
     end
   end
 
