@@ -85,10 +85,11 @@ class TaskPreemptionService
   # complete) is returned. Returns `nil` when no suitable task is found.
   #
   # Per-candidate errors during `preemptable?` checks are logged and the candidate is skipped;
-  # if ALL candidates error, a warning is logged. Unexpected errors from the outer query or
-  # sorting are re-raised for the caller (AttackPreemptionLoop) to handle.
+  # if all evaluated candidates error, a warning is logged. Unexpected errors from the outer
+  # query or sorting are re-raised for the caller (AttackPreemptionLoop) to handle.
   #
   # @return [Task, nil] The task to preempt, or `nil` if none suitable.
+  # @raise [StandardError] if the query or sorting raises unexpectedly
   def find_preemptable_task
     # Get all running tasks from lower-priority campaigns in the same project.
     # Pre-filter preemption_count in SQL to avoid loading tasks that can never be preempted.
@@ -99,7 +100,7 @@ class TaskPreemptionService
                                # rubocop:disable Rails/WhereRange
                                .where("campaigns.priority < ?", priority_value)
                                # rubocop:enable Rails/WhereRange
-                               .where("COALESCE(tasks.preemption_count, 0) < 2")
+                               .where(preemption_count: 0..1)
                                .includes(attack: :campaign)
                                .includes(:hashcat_statuses)
 
