@@ -26,6 +26,7 @@ class CountFileLinesJob < ApplicationJob
   queue_as :ingest
   retry_on ActiveStorage::FileNotFoundError, wait: :polynomially_longer, attempts: 3
   discard_on ActiveRecord::RecordNotFound
+  discard_on ArgumentError
 
   # Performs the job to count the number of lines in a file associated with a given record.
   #
@@ -37,8 +38,7 @@ class CountFileLinesJob < ApplicationJob
   # and if not, it opens the file, counts the number of lines, and updates the record with the line count and marks it as processed.
   def perform(id, type)
     unless ALLOWED_TYPES.include?(type)
-      Rails.logger.error("[CountFileLinesJob] Invalid type '#{type}' - must be one of #{ALLOWED_TYPES.join(', ')}")
-      return
+      raise ArgumentError, "[CountFileLinesJob] Invalid type '#{type}' - must be one of #{ALLOWED_TYPES.join(', ')}"
     end
 
     klass = type.constantize
