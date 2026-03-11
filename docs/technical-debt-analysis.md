@@ -190,13 +190,13 @@ Uncovered code paths = increased bug risk
 
 #### 🟡 Medium: Outdated Major Versions
 
-| Gem                | Current | Latest | Lag       | Security Risk | Performance Gain         |
-| ------------------ | ------- | ------ | --------- | ------------- | ------------------------ |
-| **rspec-rails**    | 6.1.5   | 8.0.2  | 2 major   | Low           | Better syntax, faster    |
-| **sidekiq**        | 7.3.10  | 8.1.0  | 1 major   | Low           | Better monitoring        |
-| **sidekiq-cron**   | 1.12.0  | 2.3.1  | 1 major   | Low           | Improved scheduling      |
-| **store_model**    | 2.4.0   | 4.4.0  | 2 major   | Low           | Better JSON handling     |
-| **view_component** | 4.5.0   | 4.5.0  | Current   | N/A           | ✅ Up-to-date            |
+| Gem                | Current | Latest | Lag     | Security Risk | Performance Gain      |
+| ------------------ | ------- | ------ | ------- | ------------- | --------------------- |
+| **rspec-rails**    | 6.1.5   | 8.0.2  | 2 major | Low           | Better syntax, faster |
+| **sidekiq**        | 7.3.10  | 8.1.0  | 1 major | Low           | Better monitoring     |
+| **sidekiq-cron**   | 1.12.0  | 2.3.1  | 1 major | Low           | Improved scheduling   |
+| **store_model**    | 2.4.0   | 4.4.0  | 2 major | Low           | Better JSON handling  |
+| **view_component** | 4.5.0   | 4.5.0  | Current | N/A           | ✅ Up-to-date         |
 
 **Total Outdated**: 4 major version updates
 
@@ -831,6 +831,7 @@ Track These Metrics:
 - [ ] Extract AttackComplexityCalculator
 
 **Recent Accomplishments**:
+
 - ✅ CampaignPriorityRebalanceJob implemented with comprehensive tests (PR #692)
 
 **Q2 2026 Goals**:
