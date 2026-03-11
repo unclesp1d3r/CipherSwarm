@@ -12,10 +12,16 @@
 #
 # Enqueued by Campaign#trigger_priority_rebalance_if_needed after_commit callback.
 class CampaignPriorityRebalanceJob < ApplicationJob
+  include AttackPreemptionLoop
+
   queue_as :high
   discard_on ActiveRecord::RecordNotFound
 
   # Performs task preemption evaluation for all incomplete attacks in the campaign.
+  #
+  # NOTE: Each call to TaskPreemptionService#preempt_if_needed runs 2 COUNT queries
+  # via nodes_available?. This is acceptable because campaigns typically have a small
+  # number of attacks (single digits), so the overhead is negligible.
   #
   # @param campaign_id [Integer] the ID of the Campaign whose priority was raised
   # @return [void]
@@ -25,21 +31,6 @@ class CampaignPriorityRebalanceJob < ApplicationJob
     attacks = campaign.attacks.incomplete
                       .includes(campaign: :hash_list)
 
-    # NOTE: Each call to TaskPreemptionService#preempt_if_needed runs 2 COUNT queries
-    # via nodes_available?. This is acceptable because campaigns typically have a small
-    # number of attacks (single digits), so the overhead is negligible.
-    attacks.each do |attack|
-      next if attack.uncracked_count.zero?
-
-      TaskPreemptionService.new(attack).preempt_if_needed
-    rescue ActiveRecord::ConnectionNotEstablished, ActiveRecord::StatementInvalid
-      raise # Let DB connection errors propagate for Sidekiq retry
-    rescue StandardError => e
-      Rails.logger.error(
-        "[TaskRebalance] Error preempting tasks for attack #{attack.id} - " \
-        "Error: #{e.class} - #{e.message} - Backtrace: #{Array(e.backtrace).first(5).join(' | ')}"
-      )
-      # Continue with next attack
-    end
+    preempt_attacks(attacks)
   end
 end

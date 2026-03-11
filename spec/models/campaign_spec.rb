@@ -246,12 +246,13 @@ RSpec.describe Campaign do
       }.not_to have_enqueued_job(CampaignPriorityRebalanceJob)
     end
 
-    it "does not raise when enqueuing fails" do
-      allow(CampaignPriorityRebalanceJob).to receive(:perform_later).and_raise(StandardError.new("Redis down"))
+    it "does not raise when Redis is unavailable during enqueue" do
+      allow(CampaignPriorityRebalanceJob).to receive(:perform_later)
+        .and_raise(Redis::CannotConnectError.new("Connection refused"))
       allow(Rails.logger).to receive(:error)
 
       expect { campaign.update!(priority: :high) }.not_to raise_error
-      expect(Rails.logger).to have_received(:error).with(/Failed to enqueue priority rebalance.*Redis down/)
+      expect(Rails.logger).to have_received(:error).with(/Failed to enqueue priority rebalance.*Connection refused/)
     end
   end
 

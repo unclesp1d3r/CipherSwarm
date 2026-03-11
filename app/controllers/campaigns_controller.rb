@@ -130,10 +130,11 @@ class CampaignsController < ApplicationController
     authorize! :update, @campaign
     if @campaign.paused?
       @campaign.resume
+      redirect_to campaign_path(@campaign), notice: "Campaign was successfully resumed."
     else
       @campaign.pause
+      redirect_to campaign_path(@campaign), notice: "Campaign was successfully paused."
     end
-    redirect_to campaign_path(@campaign)
   end
 
   private
