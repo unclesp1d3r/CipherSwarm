@@ -19,8 +19,9 @@
 <% end %>
 <div class="card" style="width: 75%;">
   <div class="card-body">
+    <p class="text-muted small mb-2">Showing first <%= number_with_delimiter(@effective_limit) %> lines of file.</p>
     <p class="card-text">
-      <%= turbo_frame_tag :file_content, src: url_for([:view_file_content, @resource, only_path: true]), loading: :lazy do %>
+      <%= turbo_frame_tag :file_content, src: url_for([:view_file_content, @resource, { limit: @effective_limit, only_path: true }]), loading: :lazy do %>
         Loading...
       <% end %>
     </p>

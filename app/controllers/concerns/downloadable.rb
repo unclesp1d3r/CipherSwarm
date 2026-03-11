@@ -24,8 +24,11 @@ module Downloadable
     @resource = resource_class.find(params[:id])
     authorize! :view_file, @resource
 
+    @effective_limit = [[(params[:limit].presence || 1000).to_i, 1].max, 5000].min
     render "shared/attack_resource/view_file"
   end
+
+  MAX_PREVIEW_BYTES = 5.megabytes
 
   def view_file_content
     @resource = resource_class.find(params[:id])
@@ -33,13 +36,26 @@ module Downloadable
 
     max_lines = [[(params[:limit].presence || 1000).to_i, 1].max, 5000].min
     lines = []
-    @resource.file.blob.open do |file|
-      file.each_line do |line|
-        break if lines.size >= max_lines
+    buffer = +""
+    total_bytes = 0
 
-        lines << line
+    # Stream directly from storage without downloading the full file to disk.
+    # throw/catch exits the streaming block early once we have enough lines
+    # or the byte cap is reached (guards against newline-free files).
+    catch(:preview_limit_reached) do
+      @resource.file.blob.download do |chunk|
+        buffer << chunk.force_encoding(Encoding::UTF_8)
+        total_bytes += chunk.bytesize
+        while (newline_index = buffer.index("\n"))
+          lines << buffer.slice!(0..newline_index)
+          throw(:preview_limit_reached) if lines.size >= max_lines
+        end
+        throw(:preview_limit_reached) if total_bytes >= MAX_PREVIEW_BYTES
       end
     end
+
+    lines << buffer if lines.size < max_lines && buffer.present?
+
     @file_content = lines.join
     render turbo_stream: turbo_stream.replace(:file_content,
                                               partial: "shared/attack_resource/file_content",
