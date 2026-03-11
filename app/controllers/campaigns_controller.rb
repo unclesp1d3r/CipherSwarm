@@ -16,7 +16,7 @@
 class CampaignsController < ApplicationController
   before_action :authenticate_user!
   load_and_authorize_resource
-  skip_load_resource only: :toggle_paused
+  skip_load_and_authorize_resource only: :toggle_paused
   before_action :set_hash_lists, only: %i[new edit create update]
 
   # GET /campaigns or /campaigns.json
