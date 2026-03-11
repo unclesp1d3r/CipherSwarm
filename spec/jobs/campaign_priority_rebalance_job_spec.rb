@@ -140,14 +140,30 @@ RSpec.describe CampaignPriorityRebalanceJob do
           .to raise_error(ActiveRecord::ConnectionNotEstablished)
       end
 
-      it "propagates StatementInvalid for Sidekiq retry" do
+      it "propagates StatementInvalid wrapping PG::ConnectionBad for Sidekiq retry" do
         service = instance_double(TaskPreemptionService)
         allow(TaskPreemptionService).to receive(:new).with(attack).and_return(service)
-        allow(service).to receive(:preempt_if_needed)
-          .and_raise(ActiveRecord::StatementInvalid.new("PG::Error"))
+
+        # Build a StatementInvalid with PG::ConnectionBad as its cause via exception chaining
+        allow(service).to receive(:preempt_if_needed) do
+          raise PG::ConnectionBad, "connection lost"
+        rescue PG::ConnectionBad
+          raise ActiveRecord::StatementInvalid, "PG::ConnectionBad: connection lost"
+        end
 
         expect { described_class.new.perform(campaign.id) }
           .to raise_error(ActiveRecord::StatementInvalid)
+      end
+
+      it "logs and skips StatementInvalid without a connection cause" do
+        service = instance_double(TaskPreemptionService)
+        allow(TaskPreemptionService).to receive(:new).with(attack).and_return(service)
+        allow(service).to receive(:preempt_if_needed)
+          .and_raise(ActiveRecord::StatementInvalid.new("PG::UndefinedTable"))
+        allow(Rails.logger).to receive(:error)
+
+        expect { described_class.new.perform(campaign.id) }.not_to raise_error
+        expect(Rails.logger).to have_received(:error).with(/SQL error preempting tasks for attack #{attack.id}/)
       end
     end
 

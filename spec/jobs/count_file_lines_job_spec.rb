@@ -36,19 +36,15 @@ RSpec.describe CountFileLinesJob do
 
   describe "#perform" do
     context "when the type is not in ALLOWED_TYPES" do
-      it "logs an error and returns without processing" do
-        allow(Rails.logger).to receive(:error)
-
-        described_class.perform_now(1, "User")
-
-        expect(Rails.logger).to have_received(:error).with(/Invalid type 'User'/)
+      it "raises ArgumentError with an informative message" do
+        expect { described_class.new.perform(1, "User") }
+          .to raise_error(ArgumentError, /Invalid type 'User'/)
       end
 
-      it "does not attempt to find a record" do
-        allow(Rails.logger).to receive(:error)
-
-        # Should not raise even with a valid ID, because type check short-circuits
-        expect { described_class.perform_now(1, "SomeBogusClass") }.not_to raise_error
+      it "is discarded by the job framework" do
+        expect(described_class.rescue_handlers).to include(
+          have_attributes(first: "ArgumentError")
+        )
       end
     end
 
