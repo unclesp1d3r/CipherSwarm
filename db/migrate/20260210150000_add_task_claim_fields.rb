@@ -15,8 +15,8 @@
 #   Performance Implications: Minimal; columns are indexed for task reassignment queries.
 #   Future Considerations: Claim expiry cleanup could be a background job.
 class AddTaskClaimFields < ActiveRecord::Migration[8.0]
-  def change
-    change_table :tasks do |t|
+  def up
+    change_table :tasks, bulk: true do |t|
       t.bigint :claimed_by_agent_id, comment: "Agent currently processing the task" unless column_exists?(:tasks, :claimed_by_agent_id)
       t.datetime :claimed_at, comment: "When the agent claimed the task" unless column_exists?(:tasks, :claimed_at)
       t.datetime :expires_at, comment: "When the task claim expires" unless column_exists?(:tasks, :expires_at)
@@ -24,8 +24,14 @@ class AddTaskClaimFields < ActiveRecord::Migration[8.0]
 
     add_index :tasks, :claimed_by_agent_id unless index_exists?(:tasks, :claimed_by_agent_id)
     add_index :tasks, :expires_at unless index_exists?(:tasks, :expires_at)
-    return if index_exists?(:tasks, %i[state claimed_by_agent_id])
+    add_index :tasks, %i[state claimed_by_agent_id] unless index_exists?(:tasks, %i[state claimed_by_agent_id])
+  end
 
-    add_index :tasks, %i[state claimed_by_agent_id]
+  def down
+    change_table :tasks, bulk: true do |t|
+      t.remove :expires_at, if_exists: true
+      t.remove :claimed_at, if_exists: true
+      t.remove :claimed_by_agent_id, if_exists: true
+    end
   end
 end
