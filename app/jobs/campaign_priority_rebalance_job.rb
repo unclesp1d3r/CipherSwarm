@@ -23,7 +23,7 @@ class CampaignPriorityRebalanceJob < ApplicationJob
     campaign = Campaign.find(campaign_id)
 
     attacks = campaign.attacks.incomplete
-                      .includes(:campaign, campaign: :hash_list)
+                      .includes(campaign: :hash_list)
 
     # NOTE: Each call to TaskPreemptionService#preempt_if_needed runs 2 COUNT queries
     # via nodes_available?. This is acceptable because campaigns typically have a small
