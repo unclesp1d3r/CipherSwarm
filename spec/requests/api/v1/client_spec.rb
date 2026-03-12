@@ -80,9 +80,17 @@ RSpec.describe "api/v1/client" do
             expect(response).to have_http_status(:ok)
             data = JSON.parse(response.body, symbolize_names: true)
             expect(data[:config][:agent_update_interval]).to be_present
-            expect(data[:recommended_timeouts][:connect_timeout]).to eq(10)
-            expect(data[:recommended_retry][:max_attempts]).to eq(10)
-            expect(data[:recommended_circuit_breaker][:failure_threshold]).to eq(5)
+
+            # Verify all resilience defaults are present and correct
+            expect(data[:recommended_timeouts]).to eq(
+              connect_timeout: 10, read_timeout: 30, write_timeout: 30, request_timeout: 60
+            )
+            expect(data[:recommended_retry]).to eq(
+              max_attempts: 10, initial_delay: 1, max_delay: 300
+            )
+            expect(data[:recommended_circuit_breaker]).to eq(
+              failure_threshold: 5, timeout: 30
+            )
           end
         end
 

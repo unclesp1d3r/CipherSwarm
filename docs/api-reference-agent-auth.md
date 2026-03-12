@@ -169,7 +169,7 @@ The configuration response includes three additional top-level keys that provide
 }
 ```
 
-> **Note:** Values are server-configured defaults. Agents should apply them at startup and re-read on reconnect.
+> **Note:** Values are server-configured defaults. Agents should apply these values when they first receive the configuration response and refresh them periodically by re-fetching the configuration endpoint. This allows operators to adjust resilience parameters without redeploying agents.
 
 ### GET `/api/v1/configuration`
 
@@ -593,8 +593,10 @@ Map each `recommended_timeouts` field to the corresponding HTTP client setting:
 Use exponential backoff with the `recommended_retry` parameters:
 
 ```
-delay = min(initial_delay * 2^attempt, max_delay)
+delay = min(initial_delay * 2^attempt, max_delay) + random(0, delay * 0.5)
 ```
+
+> **Important:** Adding random jitter prevents synchronized retries across multiple agents (thundering herd problem). Without jitter, all agents that lose connectivity simultaneously will retry at exactly the same times.
 
 **Retryable conditions:**
 

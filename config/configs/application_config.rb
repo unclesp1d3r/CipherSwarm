@@ -30,6 +30,9 @@
 # - recommended_circuit_breaker_failure_threshold: Integer, failures before circuit opens (default: 5)
 # - recommended_circuit_breaker_timeout: Integer, seconds before circuit half-opens (default: 30)
 #
+# Note: Resilience attributes use raw integers (not ActiveSupport durations) because
+# they are serialized directly to JSON for agent clients.
+#
 # Class Methods:
 # - instance: Returns a singleton instance of the configuration.
 #
@@ -37,6 +40,18 @@
 # singleton instance, allowing for easy access to configuration attributes
 # without explicitly calling `instance`.
 class ApplicationConfig < Anyway::Config
+  RESILIENCE_ATTRIBUTES = %i[
+    recommended_connect_timeout
+    recommended_read_timeout
+    recommended_write_timeout
+    recommended_request_timeout
+    recommended_retry_max_attempts
+    recommended_retry_initial_delay
+    recommended_retry_max_delay
+    recommended_circuit_breaker_failure_threshold
+    recommended_circuit_breaker_timeout
+  ].freeze
+
   attr_config agent_considered_offline_time: 30.minutes,
               task_considered_abandoned_age: 30.minutes,
               max_benchmark_age: 1.week,
@@ -57,6 +72,18 @@ class ApplicationConfig < Anyway::Config
               recommended_circuit_breaker_failure_threshold: 5,
               recommended_circuit_breaker_timeout: 30
 
+  coerce_types recommended_connect_timeout: :integer,
+               recommended_read_timeout: :integer,
+               recommended_write_timeout: :integer,
+               recommended_request_timeout: :integer,
+               recommended_retry_max_attempts: :integer,
+               recommended_retry_initial_delay: :integer,
+               recommended_retry_max_delay: :integer,
+               recommended_circuit_breaker_failure_threshold: :integer,
+               recommended_circuit_breaker_timeout: :integer
+
+  on_load :validate_resilience_settings
+
   class << self
     # Make it possible to access a singleton config instance
     # via class methods (i.e., without explicitly calling `instance`)
@@ -76,5 +103,17 @@ class ApplicationConfig < Anyway::Config
       end
     end
     # rubocop:enable ThreadSafety/ClassInstanceVariable
+  end
+
+  private
+
+  def validate_resilience_settings
+    RESILIENCE_ATTRIBUTES.each do |attr|
+      value = public_send(attr)
+      unless value.is_a?(Integer) && value.positive?
+        raise Anyway::Config::ValidationError,
+              "#{attr} must be a positive integer, got: #{value.inspect}"
+      end
+    end
   end
 end
