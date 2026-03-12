@@ -998,6 +998,64 @@ RSpec.describe "api/v1/client/tasks" do
     end
   end
 
+  describe "activate_pending_agent_with_benchmarks" do
+    context "when agent is pending with benchmarks" do
+      it "auto-activates the agent" do
+        pending_agent = create(:agent, state: "pending")
+        create(:hashcat_benchmark, agent: pending_agent)
+        allow(Rails.logger).to receive(:info)
+
+        get "/api/v1/client/tasks/new",
+            headers: { "Authorization" => "Bearer #{pending_agent.token}" }
+
+        pending_agent.reload
+        expect(pending_agent.state).to eq("active")
+        expect(Rails.logger).to have_received(:info).with(/\[AgentLifecycle\] auto_activate/).at_least(:once)
+      end
+    end
+
+    context "when agent is pending without benchmarks" do
+      it "does not activate the agent" do
+        pending_agent = create(:agent, state: "pending")
+        allow(Rails.logger).to receive(:info)
+
+        get "/api/v1/client/tasks/new",
+            headers: { "Authorization" => "Bearer #{pending_agent.token}" }
+
+        pending_agent.reload
+        expect(pending_agent.state).to eq("pending")
+      end
+    end
+
+    context "when agent is already active" do
+      it "does not attempt activation" do
+        active_agent = create(:agent, state: "active")
+        allow(Rails.logger).to receive(:info)
+
+        get "/api/v1/client/tasks/new",
+            headers: { "Authorization" => "Bearer #{active_agent.token}" }
+
+        active_agent.reload
+        expect(active_agent.state).to eq("active")
+        expect(Rails.logger).not_to have_received(:info).with(/\[AgentLifecycle\] auto_activate/)
+      end
+    end
+
+    context "when activate fails" do
+      it "does not log activation" do
+        pending_agent = create(:agent, state: "pending")
+        create(:hashcat_benchmark, agent: pending_agent)
+        allow(Rails.logger).to receive(:info)
+        allow_any_instance_of(Agent).to receive(:activate).and_return(false) # rubocop:disable RSpec/AnyInstance
+
+        get "/api/v1/client/tasks/new",
+            headers: { "Authorization" => "Bearer #{pending_agent.token}" }
+
+        expect(Rails.logger).not_to have_received(:info).with(/\[AgentLifecycle\] auto_activate/)
+      end
+    end
+  end
+
   describe "submit_crack parameter validation" do
     let(:agent) { create(:agent) }
     let(:attack) { create(:dictionary_attack) }

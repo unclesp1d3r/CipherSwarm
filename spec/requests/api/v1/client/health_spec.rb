@@ -51,4 +51,20 @@ RSpec.describe "api/v1/client/health" do
       end
     end
   end
+
+  describe "database failure" do
+    it "returns degraded status when database is unhealthy" do
+      allow(ActiveRecord::Base.connection).to receive(:execute).and_call_original
+      allow(ActiveRecord::Base.connection).to receive(:execute).with("SELECT 1").and_raise(StandardError.new("connection refused"))
+      allow(Rails.logger).to receive(:error)
+
+      get "/api/v1/client/health"
+
+      expect(response).to have_http_status(:service_unavailable)
+      data = JSON.parse(response.body, symbolize_names: true)
+      expect(data[:status]).to eq("degraded")
+      expect(data[:database]).to eq("unhealthy")
+      expect(Rails.logger).to have_received(:error).with(/\[APIHealth\] Database check failed/)
+    end
+  end
 end
