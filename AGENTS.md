@@ -228,6 +228,7 @@ CipherSwarm is built around four hierarchical concepts:
 - Tokens generated on Agent creation, stored in `agents.token`
 - API endpoints at `/api/v1/client/*` (JSON only)
 - Authentication flow: Agent authenticates → receives configuration → processes tasks
+- For **unauthenticated** endpoints (e.g., health checks), inherit from `ActionController::API` instead of `Api::V1::BaseController` to bypass `authenticate_agent`. Use `security []` in the rswag spec to override the global `bearer_auth` requirement.
 
 ### Project-Based Multi-Tenancy
 
@@ -365,6 +366,12 @@ Vitest for JS unit tests:
 - Generates Swagger documentation via RSwag
 - Authentication and authorization testing
 
+**View Tests (spec/views/):**
+
+- Partial rendering tests (e.g., agent configuration tab)
+- Use `render partial:` with locals, assert on `rendered`
+- Stub `safe_can?` when the partial uses authorization checks
+
 **Non-Standard Spec Directories:**
 
 - `spec/performance/` - Page load benchmarks and query count efficiency tests
@@ -388,6 +395,12 @@ Vitest for JS unit tests:
 - **sidekiq-cron** - Scheduled jobs
 - **store_model** - JSON column typing (AdvancedConfiguration)
 - **anyway_config** - Configuration management
+
+**Runtime Mutability:**
+
+- ApplicationConfig (Anyway::Config) is loaded from environment variables at startup and is immutable at runtime
+- Do not build admin UI forms for editing ApplicationConfig values — they cannot be changed without a restart
+- If runtime-editable settings are needed, use a database-backed model instead
 
 ### Code Organization Standards
 
