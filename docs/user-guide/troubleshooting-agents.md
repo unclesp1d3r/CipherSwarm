@@ -804,6 +804,7 @@ Agents that support server-provided resilience configuration (introduced in Ciph
 1. **Fetches Resilience Parameters**: The agent must call `GET /api/v1/client/configuration` on startup and periodically (e.g., every 24 hours) to receive timeout and retry settings.
 
 2. **Applies Timeout Configuration**: The agent HTTP client should honor these timeout values:
+
    - `connect_timeout`: Maximum time to establish TCP connection
    - `read_timeout`: Maximum time to wait for response data
    - `write_timeout`: Maximum time to send request data
@@ -864,6 +865,7 @@ Agents that support server-provided resilience configuration (introduced in Ciph
 4. **Monitor agent logs for timeout and retry behavior**:
 
    Look for log entries indicating:
+
    - Connection timeout errors
    - Request timeout errors
    - Retry attempts with exponential backoff
