@@ -224,6 +224,12 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 - Always test that important events are logged correctly
 - Verify sensitive data is filtered (see docs/development/logging-guide.md)
 
+**Jobs & Callbacks:**
+
+- 4 models enqueue jobs from `after_commit` callbacks (`ProcessHashListJob`, `CalculateMaskComplexityJob`, `CountFileLinesJob`, `CampaignPriorityRebalanceJob`)
+- `active_job-performs` gem does NOT fit — these jobs contain substantial logic (batch processing, atomic locks, file I/O), not simple model method delegation
+- This is accepted Rails convention; don't try to "fix" it unless jobs become pure delegators
+
 **Ruby 3.4+ Dependencies:**
 
 - `csv` gem must be in Gemfile (removed from Ruby stdlib in 3.4)

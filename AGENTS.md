@@ -263,6 +263,7 @@ Business logic is extracted into service objects and models:
 
 - Controllers are kept thin (authorization, params, response)
 - Complex operations live in model methods (not separate service objects currently)
+- **Models must not call services** — this creates circular dependencies (model→service→model). Controllers or other services are the correct orchestration layer for service invocations.
 - Background jobs in app/jobs/ handle async operations:
   - `ProcessHashListJob` - Process uploaded hash lists
   - `CalculateMaskComplexityJob` - Calculate mask complexity
