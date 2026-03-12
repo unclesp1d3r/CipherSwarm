@@ -131,6 +131,59 @@ If the error response doesn't include a `reason` field, treat it as `task_delete
 
 ## Agent Recovery Procedures
 
+This section details agent recovery mechanisms, including automatic retry logic, circuit breaker protection, and manual procedures when automatic recovery fails.
+
+### Circuit Breaker Recovery
+
+The agent includes a circuit breaker pattern to protect against cascading failures during server outages or network issues.
+
+**How Circuit Breaker Works:**
+
+1. **Closed State (Normal)**: All requests proceed normally. Failures are tracked.
+2. **Open State (Protecting)**: After reaching the failure threshold (default: 5 failures), the circuit opens. API requests fail immediately with `ErrCircuitOpen` instead of attempting network calls.
+3. **Half-Open State (Testing)**: After the timeout period (default: 60s), the circuit allows one probe request to test server recovery.
+4. **Recovery**: If the probe succeeds, the circuit closes and normal operation resumes. If it fails, the circuit reopens for another timeout period.
+
+**When Circuit Breaker Opens:**
+
+Circuit breaker errors indicate server problems, not agent issues:
+
+- Server is unavailable (restart, maintenance, crash)
+- Network connectivity problems
+- Repeated server errors (5xx responses)
+- Sustained connection failures
+
+**What You'll See:**
+
+Agent logs during circuit open state:
+```
+[Warn] Circuit breaker open, server appears unresponsive
+[Warn] Circuit breaker open, skipping task retrieval
+```
+
+Agent logs after recovery:
+```
+[Info] Applied server-recommended timeouts - connect=10s, read=30s, write=10s, request=60s
+[Info] Agent authenticated successfully
+```
+
+**Recovery Actions:**
+
+- **Agent will automatically recover**: No manual intervention needed
+- **Error reporting is skipped**: Prevents cascading failures when server is down
+- **No agent restart required**: Circuit breaker handles the failure and recovery
+- **If circuit remains open persistently**: Investigate server availability and health
+
+**Administrator Investigation:**
+
+If the circuit breaker remains open for extended periods (>5 minutes):
+
+1. Check server availability and health
+2. Verify network connectivity between agent and server
+3. Review server logs for errors or restart events
+4. Check server resource usage (CPU, memory, database connections)
+5. Verify firewall or network configuration hasn't changed
+
 ### Automatic Recovery from Task Loss
 
 When your agent detects a task has been lost (404 error):
@@ -159,6 +212,79 @@ Authorization: Bearer <your_token>
 - If no task available (204 response): Enter idle state and retry after configured interval
 - Log the task loss event for audit purposes
 
+### Task Acceptance Failures
+
+Task acceptance can fail in two distinct ways, requiring different recovery procedures:
+
+#### 404 Not Found During Acceptance (`ErrTaskAcceptNotFound`)
+
+**What It Means:**
+
+The task disappeared between assignment and acceptance—a normal race condition when multiple agents compete for work.
+
+**Agent Behavior:**
+
+- **No AbandonTask call**: The task no longer exists on the server, so abandonment is unnecessary
+- **No retry delay**: Immediate cleanup and move to next task
+- **Clean up local files**: Remove any downloaded resources for the vanished task
+- **Log at Info severity**: "Task no longer exists on server"
+- **Request new work immediately**: `GET /api/v1/client/tasks/new`
+
+**Example Flow:**
+
+```
+1. Agent receives task assignment (Task ID 123)
+2. Another agent accepts Task 123 first
+3. Agent attempts to accept Task 123 → 404 Not Found
+4. Agent cleans up local files
+5. Agent immediately requests new task (no delay)
+```
+
+**When This Occurs:**
+
+- Multiple agents requesting tasks simultaneously
+- High agent-to-task ratio (more agents than available tasks)
+- Task was reassigned due to another agent's timeout
+
+**Normal or Concerning?**
+
+This is **normal behavior** in multi-agent deployments. The task was claimed by a faster agent. Monitor the frequency—occasional 404s are expected, but if >10% of acceptance attempts fail, investigate task assignment logic or reduce the number of idle agents.
+
+#### Non-404 Acceptance Failure (`ErrTaskAcceptFailed`)
+
+**What It Means:**
+
+The server rejected the acceptance for reasons other than task unavailability (e.g., validation error, server error, permission issue).
+
+**Agent Behavior:**
+
+- **Call AbandonTask**: Notify server to release the task for reassignment
+- **Clean up local files**: Remove any downloaded resources
+- **Sleep on failure**: Wait configured delay (e.g., 10 seconds) before requesting new work
+- **Log at Critical severity**: "Error accepting task" with full error details
+
+**Example Flow:**
+
+```
+1. Agent receives task assignment (Task ID 456)
+2. Agent attempts to accept Task 456 → 500 Internal Server Error
+3. Agent calls AbandonTask to release Task 456
+4. Agent cleans up local files
+5. Agent sleeps for configured delay
+6. Agent requests new task
+```
+
+**When This Occurs:**
+
+- Server experiencing internal errors
+- Agent authentication/authorization issues
+- Invalid attack parameters
+- Database connectivity problems
+
+**Normal or Concerning?**
+
+This is **concerning behavior** that requires investigation. Non-404 acceptance failures indicate a systemic issue with the server, agent configuration, or attack parameters. These should be rare (<1%) and investigated immediately.
+
 ### When to Restart an Agent
 
 **Restart Required:**
@@ -172,9 +298,10 @@ Authorization: Bearer <your_token>
 **Restart NOT Required:**
 
 - Single task loss (404 error) - automatic recovery should handle this
-- Temporary network issues - agent should reconnect automatically
-- Server returns 5xx errors occasionally - implement retry logic
+- Temporary network issues - agent automatically retries with exponential backoff
+- Server returns 5xx errors occasionally - automatic retry logic handles this
 - Status update returns 202 (stale) or 410 (paused) - these are normal operations
+- Circuit breaker opens - agent will automatically recover when server becomes available
 
 ### Manual Recovery Procedures
 
@@ -367,6 +494,17 @@ agent:
   retry_backoff_multiplier: 2
   max_retry_backoff: 60 # seconds
   request_new_task_interval: 300 # 5 minutes when idle
+  
+  # HTTP resilience settings (can be overridden by server-recommended values)
+  connect_timeout: 10 # seconds - TCP connect timeout
+  read_timeout: 30 # seconds - API response read timeout
+  write_timeout: 10 # seconds - API request write timeout
+  request_timeout: 60 # seconds - overall request timeout
+  api_max_retries: 3 # total attempts (1 = no retry)
+  api_retry_initial_delay: 1 # seconds - first retry delay
+  api_retry_max_delay: 30 # seconds - cap for exponential backoff
+  circuit_breaker_failure_threshold: 5 # failures before circuit opens
+  circuit_breaker_timeout: 60 # seconds - duration before half-open retry
 ```
 
 **Why These Settings:**
@@ -377,6 +515,19 @@ agent:
 - **max_404_retries**: Balances recovery attempts with quick failure detection
 - **retry_backoff**: Prevents overwhelming server during issues
 - **request_new_task_interval**: Regular check for work without excessive polling
+- **connect_timeout**: Prevents indefinite hangs on connection establishment
+- **read_timeout**: Prevents indefinite hangs waiting for server response
+- **write_timeout**: Prevents indefinite hangs sending request payload
+- **request_timeout**: Enforces overall limit on API call duration
+- **api_max_retries**: Automatically retries network errors and 5xx responses with exponential backoff
+- **api_retry_initial_delay**: Starting delay for retry backoff (doubles each attempt)
+- **api_retry_max_delay**: Caps retry delays to prevent excessive waiting
+- **circuit_breaker_failure_threshold**: Opens circuit to prevent cascading failures after repeated errors
+- **circuit_breaker_timeout**: Duration before attempting recovery after circuit opens
+
+**Server-Recommended Settings:**
+
+The agent fetches recommended timeout, retry, and circuit breaker settings from the server's `/configuration` endpoint. If present, these server values override the local configuration to ensure optimal performance for the specific server deployment. The agent logs when server-recommended settings are applied.
 
 ### Monitoring Agent Health
 
@@ -387,22 +538,29 @@ agent:
    - Target: >95%
    - Alert: \<90%
 
-2. **404 Error Rate**: `(404_errors / total_requests) * 100`
+2. **Acceptance Failure Rate**: `(non_404_accept_failures / total_accept_attempts) * 100`
 
-   - Target: \<1%
-   - Alert: >5%
+   - Target: <1%
+   - Alert: >2%
+   - Note: Excludes 404 errors, which are normal race conditions
 
-3. **Average Task Duration**: Time from accept to completion
+3. **Acceptance 404 Rate**: `(404_accept_failures / total_accept_attempts) * 100`
+
+   - Target: <5%
+   - Warning: 5-10% (too many idle agents)
+   - Alert: >10% (task assignment issues)
+
+4. **Average Task Duration**: Time from accept to completion
 
    - Track for anomalies
    - Alert on sudden increases
 
-4. **Network Latency**: Round-trip time for API requests
+5. **Network Latency**: Round-trip time for API requests
 
    - Target: \<500ms
    - Alert: >2000ms
 
-5. **Memory Usage**: Agent memory consumption
+6. **Memory Usage**: Agent memory consumption
 
    - Target: Stable over time
    - Alert on continuous growth (potential leak)
@@ -412,16 +570,22 @@ agent:
 **Critical Alerts:**
 
 - Agent offline for >10 minutes
-- 404 error rate >10% in 5-minute window
+- Non-404 acceptance errors at any frequency (indicates server/config issues)
 - Authentication failures
 - No tasks completed in last hour (when tasks available)
 
 **Warning Alerts:**
 
-- 404 error rate >5% in 15-minute window
+- 404 acceptance error rate >10% in 15-minute window
 - Task success rate \<95%
 - High memory usage (>80% of limit)
 - Network latency >1000ms
+
+**Info-Level Events (No Alert):**
+
+- Individual 404 errors during task acceptance (expected race condition)
+- Occasional task status 404s (task completed elsewhere)
+- Campaign pause/resume notifications
 
 ### Regular Health Checks
 
@@ -547,69 +711,7 @@ Common task errors and their solutions:
 
 ## Common Scenarios
 
-### Scenario 1: Task Acceptance Failures (404 vs Other Errors)
-
-This scenario describes what happens when an agent tries to accept a task but encounters an error.
-
-#### 404 During Task Acceptance
-
-**Symptoms:**
-
-- Agent requests a new task from server
-- Agent receives task assignment
-- Agent attempts to accept task via `/tasks/{id}/accept_task`
-- Server responds with 404 Not Found
-- Error type: `ErrTaskAcceptNotFound`
-
-**Cause:**
-
-This is a normal race condition when multiple agents compete for the same task. The task was deleted between when it was offered and when the agent tried to accept it. Another agent may have claimed it first, or the attack was abandoned.
-
-**Agent Behavior:**
-
-1. Immediately abandons the local task reference
-2. Does NOT call the abandon endpoint (task already deleted on server)
-3. Performs local cleanup only (removes downloaded files)
-4. Returns to waiting state without delay
-5. Requests next available task immediately
-
-**This is not an error condition** - it's expected behavior in a multi-agent environment. No troubleshooting needed.
-
-**Troubleshooting Tip:** If agents appear to skip tasks rapidly, check server logs for 404s on `accept_task` - this indicates healthy competition for tasks, not a problem.
-
-#### Other Errors During Task Acceptance
-
-**Symptoms:**
-
-- Agent attempts to accept task
-- Server returns 5xx error, network timeout, or other non-404 failure
-- Error type: `ErrTaskAcceptFailed`
-
-**Cause:**
-
-Genuine failure during task acceptance:
-
-- Server experiencing issues (500, 503 errors)
-- Network connectivity problems
-- Invalid task state on server
-- Database errors
-
-**Agent Behavior:**
-
-1. Calls abandon endpoint to notify server (uses `context.Background()` - must complete)
-2. Performs local cleanup
-3. Sleeps for configured `SleepOnFailure` duration
-4. Returns to waiting state
-5. Server makes task available to other agents
-
-**Troubleshooting:**
-
-- Check server health and logs
-- Verify network connectivity
-- Review agent error logs for specific failure details
-- Monitor for persistent failures that might indicate configuration issues
-
-### Scenario 2: Attack Abandoned While Agent Processing
+### Scenario 1: Attack Abandoned While Agent Processing
 
 **Symptoms:**
 
@@ -641,8 +743,6 @@ Server abandoned the attack, destroying all associated tasks. Common reasons:
 4. Agent requests new task via `GET /api/v1/client/tasks/new`
 5. Agent continues with new work
 
-**Important:** The retry behavior (exponential backoff, 3 attempts) applies to 404s **during task execution** (submit_status, etc.). 404s **during task acceptance** are handled immediately without retries to prevent infinite retry loops.
-
 **Prevention:**
 
 - Monitor campaign priorities
@@ -650,7 +750,7 @@ Server abandoned the attack, destroying all associated tasks. Common reasons:
 - Implement graceful handling of stale task detection
 - Check task status before expensive operations
 
-### Scenario 3: Network Interruption Causing Stale References
+### Scenario 2: Network Interruption Causing Stale References
 
 **Symptoms:**
 
@@ -674,13 +774,43 @@ During network outage:
 [TaskNotFound] Task 678 - Requested by Agent 10 - Assigned to Agent 15 - Reason: task_not_assigned
 ```
 
+**Agent Behavior with HTTP Resilience:**
+
+The agent automatically handles network interruptions through retry and circuit breaker mechanisms:
+
+1. **Retry Logic**: Network errors and 5xx responses are automatically retried (up to 3 attempts by default) with exponential backoff
+2. **Circuit Breaker Protection**: After repeated failures (5 by default), the circuit breaker opens to prevent cascading failures
+3. **Automatic Recovery**: When the circuit breaker opens, agents log "circuit open" messages and skip server requests that would fail
+4. **Half-Open Probe**: After the timeout period (60s by default), the circuit breaker allows a single probe request to test server recovery
+5. **Circuit Closes**: Once the server responds successfully, the circuit closes and normal operation resumes
+
 **Resolution:**
 
-1. Detect network outage (failed heartbeat)
-2. When network recovers, re-authenticate with server
-3. Abandon all local task references
-4. Request new tasks
-5. Resume normal operations
+1. Agent detects network outage through failed requests
+2. Retry transport attempts up to 3 times with exponential backoff (1s, 2s, 4s)
+3. After exhausting retries, circuit breaker opens if failure threshold reached
+4. Agent logs "circuit open" messages instead of repeated errors
+5. After circuit breaker timeout (60s), agent attempts probe request
+6. If server is available, circuit closes and agent re-authenticates
+7. Agent abandons all local task references (now stale)
+8. Agent requests new tasks
+9. Agent resumes normal operations
+
+**What You'll See in Logs:**
+
+During the outage:
+```
+[Warn] Heartbeat failed, backing off - failures=3, next_retry=8s
+[Warn] Circuit breaker open, server appears unresponsive - failures=5
+[Warn] Circuit breaker open, skipping task retrieval
+```
+
+After recovery:
+```
+[Info] Applied server-recommended timeouts - connect=10s, read=30s, write=10s, request=60s
+[Info] Agent authenticated successfully
+[Debug] Requesting new task
+```
 
 **Prevention:**
 
@@ -688,22 +818,35 @@ During network outage:
 - Detect outages early and enter offline mode
 - Don't accumulate stale task references
 - Re-authenticate after network issues
-- Implement connection retry logic with backoff
+- Circuit breaker and retry logic handle transient failures automatically
+- Monitor circuit breaker open events for persistent connectivity issues
 
-### Scenario 4: Multiple Agents Competing for Same Task
+### Scenario 3: Task Not Found During Acceptance
 
 **Symptoms:**
 
 - Agent requests new task
 - Agent receives task assignment
 - Agent attempts to accept task
-- Server returns 404 with `reason: "task_not_assigned"`
+- Server returns 404 (task vanished)
 
 **Cause:**
 
+This is an **expected race condition** when multiple agents compete for tasks:
+
 - Multiple agents requested tasks simultaneously
-- Server assigned same task to multiple agents (race condition)
+- Server assigned same task to multiple agents
 - One agent accepted faster, others receive 404
+- Task was reassigned before acceptance completed
+
+**Agent Logs Show:**
+
+```
+[Info] Agent 11 - Failed to accept task 700: task not found during acceptance
+[Info] Task no longer exists on server
+[Debug] Cleaned up local files for task 700
+[Debug] Requesting new task
+```
 
 **Server Logs Show:**
 
@@ -712,21 +855,33 @@ During network outage:
 [TaskNotFound] Task 700 - Requested by Agent 11 - Assigned to Agent 10 - Reason: task_not_assigned
 ```
 
-**Resolution:**
+**Resolution (Automatic):**
 
-1. Agent receives 404 on accept_task
-2. Agent immediately requests new task
-3. Agent does not retry accepting the same task
-4. Agent continues normally with new task
+1. Agent receives 404 on `accept_task`
+2. Agent recognizes `ErrTaskAcceptNotFound` sentinel error
+3. Agent **skips** AbandonTask call (task already gone)
+4. Agent cleans up local files immediately
+5. Agent requests new task **without delay**
+6. Agent continues normally with new task
+
+**Why No AbandonTask Call?**
+
+The task no longer exists on the server (another agent claimed it), so calling AbandonTask would generate unnecessary API traffic and potential error noise. The agent simply cleans up locally and moves on.
+
+**Monitoring:**
+
+- **Normal**: Occasional 404s during acceptance (<5% of attempts)
+- **Warning**: Frequent 404s (5-10% of attempts) may indicate too many idle agents
+- **Critical**: Very high 404 rate (>10% of attempts) suggests task assignment issues
 
 **Prevention:**
 
 - Accept tasks promptly after receiving them (within 10 seconds)
 - Don't delay between receiving and accepting
-- Implement atomic task claiming logic on server
-- Monitor for frequent task conflicts
+- Balance agent count with available work
+- Monitor acceptance failure rates across the agent pool
 
-### Scenario 5: Server Restart Causing Task Reassignment
+### Scenario 4: Server Restart Causing Task Reassignment
 
 **Symptoms:**
 
@@ -749,21 +904,61 @@ During network outage:
 [System] 15 tasks in running state reset to pending
 ```
 
+**Agent Behavior During Server Restart:**
+
+When the server becomes unavailable during a restart:
+
+1. **Retry Logic Activates**: Network errors and connection failures are automatically retried (up to 3 attempts by default) with exponential backoff
+2. **Circuit Breaker Opens**: After repeated failures (5 by default), the circuit breaker opens to protect against cascading failures
+3. **Error Reporting Skipped**: When the circuit breaker is open, agents skip error reporting to the server (which would fail anyway)
+4. **Automatic Recovery**: The circuit breaker automatically attempts recovery after the configured timeout (60s by default)
+5. **Half-Open Probe**: A single probe request tests if the server has recovered
+6. **Circuit Closes**: Once the server responds successfully, the circuit closes and agents resume normal operation
+
 **Resolution:**
 
-1. Detect widespread 404 errors across agents
-2. Re-authenticate all agents
-3. Abandon all current task references
-4. Request new tasks for all agents
-5. Resume normal operations
+1. Agent detects server unavailability through failed API requests
+2. Retry transport attempts each request up to 3 times with exponential backoff
+3. After exhausting retries, circuit breaker opens if failure threshold reached
+4. Agent logs "circuit open" messages instead of attempting failed requests
+5. After circuit breaker timeout (60s), agent sends probe request
+6. When server is back online, circuit breaker closes
+7. Agent re-authenticates with server
+8. Agent abandons all current task references (now stale)
+9. Agent requests new tasks
+10. Agent resumes normal operations
+
+**What You'll See in Logs:**
+
+During server downtime:
+```
+[Warn] Heartbeat failed, backing off - failures=3, next_retry=8s
+[Warn] Circuit breaker open, server appears unresponsive - failures=5
+[Warn] Circuit breaker open, skipping task retrieval
+```
+
+After server recovery:
+```
+[Info] Applied server-recommended timeouts - connect=10s, read=30s, write=10s, request=60s
+[Info] Agent authenticated successfully
+[Debug] Requesting new task
+```
+
+**Key Points:**
+
+- **No agent restart needed**: The circuit breaker and retry logic handle server restarts automatically
+- **Circuit breaker protects agents**: Prevents log flooding and resource exhaustion during server downtime
+- **Automatic recovery**: Agents detect server availability and resume work without manual intervention
+- **Error reporting is smart**: Skipped when circuit is open to avoid cascading failures
 
 **Prevention:**
 
 - Monitor server uptime and health
 - Implement graceful server restart procedures
-- Notify agents of planned maintenance
+- Notify agents of planned maintenance (though circuit breaker handles unplanned outages)
 - Persist task assignments to database
-- Implement server restart detection in agents
+- Circuit breaker and retry logic automatically handle server restarts
+- Monitor circuit breaker open events to detect server availability issues
 
 ---
 
@@ -856,6 +1051,8 @@ grep "\[TaskNotFound\]" production.log | \
 | `[TaskNotFound].*task_invalid`                               | Invalid task ID used                      | Possible client bug, investigate              |
 | Multiple `[TaskNotFound]` for same agent in short time       | Agent not recovering properly             | Check agent configuration and code            |
 | `[Attack.*Abandoning attack]` multiple times for same attack | Attack repeatedly abandoned and restarted | Investigate root cause                        |
+| `Circuit breaker open, server appears unresponsive`          | Circuit breaker protecting against cascading failures | Check server availability and health; agent will auto-recover |
+| `Circuit breaker open, skipping task retrieval`              | Agent avoiding failed requests during outage | Normal during server downtime; no action needed |
 
 ### Tools for Log Analysis
 
@@ -909,11 +1106,12 @@ grep "\[TaskNotFound\]" production.log | \
 
 **Contact immediately if:**
 
-- Agent receives 404 errors at >10% rate for >15 minutes
+- Agent receives non-404 acceptance errors (indicates server/config issues)
 - Multiple agents reporting same issues simultaneously
 - Authentication failures persist after token refresh
-- Server returns 5xx errors consistently
+- Server returns 5xx errors consistently despite retry logic
 - Tasks are stuck in running state for >24 hours
+- Circuit breaker remains open persistently (indicates sustained server problems)
 
 **Information to Provide:**
 
