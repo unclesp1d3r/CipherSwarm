@@ -138,6 +138,7 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 **rswag 3.0.0.pre Migration Notes:**
 
 - `openapi_strict_schema_validation` removed in 3.x — replaced by `openapi_no_additional_properties` and `openapi_all_properties_required`
+- `openapi_all_properties_required: true` means **every property** declared in a schema is treated as required in validation — if a response omits a declared property, `run_test!` fails. To handle optional fields, declare them in the schema and always return them (with `null` for absent cases), using `nullable: true` on the property.
 - `request_body_json` does not exist in rswag 3.0.0.pre — polyfilled in `spec/support/rswag_polyfills.rb`
 - `RequestFactory` in 3.x resolves parameters via `params.fetch(name)` against `example.request_params` (empty hash by default); since rswag 2.x resolved parameters via `example.send(param_name)` directly from `let` blocks, `LetFallbackHash` in `spec/support/rswag_polyfills.rb` bridges this gap by falling back to `example.public_send(key)` when `request_params` lacks the key
 - The rswag 3.x formatter already converts internal `in: :body` + `consumes` to OAS 3.0 `requestBody` — polyfills use this mechanism
@@ -155,6 +156,11 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 
 - Devise 5 applies `downcase_first` to humanized authentication keys in flash messages ("name" instead of "Name")
 - Test page objects should derive labels dynamically via `User.human_attribute_name(key).downcase_first` (see `spec/support/page_objects/sign_in_page.rb#devise_auth_keys_label`)
+
+**Unauthenticated Endpoints:**
+
+- Endpoints inheriting from `ActionController::API` (bypassing agent auth) must never return raw `e.message` in responses — this leaks internal details (hostnames, DB errors, credential hints)
+- Use a generic stable error string for clients (e.g., `"Internal health check failure"`), log full exception details server-side with `Rails.logger.error`
 
 ## Database & ActiveRecord
 
