@@ -129,18 +129,21 @@ class TaskAssignmentService
     task = nil
 
     Task.transaction do
-      task = Task.with_state(:paused)
-                 .where(claimed_by_agent_id: nil)
-                 .where.not(agent_id: agent.id)
-                 .joins(:agent)
-                 .where(
-                   "tasks.paused_at IS NULL OR tasks.paused_at < :grace_cutoff OR agents.state IN (:orphan_states)",
-                   grace_cutoff: ApplicationConfig.agent_considered_offline_time.ago,
-                   orphan_states: %w[offline stopped]
-                 )
-                 .joins(attack: { campaign: :hash_list })
-                 .where(campaigns: { project_id: agent.project_ids })
-                 .where(hash_lists: { hash_type_id: allowed_hash_type_ids })
+      scope = Task.with_state(:paused)
+                   .where(claimed_by_agent_id: nil)
+                   .where.not(agent_id: agent.id)
+                   .joins(:agent)
+                   .where(
+                     "tasks.paused_at IS NULL OR tasks.paused_at < :grace_cutoff OR agents.state IN (:orphan_states)",
+                     grace_cutoff: ApplicationConfig.agent_considered_offline_time.ago,
+                     orphan_states: %w[offline stopped]
+                   )
+                   .joins(attack: { campaign: :hash_list })
+                   .where(hash_lists: { hash_type_id: allowed_hash_type_ids })
+
+      scope = scope.where(campaigns: { project_id: agent.project_ids }) if agent.project_ids.present?
+
+      task = scope
                  .where("EXISTS (SELECT 1 FROM hash_items WHERE hash_items.hash_list_id = hash_lists.id AND hash_items.cracked = false)")
                  .order(:id)
                  .lock("FOR UPDATE OF tasks SKIP LOCKED")
@@ -191,8 +194,6 @@ class TaskAssignmentService
   #
   # @return [Task, nil] the found or newly created task, or nil if none available
   def find_task_from_available_attacks
-    return nil if agent.project_ids.blank?
-
     available_attacks.each do |attack|
       next if attack.uncracked_count.zero?
 
@@ -302,6 +303,9 @@ class TaskAssignmentService
 
   # Returns attacks available for the agent based on projects and hash types.
   #
+  # Agents with no project assignments can work on any project (same convention
+  # as attack resources like word lists, rule lists, and Task#agent_compatible?).
+  #
   # Ordering strategy:
   # 1. campaigns.priority DESC: Higher campaign priority first (high=2, normal=0, deferred=-1)
   # 2. attacks.complexity_value: Within same priority, simpler attacks first
@@ -309,12 +313,14 @@ class TaskAssignmentService
   #
   # @return [ActiveRecord::Relation<Attack>] attacks ordered by campaign priority, complexity, creation time
   def available_attacks
-    Attack.incomplete
-          .joins(campaign: { hash_list: :hash_type })
-          .includes(campaign: %i[hash_list project])
-          .where(campaigns: { project_id: agent.project_ids })
-          .where(hash_lists: { hash_type_id: allowed_hash_type_ids })
-          .order("campaigns.priority DESC, attacks.complexity_value, attacks.created_at")
+    scope = Attack.incomplete
+                  .joins(campaign: { hash_list: :hash_type })
+                  .includes(campaign: %i[hash_list project])
+                  .where(hash_lists: { hash_type_id: allowed_hash_type_ids })
+
+    scope = scope.where(campaigns: { project_id: agent.project_ids }) if agent.project_ids.present?
+
+    scope.order("campaigns.priority DESC, attacks.complexity_value, attacks.created_at")
   end
 
   # Returns hash type IDs the agent can work on, cached for performance.

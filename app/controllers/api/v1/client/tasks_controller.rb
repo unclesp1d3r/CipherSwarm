@@ -40,8 +40,14 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
 
   # Initializes a new task for the agent.
   # If the task is nil, it renders a no content status.
+  #
+  # Task assignment is benchmark-gated, not state-gated: if the agent has benchmarks
+  # for a hash type, it can receive tasks for that type regardless of state.
+  # We activate pending agents with benchmarks as a side effect so the UI reflects
+  # reality, but this never blocks task assignment.
   def new
     @task = TaskAssignmentService.new(@agent).find_next_task
+    activate_pending_agent_with_benchmarks
     head(:no_content) if @task.nil?
     # When @task exists, Jbuilder template (new.json.jbuilder) renders automatically
   end
@@ -224,6 +230,19 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
   end
 
   private
+
+  # Activates a pending agent that has benchmark data on record.
+  # This is a UI-correctness side effect, not a task assignment gate.
+  def activate_pending_agent_with_benchmarks
+    return unless @agent.pending? && @agent.hashcat_benchmarks.exists?
+    return unless @agent.activate
+
+    Rails.logger.info(
+      "[AgentLifecycle] auto_activate: agent_id=#{@agent.id} " \
+      "reason=pending_with_benchmarks benchmark_count=#{@agent.hashcat_benchmarks.count} " \
+      "timestamp=#{Time.zone.now}"
+    )
+  end
 
   # Finds and sets the @task instance variable for the current agent.
   # This method is used as a before_action callback to ensure tasks exist and belong to the agent.

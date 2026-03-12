@@ -88,6 +88,12 @@ class Agent < ApplicationRecord
     quadrillion: "PH/s"
   }.freeze
 
+  # Fields whose changes should trigger a configuration tab broadcast.
+  CONFIGURATION_BROADCAST_FIELDS = %w[
+    enabled client_signature last_ipaddress advanced_configuration
+    custom_label operating_system
+  ].freeze
+
   belongs_to :user, touch: true
   has_and_belongs_to_many :projects, touch: true
   has_many :tasks, dependent: :destroy
@@ -136,23 +142,31 @@ class Agent < ApplicationRecord
       locals: { agent: self }
   end
 
+
   # Broadcasts updates to individual tab streams instead of the root agent stream.
   # This allows each tab panel to update independently without affecting the active tab state.
+  #
+  # Overview: always broadcast (last_seen, state, metrics change frequently).
+  # Configuration: only when config-relevant fields change.
+  # Capabilities: only when state changes (benchmark data arrives via state transitions).
   def broadcast_tab_updates
     broadcast_replace_later_to [self, :overview],
       target: ActionView::RecordIdentifier.dom_id(self, :overview),
       partial: "agents/overview_tab",
       locals: { agent: self }
 
-    broadcast_replace_later_to [self, :configuration],
-      target: ActionView::RecordIdentifier.dom_id(self, :configuration),
-      partial: "agents/configuration_tab",
-      locals: { agent: self }
+    if saved_changes.keys.intersect?(CONFIGURATION_BROADCAST_FIELDS)
+      broadcast_replace_later_to [self, :configuration],
+        target: ActionView::RecordIdentifier.dom_id(self, :configuration),
+        partial: "agents/configuration_tab",
+        locals: { agent: self }
+    end
 
-    broadcast_replace_later_to [self, :capabilities],
-      target: ActionView::RecordIdentifier.dom_id(self, :capabilities),
-      partial: "agents/capabilities_tab",
-      locals: { agent: self }
+    return unless saved_change_to_state?
+      broadcast_replace_later_to [self, :capabilities],
+        target: ActionView::RecordIdentifier.dom_id(self, :capabilities),
+        partial: "agents/capabilities_tab",
+        locals: { agent: self }
   end
 
   # The operating system of the agent.
