@@ -330,18 +330,6 @@ class Agent < ApplicationRecord
     custom_label.presence || host_name
   end
 
-  # Finds the next task for the agent via TaskAssignmentService.
-  #
-  # The assignment algorithm considers (in priority order):
-  # incomplete tasks, own paused tasks, orphaned paused tasks,
-  # failed retryable tasks, pending tasks, and new task creation.
-  # See TaskAssignmentService#find_next_task for full details.
-  #
-  # @return [Task, nil] The next task for the agent, or nil if no task is found.
-  def new_task
-    TaskAssignmentService.new(self).find_next_task
-  end
-
   # Returns an array of project IDs associated with the agent.
   #
   # @return [Array<Integer>] an array of project IDs

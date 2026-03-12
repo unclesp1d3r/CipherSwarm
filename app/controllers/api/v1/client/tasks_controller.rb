@@ -41,7 +41,7 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
   # Initializes a new task for the agent.
   # If the task is nil, it renders a no content status.
   def new
-    @task = @agent.new_task
+    @task = TaskAssignmentService.new(@agent).find_next_task
     head(:no_content) if @task.nil?
     # When @task exists, Jbuilder template (new.json.jbuilder) renders automatically
   end
