@@ -11,6 +11,7 @@ This guide provides detailed troubleshooting steps for common agent issues, with
 - [Server-Side Diagnostics](#server-side-diagnostics)
 - [Best Practices](#best-practices)
 - [Common Scenarios](#common-scenarios)
+- [Network Connectivity Issues](#network-connectivity-issues)
 - [Log Analysis](#log-analysis)
 
 ---
@@ -201,6 +202,9 @@ Authorization: Bearer <your_token>
 3. **Verify Server Connectivity**:
 
    ```bash
+   # Test health endpoint (unauthenticated)
+   curl -v http://server.example.com/api/v1/client/health
+
    # Test authentication
    curl -H "Authorization: Bearer <token>" \
      https://server.example.com/api/v1/client/authenticate
@@ -377,6 +381,16 @@ agent:
 - **max_404_retries**: Balances recovery attempts with quick failure detection
 - **retry_backoff**: Prevents overwhelming server during issues
 - **request_new_task_interval**: Regular check for work without excessive polling
+
+**Server-Provided Resilience Parameters:**
+
+Agents fetch timeout and retry configuration from the server via the `/api/v1/client/configuration` endpoint. The configuration response includes:
+
+- **Timeout settings**: `connect_timeout`, `read_timeout`, `write_timeout`, `request_timeout`
+- **Retry settings**: `max_attempts`, `initial_delay`, `max_delay`
+- **Circuit breaker settings**: `failure_threshold`, `timeout`
+
+These parameters allow server operators to tune agent behavior without redeploying agent software. Agents should apply these values when first connecting and refresh them periodically (e.g., every 24 hours) by re-fetching the configuration endpoint. See the [Client Resilience Recommendations](../api-reference-agent-auth.md#client-resilience-recommendations) section of the API reference for implementation details.
 
 ### Monitoring Agent Health
 
@@ -767,6 +781,160 @@ During network outage:
 
 ---
 
+## Network Connectivity Issues
+
+### Scenario: Agent Hangs or Becomes Unresponsive
+
+**Symptoms:**
+
+- Agent appears to hang indefinitely with no progress
+- No error messages in agent logs
+- Agent does not respond to signals or commands
+- System resources (CPU, memory) appear normal but agent is frozen
+- Network connectivity exists but requests never complete
+
+**Cause:**
+
+The server is unresponsive or extremely slow, and the agent is waiting for HTTP responses without enforcing timeouts. Before resilience improvements, agents could wait indefinitely for server responses, causing them to appear hung.
+
+**Solution:**
+
+Agents that support server-provided resilience configuration (introduced in CipherSwarm V2) automatically configure timeouts and retry logic. Ensure your agent:
+
+1. **Fetches Resilience Parameters**: The agent must call `GET /api/v1/client/configuration` on startup and periodically (e.g., every 24 hours) to receive timeout and retry settings.
+
+2. **Applies Timeout Configuration**: The agent HTTP client should honor these timeout values:
+   - `connect_timeout`: Maximum time to establish TCP connection
+   - `read_timeout`: Maximum time to wait for response data
+   - `write_timeout`: Maximum time to send request data
+   - `request_timeout`: Overall deadline for entire request
+
+3. **Implements Retry Logic**: The agent should implement exponential backoff with jitter using the `recommended_retry` parameters from the configuration endpoint.
+
+4. **Uses Circuit Breaker Pattern**: After repeated failures (default: 5 consecutive failures), the agent should "open" the circuit and short-circuit requests for a timeout period (default: 30 seconds), periodically probing the health endpoint to determine when to retry.
+
+**Diagnostic Steps:**
+
+1. **Check if agent supports resilience features**:
+
+   ```bash
+   # Check agent version and features
+   cipherswarm-agent --version
+   cipherswarm-agent --features
+   ```
+
+2. **Test server health endpoint**:
+
+   ```bash
+   # This endpoint does not require authentication
+   curl -v http://your-server/api/v1/client/health
+   ```
+
+   **Expected response (healthy server)**:
+
+   ```json
+   {
+     "status": "ok",
+     "api_version": 1,
+     "timestamp": "2026-03-12T10:30:00Z",
+     "database": "healthy"
+   }
+   ```
+
+   **Expected response (degraded server)**:
+
+   ```json
+   {
+     "status": "degraded",
+     "api_version": 1,
+     "timestamp": "2026-03-12T10:30:00Z",
+     "database": "unhealthy"
+   }
+   ```
+
+3. **Verify resilience configuration is being fetched**:
+
+   ```bash
+   # Check that configuration endpoint returns timeout settings
+   curl -H "Authorization: Bearer <token>" \
+     http://your-server/api/v1/client/configuration | \
+     jq '.recommended_timeouts, .recommended_retry, .recommended_circuit_breaker'
+   ```
+
+4. **Monitor agent logs for timeout and retry behavior**:
+
+   Look for log entries indicating:
+   - Connection timeout errors
+   - Request timeout errors
+   - Retry attempts with exponential backoff
+   - Circuit breaker state transitions (closed → open → half-open)
+
+**Recovery Steps:**
+
+If the agent is already hung:
+
+1. **Stop the hung agent process**:
+
+   ```bash
+   # Forcefully terminate if graceful shutdown fails
+   systemctl stop cipherswarm-agent
+   # or
+   pkill -9 cipherswarm-agent
+   ```
+
+2. **Verify server health** before restarting:
+
+   ```bash
+   curl http://your-server/api/v1/client/health
+   ```
+
+3. **Restart the agent** only if server is healthy:
+
+   ```bash
+   systemctl start cipherswarm-agent
+   ```
+
+4. **Monitor agent logs** to confirm proper timeout handling:
+
+   ```bash
+   journalctl -u cipherswarm-agent -f
+   ```
+
+**Prevention:**
+
+- **Update agents**: Ensure all agents are running versions that support server-provided resilience configuration
+- **Monitor health endpoint**: Set up monitoring on `GET /api/v1/client/health` to detect server degradation before agents hang
+- **Configure alerting**: Alert when the health endpoint returns `status: "degraded"` or times out
+- **Test resilience settings**: Periodically test agent behavior under server degradation (slow responses, timeouts) to verify resilience features are working
+- **Review server configuration**: If agents frequently experience timeouts, review the resilience parameters provided by `GET /api/v1/client/configuration` and adjust them on the server side if needed
+
+**Server-Side Configuration:**
+
+Server operators can tune resilience parameters without redeploying agents by modifying the application configuration:
+
+```yaml
+# config/application.yml (example)
+recommended_connect_timeout: 10      # seconds
+recommended_read_timeout: 30         # seconds
+recommended_write_timeout: 30        # seconds
+recommended_request_timeout: 60      # seconds
+recommended_retry_max_attempts: 10
+recommended_retry_initial_delay: 1   # seconds
+recommended_retry_max_delay: 300     # seconds (5 minutes)
+recommended_circuit_breaker_failure_threshold: 5
+recommended_circuit_breaker_timeout: 30  # seconds
+```
+
+After changing these values, agents will pick them up when they next fetch the configuration endpoint (on startup or periodic refresh).
+
+**Related Resources:**
+
+- [Client Resilience Recommendations](../api-reference-agent-auth.md#client-resilience-recommendations) in the API reference
+- [GET /api/v1/client/health endpoint](../api-reference-agent-auth.md#get-apiv1clienthealth) documentation
+- [Agent Configuration Best Practices](#agent-configuration)
+
+---
+
 ## Log Analysis
 
 ### Parsing Structured Logs
@@ -951,6 +1119,10 @@ Before contacting administrators, try:
 1. **Check Server Status:**
 
    ```bash
+   # Check health endpoint (no authentication required)
+   curl -v http://server.example.com/api/v1/client/health
+
+   # Alternative: check authenticated endpoint
    curl -I https://server.example.com/api/v1/client/authenticate
    ```
 
