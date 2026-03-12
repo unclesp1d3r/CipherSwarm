@@ -92,7 +92,8 @@ bundle exec rspec spec/requests
 # Stop local PostgreSQL: brew services stop postgresql@17
 # Start Docker PostgreSQL: docker compose up -d postgres-db
 # Run tests with explicit URL:
-TEST_DATABASE_URL=postgres://root:password@127.0.0.1:5432/cipher_swarm_test bundle exec rspec
+# Docker PG binds to IPv6 (*:5432) — use `localhost` not `127.0.0.1`
+TEST_DATABASE_URL=postgres://root:password@localhost:5432/cipher_swarm_test bundle exec rspec
 ```
 
 ### Code Quality
@@ -366,7 +367,7 @@ Vitest for JS unit tests:
 - Generates Swagger documentation via RSwag
 - Authentication and authorization testing
 
-**View Tests (spec/views/):**
+**View Tests (spec/views/) — planned:**
 
 - Partial rendering tests (e.g., agent configuration tab)
 - Use `render partial:` with locals, assert on `rendered`
@@ -398,9 +399,8 @@ Vitest for JS unit tests:
 
 **Runtime Mutability:**
 
-- ApplicationConfig (Anyway::Config) is loaded from environment variables at startup and is immutable at runtime
-- Do not build admin UI forms for editing ApplicationConfig values — they cannot be changed without a restart
-- If runtime-editable settings are needed, use a database-backed model instead
+- ApplicationConfig (Anyway::Config) is loaded from environment variables at startup with no runtime reload mechanism — changes require a process restart
+- Do not build admin UI forms for editing ApplicationConfig values — use a database-backed model if runtime-editable settings are needed
 
 ### Code Organization Standards
 
@@ -579,7 +579,8 @@ just docker-shell
 docker compose up -d postgres-db
 
 # Run tests with Docker PostgreSQL (credentials: root/password)
-TEST_DATABASE_URL=postgres://root:password@127.0.0.1:5432/cipher_swarm_test bundle exec rspec
+# Docker PG binds to IPv6 (*:5432) — use `localhost` not `127.0.0.1`
+TEST_DATABASE_URL=postgres://root:password@localhost:5432/cipher_swarm_test bundle exec rspec
 ```
 
 **Environment Files:**
