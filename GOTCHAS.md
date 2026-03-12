@@ -93,8 +93,8 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 
 **Database Deadlock in Tests:**
 
-- `DatabaseCleaner.clean_with(:truncation)` can deadlock if concurrent PG connections exist
-- Retry the test command — deadlocks are transient and resolve on second run
+- `DatabaseCleaner.clean_with(:truncation)` can deadlock if concurrent PG connections exist — retry the test command (transient)
+- **Never run two `just ci-check` or `bundle exec rspec` instances simultaneously** — they share the same test database and will cause mass `PG::TRDeadlockDetected` failures and `tmp/storage` file conflicts
 - Some tests fail intermittently in full suite but pass in isolation — use `git stash` to verify if failures are pre-existing vs introduced
 
 **Cache Key Testing:**
