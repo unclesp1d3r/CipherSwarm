@@ -13,6 +13,15 @@
           "find-bugs"
         ]
       }
+    },
+    "NeverSight/skills_feed": {
+      "version": "3260e5bb717ef999bf1b0c8de6dc2a67f31f00fe",
+      "source": "https://github.com/NeverSight/skills_feed",
+      "include": {
+        "skills": [
+          "doc-scanner"
+        ]
+      }
     }
   }
 }
