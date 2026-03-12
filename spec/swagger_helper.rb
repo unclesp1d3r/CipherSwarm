@@ -305,7 +305,7 @@ RSpec.configure do |config|
               hash_list_checksum: {
                 type: :string,
                 format: :byte,
-                description: "The MD5 checksum of the hash list",
+                description: "The MD5 checksum of the hash list", # DevSkim: ignore DS126858
                 nullable: true
               },
               url: {
@@ -363,7 +363,7 @@ RSpec.configure do |config|
             properties: {
               id: { type: :integer, format: :int64, description: "The id of the resource file" },
               download_url: { type: :string, format: :uri, description: "The download URL of the resource file" },
-              checksum: { type: :string, format: :byte, description: "The MD5 checksum of the resource file" },
+              checksum: { type: :string, format: :byte, description: "The MD5 checksum of the resource file" }, # DevSkim: ignore DS126858
               file_name: { type: :string, description: "The name of the resource file" }
             },
             nullable: true,
