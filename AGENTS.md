@@ -345,6 +345,15 @@ Vitest for JS unit tests:
 
 > **Vitest mock patterns** — see [GOTCHAS.md § API & rswag](GOTCHAS.md#api--rswag)
 
+### For planning agents
+
+When planning new features or architectural changes, use the `layered-rails` skill for analysis:
+
+- `/layers:gradual` — plan incremental adoption of layered patterns
+- `/layers:analyze` — full codebase architecture analysis
+- `/layers:review` — review code from a layered architecture perspective
+- `/layers:spec-test` — apply the specification test to evaluate layer placement
+
 ## Testing Strategy
 
 **System Tests (spec/system/):**
