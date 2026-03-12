@@ -1,0 +1,9 @@
+{
+  "name": "my-project",
+  "dependencies": {
+    "ThibautBaissac/rails_ai_agents": {
+      "version": "e063fc8d8f4444178f4bbda96407e03d339e2c75",
+      "source": "https://github.com/ThibautBaissac/rails_ai_agents"
+    }
+  }
+}
