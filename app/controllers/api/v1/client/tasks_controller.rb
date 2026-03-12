@@ -234,12 +234,15 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
   # Activates a pending agent that has benchmark data on record.
   # This is a UI-correctness side effect, not a task assignment gate.
   def activate_pending_agent_with_benchmarks
-    return unless @agent.pending? && @agent.hashcat_benchmarks.exists?
+    return unless @agent.pending?
+
+    benchmark_count = @agent.hashcat_benchmarks.count
+    return unless benchmark_count.positive?
     return unless @agent.activate
 
     Rails.logger.info(
       "[AgentLifecycle] auto_activate: agent_id=#{@agent.id} " \
-      "reason=pending_with_benchmarks benchmark_count=#{@agent.hashcat_benchmarks.count} " \
+      "reason=pending_with_benchmarks benchmark_count=#{benchmark_count} " \
       "timestamp=#{Time.zone.now}"
     )
   end

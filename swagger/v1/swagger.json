@@ -1319,6 +1319,41 @@
                 }
               }
             }
+          },
+          "503": {
+            "description": "degraded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "description": "Overall health status (ok or degraded)"
+                    },
+                    "api_version": {
+                      "type": "integer",
+                      "description": "API version"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time",
+                      "description": "Server timestamp"
+                    },
+                    "database": {
+                      "type": "string",
+                      "description": "Database health (healthy or unhealthy)"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "api_version",
+                    "timestamp",
+                    "database"
+                  ]
+                }
+              }
+            }
           }
         }
       }

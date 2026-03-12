@@ -304,7 +304,7 @@ class TaskAssignmentService
   # Returns attacks available for the agent based on projects and hash types.
   #
   # Agents with no project assignments can work on any project (same convention
-  # as attack resources like word lists, rule lists, and Task#agent_compatible?).
+  # as attack resources like word lists, rule lists, and Task#compatible_agent?).
   #
   # Ordering strategy:
   # 1. campaigns.priority DESC: Higher campaign priority first (high=2, normal=0, deferred=-1)

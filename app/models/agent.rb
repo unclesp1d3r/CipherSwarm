@@ -91,7 +91,7 @@ class Agent < ApplicationRecord
   # Fields whose changes should trigger a configuration tab broadcast.
   CONFIGURATION_BROADCAST_FIELDS = %w[
     enabled client_signature last_ipaddress advanced_configuration
-    custom_label operating_system
+    custom_label operating_system user_id
   ].freeze
 
   belongs_to :user, touch: true
@@ -163,10 +163,11 @@ class Agent < ApplicationRecord
     end
 
     return unless saved_change_to_state?
-      broadcast_replace_later_to [self, :capabilities],
-        target: ActionView::RecordIdentifier.dom_id(self, :capabilities),
-        partial: "agents/capabilities_tab",
-        locals: { agent: self }
+
+    broadcast_replace_later_to [self, :capabilities],
+      target: ActionView::RecordIdentifier.dom_id(self, :capabilities),
+      partial: "agents/capabilities_tab",
+      locals: { agent: self }
   end
 
   # The operating system of the agent.

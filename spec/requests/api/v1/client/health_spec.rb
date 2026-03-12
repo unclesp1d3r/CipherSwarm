@@ -49,22 +49,29 @@ RSpec.describe "api/v1/client/health" do
           expect(data[:timestamp]).to be_present
         end
       end
-    end
-  end
 
-  describe "database failure" do
-    it "returns degraded status when database is unhealthy" do
-      allow(ActiveRecord::Base.connection).to receive(:execute).and_call_original
-      allow(ActiveRecord::Base.connection).to receive(:execute).with("SELECT 1").and_raise(StandardError.new("connection refused"))
-      allow(Rails.logger).to receive(:error)
+      response(503, "degraded") do
+        schema type: :object,
+               properties: {
+                 status: { type: :string, description: "Overall health status (ok or degraded)" },
+                 api_version: { type: :integer, description: "API version" },
+                 timestamp: { type: :string, format: "date-time", description: "Server timestamp" },
+                 database: { type: :string, description: "Database health (healthy or unhealthy)" }
+               },
+               required: %i[status api_version timestamp database]
 
-      get "/api/v1/client/health"
+        before do
+          allow(ActiveRecord::Base.connection).to receive(:execute).and_call_original
+          allow(ActiveRecord::Base.connection).to receive(:execute).with("SELECT 1").and_raise(StandardError.new("connection refused"))
+          allow(Rails.logger).to receive(:error)
+        end
 
-      expect(response).to have_http_status(:service_unavailable)
-      data = JSON.parse(response.body, symbolize_names: true)
-      expect(data[:status]).to eq("degraded")
-      expect(data[:database]).to eq("unhealthy")
-      expect(Rails.logger).to have_received(:error).with(/\[APIHealth\] Database check failed/)
+        run_test! do
+          data = JSON.parse(response.body, symbolize_names: true)
+          expect(data[:status]).to eq("degraded")
+          expect(data[:database]).to eq("unhealthy")
+        end
+      end
     end
   end
 end

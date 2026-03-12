@@ -10,6 +10,8 @@ This document provides a comprehensive reference for all CipherSwarm API endpoin
 
 - [CipherSwarm Agent & Authentication API Reference](#cipherswarm-agent--authentication-api-reference)
   - [Table of Contents](#table-of-contents)
+  - [Health Check](#health-check)
+    - [GET `/api/v1/client/health`](#get-apiv1clienthealth)
   - [Authentication](#authentication)
   - [General Authentication Endpoints](#general-authentication-endpoints)
     - [POST `/api/v1/auth/login`](#post-apiv1authlogin)
@@ -70,6 +72,42 @@ This document provides a comprehensive reference for all CipherSwarm API endpoin
     - [Debugging Task Lifecycle Issues](#debugging-task-lifecycle-issues)
 
 <!-- mdformat-toc end -->
+
+---
+
+## Health Check
+
+### GET `/api/v1/client/health`
+
+**Summary:** Unauthenticated health check for agent clients
+
+**Authentication:** None required
+
+**Description:** Returns server health status. Agents use this endpoint to verify server reachability before attempting authenticated requests (e.g., during initial setup, circuit breaker half-open probes, or connectivity diagnostics).
+
+**Responses:**
+
+- `200`: Server is healthy
+
+  ```json
+  {
+    "status": "ok",
+    "api_version": 1,
+    "timestamp": "2026-03-12T06:00:00Z",
+    "database": "healthy"
+  }
+  ```
+
+- `503`: Server is degraded (e.g., database unreachable)
+
+  ```json
+  {
+    "status": "degraded",
+    "api_version": 1,
+    "timestamp": "2026-03-12T06:00:00Z",
+    "database": "unhealthy"
+  }
+  ```
 
 ---
 
@@ -592,7 +630,7 @@ Map each `recommended_timeouts` field to the corresponding HTTP client setting:
 
 Use exponential backoff with the `recommended_retry` parameters:
 
-```
+```text
 delay = min(initial_delay * 2^attempt, max_delay) + random(0, delay * 0.5)
 ```
 
@@ -600,14 +638,16 @@ delay = min(initial_delay * 2^attempt, max_delay) + random(0, delay * 0.5)
 
 **Retryable conditions:**
 
-| Condition                    | Retry?        | Notes                                   |
-| ---------------------------- | ------------- | --------------------------------------- |
-| Connection refused / timeout | Yes           | Use exponential backoff                 |
-| 5xx response                 | Yes           | Up to `max_attempts`                    |
-| 429 Too Many Requests        | Yes           | Respect `Retry-After` header if present |
-| 401 Unauthorized             | No            | Re-authenticate first                   |
-| 404 Not Found                | No (task ops) | Abandon task, request new work          |
-| 4xx (other)                  | No            | Client error, do not retry              |
+| Condition                    | Retry?        | Notes                                                      |
+| ---------------------------- | ------------- | ---------------------------------------------------------- |
+| Connection refused / timeout | Yes           | Use exponential backoff                                    |
+| 5xx response                 | Yes           | Up to `max_attempts` (GET/idempotent only; see note below) |
+| 429 Too Many Requests        | Yes           | Respect `Retry-After` header if present                    |
+| 401 Unauthorized             | No            | Re-authenticate first                                      |
+| 404 Not Found                | No (task ops) | Abandon task, request new work                             |
+| 4xx (other)                  | No            | Client error, do not retry                                 |
+
+> **Idempotency warning:** Most task endpoints (`accept_task`, `submit_crack`, `submit_error`, etc.) are non-idempotent `POST` requests. Only retry these if the connection failed before receiving any response (i.e., the request may not have reached the server). If a response was received (even a 5xx), do not retry mutating endpoints blindly — the server may have already processed the request.
 
 ### Circuit Breaker
 

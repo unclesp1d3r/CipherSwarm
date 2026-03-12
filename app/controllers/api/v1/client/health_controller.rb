@@ -19,7 +19,7 @@
 #   - Authenticated health check: defeats the purpose — agents cannot check
 #     connectivity if their token is expired or the auth system is down.
 # - Decision: Minimal unauthenticated JSON endpoint under the client API
-#   namespace, delegating to SystemHealthCheckService for actual checks.
+#   namespace, performing a lightweight inline database check.
 class Api::V1::Client::HealthController < ActionController::API
   # GET /api/v1/client/health
   def index
