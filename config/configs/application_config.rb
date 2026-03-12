@@ -20,6 +20,15 @@
 # - agent_error_retention: Time duration for retaining agent errors (default: 30 days)
 # - audit_retention: Time duration for retaining audit records (default: 90 days)
 # - hashcat_status_retention: Time duration for retaining completed task status (default: 7 days)
+# - recommended_connect_timeout: Integer, seconds for TCP connect timeout (default: 10)
+# - recommended_read_timeout: Integer, seconds for read timeout (default: 30)
+# - recommended_write_timeout: Integer, seconds for write timeout (default: 30)
+# - recommended_request_timeout: Integer, seconds for overall request timeout (default: 60)
+# - recommended_retry_max_attempts: Integer, max retry attempts (default: 10)
+# - recommended_retry_initial_delay: Integer, seconds for initial retry delay (default: 1)
+# - recommended_retry_max_delay: Integer, seconds for max retry delay (default: 300)
+# - recommended_circuit_breaker_failure_threshold: Integer, failures before circuit opens (default: 5)
+# - recommended_circuit_breaker_timeout: Integer, seconds before circuit half-opens (default: 30)
 #
 # Class Methods:
 # - instance: Returns a singleton instance of the configuration.
@@ -37,7 +46,16 @@ class ApplicationConfig < Anyway::Config
               hash_list_batch_size: 1000,
               agent_error_retention: 30.days,
               audit_retention: 90.days,
-              hashcat_status_retention: 7.days
+              hashcat_status_retention: 7.days,
+              recommended_connect_timeout: 10,
+              recommended_read_timeout: 30,
+              recommended_write_timeout: 30,
+              recommended_request_timeout: 60,
+              recommended_retry_max_attempts: 10,
+              recommended_retry_initial_delay: 1,
+              recommended_retry_max_delay: 300,
+              recommended_circuit_breaker_failure_threshold: 5,
+              recommended_circuit_breaker_timeout: 30
 
   class << self
     # Make it possible to access a singleton config instance

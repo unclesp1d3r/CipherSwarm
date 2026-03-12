@@ -91,6 +91,27 @@
         ],
         "additionalProperties": true
       },
+      "ErrorMetadata": {
+        "type": "object",
+        "nullable": true,
+        "description": "Additional metadata about an agent error",
+        "properties": {
+          "error_date": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The date of the error"
+          },
+          "other": {
+            "type": "object",
+            "nullable": true,
+            "description": "Other metadata",
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "error_date"
+        ]
+      },
       "Agent": {
         "type": "object",
         "description": "A cracking agent registered with CipherSwarm",
@@ -1064,25 +1085,7 @@
                     "description": "The error message"
                   },
                   "metadata": {
-                    "type": "object",
-                    "nullable": true,
-                    "description": "Additional metadata about the error",
-                    "properties": {
-                      "error_date": {
-                        "type": "string",
-                        "format": "date-time",
-                        "description": "The date of the error"
-                      },
-                      "other": {
-                        "type": "object",
-                        "nullable": true,
-                        "description": "Other metadata",
-                        "additionalProperties": true
-                      }
-                    },
-                    "required": [
-                      "error_date"
-                    ]
+                    "$ref": "#/components/schemas/ErrorMetadata"
                   },
                   "severity": {
                     "type": "string",
@@ -1794,12 +1797,87 @@
                     "benchmarks_needed": {
                       "type": "boolean",
                       "description": "Whether the agent needs to run benchmarks"
+                    },
+                    "recommended_timeouts": {
+                      "type": "object",
+                      "description": "Recommended timeout settings for agent HTTP connections",
+                      "additionalProperties": false,
+                      "properties": {
+                        "connect_timeout": {
+                          "type": "integer",
+                          "description": "TCP connect timeout in seconds"
+                        },
+                        "read_timeout": {
+                          "type": "integer",
+                          "description": "Read timeout in seconds"
+                        },
+                        "write_timeout": {
+                          "type": "integer",
+                          "description": "Write timeout in seconds"
+                        },
+                        "request_timeout": {
+                          "type": "integer",
+                          "description": "Overall request timeout in seconds"
+                        }
+                      },
+                      "required": [
+                        "connect_timeout",
+                        "read_timeout",
+                        "write_timeout",
+                        "request_timeout"
+                      ]
+                    },
+                    "recommended_retry": {
+                      "type": "object",
+                      "description": "Recommended retry settings for agent HTTP requests",
+                      "additionalProperties": false,
+                      "properties": {
+                        "max_attempts": {
+                          "type": "integer",
+                          "description": "Maximum number of retry attempts"
+                        },
+                        "initial_delay": {
+                          "type": "integer",
+                          "description": "Initial retry delay in seconds"
+                        },
+                        "max_delay": {
+                          "type": "integer",
+                          "description": "Maximum retry delay in seconds"
+                        }
+                      },
+                      "required": [
+                        "max_attempts",
+                        "initial_delay",
+                        "max_delay"
+                      ]
+                    },
+                    "recommended_circuit_breaker": {
+                      "type": "object",
+                      "description": "Recommended circuit breaker settings for agent connections",
+                      "additionalProperties": false,
+                      "properties": {
+                        "failure_threshold": {
+                          "type": "integer",
+                          "description": "Number of failures before circuit opens"
+                        },
+                        "timeout": {
+                          "type": "integer",
+                          "description": "Seconds before circuit half-opens for retry"
+                        }
+                      },
+                      "required": [
+                        "failure_threshold",
+                        "timeout"
+                      ]
                     }
                   },
                   "required": [
                     "config",
                     "api_version",
-                    "benchmarks_needed"
+                    "benchmarks_needed",
+                    "recommended_timeouts",
+                    "recommended_retry",
+                    "recommended_circuit_breaker"
                   ]
                 }
               }

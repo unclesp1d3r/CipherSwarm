@@ -98,6 +98,16 @@ RSpec.configure do |config|
             required: [:error],
             additionalProperties: true
           },
+          ErrorMetadata: {
+            type: :object,
+            nullable: true,
+            description: "Additional metadata about an agent error",
+            properties: {
+              error_date: { type: :string, format: "date-time", description: "The date of the error" },
+              other: { type: :object, nullable: true, description: "Other metadata", additionalProperties: true }
+            },
+            required: %i[error_date]
+          },
           Agent: {
             type: :object,
             description: "A cracking agent registered with CipherSwarm",

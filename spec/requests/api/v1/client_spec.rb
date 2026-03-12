@@ -25,9 +25,42 @@ RSpec.describe "api/v1/client" do
                      "$ref" => "#/components/schemas/AdvancedAgentConfiguration"
                    },
                    api_version: { type: :integer, description: "The minimum accepted version of the API" },
-                   benchmarks_needed: { type: :boolean, description: "Whether the agent needs to run benchmarks" }
+                   benchmarks_needed: { type: :boolean, description: "Whether the agent needs to run benchmarks" },
+                   recommended_timeouts: {
+                     type: :object,
+                     description: "Recommended timeout settings for agent HTTP connections",
+                     additionalProperties: false,
+                     properties: {
+                       connect_timeout: { type: :integer, description: "TCP connect timeout in seconds" },
+                       read_timeout: { type: :integer, description: "Read timeout in seconds" },
+                       write_timeout: { type: :integer, description: "Write timeout in seconds" },
+                       request_timeout: { type: :integer, description: "Overall request timeout in seconds" }
+                     },
+                     required: %i[connect_timeout read_timeout write_timeout request_timeout]
+                   },
+                   recommended_retry: {
+                     type: :object,
+                     description: "Recommended retry settings for agent HTTP requests",
+                     additionalProperties: false,
+                     properties: {
+                       max_attempts: { type: :integer, description: "Maximum number of retry attempts" },
+                       initial_delay: { type: :integer, description: "Initial retry delay in seconds" },
+                       max_delay: { type: :integer, description: "Maximum retry delay in seconds" }
+                     },
+                     required: %i[max_attempts initial_delay max_delay]
+                   },
+                   recommended_circuit_breaker: {
+                     type: :object,
+                     description: "Recommended circuit breaker settings for agent connections",
+                     additionalProperties: false,
+                     properties: {
+                       failure_threshold: { type: :integer, description: "Number of failures before circuit opens" },
+                       timeout: { type: :integer, description: "Seconds before circuit half-opens for retry" }
+                     },
+                     required: %i[failure_threshold timeout]
+                   }
                  },
-                 required: %i[config api_version benchmarks_needed]
+                 required: %i[config api_version benchmarks_needed recommended_timeouts recommended_retry recommended_circuit_breaker]
 
           after do |example|
             content = example.metadata[:response][:content] || {}
@@ -47,6 +80,9 @@ RSpec.describe "api/v1/client" do
             expect(response).to have_http_status(:ok)
             data = JSON.parse(response.body, symbolize_names: true)
             expect(data[:config][:agent_update_interval]).to be_present
+            expect(data[:recommended_timeouts][:connect_timeout]).to eq(10)
+            expect(data[:recommended_retry][:max_attempts]).to eq(10)
+            expect(data[:recommended_circuit_breaker][:failure_threshold]).to eq(5)
           end
         end
 
