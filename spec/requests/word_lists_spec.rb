@@ -262,6 +262,8 @@ RSpec.describe "WordLists" do
         end
       end
     end
+
+    it_behaves_like "downloadable file preview", :word_list
   end
 
   describe "GET /download" do
