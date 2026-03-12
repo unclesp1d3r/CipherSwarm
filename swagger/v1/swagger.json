@@ -1275,6 +1275,54 @@
         }
       }
     },
+    "/api/v1/client/health": {
+      "get": {
+        "summary": "Health check (unauthenticated)",
+        "tags": [
+          "Client"
+        ],
+        "description": "Returns server health status. Does not require authentication. Agents use this endpoint to verify server reachability before attempting authenticated requests.",
+        "security": [],
+        "operationId": "getHealth",
+        "responses": {
+          "200": {
+            "description": "healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "description": "Overall health status (ok or degraded)"
+                    },
+                    "api_version": {
+                      "type": "integer",
+                      "description": "API version"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time",
+                      "description": "Server timestamp"
+                    },
+                    "database": {
+                      "type": "string",
+                      "description": "Database health (healthy or unhealthy)"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "api_version",
+                    "timestamp",
+                    "database"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/client/tasks/new": {
       "get": {
         "summary": "Request a new task from server",
