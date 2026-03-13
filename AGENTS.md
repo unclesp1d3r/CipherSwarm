@@ -288,7 +288,7 @@ Business logic is extracted into service objects and models:
 - All paginated views must use `<%== @pagy.series_nav(:bootstrap) %>` with a `<noscript><%== @pagy.series_nav %></noscript>` fallback
 - Some views use a local `pagy` variable (from partials) instead of `@pagy` — same API applies
 - Guard both `series_nav` and `<noscript>` inside `if pagy.pages > 1` (see `campaigns/_error_log.html.erb` for reference)
-- `Railsboot::PaginationComponent` wraps `series_nav(:bootstrap)` with noscript fallback for reuse in view components
+- Pagination uses inline `series_nav(:bootstrap)` calls directly in views (no wrapper component)
 
 ### Caching & Real-Time Backend
 
@@ -496,7 +496,10 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 
 **Layout Grid (Logged-In vs Logged-Out):**
 
-- Main content column is conditional: `col-md-9` when sidebar present (logged in), `col-12` when not
+- Main content column is conditional: `col-md-10` when sidebar present (logged in), `col-12` when not
+- Sidebar uses `d-none d-md-block` (hidden on mobile) + Bootstrap offcanvas (`#sidebarOffcanvas`) for mobile navigation
+- Mobile offcanvas includes sidebar nav AND navbar items (Tools, Account) via `_sidebar_navbar_items.html.erb`
+- Flash messages rendered inline in layout: `notice` → `alert-success`, `alert` → `alert-danger`, `info` → `alert-info`
 - Skip link (`visually-hidden-focusable`) is first child of `<body>`, targets `id="main-content"` on `<main>`
 
 **Toast Notifications:**
@@ -558,6 +561,12 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 - Always inspect each occurrence to understand whether it's an authentication failure (401) or an authorization failure (403) before changing
 
 > **More pattern gotchas** (CanCanCan nesting, nullable params, Redis locks, logging, upsert_all, FK cascades, transactions) — see [GOTCHAS.md § Database & ActiveRecord](GOTCHAS.md#database--activerecord) and [GOTCHAS.md § Infrastructure](GOTCHAS.md#infrastructure)
+
+**Railsboot Component Removal (Complete):**
+
+- Railsboot components (`app/components/railsboot/`) have been fully removed
+- All views now use plain ERB + Bootstrap utility classes directly
+- Bootstrap JS dependencies: dropdowns, offcanvas, toasts (via Stimulus), modals, collapse
 
 ### Development Workflow
 

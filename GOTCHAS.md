@@ -9,6 +9,8 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 - **Navbar dropdowns must use `<button>` not `<a href="#">`** — both `_navbar.html.erb` and `NavbarDropdownComponent` had `<a href="#" role="button">` which causes scroll-to-top and is semantically wrong. Always use `<button type="button" class="nav-link dropdown-toggle">`.
 - **Use Bootstrap z-index utilities (`z-1` through `z-3`)** instead of inline `style="z-index: ..."` — keeps values in sync with Bootstrap's layering system.
 - **Sidebar `<ul>` needs `aria-label="Main navigation"`** — the `<aside>` provides the landmark but doesn't describe the navigation purpose.
+- **Turbo morph preserves old DOM across navigations** — `data-turbo-permanent` on navbar collapse kept stale elements alive even after the template changed. When debugging layout changes, use cache-busting URLs (`?_=timestamp`) or `Turbo.visit(url, {action: "replace"})` to force a full re-render.
+- **Railsboot components fully removed** — all views now use plain ERB + Bootstrap classes. The Railsboot component layer was an abstraction that made customization harder (e.g., auto-rendering child components). When adding new UI, use Bootstrap HTML directly.
 
 ## State Machines
 
