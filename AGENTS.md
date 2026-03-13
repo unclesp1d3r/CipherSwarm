@@ -2,7 +2,11 @@
 
 This file provides guidance to Agents when working with code in this repository.
 
+@GOTCHAS.md
+
 > **See also:** [GOTCHAS.md](GOTCHAS.md) — edge cases, hard-won lessons, and "watch out for" patterns organized by domain. Read the relevant section before working in that area.
+
+@DESIGN.md
 
 ## Project Overview
 
