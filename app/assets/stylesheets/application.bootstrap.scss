@@ -3,6 +3,10 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
+// Catppuccin Macchiato palette — must precede Bootstrap import
+// so SCSS variables override Bootstrap defaults at compile time.
+@import "catppuccin";
+
 $bootstrap-icons-font-dir: ".";
 $bootstrap-icons-font-src: url("bootstrap-icons.woff2") format("woff2"), url("bootstrap-icons.woff") format("woff");
 @import "bootstrap/scss/bootstrap";
@@ -10,6 +14,128 @@ $bootstrap-icons-font-src: url("bootstrap-icons.woff2") format("woff2"), url("bo
 @import "tom-select/dist/css/tom-select.bootstrap5";
 @import "stepper_component.scss";
 @import "components/agent_tabs";
+
+// ---------------------------------------------------------------------------
+// Catppuccin surface layers (sidebar, navbar, cards)
+// Bootstrap dark mode sets a flat body-bg; these add depth via Macchiato's
+// layered surface hierarchy: Crust → Mantle → Base → Surface0.
+// ---------------------------------------------------------------------------
+.sidebar {
+  background-color: $ctp-mantle;
+}
+
+.navbar {
+  background-color: $ctp-crust !important;
+  border-bottom: 1px solid $ctp-surface0;
+}
+
+.offcanvas {
+  background-color: $ctp-mantle;
+}
+
+// Card surfaces sit one step above Base
+[data-bs-theme="dark"] {
+  .card {
+    --bs-card-bg: #{$ctp-surface0};
+    --bs-card-border-color: #{$ctp-surface1};
+  }
+
+  .card .card-header {
+    background-color: rgba($ctp-surface1, .35);
+  }
+
+  .card .card-footer {
+    background-color: rgba($ctp-surface1, .2);
+  }
+
+  // Table rows — alternate between Base and Surface0
+  .table {
+    --bs-table-bg: transparent;
+    --bs-table-striped-bg: #{rgba($ctp-surface0, .5)};
+    --bs-table-hover-bg: #{rgba($ctp-surface1, .4)};
+    --bs-table-border-color: #{$ctp-surface1};
+  }
+
+  // Nav tabs — match the surface hierarchy
+  .nav-tabs {
+    --bs-nav-tabs-border-color: #{$ctp-surface1};
+
+    .nav-link.active {
+      background-color: $ctp-surface0;
+      border-color: $ctp-surface1 $ctp-surface1 $ctp-surface0;
+      color: $ctp-text;
+    }
+
+    .nav-link:not(.active) {
+      color: $ctp-subtext0;
+
+      &:hover {
+        color: $ctp-text;
+        border-color: $ctp-surface1 $ctp-surface1 transparent;
+      }
+    }
+  }
+
+  // Modal surfaces
+  .modal-content {
+    background-color: $ctp-base;
+    border-color: $ctp-surface1;
+  }
+
+  // Dropdown menus
+  .dropdown-menu {
+    --bs-dropdown-bg: #{$ctp-surface0};
+    --bs-dropdown-border-color: #{$ctp-surface1};
+    --bs-dropdown-link-color: #{$ctp-text};
+    --bs-dropdown-link-hover-bg: #{$ctp-surface1};
+    --bs-dropdown-link-hover-color: #{$ctp-text};
+    --bs-dropdown-link-active-bg: #{$ctp-mauve};
+    --bs-dropdown-link-active-color: #{$ctp-crust};
+    --bs-dropdown-divider-bg: #{$ctp-surface1};
+  }
+
+  // List groups (used in several views)
+  .list-group-item {
+    --bs-list-group-bg: #{$ctp-surface0};
+    --bs-list-group-border-color: #{$ctp-surface1};
+    --bs-list-group-color: #{$ctp-text};
+    --bs-list-group-action-hover-bg: #{$ctp-surface1};
+  }
+
+  // Input fields sit on Surface0
+  .form-control,
+  .form-select {
+    background-color: $ctp-surface0;
+    border-color: $ctp-surface1;
+    color: $ctp-text;
+
+    &:focus {
+      border-color: $ctp-mauve;
+      box-shadow: 0 0 0 0.25rem rgba($ctp-mauve, .25);
+    }
+
+    &::placeholder {
+      color: $ctp-overlay0;
+    }
+  }
+
+  // Tom Select integration
+  .ts-wrapper .ts-control {
+    background-color: $ctp-surface0;
+    border-color: $ctp-surface1;
+    color: $ctp-text;
+  }
+
+  .ts-wrapper .ts-dropdown {
+    background-color: $ctp-surface0;
+    border-color: $ctp-surface1;
+
+    .active {
+      background-color: $ctp-surface1;
+      color: $ctp-text;
+    }
+  }
+}
 
 .container-fluid > .card {
   margin-bottom: 1rem;
