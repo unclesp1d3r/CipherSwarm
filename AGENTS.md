@@ -490,6 +490,17 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 
 ### Common Patterns
 
+**Layout Grid (Logged-In vs Logged-Out):**
+
+- Main content column is conditional: `col-md-9` when sidebar present (logged in), `col-12` when not
+- Skip link (`visually-hidden-focusable`) is first child of `<body>`, targets `id="main-content"` on `<main>`
+
+**Toast Notifications:**
+
+- Error/danger toasts persist (no auto-hide) — users must manually dismiss via close button
+- Success/warning/info toasts auto-dismiss after 5 seconds
+- `ToastNotificationComponent#autohide?` returns `false` for `danger` variant
+
 **Nested Resources:**
 
 - Attacks are nested under Campaigns: `/campaigns/:campaign_id/attacks`
