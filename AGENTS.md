@@ -163,6 +163,15 @@ just assets-build
 just assets-watch
 ```
 
+### Catppuccin Macchiato Theme
+
+- `_catppuccin.scss` defines the full palette + Bootstrap variable overrides — imported BEFORE `@import "bootstrap"`
+- Primary accent: `$ctp-violet: #a855f7` (DarkViolet lightened), not Catppuccin's Mauve
+- Surface hierarchy: Crust (navbar) → Mantle (sidebar) → Base (body) → Surface0 (cards/inputs)
+- `application.bootstrap.scss` adds component-level dark theme overrides (cards, tables, dropdowns, inputs, Tom Select)
+- Self-hosted fonts via `@fontsource`: Space Grotesk (headings), IBM Plex Sans (body), JetBrains Mono (code) — air-gap safe
+- Font woff2 files copied to `app/assets/builds/` by `build:css:fonts` script in package.json
+
 ### API Documentation
 
 ```bash

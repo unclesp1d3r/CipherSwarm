@@ -11,6 +11,8 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 - **Sidebar `<ul>` needs `aria-label="Main navigation"`** — the `<aside>` provides the landmark but doesn't describe the navigation purpose.
 - **Turbo morph preserves old DOM across navigations** — `data-turbo-permanent` on navbar collapse kept stale elements alive even after the template changed. When debugging layout changes, use cache-busting URLs (`?_=timestamp`) or `Turbo.visit(url, {action: "replace"})` to force a full re-render.
 - **Railsboot components fully removed** — all views now use plain ERB + Bootstrap classes. The Railsboot component layer was an abstraction that made customization harder (e.g., auto-rendering child components). When adding new UI, use Bootstrap HTML directly.
+- **Propshaft caches asset digests in-memory** — after `bun run build:css` or `just assets-build`, Propshaft continues serving the old fingerprinted CSS until the Rails server restarts. Use `touch tmp/restart.txt` to trigger Puma reload. Hard-refreshing the browser is NOT sufficient.
+- **`rails assets:clobber` deletes ALL build artifacts** — removes JS, CSS, and font files from `app/assets/builds/`. Must run `just assets-build` (full rebuild) to recover, not just `bun run build:css`.
 
 ## State Machines
 
