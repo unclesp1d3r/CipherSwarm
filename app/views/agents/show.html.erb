@@ -13,7 +13,7 @@
   </div>
 </div>
 
-<div id="<%= dom_id @agent %>">
+<div id="<%= dom_id @agent %>" aria-live="polite">
   <%= turbo_stream_from @agent, :overview %>
   <%= turbo_stream_from @agent, :errors %>
   <%= turbo_stream_from @agent, :configuration %>
@@ -38,7 +38,7 @@
   <% end %>
 </div>
 
-<div class="btn-group">
+<div class="btn-group" role="group" aria-label="Agent actions">
   <%= link_to "Edit", edit_agent_path(@agent), class: "btn btn-outline-primary" if can? :update, @agent %>
   <%= link_to "Back", agents_path, class: "btn btn-outline-secondary" %>
 </div>

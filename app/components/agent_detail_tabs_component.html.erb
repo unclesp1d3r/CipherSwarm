@@ -3,28 +3,39 @@
     <a href="#<%= panel_id('overview') %>"
        class="nav-link active"
        id="<%= tab_id('overview') %>"
+       role="tab"
        aria-controls="<%= panel_id('overview') %>"
-       aria-current="page"
+       aria-selected="true"
+       tabindex="0"
        data-tabs-target="tab"
-       data-action="click->tabs#switch">Overview</a>
+       data-action="click->tabs#switch keydown->tabs#keydown">Overview</a>
     <a href="#<%= panel_id('errors') %>"
        class="nav-link"
        id="<%= tab_id('errors') %>"
+       role="tab"
        aria-controls="<%= panel_id('errors') %>"
+       aria-selected="false"
+       tabindex="-1"
        data-tabs-target="tab"
-       data-action="click->tabs#switch">Errors</a>
+       data-action="click->tabs#switch keydown->tabs#keydown">Errors</a>
     <a href="#<%= panel_id('configuration') %>"
        class="nav-link"
        id="<%= tab_id('configuration') %>"
+       role="tab"
        aria-controls="<%= panel_id('configuration') %>"
+       aria-selected="false"
+       tabindex="-1"
        data-tabs-target="tab"
-       data-action="click->tabs#switch">Configuration</a>
+       data-action="click->tabs#switch keydown->tabs#keydown">Configuration</a>
     <a href="#<%= panel_id('capabilities') %>"
        class="nav-link"
        id="<%= tab_id('capabilities') %>"
+       role="tab"
        aria-controls="<%= panel_id('capabilities') %>"
+       aria-selected="false"
+       tabindex="-1"
        data-tabs-target="tab"
-       data-action="click->tabs#switch">Capabilities</a>
+       data-action="click->tabs#switch keydown->tabs#keydown">Capabilities</a>
   </nav>
 
   <div class="tab-content mt-3">
