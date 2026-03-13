@@ -985,12 +985,7 @@ RSpec.describe "api/v1/client/agents" do
         type: :object,
         properties: {
           message: { type: :string, description: "The error message" },
-          metadata: { type: :object, nullable: true, description: "Additional metadata about the error",
-                      properties: {
-            error_date: { type: :string, format: "date-time", description: "The date of the error" },
-            other: { type: :object, nullable: true, description: "Other metadata", additionalProperties: true }
-          },
-                      required: %i[error_date] },
+          metadata: { "$ref" => "#/components/schemas/ErrorMetadata" },
           severity: {
             type: :string,
             description: "The severity of the error:

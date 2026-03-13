@@ -6,26 +6,108 @@ This document provides a comprehensive reference for all CipherSwarm API endpoin
 
 ## Table of Contents
 
-<!-- mdformat-toc start --slug=github --no-anchors --maxlevel=2 --minlevel=1 -->
+<!-- mdformat-toc start --slug=github --no-anchors --maxlevel=3 --minlevel=1 -->
 
 - [CipherSwarm Agent & Authentication API Reference](#cipherswarm-agent--authentication-api-reference)
   - [Table of Contents](#table-of-contents)
+  - [Health Check](#health-check)
+    - [GET `/api/v1/client/health`](#get-apiv1clienthealth)
   - [Authentication](#authentication)
   - [General Authentication Endpoints](#general-authentication-endpoints)
+    - [POST `/api/v1/auth/login`](#post-apiv1authlogin)
+    - [POST `/api/v1/auth/jwt/login`](#post-apiv1authjwtlogin)
   - [Agent Configuration](#agent-configuration)
+    - [GET `/api/v1/client/configuration`](#get-apiv1clientconfiguration)
+    - [GET `/api/v1/configuration`](#get-apiv1configuration)
   - [Agent Authentication](#agent-authentication)
+    - [GET `/api/v1/client/authenticate`](#get-apiv1clientauthenticate)
+    - [GET `/api/v1/authenticate`](#get-apiv1authenticate)
   - [Agent Management](#agent-management)
+    - [GET `/api/v1/client/agents/{id}`](#get-apiv1clientagentsid)
+    - [PUT `/api/v1/client/agents/{id}`](#put-apiv1clientagentsid)
+    - [POST `/api/v1/client/agents/{id}/submit_benchmark`](#post-apiv1clientagentsidsubmit_benchmark)
+    - [POST `/api/v1/client/agents/{id}/submit_error`](#post-apiv1clientagentsidsubmit_error)
+    - [POST `/api/v1/client/agents/{id}/shutdown`](#post-apiv1clientagentsidshutdown)
+    - [POST `/api/v1/client/agents/{id}/heartbeat`](#post-apiv1clientagentsidheartbeat)
   - [Task Management](#task-management)
+    - [GET `/api/v1/client/tasks/new`](#get-apiv1clienttasksnew)
+    - [GET `/api/v1/client/tasks/{id}`](#get-apiv1clienttasksid)
+    - [POST `/api/v1/client/tasks/{id}/accept_task`](#post-apiv1clienttasksidaccept_task)
+    - [POST `/api/v1/client/tasks/{id}/submit_status`](#post-apiv1clienttasksidsubmit_status)
+    - [POST `/api/v1/client/tasks/{id}/progress`](#post-apiv1clienttasksidprogress)
+    - [POST `/api/v1/client/tasks/{id}/submit_crack`](#post-apiv1clienttasksidsubmit_crack)
+    - [POST `/api/v1/client/tasks/{id}/exhausted`](#post-apiv1clienttasksidexhausted)
+    - [POST `/api/v1/client/tasks/{id}/abandon`](#post-apiv1clienttasksidabandon)
+    - [GET `/api/v1/client/tasks/{id}/get_zaps`](#get-apiv1clienttasksidget_zaps)
   - [Attack Management](#attack-management)
+    - [GET `/api/v1/client/attacks/{id}`](#get-apiv1clientattacksid)
+    - [GET `/api/v1/client/attacks/{id}/hash_list`](#get-apiv1clientattacksidhash_list)
   - [Cracker Management](#cracker-management)
+    - [GET `/api/v1/client/crackers/check_for_cracker_update`](#get-apiv1clientcrackerscheck_for_cracker_update)
+  - [Client Resilience Recommendations](#client-resilience-recommendations)
+    - [Timeouts](#timeouts)
+    - [Retry Policy](#retry-policy)
+    - [Circuit Breaker](#circuit-breaker)
   - [Error Handling](#error-handling)
+    - [Common Error Responses](#common-error-responses)
+    - [Enhanced Task Error Responses](#enhanced-task-error-responses)
+    - [Handling Task Lifecycle Errors](#handling-task-lifecycle-errors)
+    - [Error Codes by Endpoint](#error-codes-by-endpoint)
   - [API Patterns](#api-patterns)
+    - [Agent Lifecycle](#agent-lifecycle)
+    - [Task States](#task-states)
+    - [Authentication Flow](#authentication-flow)
+    - [Status Updates](#status-updates)
+    - [Error Reporting](#error-reporting)
+    - [Resource Management](#resource-management)
   - [API Version Compatibility](#api-version-compatibility)
   - [Security Considerations](#security-considerations)
   - [Performance Notes](#performance-notes)
   - [Agent Implementation Best Practices](#agent-implementation-best-practices)
+    - [Error Handling and Recovery](#error-handling-and-recovery)
+    - [Monitoring and Diagnostics](#monitoring-and-diagnostics)
+    - [Task Validation](#task-validation)
+    - [Configuration](#configuration)
+    - [Common Scenarios and Solutions](#common-scenarios-and-solutions)
+    - [Debugging Task Lifecycle Issues](#debugging-task-lifecycle-issues)
 
 <!-- mdformat-toc end -->
+
+---
+
+## Health Check
+
+### GET `/api/v1/client/health`
+
+**Summary:** Unauthenticated health check for agent clients
+
+**Authentication:** None required
+
+**Description:** Returns server health status. Agents use this endpoint to verify server reachability before attempting authenticated requests (e.g., during initial setup, circuit breaker half-open probes, or connectivity diagnostics).
+
+**Responses:**
+
+- `200`: Server is healthy
+
+  ```json
+  {
+    "status": "ok",
+    "api_version": 1,
+    "timestamp": "2026-03-12T06:00:00Z",
+    "database": "healthy"
+  }
+  ```
+
+- `503`: Server is degraded (e.g., database unreachable)
+
+  ```json
+  {
+    "status": "degraded",
+    "api_version": 1,
+    "timestamp": "2026-03-12T06:00:00Z",
+    "database": "unhealthy"
+  }
+  ```
 
 ---
 
@@ -92,6 +174,40 @@ POST /api/v1/auth/login?email=user@example.com&password=secret123
 - `401`: Unauthorized
 - `404`: Agent not found
 - `422`: Validation error
+
+#### Response Fields — Resilience Configuration
+
+The configuration response includes three additional top-level keys that provide server-recommended resilience parameters:
+
+| Key                           | Type   | Description                                                                                   |
+| ----------------------------- | ------ | --------------------------------------------------------------------------------------------- |
+| `recommended_timeouts`        | object | `connect_timeout`, `read_timeout`, `write_timeout`, `request_timeout` (all integers, seconds) |
+| `recommended_retry`           | object | `max_attempts` (integer), `initial_delay` (integer, seconds), `max_delay` (integer, seconds)  |
+| `recommended_circuit_breaker` | object | `failure_threshold` (integer), `timeout` (integer, seconds)                                   |
+
+**Example Fragment:**
+
+```json
+{
+  "recommended_timeouts": {
+    "connect_timeout": 10,
+    "read_timeout": 30,
+    "write_timeout": 30,
+    "request_timeout": 60
+  },
+  "recommended_retry": {
+    "max_attempts": 10,
+    "initial_delay": 1,
+    "max_delay": 300
+  },
+  "recommended_circuit_breaker": {
+    "failure_threshold": 5,
+    "timeout": 30
+  }
+}
+```
+
+> **Note:** Values are server-configured defaults. Agents should apply these values when they first receive the configuration response and refresh them periodically by re-fetching the configuration endpoint. This allows operators to adjust resilience parameters without redeploying agents.
 
 ### GET `/api/v1/configuration`
 
@@ -492,6 +608,56 @@ POST /api/v1/auth/login?email=user@example.com&password=secret123
 ```http
 GET /api/v1/client/crackers/check_for_cracker_update?version=6.2.6&operating_system=linux
 ```
+
+## Client Resilience Recommendations
+
+Agents should use the resilience parameters returned by `GET /api/v1/client/configuration` to configure their HTTP clients. This section describes how to apply each group of settings.
+
+### Timeouts
+
+Map each `recommended_timeouts` field to the corresponding HTTP client setting:
+
+| Field             | Purpose                                                                       |
+| ----------------- | ----------------------------------------------------------------------------- |
+| `connect_timeout` | Maximum time to establish a TCP connection                                    |
+| `read_timeout`    | Maximum time to wait for response data after connection is established        |
+| `write_timeout`   | Maximum time to send request data (including file uploads)                    |
+| `request_timeout` | Outer deadline wrapping the entire request lifecycle (connect + write + read) |
+
+> **Note:** `request_timeout` acts as an overall deadline. If connect + read + write individually succeed but exceed `request_timeout` in total, the request should be aborted.
+
+### Retry Policy
+
+Use exponential backoff with the `recommended_retry` parameters:
+
+```text
+delay = min(initial_delay * 2^attempt, max_delay) + random(0, delay * 0.5)
+```
+
+> **Important:** Adding random jitter prevents synchronized retries across multiple agents (thundering herd problem). Without jitter, all agents that lose connectivity simultaneously will retry at exactly the same times.
+
+**Retryable conditions:**
+
+| Condition                    | Retry?        | Notes                                                      |
+| ---------------------------- | ------------- | ---------------------------------------------------------- |
+| Connection refused / timeout | Yes           | Use exponential backoff                                    |
+| 5xx response                 | Yes           | Up to `max_attempts` (GET/idempotent only; see note below) |
+| 429 Too Many Requests        | Yes           | Respect `Retry-After` header if present                    |
+| 401 Unauthorized             | No            | Re-authenticate first                                      |
+| 404 Not Found                | No (task ops) | Abandon task, request new work                             |
+| 4xx (other)                  | No            | Client error, do not retry                                 |
+
+> **Idempotency warning:** Most task endpoints (`accept_task`, `submit_crack`, `submit_error`, etc.) are non-idempotent `POST` requests. Only retry these if the connection failed before receiving any response (i.e., the request may not have reached the server). If a response was received (even a 5xx), do not retry mutating endpoints blindly — the server may have already processed the request.
+
+### Circuit Breaker
+
+Implement a three-state circuit breaker using the `recommended_circuit_breaker` parameters:
+
+- **Closed** (normal operation) — requests pass through; consecutive failures are counted.
+- **Open** — after `failure_threshold` consecutive failures, all requests are short-circuited (fail immediately) for `timeout` seconds.
+- **Half-Open** — after `timeout` seconds, one probe request is allowed through. On success, the breaker transitions to Closed. On failure, it returns to Open.
+
+---
 
 ## Error Handling
 

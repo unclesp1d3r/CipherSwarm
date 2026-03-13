@@ -42,7 +42,7 @@ Welcome to the CipherSwarm documentation. This directory contains comprehensive 
 
 ### API Documentation
 
-- [Agent API Reference](api-reference-agent-auth.md) - Agent authentication overview
+- [Agent API Reference](api-reference-agent-auth.md) - Agent API reference including client resilience recommendations
 - [**Agent API Complete Reference**](api/agent-api-complete-reference.md) - Full API documentation with examples
 
 The API documentation is automatically generated using Rswag from RSpec request tests. Use the following commands to generate and update API documentation:

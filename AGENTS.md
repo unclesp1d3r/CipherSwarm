@@ -92,7 +92,8 @@ bundle exec rspec spec/requests
 # Stop local PostgreSQL: brew services stop postgresql@17
 # Start Docker PostgreSQL: docker compose up -d postgres-db
 # Run tests with explicit URL:
-TEST_DATABASE_URL=postgres://root:password@127.0.0.1:5432/cipher_swarm_test bundle exec rspec
+# Docker PG binds to IPv6 (*:5432) — use `localhost` not `127.0.0.1`
+TEST_DATABASE_URL=postgres://root:password@localhost:5432/cipher_swarm_test bundle exec rspec
 ```
 
 ### Code Quality
@@ -228,6 +229,7 @@ CipherSwarm is built around four hierarchical concepts:
 - Tokens generated on Agent creation, stored in `agents.token`
 - API endpoints at `/api/v1/client/*` (JSON only)
 - Authentication flow: Agent authenticates → receives configuration → processes tasks
+- For **unauthenticated** endpoints (e.g., health checks), inherit from `ActionController::API` instead of `Api::V1::BaseController` to bypass `authenticate_agent`. Use `security []` in the rswag spec to override the global `bearer_auth` requirement.
 
 ### Project-Based Multi-Tenancy
 
@@ -261,6 +263,7 @@ Business logic is extracted into service objects and models:
 
 - Controllers are kept thin (authorization, params, response)
 - Complex operations live in model methods (not separate service objects currently)
+- **Models must not call services** — this creates circular dependencies (model→service→model). Controllers or other services are the correct orchestration layer for service invocations.
 - Background jobs in app/jobs/ handle async operations:
   - `ProcessHashListJob` - Process uploaded hash lists
   - `CalculateMaskComplexityJob` - Calculate mask complexity
@@ -343,6 +346,15 @@ Vitest for JS unit tests:
 
 > **Vitest mock patterns** — see [GOTCHAS.md § API & rswag](GOTCHAS.md#api--rswag)
 
+### For planning agents
+
+When planning new features or architectural changes, use the `layered-rails` skill for analysis:
+
+- `/layers:gradual` — plan incremental adoption of layered patterns
+- `/layers:analyze` — full codebase architecture analysis
+- `/layers:review` — review code from a layered architecture perspective
+- `/layers:spec-test` — apply the specification test to evaluate layer placement
+
 ## Testing Strategy
 
 **System Tests (spec/system/):**
@@ -364,6 +376,12 @@ Vitest for JS unit tests:
 - API endpoint testing
 - Generates Swagger documentation via RSwag
 - Authentication and authorization testing
+
+**View Tests (spec/views/) — planned:**
+
+- Partial rendering tests (e.g., agent configuration tab)
+- Use `render partial:` with locals, assert on `rendered`
+- Stub `safe_can?` when the partial uses authorization checks
 
 **Non-Standard Spec Directories:**
 
@@ -388,6 +406,11 @@ Vitest for JS unit tests:
 - **sidekiq-cron** - Scheduled jobs
 - **store_model** - JSON column typing (AdvancedConfiguration)
 - **anyway_config** - Configuration management
+
+**Runtime Mutability:**
+
+- ApplicationConfig (Anyway::Config) is loaded from environment variables at startup with no runtime reload mechanism — changes require a process restart
+- Do not build admin UI forms for editing ApplicationConfig values — use a database-backed model if runtime-editable settings are needed
 
 ### Code Organization Standards
 
@@ -566,7 +589,8 @@ just docker-shell
 docker compose up -d postgres-db
 
 # Run tests with Docker PostgreSQL (credentials: root/password)
-TEST_DATABASE_URL=postgres://root:password@127.0.0.1:5432/cipher_swarm_test bundle exec rspec
+# Docker PG binds to IPv6 (*:5432) — use `localhost` not `127.0.0.1`
+TEST_DATABASE_URL=postgres://root:password@localhost:5432/cipher_swarm_test bundle exec rspec
 ```
 
 **Environment Files:**

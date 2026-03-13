@@ -93,8 +93,8 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 
 **Database Deadlock in Tests:**
 
-- `DatabaseCleaner.clean_with(:truncation)` can deadlock if concurrent PG connections exist
-- Retry the test command — deadlocks are transient and resolve on second run
+- `DatabaseCleaner.clean_with(:truncation)` can deadlock if concurrent PG connections exist — retry the test command (transient)
+- **Never run two `just ci-check` or `bundle exec rspec` instances simultaneously** — they share the same test database and will cause mass `PG::TRDeadlockDetected` failures and `tmp/storage` file conflicts
 - Some tests fail intermittently in full suite but pass in isolation — use `git stash` to verify if failures are pre-existing vs introduced
 
 **Cache Key Testing:**
@@ -138,6 +138,7 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 **rswag 3.0.0.pre Migration Notes:**
 
 - `openapi_strict_schema_validation` removed in 3.x — replaced by `openapi_no_additional_properties` and `openapi_all_properties_required`
+- `openapi_all_properties_required: true` means **every property** declared in a schema is treated as required in validation — if a response omits a declared property, `run_test!` fails. To handle optional fields, declare them in the schema and always return them (with `null` for absent cases), using `nullable: true` on the property.
 - `request_body_json` does not exist in rswag 3.0.0.pre — polyfilled in `spec/support/rswag_polyfills.rb`
 - `RequestFactory` in 3.x resolves parameters via `params.fetch(name)` against `example.request_params` (empty hash by default); since rswag 2.x resolved parameters via `example.send(param_name)` directly from `let` blocks, `LetFallbackHash` in `spec/support/rswag_polyfills.rb` bridges this gap by falling back to `example.public_send(key)` when `request_params` lacks the key
 - The rswag 3.x formatter already converts internal `in: :body` + `consumes` to OAS 3.0 `requestBody` — polyfills use this mechanism
@@ -155,6 +156,11 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 
 - Devise 5 applies `downcase_first` to humanized authentication keys in flash messages ("name" instead of "Name")
 - Test page objects should derive labels dynamically via `User.human_attribute_name(key).downcase_first` (see `spec/support/page_objects/sign_in_page.rb#devise_auth_keys_label`)
+
+**Unauthenticated Endpoints:**
+
+- Endpoints inheriting from `ActionController::API` (bypassing agent auth) must never return raw `e.message` in responses — this leaks internal details (hostnames, DB errors, credential hints)
+- Use a generic stable error string for clients (e.g., `"Internal health check failure"`), log full exception details server-side with `Rails.logger.error`
 
 ## Database & ActiveRecord
 
@@ -207,6 +213,8 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 
 - Broadcast partials (rendered by `broadcast_replace_to`/`broadcast_replace_later_to`) run in background jobs with NO `current_user` — partials must not reference `current_user` or session data
 - For targeted broadcasts, extract small partials (e.g., `_index_state.html.erb`) that wrap a single element with a stable DOM ID, following the Agent `broadcast_index_state` pattern
+- Never fragment-cache content containing `safe_can?` calls in broadcast-rendered partials — Sidekiq has no `current_user`, so `safe_can?` returns false and poisons the cache for all users. Keep auth-gated elements outside cache blocks.
+- Use `saved_changes.keys.intersect?(FIELDS)` or `saved_change_to_<attr>?` guards in `after_update_commit` callbacks to avoid broadcasting tabs whose data didn't change (see `Agent#broadcast_tab_updates`)
 
 **Logging Patterns:**
 
@@ -217,6 +225,12 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 - Ensure logging failures don't break application (rescue blocks)
 - Always test that important events are logged correctly
 - Verify sensitive data is filtered (see docs/development/logging-guide.md)
+
+**Jobs & Callbacks:**
+
+- 4 models enqueue jobs from `after_commit` callbacks (`ProcessHashListJob`, `CalculateMaskComplexityJob`, `CountFileLinesJob`, `CampaignPriorityRebalanceJob`)
+- `active_job-performs` gem does NOT fit — these jobs contain substantial logic (batch processing, atomic locks, file I/O), not simple model method delegation
+- This is accepted Rails convention; don't try to "fix" it unless jobs become pure delegators
 
 **Ruby 3.4+ Dependencies:**
 

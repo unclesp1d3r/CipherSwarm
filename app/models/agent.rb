@@ -88,6 +88,12 @@ class Agent < ApplicationRecord
     quadrillion: "PH/s"
   }.freeze
 
+  # Fields whose changes should trigger a configuration tab broadcast.
+  CONFIGURATION_BROADCAST_FIELDS = %w[
+    enabled client_signature last_ipaddress advanced_configuration
+    custom_label operating_system user_id
+  ].freeze
+
   belongs_to :user, touch: true
   has_and_belongs_to_many :projects, touch: true
   has_many :tasks, dependent: :destroy
@@ -136,18 +142,27 @@ class Agent < ApplicationRecord
       locals: { agent: self }
   end
 
+
   # Broadcasts updates to individual tab streams instead of the root agent stream.
   # This allows each tab panel to update independently without affecting the active tab state.
+  #
+  # Overview: always broadcast (last_seen, state, metrics change frequently).
+  # Configuration: only when config-relevant fields change.
+  # Capabilities: only when state changes (benchmark data arrives via state transitions).
   def broadcast_tab_updates
     broadcast_replace_later_to [self, :overview],
       target: ActionView::RecordIdentifier.dom_id(self, :overview),
       partial: "agents/overview_tab",
       locals: { agent: self }
 
-    broadcast_replace_later_to [self, :configuration],
-      target: ActionView::RecordIdentifier.dom_id(self, :configuration),
-      partial: "agents/configuration_tab",
-      locals: { agent: self }
+    if saved_changes.keys.intersect?(CONFIGURATION_BROADCAST_FIELDS)
+      broadcast_replace_later_to [self, :configuration],
+        target: ActionView::RecordIdentifier.dom_id(self, :configuration),
+        partial: "agents/configuration_tab",
+        locals: { agent: self }
+    end
+
+    return unless saved_change_to_state?
 
     broadcast_replace_later_to [self, :capabilities],
       target: ActionView::RecordIdentifier.dom_id(self, :capabilities),
@@ -328,18 +343,6 @@ class Agent < ApplicationRecord
   # @return [String] The name of the agent.
   def name
     custom_label.presence || host_name
-  end
-
-  # Finds the next task for the agent via TaskAssignmentService.
-  #
-  # The assignment algorithm considers (in priority order):
-  # incomplete tasks, own paused tasks, orphaned paused tasks,
-  # failed retryable tasks, pending tasks, and new task creation.
-  # See TaskAssignmentService#find_next_task for full details.
-  #
-  # @return [Task, nil] The next task for the agent, or nil if no task is found.
-  def new_task
-    TaskAssignmentService.new(self).find_next_task
   end
 
   # Returns an array of project IDs associated with the agent.
