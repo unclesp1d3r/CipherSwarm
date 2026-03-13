@@ -1,48 +1,52 @@
-<%= render Railsboot::HeaderComponent.new do |header| %>
-  <% header.with_heading do %>
-    <%= title @campaign.name %>
-  <% end %>
-  <%= header.with_actions do %>
-    <% if can? :create, @campaign => Attack %>
-      <%= render Railsboot::Button::LinkComponent.new(href: new_campaign_attack_path(@campaign, attack_mode: :dictionary), size: "sm", title: "Add Dictionary Attack") do %>
-        <%= inline_svg_tag "dictionary_attack_icon.svg",
-                           size: "20px",
-                           title: "Add Dictionary Attack" %>
-      <% end %>
-      <%= render Railsboot::Button::LinkComponent.new(href: new_campaign_attack_path(@campaign, attack_mode: :mask), size: "sm", title: "Add Mask Attack") do %>
-        <%= inline_svg_tag "mask_attack_icon.svg",
-                           size: "20px",
-                           title: "Add Mask Attack" %>
-      <% end %>
-      <%= render Railsboot::Button::LinkComponent.new(href: new_campaign_attack_path(@campaign, attack_mode: :hybrid_dictionary), size: "sm", title: "Add Hybrid Attack") do %>
-        <%= inline_svg_tag "hybrid_attack_icon.svg",
-                           size: "20px",
-                           title: "Add Hybrid Dictionary Attack" %>
-      <% end %>
-      <%= render Railsboot::Button::LinkComponent.new(href: new_campaign_attack_path(@campaign, attack_mode: :hybrid_mask), size: "sm", title: "Add Hybrid Attack") do %>
-        <%= inline_svg_tag "hybrid_attack_icon.svg",
-                           size: "20px",
-                           title: "Add Hybrid Mask Attack" %>
-      <% end %>
-      <% if can? :edit, @campaign %>
-        <%= render Railsboot::Button::LinkComponent.new(variant: "warning", href: edit_campaign_path(@campaign), size: "sm", title: "Edit") do %>
-          <%= icon("pencil") %>
+<div class="card">
+  <div class="card-body">
+    <nav aria-label="breadcrumb" class="mt-0 mb-1 fw-light">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><%= link_to "Dashboard", root_path %></li>
+        <li class="breadcrumb-item"><%= link_to "Activity", campaigns_path %></li>
+        <li class="breadcrumb-item active" aria-current="page"><%= @campaign.name %></li>
+      </ol>
+    </nav>
+    <div class="d-flex justify-content-between align-items-center">
+      <h2 class="mb-0"><%= title @campaign.name %></h2>
+      <div>
+        <% if can? :create, @campaign => Attack %>
+          <%= link_to new_campaign_attack_path(@campaign, attack_mode: :dictionary), class: "btn btn-primary btn-sm", title: "Add Dictionary Attack" do %>
+            <%= inline_svg_tag "dictionary_attack_icon.svg",
+                               size: "20px",
+                               title: "Add Dictionary Attack" %>
+          <% end %>
+          <%= link_to new_campaign_attack_path(@campaign, attack_mode: :mask), class: "btn btn-primary btn-sm", title: "Add Mask Attack" do %>
+            <%= inline_svg_tag "mask_attack_icon.svg",
+                               size: "20px",
+                               title: "Add Mask Attack" %>
+          <% end %>
+          <%= link_to new_campaign_attack_path(@campaign, attack_mode: :hybrid_dictionary), class: "btn btn-primary btn-sm", title: "Add Hybrid Attack" do %>
+            <%= inline_svg_tag "hybrid_attack_icon.svg",
+                               size: "20px",
+                               title: "Add Hybrid Dictionary Attack" %>
+          <% end %>
+          <%= link_to new_campaign_attack_path(@campaign, attack_mode: :hybrid_mask), class: "btn btn-primary btn-sm", title: "Add Hybrid Attack" do %>
+            <%= inline_svg_tag "hybrid_attack_icon.svg",
+                               size: "20px",
+                               title: "Add Hybrid Mask Attack" %>
+          <% end %>
+          <% if can? :edit, @campaign %>
+            <%= link_to edit_campaign_path(@campaign), class: "btn btn-warning btn-sm", title: "Edit" do %>
+              <%= icon("pencil") %>
+            <% end %>
+          <% end %>
         <% end %>
-      <% end %>
-    <% end %>
-  <% end %>
-  <% header.with_breadcrumb.with_items([
-       { text: "Dashboard", href: root_path },
-       { text: "Activity", href: campaigns_path },
-       { text: @campaign.name, href: @campaign, active: true }
-     ]) %>
-<% end %>
+      </div>
+    </div>
+  </div>
+</div>
 <%= turbo_stream_from @campaign %>
 
 <%# ETA Summary Alert %>
 <%= turbo_frame_tag "eta_summary", src: eta_summary_campaign_path(@campaign), loading: "lazy" do %>
   <div class="d-flex justify-content-center py-3">
-    <%= render Railsboot::SpinnerComponent.new %>
+    <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
   </div>
 <% end %>
 
@@ -53,22 +57,22 @@
   <%= s.association :creator, label: "Created By" %>
 <% end %>
 <% if @attacks.empty? %>
-  <%= render Railsboot::BlankSlateComponent.new do |blankslate| %>
-    <% blankslate.with_icon do %>
+  <div class="text-center">
+    <div class="mb-4">
       <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-sticky" viewBox="0 0 16 16">
         <path d="M2.5 1A1.5 1.5 0 0 0 1 2.5v11A1.5 1.5 0 0 0 2.5 15h6.086a1.5 1.5 0 0 0 1.06-.44l4.915-4.914A1.5 1.5 0 0 0 15 8.586V2.5A1.5 1.5 0 0 0 13.5 1zM2 2.5a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 .5.5V8H9.5A1.5 1.5 0 0 0 8 9.5V14H2.5a.5.5 0 0 1-.5-.5zm7 11.293V9.5a.5.5 0 0 1 .5-.5h4.293z"/>
       </svg>
-    <% end %>
-    <% blankslate.with_heading(tag: "h3").with_content("The campaign is empty") %>
-    <% blankslate.with_description.with_content("A campaign is a collection of attacks. You can add attacks to this campaign.") %>
-    <% blankslate.with_primary_action do %>
+    </div>
+    <h3>The campaign is empty</h3>
+    <p class="text-sm text-secondary mt-3">A campaign is a collection of attacks. You can add attacks to this campaign.</p>
+    <div class="mt-4">
       Click one of the attack buttons above to add an attack to this campaign.
-    <% end %>
-  <% end %>
+    </div>
+  </div>
 <% else %>
-  <%= render Railsboot::StepperComponent.new do |stepper| %>
-    <%= render partial: "attack_stepper_line", collection: @attacks, as: :attack, locals: { campaign: @campaign, stepper: stepper, failed_attack_error_map: @failed_attack_error_map } %>
-  <% end %>
+  <ol class="stepper">
+    <%= render partial: "attack_stepper_line", collection: @attacks, as: :attack, locals: { campaign: @campaign, failed_attack_error_map: @failed_attack_error_map } %>
+  </ol>
 <% end %>
 
 <%# Error Modals for Failed Attacks %>
@@ -86,7 +90,7 @@
 <%= turbo_frame_tag "recent_cracks", src: recent_cracks_campaign_path(@campaign), loading: "lazy" do %>
   <div class="card mt-4 mb-3">
     <div class="card-body d-flex justify-content-center py-5">
-      <%= render Railsboot::SpinnerComponent.new %>
+      <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
     </div>
   </div>
 <% end %>
@@ -95,7 +99,7 @@
 <%= turbo_frame_tag "error_log", src: error_log_campaign_path(@campaign), loading: "lazy" do %>
   <div class="card mb-3">
     <div class="card-body d-flex justify-content-center py-5">
-      <%= render Railsboot::SpinnerComponent.new %>
+      <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
     </div>
   </div>
 <% end %>

@@ -1,7 +1,7 @@
 <%= turbo_frame_tag "eta_summary" do %>
   <% has_running_attacks = campaign.attacks.exists?(state: "running") %>
   <div id="campaign-eta-summary" role="region" aria-label="<%= t("campaigns.eta_summary.region_aria") %>">
-    <%= render Railsboot::AlertComponent.new(color: "info", class: "mb-3") do %>
+    <div class="alert alert-info mb-3" role="alert">
       <div class="d-flex align-items-center gap-3">
         <%= icon("clock") %>
         <div class="d-flex flex-wrap gap-3">
@@ -27,6 +27,6 @@
           </span>
         </div>
       </div>
-    <% end %>
+    </div>
   </div>
 <% end %>
