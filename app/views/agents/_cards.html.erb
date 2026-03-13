@@ -3,7 +3,7 @@
     <div class="text-center">
       <div><%= icon("robot") %></div>
       <h3>No Agents Found</h3>
-      <p class="text-sm text-secondary mt-3">Create your first agent to start cracking hashes</p>
+      <p class="small text-secondary mt-3">Create your first agent to start cracking hashes</p>
       <% if can? :create, Agent %>
         <div class="mt-4">
           <%= link_to "New Agent", new_agent_path, class: "btn btn-primary", data: { turbo_frame: "_top" } %>

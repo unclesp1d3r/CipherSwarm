@@ -24,7 +24,7 @@
               </svg>
             </div>
             <h4>No Recent Cracks</h4>
-            <p class="text-sm text-secondary mt-3">No hashes have been cracked in the last 24 hours.</p>
+            <p class="small text-secondary mt-3">No hashes have been cracked in the last 24 hours.</p>
           </div>
         <% else %>
           <div class="table-responsive">
@@ -51,7 +51,7 @@
                       <% if hash_item.attack.present? %>
                         <%= link_to "View Attack", campaign_attack_path(campaign, hash_item.attack), class: "btn btn-sm btn-outline-primary" %>
                       <% else %>
-                        <span class="text-muted">N/A</span>
+                        <span class="text-body-secondary">N/A</span>
                       <% end %>
                     </td>
                   </tr>

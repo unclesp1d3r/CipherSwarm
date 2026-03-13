@@ -44,7 +44,7 @@
           <dd class="col-sm-8">
             <% if @task.estimated_finish_time.present? %>
               <%= time_ago_in_words(@task.estimated_finish_time) %>
-              <small class="text-muted">(<%= @task.estimated_finish_time.strftime("%Y-%m-%d %H:%M") %>)</small>
+              <small class="text-body-secondary">(<%= @task.estimated_finish_time.strftime("%Y-%m-%d %H:%M") %>)</small>
             <% else %>
               N/A
             <% end %>
@@ -67,20 +67,20 @@
           <dt class="col-sm-4">Created</dt>
           <dd class="col-sm-8">
             <%= @task.created_at.strftime("%Y-%m-%d %H:%M:%S") %>
-            <small class="text-muted">(<%= time_ago_in_words(@task.created_at) %> ago)</small>
+            <small class="text-body-secondary">(<%= time_ago_in_words(@task.created_at) %> ago)</small>
           </dd>
 
           <dt class="col-sm-4">Updated</dt>
           <dd class="col-sm-8">
             <%= @task.updated_at.strftime("%Y-%m-%d %H:%M:%S") %>
-            <small class="text-muted">(<%= time_ago_in_words(@task.updated_at) %> ago)</small>
+            <small class="text-body-secondary">(<%= time_ago_in_words(@task.updated_at) %> ago)</small>
           </dd>
 
           <dt class="col-sm-4">Start Date</dt>
           <dd class="col-sm-8">
             <% if @task.start_date.present? %>
               <%= @task.start_date.strftime("%Y-%m-%d %H:%M:%S") %>
-              <small class="text-muted">(<%= time_ago_in_words(@task.start_date) %> ago)</small>
+              <small class="text-body-secondary">(<%= time_ago_in_words(@task.start_date) %> ago)</small>
             <% else %>
               Not started
             <% end %>
@@ -90,7 +90,7 @@
           <dd class="col-sm-8">
             <% if @task.activity_timestamp.present? %>
               <%= @task.activity_timestamp.strftime("%Y-%m-%d %H:%M:%S") %>
-              <small class="text-muted">(<%= time_ago_in_words(@task.activity_timestamp) %> ago)</small>
+              <small class="text-body-secondary">(<%= time_ago_in_words(@task.activity_timestamp) %> ago)</small>
             <% else %>
               No activity recorded
             <% end %>
@@ -144,7 +144,7 @@
                   <tr>
                     <td>
                       <%= status.time.strftime("%Y-%m-%d %H:%M:%S") %>
-                      <small class="text-muted d-block"><%= time_ago_in_words(status.time) %> ago</small>
+                      <small class="text-body-secondary d-block"><%= time_ago_in_words(status.time) %> ago</small>
                     </td>
                     <td>
                       <span class="badge <%= status_badge_class(status.status) %>">
@@ -166,7 +166,7 @@
             </table>
           </div>
         <% else %>
-          <p class="text-muted mb-0">No status history available.</p>
+          <p class="text-body-secondary mb-0">No status history available.</p>
         <% end %>
       </div>
     </div>

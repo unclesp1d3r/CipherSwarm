@@ -51,7 +51,7 @@
   </div>
 <% end %>
 
-<small class="text-muted">Created <%= time_ago_in_words(@campaign.created_at) %> ago</small>
+<small class="text-body-secondary">Created <%= time_ago_in_words(@campaign.created_at) %> ago</small>
 <h4><%= @campaign.priority.humanize %></h4>
 <p><%= @campaign.description %></p>
 <%= show_for @campaign do |s| %>
@@ -65,7 +65,7 @@
       </svg>
     </div>
     <h3>The campaign is empty</h3>
-    <p class="text-sm text-secondary mt-3">A campaign is a collection of attacks. You can add attacks to this campaign.</p>
+    <p class="small text-secondary mt-3">A campaign is a collection of attacks. You can add attacks to this campaign.</p>
     <div class="mt-4">
       Click one of the attack buttons above to add an attack to this campaign.
     </div>

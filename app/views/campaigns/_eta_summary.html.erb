@@ -10,9 +10,9 @@
             <% if campaign.current_eta.present? %>
               ~<%= distance_of_time_in_words(Time.current, campaign.current_eta) %>
             <% elsif has_running_attacks %>
-              <em class="text-muted"><%= t("campaigns.eta_summary.calculating") %></em>
+              <em class="text-body-secondary"><%= t("campaigns.eta_summary.calculating") %></em>
             <% else %>
-              <span class="text-muted"><%= t("campaigns.eta_summary.not_available") %></span>
+              <span class="text-body-secondary"><%= t("campaigns.eta_summary.not_available") %></span>
             <% end %>
           </span>
           <span aria-label="<%= t("campaigns.eta_summary.total_campaign_aria") %>">
@@ -20,9 +20,9 @@
             <% if campaign.total_eta.present? %>
               ~<%= distance_of_time_in_words(Time.current, campaign.total_eta) %>
             <% elsif has_running_attacks %>
-              <em class="text-muted"><%= t("campaigns.eta_summary.calculating") %></em>
+              <em class="text-body-secondary"><%= t("campaigns.eta_summary.calculating") %></em>
             <% else %>
-              <span class="text-muted"><%= t("campaigns.eta_summary.not_available") %></span>
+              <span class="text-body-secondary"><%= t("campaigns.eta_summary.not_available") %></span>
             <% end %>
           </span>
         </div>

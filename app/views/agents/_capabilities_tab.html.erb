@@ -17,7 +17,7 @@
               <% end %>
             </ul>
           <% else %>
-            <p class="text-muted mb-0">No device information available</p>
+            <p class="text-body-secondary mb-0">No device information available</p>
           <% end %>
         </div>
       </div>
@@ -72,9 +72,9 @@
             <% end %>
           <% else %>
             <div class="text-center">
-              <div><span style="font-size: 64px;"><%= icon("speedometer") %></span></div>
+              <div><span class="empty-state-icon"><%= icon("speedometer") %></span></div>
               <h3>No benchmarks available</h3>
-              <p class="text-sm text-secondary mt-3">This agent has not been benchmarked yet. Benchmarks will be available after the agent runs its first benchmark test.</p>
+              <p class="small text-secondary mt-3">This agent has not been benchmarked yet. Benchmarks will be available after the agent runs its first benchmark test.</p>
             </div>
           <% end %>
         </div>

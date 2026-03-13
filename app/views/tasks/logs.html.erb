@@ -42,7 +42,7 @@
                     <tr>
                       <td>
                         <%= status.time.strftime("%Y-%m-%d %H:%M:%S") %>
-                        <small class="text-muted d-block"><%= time_ago_in_words(status.time) %> ago</small>
+                        <small class="text-body-secondary d-block"><%= time_ago_in_words(status.time) %> ago</small>
                       </td>
                       <td>
                         <span class="badge <%= status_badge_class(status.status) %>">
@@ -52,7 +52,7 @@
                       <td>
                         <% if status.progress.present? && status.progress.is_a?(Array) && status.progress.length >= 2 %>
                           <%= number_to_percentage(status.progress_percentage, precision: 2) %>
-                          <small class="text-muted d-block">
+                          <small class="text-body-secondary d-block">
                             <%= number_with_delimiter(status.progress[0]) %> / <%= number_with_delimiter(status.progress[1]) %>
                           </small>
                         <% else %>
@@ -65,7 +65,7 @@
                       <td>
                         <% if status.estimated_stop.present? %>
                           <%= status.estimated_stop.strftime("%Y-%m-%d %H:%M:%S") %>
-                          <small class="text-muted d-block">
+                          <small class="text-body-secondary d-block">
                             <% if status.estimated_stop > Time.current %>
                               in <%= time_ago_in_words(status.estimated_stop) %>
                             <% else %>
@@ -89,7 +89,7 @@
               </nav>
             <% end %>
           <% else %>
-            <p class="text-muted mb-0">No status history available for this task.</p>
+            <p class="text-body-secondary mb-0">No status history available for this task.</p>
           <% end %>
         <% end %>
       </div>

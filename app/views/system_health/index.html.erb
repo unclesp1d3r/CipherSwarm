@@ -5,7 +5,7 @@
     <%= render SkeletonLoaderComponent.new(type: :health_dashboard, count: 4) %>
     <div class="row mt-3">
       <div class="col-12">
-        <p class="text-muted mb-0">
+        <p class="text-body-secondary mb-0">
           <%= t(".checks_in_progress") %>
           <%= link_to system_health_path, class: "btn btn-outline-secondary btn-sm ms-2" do %>
             <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> <%= t(".refresh") %>
@@ -52,7 +52,7 @@
                     <strong><%= t(".worker_status") %></strong>
                     <% if app_info[:workers_running] %>
                       <span class="badge text-bg-success"><%= t(".running") %></span>
-                      <small class="text-muted">(<%= app_info[:worker_count] %> <%= t(".processes") %>)</small>
+                      <small class="text-body-secondary">(<%= app_info[:worker_count] %> <%= t(".processes") %>)</small>
                     <% else %>
                       <span class="badge text-bg-danger"><%= t(".stopped") %></span>
                     <% end %>
@@ -106,7 +106,7 @@
                   </li>
                 <% end %>
                 <li>
-                  <i class="bi bi-terminal" aria-hidden="true"></i> <%= t(".rails_logs") %> <small class="text-muted"><%= sanitize t(".rails_logs_hint") %></small>
+                  <i class="bi bi-terminal" aria-hidden="true"></i> <%= t(".rails_logs") %> <small class="text-body-secondary"><%= sanitize t(".rails_logs_hint") %></small>
                 </li>
               </ul>
             </div>
@@ -119,9 +119,9 @@
           <%= link_to system_health_path, class: "btn btn-outline-secondary btn-sm" do %>
             <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> <%= t(".refresh") %>
           <% end %>
-          <small class="text-muted ms-2"><%= t(".cache_note") %></small>
+          <small class="text-body-secondary ms-2"><%= t(".cache_note") %></small>
           <% if @health_checks[:checked_at].present? %>
-            <small class="text-muted ms-3" data-health-refresh-target="timestamp">
+            <small class="text-body-secondary ms-3" data-health-refresh-target="timestamp">
               <% checked_time = Time.iso8601(@health_checks[:checked_at]) rescue nil %>
               <% if checked_time %>
                 <%= t(".last_updated") %> <%= time_ago_in_words(checked_time) %> <%= t(".ago") %>
