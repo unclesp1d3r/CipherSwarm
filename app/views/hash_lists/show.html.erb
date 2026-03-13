@@ -41,6 +41,7 @@
     <div>
       <%== @pagy.info_tag %>
     </div>
+    <div class="table-responsive">
     <table class="table">
       <thead>
       <tr>
@@ -64,6 +65,7 @@
       <% end %>
       </tbody>
     </table>
+    </div>
 
     <% if @pagy.pages > 1 %>
       <%== @pagy.series_nav(:bootstrap) %>
