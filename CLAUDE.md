@@ -1,1 +1,1 @@
-@AGENTS.md @DESIGN.md
+@AGENTS.md
