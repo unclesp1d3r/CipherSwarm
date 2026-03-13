@@ -1,45 +1,56 @@
-<%= render Railsboot::NavbarComponent.new(expand: "md", class: "bg-body-tertiary") do %>
+<nav class="navbar navbar-expand-md bg-body-tertiary">
   <div class="container-fluid">
-    <%= render Railsboot::Navbar::BrandComponent.new do %>
+    <a class="navbar-brand">
       <%= inline_svg_tag "logo.svg",
                          size: "30px",
                          title: "CipherSwarm Logo",
                          aria_hidden: true %>
       <%= current_site %>
-    <% end %>
-    <%= render Railsboot::Navbar::TogglerComponent.new(id: "navbarSupportedContent") %>
+    </a>
     <% if user_signed_in? %>
-      <div class="collapse navbar-collapse" id="navbarSupportedContent" data-turbo-permanent>
-        <%= render Railsboot::Navbar::NavComponent.new(tag: "ul", class: "me-auto mb-2 mb-lg-0") do |nav| %>
-          <% nav.with_item(wrapper_item: true, text: "Admin Dashboards", href: admin_root_path) if can? :read, :admin_dashboard %>
-          <% nav.with_item(wrapper_item: true, wrapper_html_attributes: { class: "dropdown" }) do %>
+      <button type="button" class="navbar-toggler d-md-none" data-bs-toggle="offcanvas" data-bs-target="#sidebarOffcanvas" aria-controls="sidebarOffcanvas" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          <% if can? :read, :admin_dashboard %>
+            <li class="nav-item">
+              <%= link_to "Admin Dashboards", admin_root_path, class: "nav-link" %>
+            </li>
+          <% end %>
+          <li class="nav-item dropdown">
             <button type="button" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
               <%= icon("gear-wide-connected") %>
               Tools
             </button>
             <ul class="dropdown-menu">
+              <% if can? :read, WordList %>
+                <li><%= link_to "Word Lists", word_lists_path, class: "dropdown-item" %></li>
+              <% end %>
+              <% if can? :read, MaskList %>
+                <li><%= link_to "Mask Lists", mask_lists_path, class: "dropdown-item" %></li>
+              <% end %>
+              <% if can? :read, RuleList %>
+                <li><%= link_to "Rule Lists", rule_lists_path, class: "dropdown-item" %></li>
+              <% end %>
+            </ul>
+          </li>
+          <li class="nav-item dropdown">
+            <button type="button" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+              <%= icon("person-circle") %>
+              <%= current_user.name %>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><%= link_to "Edit Profile", edit_user_registration_path, class: "dropdown-item" %></li>
+              <li><hr class="dropdown-divider"></li>
               <li>
-                <%= link_to "Word Lists", word_lists_path, class: "dropdown-item" if can? :read, WordList %>
-              </li>
-              <li>
-                <%= link_to "Mask Lists", mask_lists_path, class: "dropdown-item" if can? :read, MaskList %>
-              </li>
-              <li>
-                <%= link_to "Rule Lists", rule_lists_path, class: "dropdown-item" if can? :read, RuleList %>
+                <%= button_to "Log out", destroy_user_session_path, class: "dropdown-item",
+                                                                    method: :delete, data: { turbo_method: :delete } %>
               </li>
             </ul>
-          <% end %>
-          <% nav.with_item(wrapper_item: true, wrapper_html_attributes: { class: "dropdown" }) do %>
-            <%= render NavbarDropdownComponent.new title: current_user.name,
-                                                   extra_classes: %w[justify-content-lg-end me-3],
-                                                   icon: "person-circle" do %>
-              <%= link_to "Edit Profile", edit_user_registration_path, class: "nav-link" %>
-              <%= button_to "Log out", destroy_user_session_path, class: "nav-link",
-                                                                  method: :delete, data: { turbo_method: :delete } %>
-            <% end %>
-          <% end %>
-        <% end %>
+          </li>
+        </ul>
       </div>
     <% end %>
   </div>
-<% end %>
+</nav>

@@ -1,0 +1,48 @@
+<nav aria-label="Account navigation">
+  <ul class="nav nav-pills flex-column">
+    <% if can? :read, :admin_dashboard %>
+      <li class="nav-item">
+        <%= link_to admin_root_path, class: "nav-link" do %>
+          <%= icon("speedometer2") %> Admin Dashboards
+        <% end %>
+      </li>
+    <% end %>
+    <li class="nav-item">
+      <span class="nav-link text-muted small text-uppercase mt-2">Tools</span>
+    </li>
+    <% if can? :read, WordList %>
+      <li class="nav-item">
+        <%= link_to word_lists_path, class: "nav-link" do %>
+          <%= icon("journal-text") %> Word Lists
+        <% end %>
+      </li>
+    <% end %>
+    <% if can? :read, MaskList %>
+      <li class="nav-item">
+        <%= link_to mask_lists_path, class: "nav-link" do %>
+          <%= icon("grid-3x3") %> Mask Lists
+        <% end %>
+      </li>
+    <% end %>
+    <% if can? :read, RuleList %>
+      <li class="nav-item">
+        <%= link_to rule_lists_path, class: "nav-link" do %>
+          <%= icon("list-check") %> Rule Lists
+        <% end %>
+      </li>
+    <% end %>
+    <li class="nav-item">
+      <span class="nav-link text-muted small text-uppercase mt-2">Account</span>
+    </li>
+    <li class="nav-item">
+      <%= link_to edit_user_registration_path, class: "nav-link" do %>
+        <%= icon("person-circle") %> Edit Profile
+      <% end %>
+    </li>
+    <li class="nav-item">
+      <%= button_to destroy_user_session_path, class: "nav-link text-start", method: :delete, data: { turbo_method: :delete } do %>
+        <%= icon("box-arrow-right") %> Log out
+      <% end %>
+    </li>
+  </ul>
+</nav>
