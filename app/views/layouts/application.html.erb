@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
 <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <%= display_meta_tags site: "CipherSwarm" %>
   <%= javascript_include_tag "turbo", type: "module" %>
   <%= turbo_refreshes_with(method: :morph, scroll: :preserve) %>
@@ -11,20 +12,36 @@
 </head>
 <body class="<%= body_class(params) %>">
 <a href="#main-content" class="visually-hidden-focusable">Skip to main content</a>
-<nav class="d-block">
-  <%= render "partials/navbar" %>
-</nav>
-<div class="row">
+<%= render "partials/navbar" %>
+<div class="row g-0">
   <% if user_signed_in? %>
-    <aside class="col-sm-3 col-md-2 sidebar">
+    <aside class="col-md-2 d-none d-md-block sidebar">
       <%= render "partials/sidebar" %>
     </aside>
+    <div class="offcanvas offcanvas-start d-md-none" tabindex="-1" id="sidebarOffcanvas" aria-labelledby="sidebarOffcanvasLabel">
+      <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="sidebarOffcanvasLabel"><%= current_site %></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+      </div>
+      <div class="offcanvas-body">
+        <%= render "partials/sidebar" %>
+        <hr>
+        <%= render "partials/sidebar_navbar_items" %>
+      </div>
+    </div>
   <% end %>
-  <main id="main-content" role="main" class="main <%= user_signed_in? ? 'col-md-9' : 'col-12' %>">
-    <%= render Railsboot::ContainerComponent.new(fluid: true) do %>
-      <%= render Railsboot::FlashComponent.new(flash: flash) %>
+  <main id="main-content" class="<%= user_signed_in? ? 'col-md-10' : 'col-12' %>">
+    <div class="container-fluid">
+      <% flash.each do |type, message| %>
+        <% next if message.blank? %>
+        <% variant = { "notice" => "success", "alert" => "danger", "info" => "info" }[type.to_s] || "info" %>
+        <div class="alert alert-<%= variant %> alert-dismissible fade show" role="alert">
+          <%= message %>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      <% end %>
       <%= yield %>
-    <% end %>
+    </div>
   </main>
 </div>
 <div id="toast_container" class="toast-container position-fixed top-0 end-0 p-3 z-3"></div>
