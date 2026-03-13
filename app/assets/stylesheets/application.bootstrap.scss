@@ -14,3 +14,19 @@ $bootstrap-icons-font-src: url("bootstrap-icons.woff2") format("woff2"), url("bo
 .container-fluid > .card {
   margin-bottom: 1rem;
 }
+
+// Empty state icon sizing (replaces inline style="font-size: 64px;")
+.empty-state-icon {
+  font-size: 4rem;
+  line-height: 1;
+}
+
+// Skeleton loader utilities (replaces inline styles)
+.skeleton-progress {
+  height: 6px;
+}
+
+.skeleton-avatar {
+  width: 32px;
+  height: 32px;
+}
