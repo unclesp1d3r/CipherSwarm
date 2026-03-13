@@ -4,26 +4,26 @@
     <div class="row">
       <% @count.times do %>
         <div class="col-md-4 mb-3">
-          <%= render Railsboot::CardComponent.new(class: "h-100 placeholder-glow") do |card| %>
-            <% card.with_header do %>
+          <div class="card h-100 placeholder-glow">
+            <div class="card-header">
               <div class="d-flex justify-content-between align-items-center">
                 <span class="placeholder col-6"></span>
                 <span class="placeholder col-3 rounded-pill"></span>
               </div>
-            <% end %>
-            <% card.with_body do %>
+            </div>
+            <div class="card-body">
               <div class="mb-2"><span class="placeholder col-8"></span></div>
               <div class="mb-2"><span class="placeholder col-6"></span></div>
               <div class="mb-0"><span class="placeholder col-7"></span></div>
-            <% end %>
-            <% card.with_footer do %>
+            </div>
+            <div class="card-footer">
               <div class="btn-group btn-group-sm">
                 <span class="placeholder col-2 btn"></span>
                 <span class="placeholder col-2 btn"></span>
                 <span class="placeholder col-2 btn"></span>
               </div>
-            <% end %>
-          <% end %>
+            </div>
+          </div>
         </div>
       <% end %>
     </div>
@@ -49,16 +49,16 @@
     <div class="row">
       <% @count.times do %>
         <div class="col-md-3 mb-3">
-          <%= render Railsboot::CardComponent.new(class: "placeholder-glow") do |card| %>
-            <% card.with_body do %>
+          <div class="card placeholder-glow">
+            <div class="card-body">
               <div class="d-flex align-items-center gap-2 mb-2">
                 <span class="placeholder rounded-circle" style="width: 32px; height: 32px;"></span>
                 <span class="placeholder col-5"></span>
               </div>
               <div class="mb-1"><span class="placeholder col-4"></span></div>
               <div><span class="placeholder col-6"></span></div>
-            <% end %>
-          <% end %>
+            </div>
+          </div>
         </div>
       <% end %>
     </div>
