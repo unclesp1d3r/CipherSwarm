@@ -11,10 +11,10 @@
       <h2 class="mb-0"><%= title @hash_list.name %></h2>
       <div>
         <% if can? :edit, @hash_list %>
-          <%= link_to url_for([:edit, @hash_list]), class: "btn btn-warning btn-sm" do %>
+          <%= link_to url_for([:edit, @hash_list]), class: "btn btn-warning btn-sm", aria: { label: "Edit hash list" } do %>
             <%= icon("pencil") %>
           <% end %>
-          <%= link_to @hash_list, class: "btn btn-danger btn-sm", data: { turbo_method: :delete, turbo_confirm: "Are you sure?" } do %>
+          <%= link_to @hash_list, class: "btn btn-danger btn-sm", aria: { label: "Delete hash list" }, data: { turbo_method: :delete, turbo_confirm: "Are you sure?" } do %>
             <%= icon("trash") %>
           <% end %>
         <% end %>
@@ -31,22 +31,22 @@
   <%= s.association :creator, label: "Created By" %>
 <% end %>
 
-<nav class="nav nav-tabs mt-4">
-  <%= link_to "All", hash_list_path(@hash_list, item_state: "all"), class: "nav-link #{"active" if @state == "all"}" %>
-  <%= link_to "Cracked", hash_list_path(@hash_list, item_state: "cracked"), class: "nav-link #{"active" if @state == "cracked"}" %>
-  <%= link_to "Uncracked", hash_list_path(@hash_list, item_state: "uncracked"), class: "nav-link #{"active" if @state == "uncracked"}" %>
+<nav class="nav nav-tabs mt-4" aria-label="Hash item filters">
+  <%= link_to "All", hash_list_path(@hash_list, item_state: "all"), class: "nav-link #{"active" if @state == "all"}", aria: (@state == "all" ? { current: "page" } : {}) %>
+  <%= link_to "Cracked", hash_list_path(@hash_list, item_state: "cracked"), class: "nav-link #{"active" if @state == "cracked"}", aria: (@state == "cracked" ? { current: "page" } : {}) %>
+  <%= link_to "Uncracked", hash_list_path(@hash_list, item_state: "uncracked"), class: "nav-link #{"active" if @state == "uncracked"}", aria: (@state == "uncracked" ? { current: "page" } : {}) %>
 </nav>
 <% if @hash_items.any? %>
-  <div id="hash_items">
+  <div id="hash_items" aria-live="polite">
     <div>
       <%== @pagy.info_tag %>
     </div>
     <table class="table">
       <thead>
       <tr>
-        <th>Hash</th>
-        <th>Plain Text</th>
-        <th>Metadata</th>
+        <th scope="col">Hash</th>
+        <th scope="col">Plain Text</th>
+        <th scope="col">Metadata</th>
       </tr>
       </thead>
       <tbody>

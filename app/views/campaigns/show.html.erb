@@ -42,6 +42,7 @@
   </div>
 </div>
 <%= turbo_stream_from @campaign %>
+<div aria-live="polite" aria-atomic="false">
 
 <%# ETA Summary Alert %>
 <%= turbo_frame_tag "eta_summary", src: eta_summary_campaign_path(@campaign), loading: "lazy" do %>
@@ -74,6 +75,7 @@
     <%= render partial: "attack_stepper_line", collection: @attacks, as: :attack, locals: { campaign: @campaign, failed_attack_error_map: @failed_attack_error_map } %>
   </ol>
 <% end %>
+</div>
 
 <%# Error Modals for Failed Attacks %>
 <% @attacks.select { |a| a.state == "failed" }.each do |attack| %>

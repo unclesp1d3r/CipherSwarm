@@ -12,7 +12,7 @@
       <h2 class="mb-0"><%= title "#{@attack.name}" %></h2>
       <div>
         <% if can? :edit, @attack %>
-          <%= link_to edit_campaign_attack_path(@campaign, @attack), class: "btn btn-primary btn-sm" do %>
+          <%= link_to edit_campaign_attack_path(@campaign, @attack), class: "btn btn-primary btn-sm", aria: { label: "Edit attack" } do %>
             <%= icon("pencil") %>
           <% end %>
         <% end %>

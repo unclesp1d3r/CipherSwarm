@@ -6,7 +6,7 @@
       <h2 class="mb-0"><%= title resource_list.klass.model_name.human.pluralize %></h2>
       <div>
         <% if can? :create, resource_list.klass %>
-          <%= link_to url_for(controller: controller_name, action: :new), class: "btn btn-primary btn-sm" do %>
+          <%= link_to url_for(controller: controller_name, action: :new), class: "btn btn-primary btn-sm", aria: { label: "New #{resource_list.klass.model_name.human.downcase}" } do %>
             <%= icon("plus-circle-fill") %>
           <% end %>
         <% end %>
@@ -18,13 +18,13 @@
 <table class="table">
   <thead>
     <tr>
-      <th>Name</th>
-      <th>Description</th>
-      <th>Lines</th>
-      <th>Estimated Complexity</th>
-      <th>Sensitive</th>
-      <th>Projects</th>
-      <th></th>
+      <th scope="col">Name</th>
+      <th scope="col">Description</th>
+      <th scope="col">Lines</th>
+      <th scope="col">Estimated Complexity</th>
+      <th scope="col">Sensitive</th>
+      <th scope="col">Projects</th>
+      <th scope="col"><span class="visually-hidden">Actions</span></th>
     </tr>
   </thead>
   <tbody>
@@ -39,17 +39,17 @@
         <td>
           <div class="btn-group btn-group-sm" role="group" aria-label="<%= item.name %> actions">
             <% if can? :read, item %>
-              <%= link_to url_for(item), class: "btn btn-primary btn-sm" do %>
+              <%= link_to url_for(item), class: "btn btn-primary btn-sm", aria: { label: "View #{item.name}" } do %>
                 <%= icon("eye") %>
               <% end %>
             <% end %>
             <% if can? :edit, item %>
-              <%= link_to url_for([:edit, item]), class: "btn btn-warning btn-sm" do %>
+              <%= link_to url_for([:edit, item]), class: "btn btn-warning btn-sm", aria: { label: "Edit #{item.name}" } do %>
                 <%= icon("pencil") %>
               <% end %>
             <% end %>
             <% if can? :destroy, item %>
-              <%= link_to item, method: :delete, data: { turbo_method: :delete, turbo_confirm: "Are you sure?" }, class: "btn btn-danger btn-sm" do %>
+              <%= link_to item, method: :delete, data: { turbo_method: :delete, turbo_confirm: "Are you sure?" }, class: "btn btn-danger btn-sm", aria: { label: "Delete #{item.name}" } do %>
                 <%= icon("trash") %>
               <% end %>
             <% end %>

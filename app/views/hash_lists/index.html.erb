@@ -4,7 +4,7 @@
       <h2 class="mb-0"><%= title "Hash lists" %></h2>
       <div>
         <% if can? :create, HashList %>
-          <%= link_to new_hash_list_path, class: "btn btn-primary btn-sm" do %>
+          <%= link_to new_hash_list_path, class: "btn btn-primary btn-sm", aria: { label: "New hash list" } do %>
             <%= icon("plus-circle-fill") %>
           <% end %>
         <% end %>
@@ -17,12 +17,12 @@
 <table class="table">
   <thead>
   <tr>
-    <th> Name</th>
-    <th> Description</th>
-    <th> Hash Type</th>
-    <th> Project</th>
-    <th> Completion</th>
-    <th></th>
+    <th scope="col">Name</th>
+    <th scope="col">Description</th>
+    <th scope="col">Hash Type</th>
+    <th scope="col">Project</th>
+    <th scope="col">Completion</th>
+    <th scope="col"><span class="visually-hidden">Actions</span></th>
   </tr>
   </thead>
   <tbody>
