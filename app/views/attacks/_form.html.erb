@@ -1,5 +1,14 @@
 <%= simple_form_for [@campaign, @attack] do |f| %>
-  <%= render Railsboot::ErrorsComponent.new(@attack) %>
+  <% if @attack.errors.any? %>
+    <div class="alert alert-danger" role="alert">
+      <h4 class="alert-heading"><%= pluralize(@attack.errors.count, "error") %> prevent this from saving.</h4>
+      <ul>
+        <% @attack.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
 
   <%= f.input :name, hint: "A name for the attack. This will be displayed in the attack list and the activity feed." %>
   <%= f.input :description, hint: "A brief description of the attack. This will be displayed in the attack details." %>
@@ -32,7 +41,7 @@
   <div class="row mb-0">
     <div class="col-sm-9 offset-sm-3">
       <%= f.button :submit, "Submit", class: "btn-primary" %>
-      <%= render Railsboot::ButtonComponent.new(tag: "a", href: @campaign, variant: "danger", text: "Cancel") %>
+      <%= link_to "Cancel", @campaign, class: "btn btn-danger" %>
     </div>
   </div>
 <% end %>
