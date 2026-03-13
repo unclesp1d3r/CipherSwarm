@@ -13,10 +13,10 @@
         <%= render Railsboot::Navbar::NavComponent.new(tag: "ul", class: "me-auto mb-2 mb-lg-0") do |nav| %>
           <% nav.with_item(wrapper_item: true, text: "Admin Dashboards", href: admin_root_path) if can? :read, :admin_dashboard %>
           <% nav.with_item(wrapper_item: true, wrapper_html_attributes: { class: "dropdown" }) do %>
-            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <button type="button" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
               <%= icon("gear-wide-connected") %>
               Tools
-            </a>
+            </button>
             <ul class="dropdown-menu">
               <li>
                 <%= link_to "Word Lists", word_lists_path, class: "dropdown-item" if can? :read, WordList %>
