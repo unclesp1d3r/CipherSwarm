@@ -10,6 +10,7 @@
   <%= csrf_meta_tags %>
 </head>
 <body class="<%= body_class(params) %>">
+<a href="#main-content" class="visually-hidden-focusable">Skip to main content</a>
 <nav class="d-block">
   <%= render "partials/navbar" %>
 </nav>
@@ -19,13 +20,13 @@
       <%= render "partials/sidebar" %>
     </aside>
   <% end %>
-  <main role="main" class="main col-md-9">
+  <main id="main-content" role="main" class="main <%= user_signed_in? ? 'col-md-9' : 'col-12' %>">
     <%= render Railsboot::ContainerComponent.new(fluid: true) do %>
       <%= render Railsboot::FlashComponent.new(flash: flash) %>
       <%= yield %>
     <% end %>
   </main>
 </div>
-<div id="toast_container" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1080;"></div>
+<div id="toast_container" class="toast-container position-fixed top-0 end-0 p-3 z-3"></div>
 </body>
 </html>
