@@ -1,6 +1,9 @@
 {
   "name": "app",
   "dependencies": {
+    "@fontsource-variable/jetbrains-mono": "^5.2.8",
+    "@fontsource-variable/space-grotesk": "^5.2.10",
+    "@fontsource/ibm-plex-sans": "^5.2.8",
     "@hotwired/stimulus": "^3.2.2",
     "@hotwired/turbo-rails": "^8.0.23",
     "@popperjs/core": "^2.11.8",
@@ -18,7 +21,7 @@
   "scripts": {
     "build:css:compile": "sass ./app/assets/stylesheets/application.bootstrap.scss:./app/assets/builds/application.css --no-source-map --load-path=node_modules",
     "build:css:prefix": "postcss ./app/assets/builds/application.css --use=autoprefixer --output=./app/assets/builds/application.css",
-    "build:css:fonts": "cp node_modules/bootstrap-icons/font/fonts/bootstrap-icons.woff node_modules/bootstrap-icons/font/fonts/bootstrap-icons.woff2 app/assets/builds/",
+    "build:css:fonts": "cp node_modules/bootstrap-icons/font/fonts/bootstrap-icons.woff node_modules/bootstrap-icons/font/fonts/bootstrap-icons.woff2 node_modules/@fontsource-variable/space-grotesk/files/space-grotesk-latin-wght-normal.woff2 node_modules/@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2 node_modules/@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-400-normal.woff2 node_modules/@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-500-normal.woff2 node_modules/@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-600-normal.woff2 node_modules/@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-700-normal.woff2 app/assets/builds/",
     "build:css": "bun run build:css:compile && bun run build:css:prefix && bun run build:css:fonts",
     "watch:css": "nodemon --watch ./app/assets/stylesheets/ --ext scss --exec \"bun run build:css\"",
     "build": "NODE_PATH=\"$(bundle show 'pagy')/javascripts\" esbuild app/javascript/*.* --bundle --sourcemap --format=esm --outdir=app/assets/builds --public-path=/assets"
