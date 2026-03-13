@@ -631,6 +631,6 @@ TEST_DATABASE_URL=postgres://root:password@localhost:5432/cipher_swarm_test bund
 - API Documentation: /api-docs (when server running)
 - Justfile Documentation: .kiro/steering/justfile.md
 
-# Agent Rules <!-- tessl-managed -->
+## Agent Rules <!-- tessl-managed -->
 
 @.tessl/RULES.md follow the [instructions](.tessl/RULES.md)
