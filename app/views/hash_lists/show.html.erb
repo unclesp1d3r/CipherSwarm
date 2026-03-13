@@ -1,23 +1,27 @@
-<%= render Railsboot::HeaderComponent.new do |header| %>
-  <% header.with_heading do %>
-    <%= title @hash_list.name %>
-  <% end %>
-  <% header.with_breadcrumb.with_items([
-       { text: "Dashboard", href: root_path },
-       { text: "Hash Lists", href: hash_lists_path },
-       { text: @hash_list.name, href: @hash_list, active: true }
-     ]) %>
-  <%= header.with_actions do %>
-    <% if can? :edit, @hash_list %>
-      <%= render Railsboot::Button::LinkComponent.new(href: url_for([:edit, @hash_list]), variant: "warning", size: "sm") do %>
-        <%= icon("pencil") %>
-      <% end %>
-      <%= render Railsboot::Button::LinkComponent.new(href: @hash_list, variant: "danger", size: "sm", method: :delete, data: { turbo_method: :delete, turbo_confirm: "Are you sure?" }) do %>
-        <%= icon("trash") %>
-      <% end %>
-    <% end %>
-  <% end %>
-<% end %>
+<div class="card">
+  <div class="card-body">
+    <nav aria-label="breadcrumb" class="mt-0 mb-1 fw-light">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><%= link_to "Dashboard", root_path %></li>
+        <li class="breadcrumb-item"><%= link_to "Hash Lists", hash_lists_path %></li>
+        <li class="breadcrumb-item active" aria-current="page"><%= @hash_list.name %></li>
+      </ol>
+    </nav>
+    <div class="d-flex justify-content-between align-items-center">
+      <h2 class="mb-0"><%= title @hash_list.name %></h2>
+      <div>
+        <% if can? :edit, @hash_list %>
+          <%= link_to url_for([:edit, @hash_list]), class: "btn btn-warning btn-sm" do %>
+            <%= icon("pencil") %>
+          <% end %>
+          <%= link_to @hash_list, class: "btn btn-danger btn-sm", data: { turbo_method: :delete, turbo_confirm: "Are you sure?" } do %>
+            <%= icon("trash") %>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
 
 <%= show_for @hash_list do |s| %>
   <%= s.attribute :name %>
@@ -27,11 +31,11 @@
   <%= s.association :creator, label: "Created By" %>
 <% end %>
 
-<%= render Railsboot::NavComponent.new(style: "tabs", class: "mt-4") do |nav| %>
-  <% nav.with_item(text: "All", href: hash_list_path(@hash_list, item_state: "all"), active: @state == "all") %>
-  <% nav.with_item(text: "Cracked", href: hash_list_path(@hash_list, item_state: "cracked"), active: @state == "cracked") %>
-  <% nav.with_item(text: "Uncracked", href: hash_list_path(@hash_list, item_state: "uncracked"), active: @state == "uncracked") %>
-<% end %>
+<nav class="nav nav-tabs mt-4">
+  <%= link_to "All", hash_list_path(@hash_list, item_state: "all"), class: "nav-link #{"active" if @state == "all"}" %>
+  <%= link_to "Cracked", hash_list_path(@hash_list, item_state: "cracked"), class: "nav-link #{"active" if @state == "cracked"}" %>
+  <%= link_to "Uncracked", hash_list_path(@hash_list, item_state: "uncracked"), class: "nav-link #{"active" if @state == "uncracked"}" %>
+</nav>
 <% if @hash_items.any? %>
   <div id="hash_items">
     <div>
@@ -71,4 +75,3 @@
     No hash items found.
   </div>
 <% end %>
-
