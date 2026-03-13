@@ -8,7 +8,7 @@
     <span class="badge text-bg-<%= status_variant %>"><%= status_text %></span>
 
     <% if latency_text %>
-      <small class="text-muted ms-2"><%= latency_text %></small>
+      <small class="text-body-secondary ms-2"><%= latency_text %></small>
     <% end %>
 
     <% if @error.present? %>
@@ -16,7 +16,7 @@
     <% end %>
 
     <% if @details.present? %>
-      <div class="mt-2 small text-muted">
+      <div class="mt-2 small text-body-secondary">
         <% @details.each do |label, value| %>
           <% next if value.nil? %>
           <div><strong><%= label %>:</strong> <%= value %></div>
