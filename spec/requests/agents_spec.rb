@@ -322,6 +322,51 @@ RSpec.describe "Agents" do
     end
   end
 
+  describe "#expire_benchmarks" do
+    context "when user is not signed in" do
+      it "redirects to login page" do
+        post expire_benchmarks_agent_path(first_agent)
+        expect(response).to redirect_to(new_user_session_path)
+      end
+    end
+
+    context "when user expires benchmarks on their own agent" do
+      it "destroys benchmarks and redirects with notice" do
+        sign_in first_regular_user
+        create(:hashcat_benchmark, agent: first_agent)
+        create(:hashcat_benchmark, agent: first_agent)
+
+        expect {
+          post expire_benchmarks_agent_path(first_agent)
+        }.to change { first_agent.hashcat_benchmarks.count }.to(0)
+
+        expect(response).to redirect_to(agent_url(first_agent, anchor: "capabilities"))
+        expect(flash[:notice]).to include("Benchmarks expired")
+      end
+    end
+
+    context "when user tries to expire benchmarks on another user's agent" do
+      it "returns http forbidden" do
+        sign_in first_regular_user
+        post expire_benchmarks_agent_path(second_agent)
+        expect(response).to have_http_status(:forbidden)
+        expect(response).to render_template("errors/not_authorized")
+      end
+    end
+
+    context "when admin expires benchmarks on any agent" do
+      it "destroys benchmarks and redirects with notice" do
+        sign_in admin_user
+        create(:hashcat_benchmark, agent: first_agent)
+
+        post expire_benchmarks_agent_path(first_agent)
+
+        expect(first_agent.hashcat_benchmarks.count).to eq(0)
+        expect(response).to redirect_to(agent_url(first_agent, anchor: "capabilities"))
+      end
+    end
+  end
+
   describe "#destroy" do
     context "when a non-logged in user tries to delete an agent" do
       it "redirects to login page" do
