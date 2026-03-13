@@ -1,16 +1,20 @@
-<%= render Railsboot::HeaderComponent.new do |header| %>
-  <% header.with_heading do %>
-    <%= title "Task ##{@task.id} - Status Logs" %>
-  <% end %>
-  <% header.with_breadcrumb.with_items([
-       { text: "Dashboard", href: root_path },
-       { text: "Activity", href: campaigns_path },
-       { text: @task.attack.campaign.name, href: @task.attack.campaign },
-       { text: @task.attack.name, href: campaign_attack_path(@task.attack.campaign, @task.attack) },
-       { text: "Task ##{@task.id}", href: @task },
-       { text: "Logs", href: logs_task_path(@task), active: true }
-     ]) %>
-<% end %>
+<div class="card mb-3">
+  <div class="card-body">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb mb-2">
+        <li class="breadcrumb-item"><%= link_to "Dashboard", root_path %></li>
+        <li class="breadcrumb-item"><%= link_to "Activity", campaigns_path %></li>
+        <li class="breadcrumb-item"><%= link_to @task.attack.campaign.name, @task.attack.campaign %></li>
+        <li class="breadcrumb-item"><%= link_to @task.attack.name, campaign_attack_path(@task.attack.campaign, @task.attack) %></li>
+        <li class="breadcrumb-item"><%= link_to "Task ##{@task.id}", @task %></li>
+        <li class="breadcrumb-item active" aria-current="page">Logs</li>
+      </ol>
+    </nav>
+    <div class="d-flex justify-content-between align-items-center">
+      <h2 class="mb-0"><%= title "Task ##{@task.id} - Status Logs" %></h2>
+    </div>
+  </div>
+</div>
 
 <div class="row">
   <div class="col-12">

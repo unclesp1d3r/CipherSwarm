@@ -33,11 +33,11 @@
       <% if app_info.present? %>
         <div class="row mb-4" data-health-refresh-target="application">
           <div class="col-12">
-            <%= render Railsboot::CardComponent.new do |card| %>
-              <% card.with_header do %>
+            <div class="card">
+              <div class="card-header">
                 <h5 class="mb-0"><i class="bi bi-app-indicator" aria-hidden="true"></i> <%= t(".application_info") %></h5>
-              <% end %>
-              <% card.with_body do %>
+              </div>
+              <div class="card-body">
                 <div class="d-flex gap-4 flex-wrap">
                   <div>
                     <strong><%= t(".rails_version") %></strong> <%= app_info[:rails_version] %>
@@ -58,8 +58,8 @@
                     <% end %>
                   </div>
                 </div>
-              <% end %>
-            <% end %>
+              </div>
+            </div>
           </div>
         </div>
       <% end %>
@@ -68,11 +68,11 @@
       <% if sidekiq_check && sidekiq_check[:status] == :healthy %>
         <div class="row mb-4">
           <div class="col-12">
-            <%= render Railsboot::CardComponent.new do |card| %>
-              <% card.with_header do %>
+            <div class="card">
+              <div class="card-header">
                 <h5 class="mb-0"><i class="bi bi-bar-chart" aria-hidden="true"></i> <%= t(".sidekiq_metrics") %></h5>
-              <% end %>
-              <% card.with_body do %>
+              </div>
+              <div class="card-body">
                 <div class="d-flex gap-4">
                   <div>
                     <strong><%= t(".workers") %></strong> <%= sidekiq_check[:workers] %>
@@ -84,19 +84,19 @@
                     <strong><%= t(".enqueued_jobs") %></strong> <%= sidekiq_check[:enqueued] %>
                   </div>
                 </div>
-              <% end %>
-            <% end %>
+              </div>
+            </div>
           </div>
         </div>
       <% end %>
 
       <div class="row mb-4">
         <div class="col-12">
-          <%= render Railsboot::CardComponent.new do |card| %>
-            <% card.with_header do %>
+          <div class="card">
+            <div class="card-header">
               <h5 class="mb-0"><i class="bi bi-tools" aria-hidden="true"></i> <%= t(".diagnostics") %></h5>
-            <% end %>
-            <% card.with_body do %>
+            </div>
+            <div class="card-body">
               <ul class="list-unstyled mb-0">
                 <% if can? :read, :admin_dashboard %>
                   <li class="mb-2">
@@ -109,8 +109,8 @@
                   <i class="bi bi-terminal" aria-hidden="true"></i> <%= t(".rails_logs") %> <small class="text-muted"><%= sanitize t(".rails_logs_hint") %></small>
                 </li>
               </ul>
-            <% end %>
-          <% end %>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -133,7 +133,7 @@
     </div>
   <% end %>
 <% else %>
-  <%= render Railsboot::BlankSlateComponent.new do %>
+  <div class="text-center py-5">
     <p class="mb-0"><%= t(".unable_to_retrieve") %></p>
-  <% end %>
+  </div>
 <% end %>

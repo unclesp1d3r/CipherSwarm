@@ -1,61 +1,61 @@
 <%# locals: (resource_list:) -%>
 
-<%= render Railsboot::HeaderComponent.new do |header| %>
-  <% header.with_heading do %>
-    <%= title resource_list.klass.model_name.human.pluralize %>
-  <% end %>
-  <%= header.with_actions do %>
-    <% if can? :create, resource_list.klass %>
-      <%= render Railsboot::ButtonComponent.new(tag: "a", href: url_for(controller: controller_name, action: :new), size: "sm") do %>
-        <%= icon("plus-circle-fill") %>
-      <% end %>
-    <% end %>
-  <% end %>
-<% end %>
+<div class="card">
+  <div class="card-body">
+    <div class="d-flex justify-content-between align-items-center">
+      <h2 class="mb-0"><%= title resource_list.klass.model_name.human.pluralize %></h2>
+      <div>
+        <% if can? :create, resource_list.klass %>
+          <%= link_to url_for(controller: controller_name, action: :new), class: "btn btn-primary btn-sm" do %>
+            <%= icon("plus-circle-fill") %>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
 
-<%= render Railsboot::TableComponent.new do |table| %>
-  <% table.with_head.with_row do |row| %>
-    <% row.with_cell(tag: "th").with_content("Name") %>
-    <% row.with_cell(tag: "th").with_content("Description") %>
-    <% row.with_cell(tag: "th").with_content("Lines") %>
-    <% row.with_cell(tag: "th").with_content("Estimated Complexity") %>
-    <% row.with_cell(tag: "th").with_content("Sensitive") %>
-    <% row.with_cell(tag: "th").with_content("Projects") %>
-    <% row.with_cell(tag: "th") %>
-  <% end %>
-  <% table.with_body do |body| %>
+<table class="table">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Description</th>
+      <th>Lines</th>
+      <th>Estimated Complexity</th>
+      <th>Sensitive</th>
+      <th>Projects</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
     <% resource_list.each do |item| %>
-      <% body.with_row do |row| %>
-        <% row.with_cell { item.name } %>
-        <% row.with_cell { truncate item.description } %>
-        <% row.with_cell { item.processed ? number_to_human(item.line_count) : "pending" } %>
-        <% row.with_cell { item.complexity_string } %>
-        <% row.with_cell { boolean_icon item.sensitive } %>
-        <% row.with_cell { truncate(item.projects.map(&:name).to_sentence) } %>
-        <% row.with_cell do %>
-
-          <%= render Railsboot::ButtonGroupComponent.new(aria_label: "#{item.name} actions", size: "sm") do %>
+      <tr>
+        <td><%= item.name %></td>
+        <td><%= truncate item.description %></td>
+        <td><%= item.processed ? number_to_human(item.line_count) : "pending" %></td>
+        <td><%= item.complexity_string %></td>
+        <td><%= boolean_icon item.sensitive %></td>
+        <td><%= truncate(item.projects.map(&:name).to_sentence) %></td>
+        <td>
+          <div class="btn-group btn-group-sm" role="group" aria-label="<%= item.name %> actions">
             <% if can? :read, item %>
-              <%= render Railsboot::Button::LinkComponent.new(href: url_for(item)) do %>
+              <%= link_to url_for(item), class: "btn btn-primary btn-sm" do %>
                 <%= icon("eye") %>
               <% end %>
             <% end %>
             <% if can? :edit, item %>
-              <%= render Railsboot::Button::LinkComponent.new(href: url_for([:edit, item]), variant: "warning") do %>
+              <%= link_to url_for([:edit, item]), class: "btn btn-warning btn-sm" do %>
                 <%= icon("pencil") %>
               <% end %>
             <% end %>
             <% if can? :destroy, item %>
-              <%= render Railsboot::Button::LinkComponent.new(variant: "danger", href: item,
-                                                              method: :delete, data: { turbo_method: :delete,
-                                                                                       turbo_confirm: "Are you sure?" }) do %>
+              <%= link_to item, method: :delete, data: { turbo_method: :delete, turbo_confirm: "Are you sure?" }, class: "btn btn-danger btn-sm" do %>
                 <%= icon("trash") %>
               <% end %>
             <% end %>
-          <% end %>
-        <% end %>
-      <% end %>
+          </div>
+        </td>
+      </tr>
     <% end %>
-  <% end %>
-
-<% end %>
+  </tbody>
+</table>
