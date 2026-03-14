@@ -63,7 +63,7 @@ Projects (tenant boundary)
 **Current State** (Inconsistent ⚠️):
 
 - Only 2 service objects exist:
-  - `TaskAssignmentService` (210 lines) - Task scheduling logic
+  - `TaskAssignmentService` (~420 lines) - Task scheduling logic with diagnostic capabilities
   - `TaskPreemptionService` (166 lines) - Preemption algorithm
 - Most business logic lives in models (Attack: 31 methods)
 
@@ -84,7 +84,15 @@ class TaskPreemptionService
 end
 ```
 
-**Analysis**: Service layer adoption is inconsistent. Good services exist for scheduling/preemption but most complex operations (complexity calculation, hashcat parameter generation) remain in models. Need consistent extraction strategy.
+**Event-Driven Background Jobs** (Emerging ✅):
+
+- Campaign model uses `after_commit` callbacks to trigger `CampaignPriorityRebalanceJob` when priority increases
+- Represents a shift from purely time-driven (periodic UpdateStatusJob) to hybrid time-driven + event-driven task preemption
+- Provides immediate preemption response to priority changes rather than waiting for next scheduled job
+
+**Recent Enhancement (PR #709)**: TaskAssignmentService includes comprehensive diagnostic logging with skip-reason tracking. When agents are not assigned tasks, the service logs detailed reasons (no_available_attacks, all_hashes_cracked, pending_tasks_not_owned, performance_threshold_not_met, grace_period_active), improving operational visibility into task assignment decisions and agent idleness patterns. This demonstrates the evolution of service objects toward better observability patterns.
+
+**Analysis**: Service layer adoption is inconsistent. Good services exist for scheduling/preemption but most complex operations (complexity calculation, hashcat parameter generation) remain in models. The new event-driven pattern for task rebalancing shows architectural evolution toward reactive behavior, but needs careful monitoring to avoid callback overuse. Need consistent extraction strategy.
 
 ### 1.3 API Design
 
@@ -127,11 +135,12 @@ app/models/concerns/
 
 **Background Jobs** (Simple ✅):
 
-- 5 jobs: ProcessHashList, CalculateMaskComplexity, CountFileLines, UpdateStatus
+- 6 jobs: ProcessHashList, CalculateMaskComplexity, CountFileLines, UpdateStatus, CampaignPriorityRebalance, DataCleanup
 - Using Sidekiq with Sidekiq-Cron for scheduling
 - Clean job boundaries
+- `CampaignPriorityRebalanceJob`: Event-driven task preemption triggered when campaign priority increases (after_commit callback pattern)
 
-**Analysis**: Component organization follows Rails conventions. SafeBroadcasting concern is excellent for resilience. Need more concerns to extract shared model behavior.
+**Analysis**: Component organization follows Rails conventions. SafeBroadcasting concern is excellent for resilience. The new CampaignPriorityRebalanceJob demonstrates an emerging event-driven pattern for task rebalancing, complementing the periodic UpdateStatusJob. Need more concerns to extract shared model behavior.
 
 ---
 
@@ -300,6 +309,7 @@ end
 
 - Structured logging added in PR #531 ✅
 - Rails.logger with `[Prefix]` conventions ✅
+- TaskAssignmentService diagnostic logging (PR #709) ✅
 - But: No centralized logging strategy ❌
 - But: No distributed tracing ❌
 - But: No metrics collection ❌
@@ -386,18 +396,26 @@ broadcasts_refreshes unless Rails.env.test?
 **Current Approach**:
 
 - Sidekiq with Redis backing
-- 5 job types with clear responsibilities ✅
+- 6 job types with clear responsibilities ✅
 - Job retry logic via Sidekiq defaults ✅
 
 **Scalability Concerns**:
 
 **1. UpdateStatusJob** (High frequency):
 
-- Runs on every task status update
-- Contains rebalancing logic (preemption checks)
+- Runs periodically to maintain system state
+- Rebalances task assignments for non-deferred (normal and high) priority campaigns
+- Complements event-driven CampaignPriorityRebalanceJob (immediate preemption on priority changes)
 - **Recommendation**: Rate limit rebalancing (max once per 5 seconds per campaign)
 
-**2. ProcessHashListJob** (High memory):
+**2. CampaignPriorityRebalanceJob** (Event-driven frequency):
+
+- Triggered by Campaign after_commit callback when priority increases
+- Frequent campaign priority changes could increase job queue load
+- Event-driven pattern provides immediate response but adds callback-triggered load
+- **Recommendation**: Monitor Sidekiq queue saturation, consider rate limiting if campaigns have frequently changing priorities
+
+**3. ProcessHashListJob** (High memory):
 
 - Processes entire hash list files in memory
 - **Recommendation**: Stream processing for large files (>100MB)
@@ -405,6 +423,7 @@ broadcasts_refreshes unless Rails.env.test?
 **3. Job Queue Saturation** (Risk):
 
 - Single Redis instance for all jobs
+- Event-driven jobs (CampaignPriorityRebalanceJob) can spike queue load during bulk priority changes
 - **Recommendation**: Separate queues by priority (critical, default, low)
 
 **Capacity Estimates**:
@@ -560,6 +579,8 @@ Rails.logger.info(
 - Rich context
 - Debugging-friendly
 
+**Improvement Note**: TaskAssignmentService (as of PR #709) demonstrates structured diagnostic logging best practices by tracking and summarizing skip reasons when agents receive no work. The service uses a `@skip_reasons` accumulator pattern and emits consolidated `[TaskAssignment]` log entries with actionable diagnostic information (no_available_attacks, all_hashes_cracked, pending_tasks_not_owned, performance_threshold_not_met, grace_period_active), addressing observability gaps in task assignment workflows. This pattern could be adopted by other services for similar diagnostic scenarios.
+
 ### 4.2 Anti-Patterns to Avoid
 
 **1. Magic Numbers** (Mostly Fixed ✅):
@@ -580,11 +601,15 @@ where("campaigns.priority < ?", priority_value)
 before_save :calculate_complexity
 after_commit :broadcast_updates
 before_transition :validate_something
+
+# Campaign model uses after_commit for event-driven jobs
+after_commit :trigger_priority_rebalance_if_needed
 ```
 
 - Makes testing harder
 - Hidden side effects
-- **Recommendation**: Prefer explicit service calls over callbacks
+- Event-driven job triggering (CampaignPriorityRebalanceJob) is a reasonable use of after_commit for immediate response
+- **Recommendation**: Accept after_commit callbacks for event-driven jobs but prefer explicit service calls for business logic. Use callbacks sparingly and document their purpose clearly.
 
 **3. God Classes** (Identified ⚠️):
 

@@ -11,6 +11,7 @@ This guide provides detailed troubleshooting steps for common agent issues, with
 - [Server-Side Diagnostics](#server-side-diagnostics)
 - [Best Practices](#best-practices)
 - [Common Scenarios](#common-scenarios)
+- [Network Connectivity Issues](#network-connectivity-issues)
 - [Log Analysis](#log-analysis)
 
 ---
@@ -201,6 +202,9 @@ Authorization: Bearer <your_token>
 3. **Verify Server Connectivity**:
 
    ```bash
+   # Test health endpoint (unauthenticated)
+   curl -v http://server.example.com/api/v1/client/health
+
    # Test authentication
    curl -H "Authorization: Bearer <token>" \
      https://server.example.com/api/v1/client/authenticate
@@ -308,6 +312,43 @@ grep "\[Attack.*Abandoning attack" /var/log/cipherswarm/production.log | \
 - Abandonments affecting multiple agents simultaneously
 - No clear trigger (check for system issues)
 
+### Task Assignment Skip Reasons
+
+When agents request work but receive no tasks, the task assignment service logs detailed reasons to help operators diagnose agent idleness. These `[TaskAssignment]` log entries make it easier to understand why agents remain idle.
+
+**Log Pattern:**
+
+When no task is assigned, you'll see an info-level log entry like:
+
+```
+[TaskAssignment] no_task_assigned: agent_id=123 reasons=no_available_attacks, all_hashes_cracked allowed_hash_type_ids=[...] project_ids=[...] timestamp=...
+```
+
+**Skip Reasons:**
+
+- `no_available_attacks` - No attacks are available for the agent's hash types and projects
+- `all_hashes_cracked` - All hashes in available attacks have been cracked
+- `pending_tasks_not_owned` - Pending tasks exist but are assigned to other agents
+- `performance_threshold_not_met` - Agent doesn't meet performance requirements for available attacks
+- `grace_period_active` - Paused tasks exist but are still in the grace period (waiting for original agent)
+
+**Additional Debug Logs:**
+
+For more granular diagnostics, enable debug-level logging to see per-attack skip reasons:
+
+- `[TaskAssignment] no_uncracked_hashes: agent_id=X attack_id=Y` - Specific attack has no remaining work
+- `[TaskAssignment] pending_tasks_taken: agent_id=X attack_id=Y` - Another agent owns pending tasks for this attack
+- `[TaskAssignment] grace_period_active: agent_id=X grace_cutoff=... blocked_task_count=N` - Tasks are blocked by grace period
+- `[TaskAssignment] performance_threshold_not_met: agent_id=X attack_id=Y hash_mode=Z` - Agent's benchmark too slow for this attack
+
+**Troubleshooting with Skip Reasons:**
+
+1. **no_available_attacks**: Check that campaigns are active and match the agent's configured hash types and project assignments
+2. **all_hashes_cracked**: All work is complete; consider starting new campaigns or adjusting hash lists
+3. **pending_tasks_not_owned**: Other agents have claimed available work; this is normal in multi-agent environments
+4. **performance_threshold_not_met**: Review agent benchmark results and attack complexity requirements
+5. **grace_period_active**: Tasks are temporarily reserved for their original agents; wait for grace period expiration or agent reconnection
+
 ### Correlating Agent Logs with Server Logs
 
 **Process:**
@@ -377,6 +418,16 @@ agent:
 - **max_404_retries**: Balances recovery attempts with quick failure detection
 - **retry_backoff**: Prevents overwhelming server during issues
 - **request_new_task_interval**: Regular check for work without excessive polling
+
+**Server-Provided Resilience Parameters:**
+
+Agents fetch timeout and retry configuration from the server via the `/api/v1/client/configuration` endpoint. The configuration response includes:
+
+- **Timeout settings**: `connect_timeout`, `read_timeout`, `write_timeout`, `request_timeout`
+- **Retry settings**: `max_attempts`, `initial_delay`, `max_delay`
+- **Circuit breaker settings**: `failure_threshold`, `timeout`
+
+These parameters allow server operators to tune agent behavior without redeploying agent software. Agents should apply these values when first connecting and refresh them periodically (e.g., every 24 hours) by re-fetching the configuration endpoint. See the [Client Resilience Recommendations](../api-reference-agent-auth.md#client-resilience-recommendations) section of the API reference for implementation details.
 
 ### Monitoring Agent Health
 
@@ -547,7 +598,69 @@ Common task errors and their solutions:
 
 ## Common Scenarios
 
-### Scenario 1: Attack Abandoned While Agent Processing
+### Scenario 1: Task Acceptance Failures (404 vs Other Errors)
+
+This scenario describes what happens when an agent tries to accept a task but encounters an error.
+
+#### 404 During Task Acceptance
+
+**Symptoms:**
+
+- Agent requests a new task from server
+- Agent receives task assignment
+- Agent attempts to accept task via `/tasks/{id}/accept_task`
+- Server responds with 404 Not Found
+- Error type: `ErrTaskAcceptNotFound`
+
+**Cause:**
+
+This is a normal race condition when multiple agents compete for the same task. The task was deleted between when it was offered and when the agent tried to accept it. Another agent may have claimed it first, or the attack was abandoned.
+
+**Agent Behavior:**
+
+1. Immediately abandons the local task reference
+2. Does NOT call the abandon endpoint (task already deleted on server)
+3. Performs local cleanup only (removes downloaded files)
+4. Returns to waiting state without delay
+5. Requests next available task immediately
+
+**This is not an error condition** - it's expected behavior in a multi-agent environment. No troubleshooting needed.
+
+**Troubleshooting Tip:** If agents appear to skip tasks rapidly, check server logs for 404s on `accept_task` - this indicates healthy competition for tasks, not a problem.
+
+#### Other Errors During Task Acceptance
+
+**Symptoms:**
+
+- Agent attempts to accept task
+- Server returns 5xx error, network timeout, or other non-404 failure
+- Error type: `ErrTaskAcceptFailed`
+
+**Cause:**
+
+Genuine failure during task acceptance:
+
+- Server experiencing issues (500, 503 errors)
+- Network connectivity problems
+- Invalid task state on server
+- Database errors
+
+**Agent Behavior:**
+
+1. Calls abandon endpoint to notify server (uses `context.Background()` - must complete)
+2. Performs local cleanup
+3. Sleeps for configured `SleepOnFailure` duration
+4. Returns to waiting state
+5. Server makes task available to other agents
+
+**Troubleshooting:**
+
+- Check server health and logs
+- Verify network connectivity
+- Review agent error logs for specific failure details
+- Monitor for persistent failures that might indicate configuration issues
+
+### Scenario 2: Attack Abandoned While Agent Processing
 
 **Symptoms:**
 
@@ -579,6 +692,8 @@ Server abandoned the attack, destroying all associated tasks. Common reasons:
 4. Agent requests new task via `GET /api/v1/client/tasks/new`
 5. Agent continues with new work
 
+**Important:** The retry behavior (exponential backoff, 3 attempts) applies to 404s **during task execution** (submit_status, etc.). 404s **during task acceptance** are handled immediately without retries to prevent infinite retry loops.
+
 **Prevention:**
 
 - Monitor campaign priorities
@@ -586,7 +701,7 @@ Server abandoned the attack, destroying all associated tasks. Common reasons:
 - Implement graceful handling of stale task detection
 - Check task status before expensive operations
 
-### Scenario 2: Network Interruption Causing Stale References
+### Scenario 3: Network Interruption Causing Stale References
 
 **Symptoms:**
 
@@ -626,7 +741,7 @@ During network outage:
 - Re-authenticate after network issues
 - Implement connection retry logic with backoff
 
-### Scenario 3: Multiple Agents Competing for Same Task
+### Scenario 4: Multiple Agents Competing for Same Task
 
 **Symptoms:**
 
@@ -662,7 +777,7 @@ During network outage:
 - Implement atomic task claiming logic on server
 - Monitor for frequent task conflicts
 
-### Scenario 4: Server Restart Causing Task Reassignment
+### Scenario 5: Server Restart Causing Task Reassignment
 
 **Symptoms:**
 
@@ -700,6 +815,162 @@ During network outage:
 - Notify agents of planned maintenance
 - Persist task assignments to database
 - Implement server restart detection in agents
+
+---
+
+## Network Connectivity Issues
+
+### Scenario: Agent Hangs or Becomes Unresponsive
+
+**Symptoms:**
+
+- Agent appears to hang indefinitely with no progress
+- No error messages in agent logs
+- Agent does not respond to signals or commands
+- System resources (CPU, memory) appear normal but agent is frozen
+- Network connectivity exists but requests never complete
+
+**Cause:**
+
+The server is unresponsive or extremely slow, and the agent is waiting for HTTP responses without enforcing timeouts. Before resilience improvements, agents could wait indefinitely for server responses, causing them to appear hung.
+
+**Solution:**
+
+Agents that support server-provided resilience configuration (introduced in CipherSwarm V2) automatically configure timeouts and retry logic. Ensure your agent:
+
+1. **Fetches Resilience Parameters**: The agent must call `GET /api/v1/client/configuration` on startup and periodically (e.g., every 24 hours) to receive timeout and retry settings.
+
+2. **Applies Timeout Configuration**: The agent HTTP client should honor these timeout values:
+
+   - `connect_timeout`: Maximum time to establish TCP connection
+   - `read_timeout`: Maximum time to wait for response data
+   - `write_timeout`: Maximum time to send request data
+   - `request_timeout`: Overall deadline for entire request
+
+3. **Implements Retry Logic**: The agent should implement exponential backoff with jitter using the `recommended_retry` parameters from the configuration endpoint.
+
+4. **Uses Circuit Breaker Pattern**: After repeated failures (default: 5 consecutive failures), the agent should "open" the circuit and short-circuit requests for a timeout period (default: 30 seconds), periodically probing the health endpoint to determine when to retry.
+
+**Diagnostic Steps:**
+
+1. **Check if agent supports resilience features**:
+
+   ```bash
+   # Check agent version and features
+   cipherswarm-agent --version
+   cipherswarm-agent --features
+   ```
+
+2. **Test server health endpoint**:
+
+   ```bash
+   # This endpoint does not require authentication
+   curl -v http://your-server/api/v1/client/health
+   ```
+
+   **Expected response (healthy server)**:
+
+   ```json
+   {
+     "status": "ok",
+     "api_version": 1,
+     "timestamp": "2026-03-12T10:30:00Z",
+     "database": "healthy"
+   }
+   ```
+
+   **Expected response (degraded server)**:
+
+   ```json
+   {
+     "status": "degraded",
+     "api_version": 1,
+     "timestamp": "2026-03-12T10:30:00Z",
+     "database": "unhealthy"
+   }
+   ```
+
+3. **Verify resilience configuration is being fetched**:
+
+   ```bash
+   # Check that configuration endpoint returns timeout settings
+   curl -H "Authorization: Bearer <token>" \
+     http://your-server/api/v1/client/configuration | \
+     jq '.recommended_timeouts, .recommended_retry, .recommended_circuit_breaker'
+   ```
+
+4. **Monitor agent logs for timeout and retry behavior**:
+
+   Look for log entries indicating:
+
+   - Connection timeout errors
+   - Request timeout errors
+   - Retry attempts with exponential backoff
+   - Circuit breaker state transitions (closed → open → half-open)
+
+**Recovery Steps:**
+
+If the agent is already hung:
+
+1. **Stop the hung agent process**:
+
+   ```bash
+   # Forcefully terminate if graceful shutdown fails
+   systemctl stop cipherswarm-agent
+   # or
+   pkill -9 cipherswarm-agent
+   ```
+
+2. **Verify server health** before restarting:
+
+   ```bash
+   curl http://your-server/api/v1/client/health
+   ```
+
+3. **Restart the agent** only if server is healthy:
+
+   ```bash
+   systemctl start cipherswarm-agent
+   ```
+
+4. **Monitor agent logs** to confirm proper timeout handling:
+
+   ```bash
+   journalctl -u cipherswarm-agent -f
+   ```
+
+**Prevention:**
+
+- **Update agents**: Ensure all agents are running versions that support server-provided resilience configuration
+- **Monitor health endpoint**: Set up monitoring on `GET /api/v1/client/health` to detect server degradation before agents hang
+- **Configure alerting**: Alert when the health endpoint returns `status: "degraded"` or times out
+- **Test resilience settings**: Periodically test agent behavior under server degradation (slow responses, timeouts) to verify resilience features are working
+- **Review server configuration**: If agents frequently experience timeouts, review the resilience parameters provided by `GET /api/v1/client/configuration` and adjust them on the server side if needed
+
+**Server-Side Configuration:**
+
+Server operators can tune resilience parameters without redeploying agents by modifying the application configuration:
+
+```yaml
+# config/application.yml (example)
+recommended_connect_timeout: 10      # seconds
+recommended_read_timeout: 30         # seconds
+recommended_write_timeout: 30        # seconds
+recommended_request_timeout: 60      # seconds
+recommended_retry_max_attempts: 10
+recommended_retry_initial_delay: 1   # seconds
+recommended_retry_max_delay: 300     # seconds (5 minutes)
+recommended_circuit_breaker_failure_threshold: 5
+recommended_circuit_breaker_timeout: 30  # seconds
+```
+
+After changing these values, agents will pick them up when they next fetch the configuration endpoint (on startup or periodic refresh).
+
+**Related Resources:**
+
+- [Client Resilience Recommendations](../api-reference-agent-auth.md#client-resilience-recommendations) in the API reference
+- [GET /api/v1/client/health endpoint](../api-reference-agent-auth.md#get-apiv1clienthealth) documentation
+- [Agent Configuration Best Practices](#agent-configuration)
 
 ---
 
@@ -749,10 +1020,24 @@ grep "\[Attack.*Abandoning attack" production.log
 grep "\[TaskNotFound\]" production.log
 ```
 
+**Find all task assignment issues:**
+
+```bash
+grep "\[TaskAssignment\]" production.log
+```
+
 **Count 404 errors in last hour:**
 
 ```bash
 grep "\[TaskNotFound\]" production.log | \
+  grep "$(date -u +%Y-%m-%d\ %H)" | \
+  wc -l
+```
+
+**Count idle agents with skip reasons in last hour:**
+
+```bash
+grep "\[TaskAssignment\] no_task_assigned" production.log | \
   grep "$(date -u +%Y-%m-%d\ %H)" | \
   wc -l
 ```
@@ -765,6 +1050,13 @@ grep "\[TaskNotFound\]" production.log | \
 - Look for task reassignment patterns
 - Verify agent timeout settings
 - Check network stability
+
+**Agents Not Receiving Tasks:**
+
+- Check `[TaskAssignment]` logs for skip reasons
+- Verify agent hash type and project configuration
+- Review agent benchmark performance
+- Ensure campaigns have uncracked hashes
 
 **Slow Task Completion:**
 
@@ -790,6 +1082,9 @@ grep "\[TaskNotFound\]" production.log | \
 | `[TaskNotFound].*task_deleted`                               | Agent tried to use deleted task           | Normal, agent should request new work         |
 | `[TaskNotFound].*task_not_assigned`                          | Agent tried to access other agent's task  | Check for configuration issues                |
 | `[TaskNotFound].*task_invalid`                               | Invalid task ID used                      | Possible client bug, investigate              |
+| `[TaskAssignment] no_task_assigned.*no_available_attacks`    | No attacks match agent's configuration    | Check hash types and project assignments      |
+| `[TaskAssignment] no_task_assigned.*all_hashes_cracked`      | All available work is complete            | Start new campaigns or adjust hash lists      |
+| `[TaskAssignment] no_task_assigned.*performance_threshold`   | Agent too slow for available attacks      | Review benchmarks or adjust thresholds        |
 | Multiple `[TaskNotFound]` for same agent in short time       | Agent not recovering properly             | Check agent configuration and code            |
 | `[Attack.*Abandoning attack]` multiple times for same attack | Attack repeatedly abandoned and restarted | Investigate root cause                        |
 
@@ -887,6 +1182,10 @@ Before contacting administrators, try:
 1. **Check Server Status:**
 
    ```bash
+   # Check health endpoint (no authentication required)
+   curl -v http://server.example.com/api/v1/client/health
+
+   # Alternative: check authenticated endpoint
    curl -I https://server.example.com/api/v1/client/authenticate
    ```
 

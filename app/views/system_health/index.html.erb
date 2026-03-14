@@ -5,7 +5,7 @@
     <%= render SkeletonLoaderComponent.new(type: :health_dashboard, count: 4) %>
     <div class="row mt-3">
       <div class="col-12">
-        <p class="text-muted mb-0">
+        <p class="text-body-secondary mb-0">
           <%= t(".checks_in_progress") %>
           <%= link_to system_health_path, class: "btn btn-outline-secondary btn-sm ms-2" do %>
             <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> <%= t(".refresh") %>
@@ -33,11 +33,11 @@
       <% if app_info.present? %>
         <div class="row mb-4" data-health-refresh-target="application">
           <div class="col-12">
-            <%= render Railsboot::CardComponent.new do |card| %>
-              <% card.with_header do %>
+            <div class="card">
+              <div class="card-header">
                 <h5 class="mb-0"><i class="bi bi-app-indicator" aria-hidden="true"></i> <%= t(".application_info") %></h5>
-              <% end %>
-              <% card.with_body do %>
+              </div>
+              <div class="card-body">
                 <div class="d-flex gap-4 flex-wrap">
                   <div>
                     <strong><%= t(".rails_version") %></strong> <%= app_info[:rails_version] %>
@@ -52,14 +52,14 @@
                     <strong><%= t(".worker_status") %></strong>
                     <% if app_info[:workers_running] %>
                       <span class="badge text-bg-success"><%= t(".running") %></span>
-                      <small class="text-muted">(<%= app_info[:worker_count] %> <%= t(".processes") %>)</small>
+                      <small class="text-body-secondary">(<%= app_info[:worker_count] %> <%= t(".processes") %>)</small>
                     <% else %>
                       <span class="badge text-bg-danger"><%= t(".stopped") %></span>
                     <% end %>
                   </div>
                 </div>
-              <% end %>
-            <% end %>
+              </div>
+            </div>
           </div>
         </div>
       <% end %>
@@ -68,11 +68,11 @@
       <% if sidekiq_check && sidekiq_check[:status] == :healthy %>
         <div class="row mb-4">
           <div class="col-12">
-            <%= render Railsboot::CardComponent.new do |card| %>
-              <% card.with_header do %>
+            <div class="card">
+              <div class="card-header">
                 <h5 class="mb-0"><i class="bi bi-bar-chart" aria-hidden="true"></i> <%= t(".sidekiq_metrics") %></h5>
-              <% end %>
-              <% card.with_body do %>
+              </div>
+              <div class="card-body">
                 <div class="d-flex gap-4">
                   <div>
                     <strong><%= t(".workers") %></strong> <%= sidekiq_check[:workers] %>
@@ -84,19 +84,19 @@
                     <strong><%= t(".enqueued_jobs") %></strong> <%= sidekiq_check[:enqueued] %>
                   </div>
                 </div>
-              <% end %>
-            <% end %>
+              </div>
+            </div>
           </div>
         </div>
       <% end %>
 
       <div class="row mb-4">
         <div class="col-12">
-          <%= render Railsboot::CardComponent.new do |card| %>
-            <% card.with_header do %>
+          <div class="card">
+            <div class="card-header">
               <h5 class="mb-0"><i class="bi bi-tools" aria-hidden="true"></i> <%= t(".diagnostics") %></h5>
-            <% end %>
-            <% card.with_body do %>
+            </div>
+            <div class="card-body">
               <ul class="list-unstyled mb-0">
                 <% if can? :read, :admin_dashboard %>
                   <li class="mb-2">
@@ -106,11 +106,11 @@
                   </li>
                 <% end %>
                 <li>
-                  <i class="bi bi-terminal" aria-hidden="true"></i> <%= t(".rails_logs") %> <small class="text-muted"><%= raw t(".rails_logs_hint") %></small>
+                  <i class="bi bi-terminal" aria-hidden="true"></i> <%= t(".rails_logs") %> <small class="text-body-secondary"><%= sanitize t(".rails_logs_hint") %></small>
                 </li>
               </ul>
-            <% end %>
-          <% end %>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -119,9 +119,9 @@
           <%= link_to system_health_path, class: "btn btn-outline-secondary btn-sm" do %>
             <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> <%= t(".refresh") %>
           <% end %>
-          <small class="text-muted ms-2"><%= t(".cache_note") %></small>
+          <small class="text-body-secondary ms-2"><%= t(".cache_note") %></small>
           <% if @health_checks[:checked_at].present? %>
-            <small class="text-muted ms-3" data-health-refresh-target="timestamp">
+            <small class="text-body-secondary ms-3" data-health-refresh-target="timestamp">
               <% checked_time = Time.iso8601(@health_checks[:checked_at]) rescue nil %>
               <% if checked_time %>
                 <%= t(".last_updated") %> <%= time_ago_in_words(checked_time) %> <%= t(".ago") %>
@@ -133,7 +133,7 @@
     </div>
   <% end %>
 <% else %>
-  <%= render Railsboot::BlankSlateComponent.new do %>
+  <div class="text-center py-5">
     <p class="mb-0"><%= t(".unable_to_retrieve") %></p>
-  <% end %>
+  </div>
 <% end %>

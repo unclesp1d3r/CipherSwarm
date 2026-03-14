@@ -6,7 +6,7 @@
 # ErrorModalComponent renders a Bootstrap modal with details about an AgentError.
 #
 # It displays severity, timestamp, message, metadata, and an optional task link in
-# a consistent modal layout using Railsboot::ModalComponent slots.
+# a consistent Bootstrap modal layout.
 #
 # == Options
 # - error: (AgentError, required) The error record to display.

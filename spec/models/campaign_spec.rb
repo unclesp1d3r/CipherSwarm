@@ -196,6 +196,66 @@ RSpec.describe Campaign do
     end
   end
 
+  describe "#trigger_priority_rebalance_if_needed" do
+    include ActiveJob::TestHelper
+
+    before { ActiveJob::Base.queue_adapter = :test }
+
+    let(:campaign) { create(:campaign, priority: :normal) }
+
+    after { clear_enqueued_jobs }
+
+    it "enqueues CampaignPriorityRebalanceJob when priority is raised" do
+      expect {
+        campaign.update!(priority: :high)
+      }.to have_enqueued_job(CampaignPriorityRebalanceJob).with(campaign.id)
+    end
+
+    it "does not enqueue a job when priority is lowered" do
+      campaign.update!(priority: :high)
+      clear_enqueued_jobs
+
+      expect {
+        campaign.update!(priority: :normal)
+      }.not_to have_enqueued_job(CampaignPriorityRebalanceJob)
+    end
+
+    it "does not enqueue a job when priority is unchanged" do
+      expect {
+        campaign.update!(name: "Renamed Campaign")
+      }.not_to have_enqueued_job(CampaignPriorityRebalanceJob)
+    end
+
+    it "enqueues a job when priority is raised from deferred to normal" do
+      campaign.update!(priority: :deferred)
+      clear_enqueued_jobs
+
+      expect {
+        campaign.update!(priority: :normal)
+      }.to have_enqueued_job(CampaignPriorityRebalanceJob).with(campaign.id)
+    end
+
+    it "does not enqueue a job when priority value is unrecognized" do
+      allow(campaign).to receive_messages(
+        saved_change_to_priority?: true,
+        saved_change_to_priority: %w[normal unknown_priority]
+      )
+
+      expect {
+        campaign.send(:trigger_priority_rebalance_if_needed)
+      }.not_to have_enqueued_job(CampaignPriorityRebalanceJob)
+    end
+
+    it "does not raise when Redis is unavailable during enqueue" do
+      allow(CampaignPriorityRebalanceJob).to receive(:perform_later)
+        .and_raise(Redis::CannotConnectError.new("Connection refused"))
+      allow(Rails.logger).to receive(:error)
+
+      expect { campaign.update!(priority: :high) }.not_to raise_error
+      expect(Rails.logger).to have_received(:error).with(/Failed to enqueue priority rebalance.*Connection refused/)
+    end
+  end
+
   # Tests for manual pause/resume functionality
   describe "manual campaign control" do
     context "when pausing a campaign" do

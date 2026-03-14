@@ -13,6 +13,7 @@ This guide covers the management of attack resources in CipherSwarm v2, includin
   - [Resource Types Overview](#resource-types-overview)
   - [Resource Browser](#resource-browser)
   - [Uploading Resources](#uploading-resources)
+  - [Previewing Resource Files](#previewing-resource-files)
   - [Line-Level Editing](#line-level-editing)
   - [Ephemeral Resources](#ephemeral-resources)
   - [Dynamic Wordlists](#dynamic-wordlists)
@@ -95,6 +96,35 @@ The resource browser displays:
 - **Search**: Find resources by name or description
 - **Sort Options**: Name, size, last modified, usage count
 
+### 4. Previewing Resource Files
+
+Users can preview the contents of uploaded resources directly in the web interface without downloading the entire file:
+
+#### Preview Capabilities
+
+- **Supported Types**: Word lists, mask lists, and rule lists
+- **Direct Viewing**: Preview file contents before downloading or using in attacks
+- **Lazy Loading**: File content loads on-demand when viewing a resource
+
+#### Preview Limits
+
+- **Default Limit**: 1,000 lines displayed by default
+- **Maximum Lines**: Up to 5,000 lines can be previewed
+- **Byte Cap**: Maximum 5MB of file content loaded for preview
+- **Partial Display**: If a file exceeds these limits, the interface shows "Showing first X lines of file"
+
+#### Technical Implementation
+
+The preview feature uses efficient streaming to handle large files:
+
+- **Memory Safe**: Streams file content directly from storage without loading the entire file into memory
+- **Performance**: Handles multi-gigabyte files safely without consuming excessive system resources
+- **Edge Cases**: Properly handles files without newlines or with trailing content after the last newline
+
+This design balances usability (showing enough content to verify the resource) with system stability (preventing memory issues with very large files).
+
+For more details, see [Previewing Resource Files](#previewing-resource-files).
+
 ## Uploading Resources
 
 ### 1. Upload Process
@@ -158,6 +188,60 @@ Resources can be scoped to projects:
 - **Project-Specific**: Only accessible within assigned projects
 - **Global**: Available to all projects (admin only)
 - **Automatic Assignment**: Based on user's current project context
+
+## Previewing Resource Files
+
+Users can preview the contents of uploaded resources directly in the web interface without downloading the entire file.
+
+### 1. Accessing File Previews
+
+File previews are available for:
+
+- **Word Lists**: Preview dictionary contents
+- **Mask Lists**: Review mask patterns
+- **Rule Lists**: Examine transformation rules
+
+### 2. Preview Interface
+
+When viewing a resource, the preview interface displays:
+
+- **Line Count Indicator**: Shows how many lines are displayed (e.g., "Showing first 1,000 lines of file")
+- **Lazy Loading**: Content loads on-demand when viewing the resource page
+- **Direct Viewing**: Preview without downloading the entire file
+
+### 3. Preview Limits
+
+The preview feature enforces safety limits to maintain system performance:
+
+#### Line Limits
+
+- **Default**: 1,000 lines displayed
+- **Maximum**: 5,000 lines can be previewed
+- **Configurable**: Limit parameter can be adjusted within the allowed range
+
+#### Size Limits
+
+- **Byte Cap**: Maximum 5MB of file content loaded for preview
+- **Streaming**: Uses efficient streaming to handle large files
+- **Memory Safe**: Prevents system out-of-memory crashes with multi-gigabyte files
+
+### 4. Large File Handling
+
+For resources exceeding preview limits:
+
+- **Partial Preview**: Shows "Showing first X lines of file" to indicate truncated view
+- **Download Option**: Full file available via download button
+- **Efficient Streaming**: System streams directly from storage without loading entire file into memory
+
+### 5. Technical Considerations
+
+The preview system is designed for both usability and stability:
+
+- **Edge Case Handling**: Properly handles files without newlines or with trailing content
+- **Performance**: Streams file content in chunks, processing only what's needed
+- **System Protection**: Byte cap prevents unbounded memory consumption with unusual file formats
+
+This approach allows users to verify resource contents and correctness before deploying them in attacks, while protecting system resources from large file operations.
 
 ## Line-Level Editing
 

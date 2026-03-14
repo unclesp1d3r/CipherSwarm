@@ -27,6 +27,7 @@
 # - attacks: only allows show action
 # - tasks: only allows show, new, and update actions
 namespace :client do
+  get "health", to: "health#index"
   get "configuration"
   get "authenticate"
   resources :agents, only: %i[ show update ]
