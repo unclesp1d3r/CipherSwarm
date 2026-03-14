@@ -193,7 +193,7 @@ The V2 upgrade embodies a fundamental shift in approach:
 - **Rails 8.0+**: Modern framework with Propshaft asset pipeline
 - **Ruby 3.4.5**: Latest stable runtime with performance improvements
 - **PostgreSQL 17+**: Advanced database features and JSON handling
-- **Tailwind CSS v4**: Modern utility-first CSS framework
+- **Bootstrap 5 with Catppuccin Macchiato theme**: Dark-first theme via SCSS variable overrides with self-hosted fonts (Space Grotesk, IBM Plex Sans, JetBrains Mono)
 - **Hotwire (Turbo 8 + Stimulus 3.2+)**: Enhanced real-time capabilities
 
 ### Authentication & Authorization
@@ -211,10 +211,16 @@ The V2 upgrade embodies a fundamental shift in approach:
 
 ### UI & Component Architecture
 
-- **ViewComponent 4.0+**: Reusable, testable UI components
+- **ViewComponent 4.0+**: Reusable, testable UI components rendering plain ERB with Bootstrap classes
 - **Stimulus Controllers**: Progressive enhancement for interactions
-- **Catppuccin Macchiato Theme**: Consistent dark theme with DarkViolet accents
-- **WCAG 2.1 AA Compliance**: Full accessibility support
+- **Bootstrap 5 Component Patterns**: Plain HTML with utility classes (Railsboot abstraction layer removed)
+- **Catppuccin Macchiato Theme**: Production dark theme implemented via `_catppuccin.scss` with Bootstrap variable overrides
+  - Primary accent: `$ctp-violet: #a855f7` (lightened DarkViolet, distinct from Catppuccin Mauve)
+  - Surface hierarchy: Crust (navbar) → Mantle (sidebar) → Base (body) → Surface0 (cards/inputs) for visual depth
+  - Self-hosted fonts via `@fontsource` for air-gap deployment: Space Grotesk (headings), IBM Plex Sans (body), JetBrains Mono (code)
+- **WCAG 2.1 AA Compliance**: Full accessibility support with semantic HTML and proper ARIA attributes
+
+For design philosophy, user personas, and aesthetic direction, see [DESIGN.md](DESIGN.md). For frontend development considerations and common pitfalls, see [GOTCHAS.md § Frontend & Accessibility](GOTCHAS.md#frontend--accessibility).
 
 ## Implementation Approach
 
@@ -246,7 +252,7 @@ The V2 upgrade is organized into 6 major milestones spanning approximately 26 we
 1. **Platform Modernization & Foundation** (Weeks 1-6)
 
    - Rails 8 & dependency upgrades
-   - Tailwind CSS v4 migration
+   - Bootstrap 5 with Catppuccin Macchiato theme implementation
    - Authentication system modernization
 
 2. **Enhanced Authentication & Project Context** (Weeks 7-11)
