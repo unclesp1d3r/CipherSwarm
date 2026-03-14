@@ -2,11 +2,15 @@
 
 This file provides guidance to Agents when working with code in this repository.
 
+@GOTCHAS.md
+
 > **See also:** [GOTCHAS.md](GOTCHAS.md) — edge cases, hard-won lessons, and "watch out for" patterns organized by domain. Read the relevant section before working in that area.
+
+@DESIGN.md
 
 ## Project Overview
 
-CipherSwarm is a distributed hash cracking system built on Rails 8.0+ inspired by Hashtopolis. It manages hash-cracking tasks across multiple agents using a web-based interface with real-time capabilities via Hotwire.
+CipherSwarm is a distributed hash cracking system built on Rails 8.1+ inspired by Hashtopolis. It manages hash-cracking tasks across multiple agents using a web-based interface with real-time capabilities via Hotwire.
 
 **Current Status**: Undergoing V2 upgrade (see docs/v2-upgrade-overview.md)
 
@@ -92,7 +96,8 @@ bundle exec rspec spec/requests
 # Stop local PostgreSQL: brew services stop postgresql@17
 # Start Docker PostgreSQL: docker compose up -d postgres-db
 # Run tests with explicit URL:
-TEST_DATABASE_URL=postgres://root:password@127.0.0.1:5432/cipher_swarm_test bundle exec rspec
+# Docker PG binds to IPv6 (*:5432) — use `localhost` not `127.0.0.1`
+TEST_DATABASE_URL=postgres://root:password@localhost:5432/cipher_swarm_test bundle exec rspec
 ```
 
 ### Code Quality
@@ -158,6 +163,15 @@ just assets-build
 just assets-watch
 ```
 
+### Catppuccin Macchiato Theme
+
+- `_catppuccin.scss` defines the full palette + Bootstrap variable overrides — imported BEFORE `@import "bootstrap"`
+- Primary accent: `$ctp-violet: #a855f7` (DarkViolet lightened), not Catppuccin's Mauve
+- Surface hierarchy: Crust (navbar) → Mantle (sidebar) → Base (body) → Surface0 (cards/inputs)
+- `application.bootstrap.scss` adds component-level dark theme overrides (cards, tables, dropdowns, inputs, Tom Select)
+- Self-hosted fonts via `@fontsource`: Space Grotesk (headings), IBM Plex Sans (body), JetBrains Mono (code) — air-gap safe
+- Font woff2 files copied to `app/assets/builds/` by `build:css:fonts` script in package.json
+
 ### API Documentation
 
 ```bash
@@ -191,8 +205,8 @@ CipherSwarm is built around four hierarchical concepts:
 1. **Campaigns** - Top-level unit of work targeting a single hash list
 
    - Contains multiple Attacks executed based on priority
-   - Priority-based execution model (deferred → routine → priority → urgent → immediate → flash → flash_override)
-   - Higher priority campaigns pause all lower priority campaigns
+   - Priority-based execution model (deferred (-1) → normal (0) → high (2))
+   - Higher priority campaigns use intelligent preemption to acquire resources from lower priority campaigns
    - Belongs to a Project and HashList
 
 2. **Attacks** - Specific hashcat work unit with defined attack type, word lists, and rules
@@ -228,6 +242,7 @@ CipherSwarm is built around four hierarchical concepts:
 - Tokens generated on Agent creation, stored in `agents.token`
 - API endpoints at `/api/v1/client/*` (JSON only)
 - Authentication flow: Agent authenticates → receives configuration → processes tasks
+- For **unauthenticated** endpoints (e.g., health checks), inherit from `ActionController::API` instead of `Api::V1::BaseController` to bypass `authenticate_agent`. Use `security []` in the rswag spec to override the global `bearer_auth` requirement.
 
 ### Project-Based Multi-Tenancy
 
@@ -250,7 +265,7 @@ Three core models use state_machines-activerecord:
 
 **Task States:** pending → running → completed/exhausted/failed/paused
 
-- Transitions: accept, run, complete, pause, resume, error, exhaust, cancel, abandon
+- Transitions: accept, run, complete, pause, resume, error, exhaust, cancel, abandon, preempt, retry
 - Tasks track progress via associated HashcatStatus records
 
 > **Critical gotchas** for all three state machines — see [GOTCHAS.md § State Machines](GOTCHAS.md#state-machines)
@@ -261,11 +276,14 @@ Business logic is extracted into service objects and models:
 
 - Controllers are kept thin (authorization, params, response)
 - Complex operations live in model methods (not separate service objects currently)
+- **Models must not call services** — this creates circular dependencies (model→service→model). Controllers or other services are the correct orchestration layer for service invocations.
 - Background jobs in app/jobs/ handle async operations:
   - `ProcessHashListJob` - Process uploaded hash lists
   - `CalculateMaskComplexityJob` - Calculate mask complexity
   - `CountFileLinesJob` - Count lines in uploaded files
   - `UpdateStatusJob` - Update task status
+  - `CampaignPriorityRebalanceJob` - Trigger task preemption when campaign priority is raised
+  - `DataCleanupJob` - Data retention enforcement (old errors, audits, hashcat statuses)
 
 ### File Storage
 
@@ -279,7 +297,7 @@ Business logic is extracted into service objects and models:
 - All paginated views must use `<%== @pagy.series_nav(:bootstrap) %>` with a `<noscript><%== @pagy.series_nav %></noscript>` fallback
 - Some views use a local `pagy` variable (from partials) instead of `@pagy` — same API applies
 - Guard both `series_nav` and `<noscript>` inside `if pagy.pages > 1` (see `campaigns/_error_log.html.erb` for reference)
-- `Railsboot::PaginationComponent` wraps `series_nav(:bootstrap)` with noscript fallback for reuse in view components
+- Pagination uses inline `series_nav(:bootstrap)` calls directly in views (no wrapper component)
 
 ### Caching & Real-Time Backend
 
@@ -341,6 +359,15 @@ Vitest for JS unit tests:
 
 > **Vitest mock patterns** — see [GOTCHAS.md § API & rswag](GOTCHAS.md#api--rswag)
 
+### For planning agents
+
+When planning new features or architectural changes, use the `layered-rails` skill for analysis:
+
+- `/layers:gradual` — plan incremental adoption of layered patterns
+- `/layers:analyze` — full codebase architecture analysis
+- `/layers:review` — review code from a layered architecture perspective
+- `/layers:spec-test` — apply the specification test to evaluate layer placement
+
 ## Testing Strategy
 
 **System Tests (spec/system/):**
@@ -362,6 +389,12 @@ Vitest for JS unit tests:
 - API endpoint testing
 - Generates Swagger documentation via RSwag
 - Authentication and authorization testing
+
+**View Tests (spec/views/) — planned:**
+
+- Partial rendering tests (e.g., agent configuration tab)
+- Use `render partial:` with locals, assert on `rendered`
+- Stub `safe_can?` when the partial uses authorization checks
 
 **Non-Standard Spec Directories:**
 
@@ -387,6 +420,11 @@ Vitest for JS unit tests:
 - **store_model** - JSON column typing (AdvancedConfiguration)
 - **anyway_config** - Configuration management
 
+**Runtime Mutability:**
+
+- ApplicationConfig (Anyway::Config) is loaded from environment variables at startup with no runtime reload mechanism — changes require a process restart
+- Do not build admin UI forms for editing ApplicationConfig values — use a database-backed model if runtime-editable settings are needed
+
 ### Code Organization Standards
 
 From .cursor/rules/core-principals.mdc and rails.mdc:
@@ -402,7 +440,7 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 
 **File Structure:**
 
-- Business logic: app/models/ and app/services/ (6 service objects)
+- Business logic: app/models/ and app/services/ (7 service objects)
 - API endpoints: app/controllers/api/v1/
 - View components: app/components/
 - Custom validations: app/validators/
@@ -465,6 +503,20 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 
 ### Common Patterns
 
+**Layout Grid (Logged-In vs Logged-Out):**
+
+- Main content column is conditional: `col-md-10` when sidebar present (logged in), `col-12` when not
+- Sidebar uses `d-none d-md-block` (hidden on mobile) + Bootstrap offcanvas (`#sidebarOffcanvas`) for mobile navigation
+- Mobile offcanvas includes sidebar nav AND navbar items (Tools, Account) via `_sidebar_navbar_items.html.erb`
+- Flash messages rendered inline in layout: `notice` → `alert-success`, `alert` → `alert-danger`, `info` → `alert-info`
+- Skip link (`visually-hidden-focusable`) is first child of `<body>`, targets `id="main-content"` on `<main>`
+
+**Toast Notifications:**
+
+- Error/danger toasts persist (no auto-hide) — users must manually dismiss via close button
+- Success/warning/info toasts auto-dismiss after 5 seconds
+- `ToastNotificationComponent#autohide?` returns `false` for `danger` variant
+
 **Nested Resources:**
 
 - Attacks are nested under Campaigns: `/campaigns/:campaign_id/attacks`
@@ -472,9 +524,9 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 
 **Priority-Based Execution:**
 
-- Campaign priority enum: deferred (-1) → flash_override (5)
-- Higher priority campaigns automatically pause lower priority ones
-- Callback `pause_lower_priority_campaigns` in Campaign model
+- Campaign priority enum: deferred (-1) → normal (0) → high (2)
+- Higher priority campaigns use intelligent preemption to acquire resources from lower priority ones
+- Callback `trigger_priority_rebalance_if_needed` enqueues `CampaignPriorityRebalanceJob` when priority is raised
 
 **Task Action State Requirements (TaskActionsComponent):**
 
@@ -518,6 +570,12 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 - Always inspect each occurrence to understand whether it's an authentication failure (401) or an authorization failure (403) before changing
 
 > **More pattern gotchas** (CanCanCan nesting, nullable params, Redis locks, logging, upsert_all, FK cascades, transactions) — see [GOTCHAS.md § Database & ActiveRecord](GOTCHAS.md#database--activerecord) and [GOTCHAS.md § Infrastructure](GOTCHAS.md#infrastructure)
+
+**Railsboot Component Removal (Complete):**
+
+- Railsboot components (`app/components/railsboot/`) have been fully removed
+- All views now use plain ERB + Bootstrap utility classes directly
+- Bootstrap JS dependencies: dropdowns, offcanvas, toasts (via Stimulus), modals, collapse
 
 ### Development Workflow
 
@@ -564,7 +622,8 @@ just docker-shell
 docker compose up -d postgres-db
 
 # Run tests with Docker PostgreSQL (credentials: root/password)
-TEST_DATABASE_URL=postgres://root:password@127.0.0.1:5432/cipher_swarm_test bundle exec rspec
+# Docker PG binds to IPv6 (*:5432) — use `localhost` not `127.0.0.1`
+TEST_DATABASE_URL=postgres://root:password@localhost:5432/cipher_swarm_test bundle exec rspec
 ```
 
 **Environment Files:**
@@ -604,3 +663,7 @@ TEST_DATABASE_URL=postgres://root:password@127.0.0.1:5432/cipher_swarm_test bund
 - Logging Guide: docs/development/logging-guide.md
 - API Documentation: /api-docs (when server running)
 - Justfile Documentation: .kiro/steering/justfile.md
+
+## Agent Rules <!-- tessl-managed -->
+
+@.tessl/RULES.md follow the [instructions](.tessl/RULES.md)

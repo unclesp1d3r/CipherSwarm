@@ -12,7 +12,6 @@ Welcome to the CipherSwarm documentation. This directory contains comprehensive 
 ### V2 Upgrade Information
 
 - [V2 Upgrade Overview](v2-upgrade-overview.md) - Complete overview of the V2 upgrade
-- [Strategic Direction](strategy.md) - V2 vision and design intent
 - [Implementation Plan](v2_rewrite_implementation_plan/implementation_plan.md) - Detailed implementation roadmap
 
 ### User Guides
@@ -43,7 +42,7 @@ Welcome to the CipherSwarm documentation. This directory contains comprehensive 
 
 ### API Documentation
 
-- [Agent API Reference](api-reference-agent-auth.md) - Agent authentication overview
+- [Agent API Reference](api-reference-agent-auth.md) - Agent API reference including client resilience recommendations
 - [**Agent API Complete Reference**](api/agent-api-complete-reference.md) - Full API documentation with examples
 
 The API documentation is automatically generated using Rswag from RSpec request tests. Use the following commands to generate and update API documentation:
@@ -98,7 +97,7 @@ CipherSwarm is designed for:
 
 ## 🏗️ Architecture Overview
 
-CipherSwarm uses a modern Rails 8.0+ architecture with:
+CipherSwarm uses a modern Rails 8.1+ architecture with:
 
 - **Web Interface Layer**: Controllers, Views, and ViewComponents using Hotwire
 - **Service Layer**: Business logic, state management, and validation services
@@ -107,9 +106,9 @@ CipherSwarm uses a modern Rails 8.0+ architecture with:
 
 ### Key Technologies
 
-- **Ruby 3.4.5** with **Rails 8.0+**
+- **Ruby 3.4.5** with **Rails 8.1+**
 - **PostgreSQL 17+** for primary data storage
-- **Redis 7.2+** for Solid Cache and Sidekiq job processing
+- **Redis 7.2+** for caching, Action Cable, and Sidekiq job processing
 - **Hotwire** (Turbo + Stimulus) for interactive frontend
 - **ViewComponent** for reusable UI components
 - **Sidekiq** for background job processing

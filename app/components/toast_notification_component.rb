@@ -31,6 +31,10 @@ class ToastNotificationComponent < ApplicationViewComponent
     end
   end
 
+  def autohide?
+    @variant != "danger"
+  end
+
   def border_class
     "border-#{@variant}"
   end

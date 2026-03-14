@@ -15,7 +15,7 @@
 
 x-common-env-vars: &common-env-vars
   RAILS_MASTER_KEY: ${RAILS_MASTER_KEY}
-  REDIS_URL: redis://redis-db:6379
+  REDIS_URL: redis://:${REDIS_PASSWORD:?REDIS_PASSWORD must be set}@redis-db:6379
   DATABASE_URL: postgres://root:${POSTGRES_PASSWORD:-password}@postgres-db/
   # Disable Rails force_ssl since TLS is terminated upstream (or not used in lab environments).
   DISABLE_SSL: ${DISABLE_SSL:-true}
@@ -124,14 +124,12 @@ services:
       start_period: 45s
 
   postgres-db:
-    image: postgres
+    image: postgres:17.2-alpine
     environment:
       POSTGRES_USER: root
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
     volumes:
       - postgres:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
     healthcheck:
       test: pg_isready
       interval: 2s
@@ -144,7 +142,8 @@ services:
         <<: *db-resources
 
   redis-db:
-    image: redis
+    image: redis:7.2-alpine
+    command: redis-server --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD must be set}
     networks:
       - backend
     deploy:
@@ -155,7 +154,7 @@ services:
     volumes:
       - redis:/data
     healthcheck:
-      test: [ "CMD-SHELL", "redis-cli ping" ]
+      test: [ "CMD-SHELL", "redis-cli -a ${REDIS_PASSWORD} ping" ]
       interval: 1s
       timeout: 3s
       retries: 5

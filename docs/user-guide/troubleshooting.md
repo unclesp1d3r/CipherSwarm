@@ -47,7 +47,7 @@ The health dashboard monitors four core services:
 - **Metrics**: Memory usage, connection count
 - **Purpose**: Caching, session storage, Action Cable
 
-#### MinIO (Object Storage)
+#### File Storage
 
 - **Status**: Connected / Disconnected
 - **Metrics**: Storage capacity, available space
@@ -73,7 +73,7 @@ The health dashboard is your first stop when something goes wrong:
 1. **Check all service statuses** - A single failed service can cascade
 2. **PostgreSQL down**: No data access, campaigns stall, agents cannot report
 3. **Redis down**: Live updates stop, sessions may expire, caching disabled
-4. **MinIO down**: Resource downloads fail, uploads fail, agents cannot get wordlists
+4. **File storage down**: Resource downloads fail, uploads fail, agents cannot get wordlists
 5. **Application degraded**: Check memory usage and job queue depth
 
 ---
@@ -182,7 +182,7 @@ The health dashboard is your first stop when something goes wrong:
 1. Check agent status in the **Agents** page
 2. Look at the campaign error log for task failure messages
 3. Verify resources (wordlists, rules) are accessible
-4. Check the system health dashboard for MinIO status
+4. Check the system health dashboard for file storage status
 
 ### Campaign Shows Wrong Progress
 
@@ -327,7 +327,7 @@ Each task maintains a status history showing all state transitions:
 
 1. Check file size against the configured maximum
 2. Verify the file format is supported
-3. Check MinIO status on the system health dashboard
+3. Check file storage status on the system health dashboard
 4. Try a smaller file to isolate the issue
 5. Check browser console for JavaScript errors
 
@@ -338,7 +338,7 @@ Each task maintains a status history showing all state transitions:
 **Solutions**:
 
 1. Verify the resource is assigned to the correct project
-2. Check MinIO connectivity on the system health dashboard
+2. Check file storage connectivity on the system health dashboard
 3. Verify the agent's token has not expired
 4. Check server logs for presigned URL generation errors
 
@@ -350,7 +350,7 @@ Each task maintains a status history showing all state transitions:
 
 1. Check if the resource was deleted by another user
 2. Verify you are in the correct project context
-3. Check MinIO storage health for potential data loss
+3. Check file storage health for potential data loss
 4. Review audit logs for resource deletion events
 
 ---
@@ -479,16 +479,16 @@ See [Agent Troubleshooting](troubleshooting-agents.md#log-analysis) for agent-sp
 
 ## Common Error Messages
 
-| Error Message                   | Meaning                                | Solution                                       |
-| ------------------------------- | -------------------------------------- | ---------------------------------------------- |
-| "You are not authorized"        | Missing permissions for this action    | Check role and project access                  |
-| "Record not found"              | Resource was deleted or doesn't exist  | Verify resource exists, check project context  |
-| "Hash list is still processing" | Hash list upload hasn't completed      | Wait for processing, check job queue           |
-| "No agents available"           | No online agents in this project       | Register agents or check agent status          |
-| "Resource download failed"      | Agent couldn't download wordlist/rules | Check MinIO status and agent connectivity      |
-| "Invalid attack configuration"  | Attack parameters are incorrect        | Review attack settings, check hash type compat |
-| "Connection refused"            | A backend service is down              | Check system health dashboard                  |
-| "Task expired"                  | Agent took too long to complete a task | Check agent performance, increase timeout      |
+| Error Message                   | Meaning                                | Solution                                         |
+| ------------------------------- | -------------------------------------- | ------------------------------------------------ |
+| "You are not authorized"        | Missing permissions for this action    | Check role and project access                    |
+| "Record not found"              | Resource was deleted or doesn't exist  | Verify resource exists, check project context    |
+| "Hash list is still processing" | Hash list upload hasn't completed      | Wait for processing, check job queue             |
+| "No agents available"           | No online agents in this project       | Register agents or check agent status            |
+| "Resource download failed"      | Agent couldn't download wordlist/rules | Check file storage status and agent connectivity |
+| "Invalid attack configuration"  | Attack parameters are incorrect        | Review attack settings, check hash type compat   |
+| "Connection refused"            | A backend service is down              | Check system health dashboard                    |
+| "Task expired"                  | Agent took too long to complete a task | Check agent performance, increase timeout        |
 
 ---
 
