@@ -120,6 +120,66 @@ The health dashboard is your first stop when something goes wrong:
 
 4. See [Agent Setup](agent-setup.md#troubleshooting) for more details
 
+### Agent Network and Connection Issues
+
+**Symptoms**: Agent reports network errors, connection failures, or circuit breaker messages.
+
+#### Automatic Retry Behavior
+
+The agent automatically handles transient network failures:
+
+- **Retry attempts**: Failed API requests are retried up to 3 times by default
+- **Exponential backoff**: Retry delays increase exponentially (1s, 2s, 4s, ...)
+- **Maximum delay**: Retry backoff is capped at 30 seconds
+- **Automatic handling**: Temporary network errors and 5xx server responses are retried without intervention
+
+Check agent logs for retry attempts before investigating further. Brief network disruptions are handled automatically.
+
+#### Circuit Breaker Errors
+
+**Symptoms**: Agent logs show "circuit breaker open" or `ErrCircuitOpen` messages.
+
+**What it means**: The circuit breaker activates after repeated connection failures (default: 5 consecutive failures) to prevent cascading failures and resource exhaustion. This is distinct from authentication errors—it indicates the agent is protecting itself from an unresponsive server.
+
+**Behavior**: 
+- Circuit opens automatically after threshold failures
+- Agent skips new requests while circuit is open
+- Circuit automatically attempts recovery after timeout (default: 30 seconds)
+- One probe request is allowed in half-open state to test server recovery
+- Circuit closes if probe succeeds; reopens immediately if probe fails
+
+**Solutions**:
+
+1. **Check server availability**: Verify the CipherSwarm server is running and accessible
+2. **Check network connectivity**: Verify network path between agent and server (firewall rules, DNS resolution, routing)
+3. **Check server health**: Use the System Health Dashboard to verify server services are operational
+4. **Wait for recovery**: The circuit breaker will automatically retry after the timeout period
+5. **Review server logs**: Check for server-side errors that might be causing repeated failures
+6. **Check timeouts**: Verify timeout settings are appropriate for your network latency (see Configuration below)
+
+**Note**: Circuit breaker activation is a symptom of underlying server or network issues. Focus troubleshooting on server availability and network connectivity rather than agent configuration.
+
+#### Configurable Connection Settings
+
+Network resilience settings can be tuned via CLI flags or server configuration:
+
+**Timeout Settings**:
+- `--connect-timeout`: TCP connection timeout (default: 10s)
+- `--read-timeout`: Response read timeout (default: 30s)
+- `--write-timeout`: Request write timeout (default: 10s)
+- `--request-timeout`: Overall request timeout (default: 60s)
+
+**Retry Settings**:
+- `--api-max-retries`: Maximum retry attempts (default: 3)
+- `--api-retry-initial-delay`: Initial retry delay (default: 1s)
+- `--api-retry-max-delay`: Maximum retry backoff (default: 30s)
+
+**Circuit Breaker Settings**:
+- `--circuit-breaker-failure-threshold`: Failures before circuit opens (default: 5)
+- `--circuit-breaker-timeout`: Wait time before retry attempt (default: 30s)
+
+**Server-Recommended Settings**: The server can provide recommended timeout and retry settings via the `/configuration` endpoint. Agent-side settings are used as defaults, but the server can override them for centralized tuning.
+
 ---
 
 ## Project Access Issues
@@ -238,6 +298,30 @@ For detailed agent troubleshooting, see [Agent Troubleshooting](troubleshooting-
 - **Agent offline**: Check network connectivity and agent logs
 - **Agent not accepting tasks**: Verify project assignment and agent state
 - **Agent errors**: Check the agent error tab in the web interface
+
+### Troubleshooting Workflow
+
+When diagnosing agent connection issues, distinguish between different failure types:
+
+1. **Transient errors** (automatically handled):
+   - Brief network interruptions
+   - Temporary server overload (5xx responses)
+   - Check logs for retry attempts—agent handles these automatically
+   - No action needed unless retries are consistently exhausted
+
+2. **Circuit breaker activation** (indicates persistent server issues):
+   - "Circuit breaker open" or `ErrCircuitOpen` in logs
+   - Multiple consecutive failures exceeded threshold
+   - Focus on server availability and network connectivity
+   - Agent will automatically attempt recovery after timeout
+
+3. **Authentication/authorization failures** (require configuration changes):
+   - 401 or 403 HTTP status codes
+   - Invalid or expired agent token
+   - Agent disabled in web interface
+   - Requires token verification or administrator intervention
+
+Check the error type in agent logs first to determine the appropriate troubleshooting path.
 
 ---
 
@@ -489,6 +573,8 @@ See [Agent Troubleshooting](troubleshooting-agents.md#log-analysis) for agent-sp
 | "Invalid attack configuration"  | Attack parameters are incorrect        | Review attack settings, check hash type compat   |
 | "Connection refused"            | A backend service is down              | Check system health dashboard                    |
 | "Task expired"                  | Agent took too long to complete a task | Check agent performance, increase timeout        |
+| "Circuit breaker open"          | Agent protecting against failed server | Check server health and network connectivity     |
+| "All API request attempts failed" | Retries exhausted for API request    | Check network stability and server availability  |
 
 ---
 
