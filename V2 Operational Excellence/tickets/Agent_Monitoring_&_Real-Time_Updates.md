@@ -93,7 +93,7 @@ Implement comprehensive agent monitoring with real-time status updates, performa
 
 - [x] `AgentStatusCardComponent` created with status badge, hash rate, error count
 - [ ] `AgentDetailTabsComponent` created with slot rendering for tabs
-- [ ] Components follow existing Railsboot patterns
+- [ ] Components use plain Bootstrap HTML and utility classes (Railsboot abstraction layer has been removed)
 - [ ] Components tested with component specs
 
 ### Testing
@@ -160,6 +160,16 @@ Broadcast partials run in background jobs without access to `current_user`, sess
 - Use `dom_id` helper for consistent broadcast targets
 - Test Turbo Stream broadcasts don't interfere with Stimulus controller
 - Ensure broadcasts work in air-gapped environment (no external dependencies)
+
+**Component Development Guidelines:**
+
+The Railsboot component abstraction layer has been fully removed from the codebase. All new components should follow this pattern:
+
+- Use plain ERB templates
+- Render direct Bootstrap classes and HTML structure
+- Use ViewComponent for reusable components, but render plain Bootstrap markup
+- Refer to [AGENTS.md](AGENTS.md) for frontend development patterns and layout guidelines
+- Refer to [GOTCHAS.md](GOTCHAS.md) for accessibility considerations and common pitfalls when building real-time UI updates
 
 ## Estimated Effort
 
