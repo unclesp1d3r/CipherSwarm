@@ -19,12 +19,6 @@ queue_rules:
           - author = dosubot[bot]
           - author = dependabot[bot]
 pull_request_rules:
-  - name: Automatic merge dependabot
-    description: Merge when PR passes all branch protection and has label automerge
-    conditions:
-      - author = dependabot[bot]
-    actions:
-      queue:
   - name: Automatic merge dosubot
     description: Merge when PR passes all branch protection and has label automerge
     conditions:
