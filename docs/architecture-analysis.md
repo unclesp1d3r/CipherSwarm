@@ -63,7 +63,7 @@ Projects (tenant boundary)
 **Current State** (Inconsistent ⚠️):
 
 - Only 2 service objects exist:
-  - `TaskAssignmentService` (210 lines) - Task scheduling logic
+  - `TaskAssignmentService` (~420 lines) - Task scheduling logic with diagnostic capabilities
   - `TaskPreemptionService` (166 lines) - Preemption algorithm
 - Most business logic lives in models (Attack: 31 methods)
 
@@ -89,6 +89,8 @@ end
 - Campaign model uses `after_commit` callbacks to trigger `CampaignPriorityRebalanceJob` when priority increases
 - Represents a shift from purely time-driven (periodic UpdateStatusJob) to hybrid time-driven + event-driven task preemption
 - Provides immediate preemption response to priority changes rather than waiting for next scheduled job
+
+**Recent Enhancement (PR #709)**: TaskAssignmentService includes comprehensive diagnostic logging with skip-reason tracking. When agents are not assigned tasks, the service logs detailed reasons (no_available_attacks, all_hashes_cracked, pending_tasks_not_owned, performance_threshold_not_met, grace_period_active), improving operational visibility into task assignment decisions and agent idleness patterns. This demonstrates the evolution of service objects toward better observability patterns.
 
 **Analysis**: Service layer adoption is inconsistent. Good services exist for scheduling/preemption but most complex operations (complexity calculation, hashcat parameter generation) remain in models. The new event-driven pattern for task rebalancing shows architectural evolution toward reactive behavior, but needs careful monitoring to avoid callback overuse. Need consistent extraction strategy.
 
@@ -307,6 +309,7 @@ end
 
 - Structured logging added in PR #531 ✅
 - Rails.logger with `[Prefix]` conventions ✅
+- TaskAssignmentService diagnostic logging (PR #709) ✅
 - But: No centralized logging strategy ❌
 - But: No distributed tracing ❌
 - But: No metrics collection ❌
@@ -575,6 +578,8 @@ Rails.logger.info(
 - Searchable log prefixes
 - Rich context
 - Debugging-friendly
+
+**Improvement Note**: TaskAssignmentService (as of PR #709) demonstrates structured diagnostic logging best practices by tracking and summarizing skip reasons when agents receive no work. The service uses a `@skip_reasons` accumulator pattern and emits consolidated `[TaskAssignment]` log entries with actionable diagnostic information (no_available_attacks, all_hashes_cracked, pending_tasks_not_owned, performance_threshold_not_met, grace_period_active), addressing observability gaps in task assignment workflows. This pattern could be adopted by other services for similar diagnostic scenarios.
 
 ### 4.2 Anti-Patterns to Avoid
 
