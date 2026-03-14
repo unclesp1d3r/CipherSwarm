@@ -971,5 +971,63 @@ RSpec.describe TaskAssignmentService do
         expect(log_messages).to include(match(/no_task_assigned.*pending_tasks_not_owned/))
       end
     end
+
+    context "when tasks are blocked by grace period" do
+      let(:other_agent) { create(:agent, user: user, projects: [project], state: :active) }
+
+      before do
+        attack = create(:dictionary_attack, campaign: campaign, state: :running)
+        create(:hashcat_benchmark, agent: other_agent, hash_type: 0, hash_speed: 10_000_000)
+        create(:task, agent: other_agent, attack: attack, state: :paused,
+                      claimed_by_agent_id: nil, paused_at: 5.minutes.ago)
+        create(:hash_item, hash_list: hash_list, cracked: false)
+      end
+
+      it "logs a summary with grace_period_active reason" do
+        service.find_next_task
+        expect(log_messages).to include(match(/no_task_assigned.*grace_period_active/))
+      end
+    end
+
+    context "when multiple skip reasons apply" do
+      let(:other_agent) { create(:agent, user: user, projects: [project]) }
+
+      before do
+        create(:hashcat_benchmark, agent: other_agent, hash_type: 0, hash_speed: 10_000_000)
+
+        # Attack 1: all hashes cracked
+        cracked_attack = create(:dictionary_attack, campaign: campaign, state: :pending)
+        hash_list.hash_items.delete_all
+        create(:hash_item, hash_list: hash_list, cracked: true)
+
+        # Attack 2: pending task owned by another agent (needs a second campaign with uncracked hashes)
+        hash_list2 = create(:hash_list, hash_type: hash_type, project: project)
+        campaign2 = create(:campaign, hash_list: hash_list2, project: project)
+        attack2 = create(:dictionary_attack, campaign: campaign2, state: :pending)
+        create(:task, agent: other_agent, attack: attack2, state: :pending)
+        create(:hash_item, hash_list: hash_list2, cracked: false)
+      end
+
+      it "logs comma-separated deduplicated reasons" do
+        service.find_next_task
+        summary = log_messages.find { |m| m.is_a?(String) && m.include?("no_task_assigned") }
+        expect(summary).to include("all_hashes_cracked")
+        expect(summary).to include("pending_tasks_not_owned")
+      end
+    end
+
+    context "when logging summary raises internally" do
+      let(:error_messages) { [] }
+
+      before do
+        allow(Rails.logger).to receive(:error) { |*args, &block| error_messages << (block ? block.call : args.first) }
+        allow(Rails.logger).to receive(:info).and_raise(StandardError.new("logging failure"))
+      end
+
+      it "rescues and logs the error without crashing" do
+        expect { service.send(:log_no_task_assigned_summary) }.not_to raise_error
+        expect(error_messages).to include(match(/Failed to log task assignment summary/))
+      end
+    end
   end
 end

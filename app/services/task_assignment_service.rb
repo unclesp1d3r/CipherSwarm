@@ -43,6 +43,7 @@ class TaskAssignmentService
   #
   # @return [Task, nil] the next task to work on, or nil if no tasks are available
   def find_next_task
+    @skip_reasons = []
     task = find_existing_incomplete_task ||
       find_own_paused_task ||
       find_unassigned_paused_task ||
@@ -103,7 +104,7 @@ class TaskAssignmentService
     task
   rescue StateMachines::InvalidTransition, ActiveRecord::StaleObjectError => e
     Rails.logger.error(
-      "[TaskAssignmentService] Failed to resume own paused task #{task.id} " \
+      "[TaskAssignment] Failed to resume own paused task #{task.id} " \
       "for agent #{agent.id}: #{e.class} - #{e.message}"
     )
     nil
@@ -131,10 +132,9 @@ class TaskAssignmentService
   # @return [Task, nil] a reassigned paused task, or nil
   def find_unassigned_paused_task
     task = nil
+    grace_cutoff = ApplicationConfig.agent_considered_offline_time.ago
 
     Task.transaction do
-      grace_cutoff = ApplicationConfig.agent_considered_offline_time.ago
-
       scope = Task.with_state(:paused)
                    .where(claimed_by_agent_id: nil)
                    .where.not(agent_id: agent.id)
@@ -155,62 +155,72 @@ class TaskAssignmentService
                  .lock("FOR UPDATE OF tasks SKIP LOCKED")
                  .first
 
-      if task.nil?
-        grace_blocked_scope = Task.with_state(:paused)
-                                   .where(claimed_by_agent_id: nil)
-                                   .where.not(agent_id: agent.id)
-                                   .joins(:agent)
-                                   .where("tasks.paused_at >= :grace_cutoff AND agents.state NOT IN (:orphan_states)",
-                                          grace_cutoff: grace_cutoff,
-                                          orphan_states: %w[offline stopped])
-                                   .joins(attack: { campaign: :hash_list })
-                                   .where(hash_lists: { hash_type_id: allowed_hash_type_ids })
+      if task
+        # Reassign ownership to the claiming agent
+        # rubocop:disable Rails/SkipsModelValidations
+        task.update_columns(agent_id: agent.id)
+        # rubocop:enable Rails/SkipsModelValidations
 
-        grace_blocked_scope = grace_blocked_scope.where(campaigns: { project_id: agent.project_ids }) if agent.project_ids.present?
+        # Resume the attack if it was paused (e.g., due to agent shutdown cascade).
+        # Note: there is no programmatic distinction between shutdown-paused and
+        # campaign-paused attacks; the can_resume? guard prevents invalid transitions.
+        # Wrapped in rescue so ownership reassignment above is preserved even if resume fails.
+        # Next cycle's find_own_paused_task will retry the resume.
+        begin
+          if task.attack.paused? && task.attack.can_resume?
+            task.attack.resume!
+            task.reload # attack.resume_tasks may have already resumed this task
+          end
 
-        blocked_count = grace_blocked_scope.count
-        if blocked_count.positive?
-          Rails.logger.debug {
-            "[TaskAssignment] grace_period_active: agent_id=#{agent.id} " \
-            "grace_cutoff=#{grace_cutoff} blocked_task_count=#{blocked_count} " \
-            "timestamp=#{Time.zone.now}"
-          }
+          # Transition to pending so the new agent can accept the task.
+          # resume! moves paused -> pending, marks stale (so the agent re-downloads cracks),
+          # and clears paused_at (removing the task from grace period queries).
+          task.resume! if task.paused? && task.can_resume?
+        rescue StateMachines::InvalidTransition, ActiveRecord::StaleObjectError => e
+          Rails.logger.error(
+            "[TaskAssignment] Failed to resume orphaned task #{task.id} " \
+            "for agent #{agent.id}: #{e.class} - #{e.message}"
+          )
+          # Ownership was reassigned; task stays paused but belongs to the new agent.
+          # Next cycle's find_own_paused_task will pick it up.
         end
-
-        return nil
-      end
-
-      # Reassign ownership to the claiming agent
-      # rubocop:disable Rails/SkipsModelValidations
-      task.update_columns(agent_id: agent.id)
-      # rubocop:enable Rails/SkipsModelValidations
-
-      # Resume the attack if it was paused (e.g., due to agent shutdown cascade).
-      # Note: there is no programmatic distinction between shutdown-paused and
-      # campaign-paused attacks; the can_resume? guard prevents invalid transitions.
-      # Wrapped in rescue so ownership reassignment above is preserved even if resume fails.
-      # Next cycle's find_own_paused_task will retry the resume.
-      begin
-        if task.attack.paused? && task.attack.can_resume?
-          task.attack.resume!
-          task.reload # attack.resume_tasks may have already resumed this task
-        end
-
-        # Transition to pending so the new agent can accept the task.
-        # resume! moves paused -> pending, marks stale (so the agent re-downloads cracks),
-        # and clears paused_at (removing the task from grace period queries).
-        task.resume! if task.paused? && task.can_resume?
-      rescue StateMachines::InvalidTransition, ActiveRecord::StaleObjectError => e
-        Rails.logger.error(
-          "[TaskAssignmentService] Failed to resume orphaned task #{task.id} " \
-          "for agent #{agent.id}: #{e.class} - #{e.message}"
-        )
-        # Ownership was reassigned; task stays paused but belongs to the new agent.
-        # Next cycle's find_own_paused_task will pick it up.
       end
     end
 
-    task
+    return task if task
+
+    # Check for grace-period-blocked tasks outside the transaction (read-only diagnostic query)
+    log_grace_period_blocked(grace_cutoff)
+    nil
+  end
+
+  # Logs when paused tasks exist but are blocked by the grace period.
+  # Runs outside the transaction to avoid holding locks during diagnostic queries.
+  #
+  # @param grace_cutoff [Time] the cutoff time for grace period eligibility
+  # @return [void]
+  def log_grace_period_blocked(grace_cutoff)
+    grace_blocked_scope = Task.with_state(:paused)
+                               .where(claimed_by_agent_id: nil)
+                               .where.not(agent_id: agent.id)
+                               .joins(:agent)
+                               .where("tasks.paused_at >= :grace_cutoff AND agents.state NOT IN (:orphan_states)",
+                                      grace_cutoff: grace_cutoff,
+                                      orphan_states: %w[offline stopped])
+                               .joins(attack: { campaign: :hash_list })
+                               .where(hash_lists: { hash_type_id: allowed_hash_type_ids })
+
+    grace_blocked_scope = grace_blocked_scope.where(campaigns: { project_id: agent.project_ids }) if agent.project_ids.present?
+
+    blocked_count = grace_blocked_scope.count
+    return unless blocked_count.positive?
+
+    @skip_reasons << "grace_period_active"
+    Rails.logger.debug {
+      "[TaskAssignment] grace_period_active: agent_id=#{agent.id} " \
+      "grace_cutoff=#{grace_cutoff} blocked_task_count=#{blocked_count} " \
+      "timestamp=#{Time.zone.now}"
+    }
   end
 
   # Searches available attacks in priority order and returns the first assignable task.
@@ -223,8 +233,8 @@ class TaskAssignmentService
   #
   # @return [Task, nil] the found or newly created task, or nil if none available
   def find_task_from_available_attacks
-    attacks = available_attacks
-    if attacks.none?
+    attacks = available_attacks.to_a
+    if attacks.empty?
       @skip_reasons << "no_available_attacks"
       Rails.logger.info(
         "[TaskAssignment] no_available_attacks: agent_id=#{agent.id} " \
@@ -238,7 +248,7 @@ class TaskAssignmentService
       if attack.uncracked_count.zero?
         @skip_reasons << "all_hashes_cracked"
         Rails.logger.debug {
-          "[TaskAssignment] no_uncracked_hashes: agent_id=#{agent.id} " \
+          "[TaskAssignment] all_hashes_cracked: agent_id=#{agent.id} " \
           "attack_id=#{attack.id} timestamp=#{Time.zone.now}"
         }
         next
@@ -258,7 +268,7 @@ class TaskAssignmentService
           end
         rescue StandardError => e
           Rails.logger.error(
-            "[TaskAssignmentService] Preemption failed for attack #{attack.id}: " \
+            "[TaskAssignment] Preemption failed for attack #{attack.id}: " \
             "#{e.class} - #{e.message}"
           )
           # Continue to next attack if preemption fails
@@ -286,7 +296,7 @@ class TaskAssignmentService
     attack.campaign.priority.present? && attack.campaign.priority.to_sym != :deferred
   rescue ActiveRecord::ActiveRecordError => e
     Rails.logger.error(
-      "[TaskAssignmentService] Error checking preemption eligibility for attack #{attack&.id} - " \
+      "[TaskAssignment] Error checking preemption eligibility for attack #{attack.id} - " \
       "Error: #{e.class} - #{e.message} - #{Time.current}"
     )
     false
@@ -323,7 +333,7 @@ class TaskAssignmentService
     if task.nil? && attack.tasks.with_state(:pending).exists?
       @skip_reasons << "pending_tasks_not_owned"
       Rails.logger.debug {
-        "[TaskAssignment] pending_tasks_taken: agent_id=#{agent.id} " \
+        "[TaskAssignment] pending_tasks_not_owned: agent_id=#{agent.id} " \
         "attack_id=#{attack.id} timestamp=#{Time.zone.now}"
       }
     end
@@ -350,7 +360,7 @@ class TaskAssignmentService
     end
   rescue ActiveRecord::ActiveRecordError => e
     Rails.logger.error(
-      "[TaskAssignmentService] Error creating task for attack #{attack.id}: " \
+      "[TaskAssignment] Error creating task for attack #{attack.id}: " \
       "#{e.class} - #{e.message}"
     )
     nil
@@ -390,7 +400,7 @@ class TaskAssignmentService
   # Logs an info-level agent error when a task is skipped due to performance threshold.
   #
   # @param attack [Attack] the attack that was skipped
-  # @return [AgentError] the created error record
+  # @return [void]
   def log_performance_skip(attack)
     @skip_reasons << "performance_threshold_not_met"
     agent.agent_errors.create(
@@ -417,6 +427,11 @@ class TaskAssignmentService
       "reasons=#{reasons} " \
       "allowed_hash_type_ids=#{allowed_hash_type_ids} " \
       "project_ids=#{agent.project_ids} timestamp=#{Time.zone.now}"
+    )
+  rescue StandardError => e
+    Rails.logger.error(
+      "[TaskAssignment] Failed to log task assignment summary: " \
+      "agent_id=#{agent.id} #{e.class} - #{e.message}"
     )
   end
 end
