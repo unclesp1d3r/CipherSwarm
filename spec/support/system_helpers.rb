@@ -33,7 +33,7 @@ module SystemHelpers
     end
 
     expect(page).to have_no_current_path(new_user_session_path, wait: 5)
-    expect(page).to have_css("a.nav-link.dropdown-toggle", text: user.name, wait: 5)
+    expect(page).to have_button(class: "nav-link dropdown-toggle", text: user.name, wait: 5)
   end
 
   # Sign out the current user via the UI
@@ -42,11 +42,11 @@ module SystemHelpers
   # @param user [User, nil]
   def sign_out_via_ui(user = nil)
     if user
-      toggle = find("a.nav-link.dropdown-toggle", text: user.name)
+      toggle = find("button.nav-link.dropdown-toggle", text: user.name)
     else
       # Prefer a dropdown toggle that is not the "Tools" menu (which may also
       # render a dropdown-toggle). Fall back to the first non-tools toggle.
-      toggles = page.all("a.nav-link.dropdown-toggle")
+      toggles = page.all("button.nav-link.dropdown-toggle")
       if toggles.empty?
         raise Capybara::ElementNotFound, "Could not find a user dropdown toggle to sign out via the UI. Ensure the user menu is present before calling sign_out_via_ui."
       end
