@@ -15,12 +15,12 @@
               <% end %>
             </p>
           <% elsif benchmarking %>
-            <p class="text-muted mb-0">
+            <p class="text-body-secondary mb-0">
               <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
               Running initial benchmarks...
             </p>
           <% else %>
-            <p class="text-muted mb-0">No active task</p>
+            <p class="text-body-secondary mb-0">No active task</p>
           <% end %>
         </div>
       </div>
@@ -37,7 +37,7 @@
               <div class="d-flex align-items-center">
                 <span class="me-2"><%= icon("speedometer2") %></span>
                 <div>
-                  <small class="text-muted d-block">Hash Rate</small>
+                  <small class="text-body-secondary d-block">Hash Rate</small>
                   <strong><%= agent.hash_rate_display %></strong>
                 </div>
               </div>
@@ -46,7 +46,7 @@
               <div class="d-flex align-items-center">
                 <span class="me-2"><%= icon("thermometer-half") %></span>
                 <div>
-                  <small class="text-muted d-block">Temperature</small>
+                  <small class="text-body-secondary d-block">Temperature</small>
                   <strong><%= agent.current_temperature >= 0 ? "#{agent.current_temperature}°C" : "Unknown" %></strong>
                 </div>
               </div>
@@ -55,7 +55,7 @@
               <div class="d-flex align-items-center">
                 <span class="me-2"><%= icon("cpu") %></span>
                 <div>
-                  <small class="text-muted d-block">Utilization</small>
+                  <small class="text-body-secondary d-block">Utilization</small>
                   <strong><%= agent.current_utilization %>%</strong>
                 </div>
               </div>
@@ -99,7 +99,7 @@
               <% if agent.last_seen_at.present? %>
                 <%= time_ago_in_words(agent.last_seen_at) %> ago
               <% else %>
-                <span class="text-muted">Never</span>
+                <span class="text-body-secondary">Never</span>
               <% end %>
             </dd>
 
@@ -113,7 +113,7 @@
               <% if agent.projects&.any? %>
                 <%= safe_join(agent.projects.map { |p| link_to(p.name, p) }, ", ") %>
               <% else %>
-                <span class="text-muted">All projects</span>
+                <span class="text-body-secondary">All projects</span>
               <% end %>
             </dd>
           </dl>

@@ -263,112 +263,114 @@ RSpec.describe "MaskLists" do
       end
     end
 
-    describe "POST /create" do
-      let(:file) { Rack::Test::UploadedFile.new(Rails.root.join("spec/fixtures/mask_lists/rockyou-1-60.hcmask")) }
-      let(:params) { { mask_list: { name: "Test Mask List", description: "Test Description", file: file } } }
-      let(:private_params) { { mask_list: { name: "Test Mask List", description: "Test Description", file: file, project_ids: [project.id] } } }
+    it_behaves_like "downloadable file preview", :mask_list
+  end
 
-      context "when user is not signed in" do
-        it "redirects to sign in page" do
-          post mask_lists_path, params: params
-          expect(response).to redirect_to(new_user_session_path)
-        end
+  describe "POST /create" do
+    let(:file) { Rack::Test::UploadedFile.new(Rails.root.join("spec/fixtures/mask_lists/rockyou-1-60.hcmask")) }
+    let(:params) { { mask_list: { name: "Test Mask List", description: "Test Description", file: file } } }
+    let(:private_params) { { mask_list: { name: "Test Mask List", description: "Test Description", file: file, project_ids: [project.id] } } }
+
+    context "when user is not signed in" do
+      it "redirects to sign in page" do
+        post mask_lists_path, params: params
+        expect(response).to redirect_to(new_user_session_path)
+      end
+    end
+
+    context "when an admin user is signed in" do
+      it "creates a new mask list" do
+        sign_in admin
+        post mask_lists_path, params: params
+        expect(response).to redirect_to(mask_list_path(MaskList.last))
+        expect(flash[:notice]).to eq("Mask list was successfully created.")
       end
 
-      context "when an admin user is signed in" do
-        it "creates a new mask list" do
-          sign_in admin
-          post mask_lists_path, params: params
-          expect(response).to redirect_to(mask_list_path(MaskList.last))
-          expect(flash[:notice]).to eq("Mask list was successfully created.")
-        end
+      it "creates a new sensitive mask list" do
+        sign_in admin
+        post mask_lists_path, params: private_params
+        expect(response).to redirect_to(mask_list_path(MaskList.last))
+        expect(flash[:notice]).to eq("Mask list was successfully created.")
+      end
+    end
 
-        it "creates a new sensitive mask list" do
-          sign_in admin
-          post mask_lists_path, params: private_params
-          expect(response).to redirect_to(mask_list_path(MaskList.last))
-          expect(flash[:notice]).to eq("Mask list was successfully created.")
-        end
+    context "when a non-project user is signed in" do
+      it "creates a new public mask list" do
+        sign_in non_project_user
+        post mask_lists_path, params: params
+        expect(response).to redirect_to(mask_list_path(MaskList.last))
+        expect(flash[:notice]).to eq("Mask list was successfully created.")
       end
 
-      context "when a non-project user is signed in" do
-        it "creates a new public mask list" do
-          sign_in non_project_user
-          post mask_lists_path, params: params
-          expect(response).to redirect_to(mask_list_path(MaskList.last))
-          expect(flash[:notice]).to eq("Mask list was successfully created.")
-        end
+      it "fails to create a new sensitive mask list" do
+        sign_in non_project_user
+        post mask_lists_path, params: private_params
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
 
-        it "fails to create a new sensitive mask list" do
-          sign_in non_project_user
-          post mask_lists_path, params: private_params
-          expect(response).to have_http_status(:forbidden)
-        end
+    context "when a project user is signed in" do
+      it "creates a new public mask list" do
+        sign_in project_user
+        post mask_lists_path, params: params
+        expect(response).to redirect_to(mask_list_path(MaskList.last))
+        expect(flash[:notice]).to eq("Mask list was successfully created.")
       end
 
-      context "when a project user is signed in" do
-        it "creates a new public mask list" do
-          sign_in project_user
-          post mask_lists_path, params: params
-          expect(response).to redirect_to(mask_list_path(MaskList.last))
-          expect(flash[:notice]).to eq("Mask list was successfully created.")
-        end
+      it "creates a new sensitive mask list" do
+        sign_in project_user
+        post mask_lists_path, params: private_params
+        expect(response).to redirect_to(mask_list_path(MaskList.last))
+        expect(flash[:notice]).to eq("Mask list was successfully created.")
+      end
 
-        it "creates a new sensitive mask list" do
-          sign_in project_user
-          post mask_lists_path, params: private_params
-          expect(response).to redirect_to(mask_list_path(MaskList.last))
-          expect(flash[:notice]).to eq("Mask list was successfully created.")
-        end
-
-        it "fails to create mask list with unauthorized project IDs" do
-          unauthorized_project = create(:project)
-          params_with_unauthorized_project = {
-            mask_list: {
-              name: "Test Mask List",
-              description: "Test Description",
-              file: file,
-              project_ids: [unauthorized_project.id]
-            }
+      it "fails to create mask list with unauthorized project IDs" do
+        unauthorized_project = create(:project)
+        params_with_unauthorized_project = {
+          mask_list: {
+            name: "Test Mask List",
+            description: "Test Description",
+            file: file,
+            project_ids: [unauthorized_project.id]
           }
+        }
 
-          sign_in project_user
-          post mask_lists_path, params: params_with_unauthorized_project
-          expect(response).to have_http_status(:forbidden)
-          expect(flash[:error]).to include("You don't have permission")
-        end
+        sign_in project_user
+        post mask_lists_path, params: params_with_unauthorized_project
+        expect(response).to have_http_status(:forbidden)
+        expect(flash[:error]).to include("You don't have permission")
+      end
 
-        it "fails gracefully with non-existent project IDs" do
-          params_with_invalid_project = {
-            mask_list: {
-              name: "Test Mask List",
-              description: "Test Description",
-              file: file,
-              project_ids: [99999]
-            }
+      it "fails gracefully with non-existent project IDs" do
+        params_with_invalid_project = {
+          mask_list: {
+            name: "Test Mask List",
+            description: "Test Description",
+            file: file,
+            project_ids: [99999]
           }
+        }
 
-          sign_in project_user
-          post mask_lists_path, params: params_with_invalid_project
-          expect(response).to have_http_status(:not_found)
-        end
+        sign_in project_user
+        post mask_lists_path, params: params_with_invalid_project
+        expect(response).to have_http_status(:not_found)
+      end
 
-        it "handles empty string in project_ids array" do
-          params_with_empty_strings = {
-            mask_list: {
-              name: "Test Mask List",
-              description: "Test Description",
-              file: file,
-              project_ids: [""]
-            }
+      it "handles empty string in project_ids array" do
+        params_with_empty_strings = {
+          mask_list: {
+            name: "Test Mask List",
+            description: "Test Description",
+            file: file,
+            project_ids: [""]
           }
+        }
 
-          sign_in project_user
-          post mask_lists_path, params: params_with_empty_strings
-          expect(response).to redirect_to(mask_list_path(MaskList.last))
-          expect(MaskList.last.projects).to be_empty
-          expect(MaskList.last.sensitive).to be false
-        end
+        sign_in project_user
+        post mask_lists_path, params: params_with_empty_strings
+        expect(response).to redirect_to(mask_list_path(MaskList.last))
+        expect(MaskList.last.projects).to be_empty
+        expect(MaskList.last.sensitive).to be false
       end
     end
   end

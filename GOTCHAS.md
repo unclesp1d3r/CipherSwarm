@@ -4,6 +4,16 @@ Hard-won lessons, edge cases, and "watch out for" patterns. Organized by domain.
 
 Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before working in that area.
 
+## Frontend & Accessibility
+
+- **Navbar dropdowns must use `<button>` not `<a href="#">`** — both `_navbar.html.erb` and `NavbarDropdownComponent` had `<a href="#" role="button">` which causes scroll-to-top and is semantically wrong. Always use `<button type="button" class="nav-link dropdown-toggle">`.
+- **Use Bootstrap z-index utilities (`z-1` through `z-3`)** instead of inline `style="z-index: ..."` — keeps values in sync with Bootstrap's layering system.
+- **Sidebar `<ul>` needs `aria-label="Main navigation"`** — the `<aside>` provides the landmark but doesn't describe the navigation purpose.
+- **Turbo morph preserves old DOM across navigations** — `data-turbo-permanent` on navbar collapse kept stale elements alive even after the template changed. When debugging layout changes, use cache-busting URLs (`?_=timestamp`) or `Turbo.visit(url, {action: "replace"})` to force a full re-render.
+- **Railsboot components fully removed** — all views now use plain ERB + Bootstrap classes. The Railsboot component layer was an abstraction that made customization harder (e.g., auto-rendering child components). When adding new UI, use Bootstrap HTML directly.
+- **Propshaft caches asset digests in-memory** — after `bun run build:css` or `just assets-build`, Propshaft continues serving the old fingerprinted CSS until the Rails server restarts. Use `touch tmp/restart.txt` to trigger Puma reload. Hard-refreshing the browser is NOT sufficient.
+- **`rails assets:clobber` deletes ALL build artifacts** — removes JS, CSS, and font files from `app/assets/builds/`. Must run `just assets-build` (full rebuild) to recover, not just `bun run build:css`.
+
 ## State Machines
 
 **Agent States:**
@@ -14,7 +24,7 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 **Agent Shutdown Cascade:**
 
 - `agent.shutdown!` pauses running tasks AND pauses attacks with no remaining active tasks
-- Shutdown clears task claim fields (`claimed_by_agent_id`, `claimed_at`, `expires_at`)
+- Shutdown clears task claim fields (`claimed_by_agent_id`, `claimed_at`, `expires_at`) ONLY when `pause!` succeeds — if pause fails, claim fields are preserved to avoid inconsistent state
 - Other pause paths (attack cascade via `attack.pause!`, campaign cascade) do NOT clear claim fields
 - `attack.resume!` triggers `resume_tasks` callback which resumes all tasks — calling `task.resume!` after will raise `ActiveRecord::StaleObjectError` unless you `task.reload` first
 - Campaign has NO `state` column — `campaign.paused?` is computed from attack states
@@ -34,6 +44,11 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 - `accept_status` only allows transitions from active states (pending/running → running, paused → same) — finished states (completed/exhausted/failed) are blocked to prevent task resurrection
 
 ## Testing
+
+**ActiveRecord N+1 Query Counting:**
+
+- `payload[:name]` in `sql.active_record` notifications is the model name (e.g., `"Attack Load"`, `"Campaign Load"`), NOT `"SQL"` — filtering by `payload[:name] == "SQL"` captures zero queries and makes N+1 tests silently pass
+- Correct pattern: exclude noise (`SCHEMA`, `CACHE`, transaction statements like `BEGIN`/`COMMIT`/`SAVEPOINT`/`RELEASE`/`SHOW`/`SET`) and count everything else
 
 **CI Test Scope:**
 
@@ -71,16 +86,25 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 - `transition any => same` always succeeds unless the save fails
 - To test failure paths: invalidate the model via `update_column` (bypassing validations) so save fails during transition
 - Beware DB NOT NULL constraints - use columns with only Rails-level validations (e.g., `workload_profile` numericality)
+- `can_pause?`/`can_resume?` always return true for events with `transition any => same` — undercover flags the false branch as uncovered; use `allow_any_instance_of(Model).to receive(:can_pause?).and_return(false)` stubs
+- `find_each` on relations can't be tested with plain arrays — use `double("relation")` with `allow(relation).to receive(:find_each).and_yield(task)`
 
 **Deterministic Ordering:**
 
 - When using `min_by`, `sort_by`, or `ORDER BY` with columns that can tie, always add a tiebreaker (typically `.id`)
 - Example: `tasks.min_by { |t| [t.priority, t.progress, t.id] }` — without `t.id`, CI may return different results than local
 
+**Undercover (Change-Based Coverage):**
+
+- Undercover flags ALL uncovered branches in changed lines, even "impossible" ones — must cover with stubs
+- `obj&.method` safe navigation creates an unreachable nil branch when nil is guarded earlier — remove the `&` if nil is impossible
+- Rescue blocks in changed code need explicit error-path tests — stub the failing call with `and_raise`
+- `swagger/v1/swagger.json` changes from `rails rswag` must be committed — schema mismatches cause rswag CI failures
+
 **Database Deadlock in Tests:**
 
-- `DatabaseCleaner.clean_with(:truncation)` can deadlock if concurrent PG connections exist
-- Retry the test command — deadlocks are transient and resolve on second run
+- `DatabaseCleaner.clean_with(:truncation)` can deadlock if concurrent PG connections exist — retry the test command (transient)
+- **Never run two `just ci-check` or `bundle exec rspec` instances simultaneously** — they share the same test database and will cause mass `PG::TRDeadlockDetected` failures and `tmp/storage` file conflicts
 - Some tests fail intermittently in full suite but pass in isolation — use `git stash` to verify if failures are pre-existing vs introduced
 
 **Cache Key Testing:**
@@ -124,6 +148,7 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 **rswag 3.0.0.pre Migration Notes:**
 
 - `openapi_strict_schema_validation` removed in 3.x — replaced by `openapi_no_additional_properties` and `openapi_all_properties_required`
+- `openapi_all_properties_required: true` means **every property** declared in a schema is treated as required in validation — if a response omits a declared property, `run_test!` fails. To handle optional fields, declare them in the schema and always return them (with `null` for absent cases), using `nullable: true` on the property.
 - `request_body_json` does not exist in rswag 3.0.0.pre — polyfilled in `spec/support/rswag_polyfills.rb`
 - `RequestFactory` in 3.x resolves parameters via `params.fetch(name)` against `example.request_params` (empty hash by default); since rswag 2.x resolved parameters via `example.send(param_name)` directly from `let` blocks, `LetFallbackHash` in `spec/support/rswag_polyfills.rb` bridges this gap by falling back to `example.public_send(key)` when `request_params` lacks the key
 - The rswag 3.x formatter already converts internal `in: :body` + `consumes` to OAS 3.0 `requestBody` — polyfills use this mechanism
@@ -141,6 +166,11 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 
 - Devise 5 applies `downcase_first` to humanized authentication keys in flash messages ("name" instead of "Name")
 - Test page objects should derive labels dynamically via `User.human_attribute_name(key).downcase_first` (see `spec/support/page_objects/sign_in_page.rb#devise_auth_keys_label`)
+
+**Unauthenticated Endpoints:**
+
+- Endpoints inheriting from `ActionController::API` (bypassing agent auth) must never return raw `e.message` in responses — this leaks internal details (hostnames, DB errors, credential hints)
+- Use a generic stable error string for clients (e.g., `"Internal health check failure"`), log full exception details server-side with `Rails.logger.error`
 
 ## Database & ActiveRecord
 
@@ -193,6 +223,8 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 
 - Broadcast partials (rendered by `broadcast_replace_to`/`broadcast_replace_later_to`) run in background jobs with NO `current_user` — partials must not reference `current_user` or session data
 - For targeted broadcasts, extract small partials (e.g., `_index_state.html.erb`) that wrap a single element with a stable DOM ID, following the Agent `broadcast_index_state` pattern
+- Never fragment-cache content containing `safe_can?` calls in broadcast-rendered partials — Sidekiq has no `current_user`, so `safe_can?` returns false and poisons the cache for all users. Keep auth-gated elements outside cache blocks.
+- Use `saved_changes.keys.intersect?(FIELDS)` or `saved_change_to_<attr>?` guards in `after_update_commit` callbacks to avoid broadcasting tabs whose data didn't change (see `Agent#broadcast_tab_updates`)
 
 **Logging Patterns:**
 
@@ -203,6 +235,12 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 - Ensure logging failures don't break application (rescue blocks)
 - Always test that important events are logged correctly
 - Verify sensitive data is filtered (see docs/development/logging-guide.md)
+
+**Jobs & Callbacks:**
+
+- 4 models enqueue jobs from `after_commit` callbacks (`ProcessHashListJob`, `CalculateMaskComplexityJob`, `CountFileLinesJob`, `CampaignPriorityRebalanceJob`)
+- `active_job-performs` gem does NOT fit — these jobs contain substantial logic (batch processing, atomic locks, file I/O), not simple model method delegation
+- This is accepted Rails convention; don't try to "fix" it unless jobs become pure delegators
 
 **Ruby 3.4+ Dependencies:**
 

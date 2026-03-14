@@ -60,6 +60,7 @@ class Ability
     can :read, Agent, projects: { id: user.all_project_ids } # User can read agents in their projects
     can :update, Agent, user: user # User can update their own agents
     can :destroy, Agent, user: user # User can destroy their own agents
+    can :expire_benchmarks, Agent, user: user # User can force re-benchmark their own agents
 
     # Project permissions
     can :read, Project, project_users: { user_id: user.id } # User can read projects they are associated with
@@ -95,11 +96,6 @@ class Ability
 
     # Task permissions (Task -> attack -> campaign -> project)
     can :manage, Task, attack: { campaign: { project_id: user.all_project_ids } }
-    can :read, Task, attack: { campaign: { project_id: user.all_project_ids } }
-    can :cancel, Task, attack: { campaign: { project_id: user.all_project_ids } }
-    can :retry, Task, attack: { campaign: { project_id: user.all_project_ids } }
-    can :reassign, Task, attack: { campaign: { project_id: user.all_project_ids } }
-    can :download_results, Task, attack: { campaign: { project_id: user.all_project_ids } }
 
     # HashList permissions
     can :manage, HashList, project: { id: user.all_project_ids }

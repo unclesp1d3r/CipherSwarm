@@ -63,9 +63,9 @@ See the [V2 Upgrade Overview](docs/v2-upgrade-overview.md) for complete feature 
 ### Prerequisites
 
 - Ruby 3.4.5 (managed with rbenv)
-- Rails 8.0+
+- Rails 8.1+
 - PostgreSQL 17+ (primary database)
-- Redis 7.2+ (for Solid Cache and Sidekiq job processing)
+- Redis 7.2+ (for caching, Action Cable, and Sidekiq job processing)
 - [Just](https://github.com/casey/just) task runner (optional but recommended)
 
 ### Installation
@@ -216,7 +216,7 @@ CipherSwarm is crafted explicitly for medium to large-scale cracking infrastruct
 
 ## Architecture
 
-CipherSwarm is built on a modern Rails 8.0+ architecture with clear separation of concerns and service-oriented design patterns. The system follows Rails conventions while implementing a distributed password cracking management system.
+CipherSwarm is built on a modern Rails 8.1+ architecture with clear separation of concerns and service-oriented design patterns. The system follows Rails conventions while implementing a distributed password cracking management system.
 
 ### System Architecture
 
@@ -235,9 +235,9 @@ The application uses a monolithic Rails architecture with the following layers:
 
 ### Key Technologies
 
-- **Ruby 3.4.5** with **Rails 8.0+**
+- **Ruby 3.4.5** with **Rails 8.1+**
 - **PostgreSQL 17+** for primary data storage
-- **Redis 7.2+** for Solid Cache and Sidekiq job processing
+- **Redis 7.2+** for caching, Action Cable, and Sidekiq job processing
 - **Hotwire** (Turbo + Stimulus) for interactive frontend
 - **ViewComponent** for reusable UI components
 - **Sidekiq** for background job processing

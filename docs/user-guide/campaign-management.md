@@ -77,17 +77,13 @@ Attacks within a campaign are executed based on their configured priority. Each 
 
 CipherSwarm uses a priority system to manage campaign execution order:
 
-| Priority           | Value | Use Case                                        |
-| ------------------ | ----- | ----------------------------------------------- |
-| **Deferred**       | -1    | Low-priority background work                    |
-| **Routine**        | 0     | Standard operations (default)                   |
-| **Priority**       | 1     | Important campaigns that should run soon        |
-| **Urgent**         | 2     | Time-sensitive campaigns                        |
-| **Immediate**      | 3     | Must run now, pauses routine/priority campaigns |
-| **Flash**          | 4     | Emergency cracking requests                     |
-| **Flash Override** | 5     | Highest priority, pauses everything else        |
+| Priority     | Value | Use Case                                           |
+| ------------ | ----- | -------------------------------------------------- |
+| **Deferred** | -1    | Low-priority background work                       |
+| **Normal**   | 0     | Standard operations (default)                      |
+| **High**     | 2     | Time-sensitive campaigns requiring immediate focus |
 
-When a higher-priority campaign starts, all lower-priority campaigns are automatically paused. They resume when the higher-priority campaign completes or is manually paused.
+When a higher-priority campaign needs resources, the system uses priority-based task preemption: running tasks belonging to lower-priority campaigns are transitioned back to pending state, freeing agents to pick up higher-priority work. Preemption is triggered asynchronously via `CampaignPriorityRebalanceJob` when a campaign's priority is raised.
 
 ### Project Assignment
 
@@ -222,7 +218,7 @@ Stopped campaigns cannot be resumed. To re-run, create a new campaign with the s
 You can edit campaign details while it is running:
 
 - **Name** and **Description**: Can be changed at any time
-- **Priority**: Changing priority may pause or resume other campaigns
+- **Priority**: Raising a campaign's priority enqueues a rebalance job that may trigger task preemption for lower-priority campaigns. Lowering priority has no immediate effect; the lowered campaign's tasks continue running until they complete or are preempted by higher-priority campaigns during the normal periodic rebalancing cycle.
 - **Attacks**: Adding new attacks to a running campaign is supported
 - **Editing running attacks**: Modifying a running or completed attack resets it to pending state. A confirmation dialog warns about this behavior.
 
@@ -267,29 +263,48 @@ Deleted campaigns use soft delete and can potentially be recovered by an adminis
 
 ### How Priorities Work
 
-CipherSwarm's priority system ensures that the most important work runs first:
+CipherSwarm's priority system uses both immediate (event-driven) and periodic (time-driven) task rebalancing to ensure that the most important work runs first:
 
-1. When a campaign starts, the system checks for lower-priority running campaigns
-2. Lower-priority campaigns are automatically paused
-3. All available agents are directed to the highest-priority campaigns
-4. When the high-priority campaign completes, paused campaigns resume automatically
+**Event-Driven Rebalancing:**
+
+- When you increase a campaign's priority, a `CampaignPriorityRebalanceJob` is enqueued asynchronously
+- The job preempts running tasks belonging to lower-priority campaigns, transitioning them back to pending state
+- Freed agents then pick up higher-priority work on their next task request
+- This happens shortly after you save the priority change (asynchronous, not inline)
+
+**Periodic Rebalancing:**
+
+- The system performs periodic checks to ensure optimal task distribution over time
+- Lowering a campaign's priority does not trigger immediate preemption
+- The system will rebalance affected campaigns during the next periodic check
+- This maintains system stability while ensuring efficient resource allocation
+
+**Behavior Summary:**
+
+1. When a campaign's priority is raised, the system enqueues a rebalance job
+2. The rebalance job preempts running tasks from lower-priority campaigns (transitioning them to pending)
+3. Freed agents pick up higher-priority tasks on their next task request
+4. When the high-priority campaign completes, pending tasks from lower-priority campaigns become eligible for assignment again
 
 ### Example Priority Scenario
 
 ```
-Time 0: Campaign A (Routine) starts, agents working
-Time 1: Campaign B (Urgent) created and started
-        -> Campaign A automatically paused
-        -> All agents switch to Campaign B
+Time 0: Campaign A (normal) starts, agents working on its tasks
+Time 1: Campaign B (high) created and started
+        -> Rebalance job preempts Campaign A's running tasks to pending
+        -> Agents pick up Campaign B's tasks on next request
 Time 2: Campaign B completes
-        -> Campaign A automatically resumes
-        -> Agents return to Campaign A
+        -> Campaign A's pending tasks become eligible for assignment
+        -> Agents pick up Campaign A's tasks again
 ```
 
 ### Priority Considerations
 
 - Only campaigns within the same project interact via priority
-- Changing a campaign's priority takes effect immediately
+- Raising a campaign's priority enqueues an asynchronous rebalance job that triggers task preemption
+- Lowering priority has no immediate effect; the campaign's tasks continue running until completed or preempted
+- Lower-priority running tasks are preempted (transitioned to pending) when you raise a campaign's priority
+- This is intended behavior to ensure urgent campaigns get resources quickly
 - Agents can only work on one task at a time
 - Multiple campaigns at the same priority level run concurrently
 

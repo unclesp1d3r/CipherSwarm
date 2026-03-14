@@ -35,6 +35,19 @@ RSpec.describe CountFileLinesJob do
   end
 
   describe "#perform" do
+    context "when the type is not in ALLOWED_TYPES" do
+      it "raises InvalidTypeError with an informative message" do
+        expect { described_class.new.perform(1, "User") }
+          .to raise_error(CountFileLinesJob::InvalidTypeError, /Invalid type 'User'/)
+      end
+
+      it "is discarded by the job framework" do
+        expect(described_class.rescue_handlers).to include(
+          have_attributes(first: "CountFileLinesJob::InvalidTypeError")
+        )
+      end
+    end
+
     context "when the record does not exist" do
       it "discards the job without raising an error" do
         expect { described_class.perform_now(-1, "RuleList") }.not_to raise_error

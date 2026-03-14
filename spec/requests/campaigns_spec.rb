@@ -237,6 +237,52 @@ RSpec.describe "Campaigns" do
     end
   end
 
+  describe "POST /toggle_paused" do
+    context "when user is not logged in" do
+      it "redirects to sign in" do
+        post campaign_toggle_paused_path(campaign)
+        expect(response).to redirect_to(new_user_session_path)
+      end
+    end
+
+    context "when authorized user pauses a campaign" do
+      before do
+        create(:agent, projects: [project])
+        create(:dictionary_attack, campaign: campaign, state: :running)
+      end
+
+      it "pauses the campaign and redirects to campaign page" do
+        sign_in(admin)
+        post campaign_toggle_paused_path(campaign)
+        expect(response).to redirect_to(campaign_path(campaign))
+      end
+    end
+
+    context "when authorized user resumes a paused campaign" do
+      before do
+        create(:agent, projects: [project])
+        atk = create(:dictionary_attack, campaign: campaign)
+        atk.run! if atk.can_run?
+        atk.pause! if atk.can_pause?
+      end
+
+      it "resumes the campaign and redirects to campaign page" do
+        sign_in(admin)
+        expect(campaign.paused?).to be true
+        post campaign_toggle_paused_path(campaign)
+        expect(response).to redirect_to(campaign_path(campaign))
+      end
+    end
+
+    context "when non-project user tries to toggle pause" do
+      it "returns forbidden" do
+        sign_in(non_project_user)
+        post campaign_toggle_paused_path(campaign)
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
+  end
+
   describe "PATCH /update with priority authorization" do
     let!(:project_campaign) { create(:campaign, project: project, priority: :normal) }
     let!(:project_admin) { create(:user) }

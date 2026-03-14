@@ -26,35 +26,35 @@
       <% end %>
     </td>
     <td>
-      <%= render Railsboot::ButtonGroupComponent.new(aria_label: "Campaign Actions", size: "sm") do %>
+      <div class="btn-group btn-group-sm" role="group" aria-label="Campaign Actions">
         <% if can? :read, campaign %>
-          <%= render Railsboot::ButtonComponent.new(tag: "a", href: campaign) do %>
+          <%= link_to campaign, class: "btn btn-primary" do %>
             <%= icon("eye") %>
           <% end %>
         <% end %>
         <% if can? :update, campaign %>
-          <%= render Railsboot::ButtonComponent.new(variant: "warning", tag: "a", href: edit_campaign_path(campaign)) do %>
+          <%= link_to edit_campaign_path(campaign), class: "btn btn-warning" do %>
             <%= icon("pencil") %>
           <% end %>
         <% end %>
         <% if can? :destroy, campaign %>
-          <%= render Railsboot::ButtonComponent.new(variant: "danger", tag: "a", href: campaign,
-                                                    method: :delete, data: { turbo_method: :delete,
-                                                                             turbo_confirm: "Are you sure?" }) do %>
+          <%= link_to campaign, class: "btn btn-danger", data: { turbo_method: :delete, turbo_confirm: "Are you sure?" } do %>
             <%= icon("trash") %>
           <% end %>
         <% end %>
-      <% end %>
+      </div>
     </td>
   </tr>
   <tr class="collapse <%= "show" unless campaign.completed? %>" id="<%= dom_id campaign, :attacks %>">
     <td></td>
     <td colspan="4">
-      <table class="table table-hover">
-        <tbody>
-        <%= render partial: "attacks/attack", collection: campaign.attacks, cache: true %>
-        </tbody>
-      </table>
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <tbody>
+          <%= render partial: "attacks/attack", collection: campaign.attacks, cache: true %>
+          </tbody>
+        </table>
+      </div>
     </td>
   </tr>
 <% end %>
