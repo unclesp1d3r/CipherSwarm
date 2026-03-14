@@ -165,12 +165,8 @@ class HashcatStatus < ApplicationRecord
   #
   # @return [Hash] The serialized hash representation of the object.
   def serializable_hash(options = {})
-    options ||= {}
-    if options[:include]
-      options[:include].concat %i[device_statuses hashcat_guess]
-    else
-      options[:include] = %i[device_statuses hashcat_guess]
-    end
+    options = (options || {}).dup
+    options[:include] = Array(options[:include]) + %i[device_statuses hashcat_guess]
     super(options)
   end
 

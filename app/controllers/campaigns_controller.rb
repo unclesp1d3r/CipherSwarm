@@ -16,11 +16,12 @@
 class CampaignsController < ApplicationController
   before_action :authenticate_user!
   load_and_authorize_resource
+  skip_load_and_authorize_resource only: :toggle_paused
   before_action :set_hash_lists, only: %i[new edit create update]
 
   # GET /campaigns or /campaigns.json
   def index
-    @campaigns = @campaigns.by_priority
+    @campaigns = @campaigns.includes(:project, :hash_list, :attacks).by_priority
   end
 
   # GET /campaigns/1 or /campaigns/1.json
@@ -129,8 +130,10 @@ class CampaignsController < ApplicationController
     authorize! :update, @campaign
     if @campaign.paused?
       @campaign.resume
+      redirect_to campaign_path(@campaign), notice: "Campaign was successfully resumed."
     else
       @campaign.pause
+      redirect_to campaign_path(@campaign), notice: "Campaign was successfully paused."
     end
   end
 

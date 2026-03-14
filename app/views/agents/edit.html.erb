@@ -1,12 +1,16 @@
-<%= render Railsboot::HeaderComponent.new do |header| %>
-  <% header.with_heading do %>
-    <%= title @agent.name %>
-  <% end %>
-  <% header.with_breadcrumb.with_items([
-       { text: "Dashboard", href: root_path },
-       { text: "Agents", href: agents_path },
-       { text: @agent.name, href: @agent },
-       { text: "Edit", active: true }
-     ]) %>
-<% end %>
+<div class="card">
+  <div class="card-body">
+    <nav aria-label="breadcrumb" class="mt-0 mb-1 fw-light">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><%= link_to "Dashboard", root_path %></li>
+        <li class="breadcrumb-item"><%= link_to "Agents", agents_path %></li>
+        <li class="breadcrumb-item"><%= link_to @agent.name, @agent %></li>
+        <li class="breadcrumb-item active" aria-current="page">Edit</li>
+      </ol>
+    </nav>
+    <div class="d-flex justify-content-between align-items-center">
+      <h2 class="mb-0"><%= title @agent.name %></h2>
+    </div>
+  </div>
+</div>
 <%= render "form", agent: @agent %>

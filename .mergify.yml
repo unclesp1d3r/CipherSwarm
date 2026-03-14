@@ -10,7 +10,33 @@ queue_rules:
       - or:
           - label = lgtm
           - author = dependabot[bot]
+    autoqueue: true
+    queue_conditions:
+      - and:
+          - label = lgtm
+          - author = @unclesp1d3r
+      - or:
+          - author = dosubot[bot]
+          - author = dependabot[bot]
 pull_request_rules:
+  - name: Automatic merge dependabot
+    description: Merge when PR passes all branch protection and has label automerge
+    conditions:
+      - author = dependabot[bot]
+    actions:
+      queue:
+  - name: Automatic merge dosubot
+    description: Merge when PR passes all branch protection and has label automerge
+    conditions:
+      - author = dosubot[bot]
+    actions:
+      merge:
+  - name: Automatic merge
+    description: Merge when PR passes all branch protection and has label automerge
+    conditions:
+      - author = dosubot[bot]
+    actions:
+      queue:
   - name: Queue maintainer PRs with lgtm label
     conditions:
       - base = main
@@ -47,7 +73,6 @@ pull_request_rules:
       - base = main
       - -conflict
       - -draft
-      - -author = dependabot[bot]
       - label != do-not-merge
     actions:
       update: {}

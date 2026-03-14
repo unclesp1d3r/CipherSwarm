@@ -17,7 +17,7 @@
               <% end %>
             </ul>
           <% else %>
-            <p class="text-muted mb-0">No device information available</p>
+            <p class="text-body-secondary mb-0">No device information available</p>
           <% end %>
         </div>
       </div>
@@ -31,9 +31,9 @@
         <div class="card-body">
           <% benchmarks = agent.last_benchmarks %>
           <% if benchmarks&.any? %>
-            <% cache agent do %>
-              <% if agent.last_benchmark_date.present? %>
-                <div class="alert alert-info mb-3">
+            <% if agent.last_benchmark_date.present? %>
+              <div class="alert alert-info mb-3 d-flex justify-content-between align-items-center">
+                <div>
                   <small>
                     Last benchmarked: <%= time_ago_in_words(agent.last_benchmark_date) %> ago
                     (<%= agent.last_benchmark_date.to_fs(:short) %>)
@@ -42,15 +42,24 @@
                     <span class="badge bg-warning ms-2">Stale</span>
                   <% end %>
                 </div>
-              <% end %>
+                <% if safe_can?(:expire_benchmarks, agent) %>
+                  <%= button_to "Expire Benchmarks",
+                        expire_benchmarks_agent_path(agent),
+                        method: :post,
+                        class: "btn btn-outline-warning btn-sm",
+                        data: { turbo_confirm: "This will delete all benchmarks and force the agent to re-benchmark on its next check-in. Continue?" } %>
+                <% end %>
+              </div>
+            <% end %>
 
+            <% cache [agent.id, :benchmarks, agent.hashcat_benchmarks.maximum(:updated_at)] do %>
               <div class="table-responsive">
                 <table class="table table-sm table-hover">
                   <thead>
                     <tr>
-                      <th>Hash Type</th>
-                      <th>Device</th>
-                      <th>Hash Rate</th>
+                      <th scope="col">Hash Type</th>
+                      <th scope="col">Device</th>
+                      <th scope="col">Hash Rate</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -62,17 +71,11 @@
               </div>
             <% end %>
           <% else %>
-            <%= render Railsboot::BlankSlateComponent.new do |blank_slate| %>
-              <% blank_slate.with_icon do %>
-                <span style="font-size: 64px;"><%= icon("speedometer") %></span>
-              <% end %>
-              <% blank_slate.with_heading do %>
-                No benchmarks available
-              <% end %>
-              <% blank_slate.with_description do %>
-                This agent has not been benchmarked yet. Benchmarks will be available after the agent runs its first benchmark test.
-              <% end %>
-            <% end %>
+            <div class="text-center">
+              <div><span class="empty-state-icon"><%= icon("speedometer") %></span></div>
+              <h3>No benchmarks available</h3>
+              <p class="small text-secondary mt-3">This agent has not been benchmarked yet. Benchmarks will be available after the agent runs its first benchmark test.</p>
+            </div>
           <% end %>
         </div>
       </div>

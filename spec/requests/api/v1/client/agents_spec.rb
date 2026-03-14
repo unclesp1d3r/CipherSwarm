@@ -985,12 +985,7 @@ RSpec.describe "api/v1/client/agents" do
         type: :object,
         properties: {
           message: { type: :string, description: "The error message" },
-          metadata: { type: :object, nullable: true, description: "Additional metadata about the error",
-                      properties: {
-            error_date: { type: :string, format: "date-time", description: "The date of the error" },
-            other: { type: :object, nullable: true, description: "Other metadata", additionalProperties: true }
-          },
-                      required: %i[error_date] },
+          metadata: { "$ref" => "#/components/schemas/ErrorMetadata" },
           severity: {
             type: :string,
             description: "The severity of the error:
@@ -1101,6 +1096,44 @@ RSpec.describe "api/v1/client/agents" do
         end
 
         run_test!
+      end
+    end
+  end
+
+  describe "submit_error metadata size validation" do
+    let(:agent) { create(:agent) }
+    let(:headers) { { "Authorization" => "Bearer #{agent.token}", "Content-Type" => "application/json" } }
+
+    context "when metadata exceeds 10KB" do
+      it "returns bad_request with metadata too large error" do
+        large_metadata = { data: "x" * 11_000 }
+
+        post "/api/v1/client/agents/#{agent.id}/submit_error",
+             headers: headers,
+             params: {
+               message: "test error",
+               severity: "info",
+               metadata: large_metadata
+             }.to_json
+
+        expect(response).to have_http_status(:bad_request)
+        expect(response.parsed_body["error"]).to eq("Metadata too large (maximum 10,000 bytes)")
+      end
+    end
+
+    context "when metadata is within 10KB limit" do
+      it "accepts the error submission" do
+        small_metadata = { error_date: Time.zone.now, key: "value" }
+
+        post "/api/v1/client/agents/#{agent.id}/submit_error",
+             headers: headers,
+             params: {
+               message: "test error",
+               severity: "info",
+               metadata: small_metadata
+             }.to_json
+
+        expect(response).to have_http_status(:no_content)
       end
     end
   end

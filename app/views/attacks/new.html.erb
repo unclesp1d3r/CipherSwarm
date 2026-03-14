@@ -1,13 +1,18 @@
-<%= render Railsboot::HeaderComponent.new do |header| %>
-  <% header.with_heading do %>
-    <%= title "New #{@attack.attack_mode.humanize.titleize} Attack" %>
-  <% end %>
-  <% header.with_breadcrumb.with_items([
-       { text: "Dashboard", href: root_path },
-       { text: "Activity", href: campaigns_path },
-       { text: @attack.campaign.name, href: @attack.campaign },
-       { text: "New", active: true }
-     ]) %>
-<% end %>
+<div class="card">
+  <div class="card-body">
+    <nav aria-label="breadcrumb" class="mt-0 mb-1 fw-light">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><%= link_to "Dashboard", root_path %></li>
+        <li class="breadcrumb-item"><%= link_to "Activity", campaigns_path %></li>
+        <li class="breadcrumb-item"><%= link_to @attack.campaign.name, @attack.campaign %></li>
+        <li class="breadcrumb-item active" aria-current="page">New</li>
+      </ol>
+    </nav>
+    <div class="d-flex justify-content-between align-items-center">
+      <h2 class="mb-0"><%= title "New #{@attack.attack_mode.humanize.titleize} Attack" %></h2>
+      <div></div>
+    </div>
+  </div>
+</div>
 
 <%= render "form", attack: @attack %>

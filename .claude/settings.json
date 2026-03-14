@@ -1,0 +1,6 @@
+{
+  "enabledPlugins": {
+    "layered-rails@palkan-skills": true,
+    "compound-engineering@compound-engineering-plugin": true
+  }
+}
