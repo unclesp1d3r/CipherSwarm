@@ -24,7 +24,7 @@
       <%= f.submit "Reassign", class: "btn btn-secondary btn-sm" %>
     <% end %>
   <% elsif can_reassign? %>
-    <span class="text-muted small">No compatible agents available</span>
+    <span class="text-body-secondary small">No compatible agents available</span>
   <% end %>
 
   <%= link_to logs_path, class: "btn btn-outline-secondary btn-sm" do %>

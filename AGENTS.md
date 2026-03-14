@@ -2,7 +2,11 @@
 
 This file provides guidance to Agents when working with code in this repository.
 
+@GOTCHAS.md
+
 > **See also:** [GOTCHAS.md](GOTCHAS.md) — edge cases, hard-won lessons, and "watch out for" patterns organized by domain. Read the relevant section before working in that area.
+
+@DESIGN.md
 
 ## Project Overview
 
@@ -159,6 +163,15 @@ just assets-build
 just assets-watch
 ```
 
+### Catppuccin Macchiato Theme
+
+- `_catppuccin.scss` defines the full palette + Bootstrap variable overrides — imported BEFORE `@import "bootstrap"`
+- Primary accent: `$ctp-violet: #a855f7` (DarkViolet lightened), not Catppuccin's Mauve
+- Surface hierarchy: Crust (navbar) → Mantle (sidebar) → Base (body) → Surface0 (cards/inputs)
+- `application.bootstrap.scss` adds component-level dark theme overrides (cards, tables, dropdowns, inputs, Tom Select)
+- Self-hosted fonts via `@fontsource`: Space Grotesk (headings), IBM Plex Sans (body), JetBrains Mono (code) — air-gap safe
+- Font woff2 files copied to `app/assets/builds/` by `build:css:fonts` script in package.json
+
 ### API Documentation
 
 ```bash
@@ -284,7 +297,7 @@ Business logic is extracted into service objects and models:
 - All paginated views must use `<%== @pagy.series_nav(:bootstrap) %>` with a `<noscript><%== @pagy.series_nav %></noscript>` fallback
 - Some views use a local `pagy` variable (from partials) instead of `@pagy` — same API applies
 - Guard both `series_nav` and `<noscript>` inside `if pagy.pages > 1` (see `campaigns/_error_log.html.erb` for reference)
-- `Railsboot::PaginationComponent` wraps `series_nav(:bootstrap)` with noscript fallback for reuse in view components
+- Pagination uses inline `series_nav(:bootstrap)` calls directly in views (no wrapper component)
 
 ### Caching & Real-Time Backend
 
@@ -490,6 +503,20 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 
 ### Common Patterns
 
+**Layout Grid (Logged-In vs Logged-Out):**
+
+- Main content column is conditional: `col-md-10` when sidebar present (logged in), `col-12` when not
+- Sidebar uses `d-none d-md-block` (hidden on mobile) + Bootstrap offcanvas (`#sidebarOffcanvas`) for mobile navigation
+- Mobile offcanvas includes sidebar nav AND navbar items (Tools, Account) via `_sidebar_navbar_items.html.erb`
+- Flash messages rendered inline in layout: `notice` → `alert-success`, `alert` → `alert-danger`, `info` → `alert-info`
+- Skip link (`visually-hidden-focusable`) is first child of `<body>`, targets `id="main-content"` on `<main>`
+
+**Toast Notifications:**
+
+- Error/danger toasts persist (no auto-hide) — users must manually dismiss via close button
+- Success/warning/info toasts auto-dismiss after 5 seconds
+- `ToastNotificationComponent#autohide?` returns `false` for `danger` variant
+
 **Nested Resources:**
 
 - Attacks are nested under Campaigns: `/campaigns/:campaign_id/attacks`
@@ -543,6 +570,12 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 - Always inspect each occurrence to understand whether it's an authentication failure (401) or an authorization failure (403) before changing
 
 > **More pattern gotchas** (CanCanCan nesting, nullable params, Redis locks, logging, upsert_all, FK cascades, transactions) — see [GOTCHAS.md § Database & ActiveRecord](GOTCHAS.md#database--activerecord) and [GOTCHAS.md § Infrastructure](GOTCHAS.md#infrastructure)
+
+**Railsboot Component Removal (Complete):**
+
+- Railsboot components (`app/components/railsboot/`) have been fully removed
+- All views now use plain ERB + Bootstrap utility classes directly
+- Bootstrap JS dependencies: dropdowns, offcanvas, toasts (via Stimulus), modals, collapse
 
 ### Development Workflow
 
@@ -630,3 +663,7 @@ TEST_DATABASE_URL=postgres://root:password@localhost:5432/cipher_swarm_test bund
 - Logging Guide: docs/development/logging-guide.md
 - API Documentation: /api-docs (when server running)
 - Justfile Documentation: .kiro/steering/justfile.md
+
+## Agent Rules <!-- tessl-managed -->
+
+@.tessl/RULES.md follow the [instructions](.tessl/RULES.md)

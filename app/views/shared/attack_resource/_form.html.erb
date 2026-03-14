@@ -1,6 +1,15 @@
 <%# locals: (resource:,projects:) -%>
 <%= simple_form_for(resource) do |f| %>
-  <%= render Railsboot::ErrorsComponent.new(resource) %>
+  <% if resource.errors.any? %>
+    <div class="alert alert-danger" role="alert">
+      <h4 class="alert-heading"><%= pluralize(resource.errors.count, "error") %> prevent this from saving.</h4>
+      <ul>
+        <% resource.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
   <div class="form-inputs">
     <%= f.input :name %>
     <%= f.input :description %>
@@ -12,6 +21,6 @@
   </div>
   <div class="form-actions">
     <%= f.button :submit, class: "btn btn-primary" %>
-    <%= render Railsboot::ButtonComponent.new(tag: "a", href: url_for(controller: controller_name), variant: "danger", text: "Cancel") %>
+    <%= link_to "Cancel", url_for(controller: controller_name), class: "btn btn-secondary" %>
   </div>
 <% end %>
