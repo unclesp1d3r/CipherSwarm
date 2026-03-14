@@ -55,7 +55,6 @@ pull_request_rules:
       - base = main
       - -conflict
       - -draft
-      - -author = dependabot[bot]
       - label != do-not-merge
     actions:
       update: {}
