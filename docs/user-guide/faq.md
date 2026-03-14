@@ -395,6 +395,18 @@ Essential information:
 - **Expected Behavior**: What should have happened
 - **Logs**: Relevant log entries and timestamps
 
+### What does "circuit breaker open" mean in my agent logs?
+
+The circuit breaker is a protective mechanism that activates after repeated connection failures (default: 5 consecutive failures) to prevent cascading failures when the server is unavailable. This is not an error - it's the agent protecting itself. The circuit breaker will automatically attempt recovery after 60 seconds by default. No agent restart is needed. Check server availability and network connectivity if the circuit remains open for more than 5 minutes. See [Circuit Breaker Recovery](troubleshooting-agents.md#circuit-breaker-recovery) for details.
+
+### Why does my agent keep retrying failed requests?
+
+The agent includes automatic retry logic with exponential backoff for transient network failures and server errors (5xx responses). Failed requests are retried up to 3 times by default with increasing delays (1s, 2s, 4s, ...) capped at 30 seconds. This handles temporary network disruptions automatically without manual intervention. See [Agent Network and Connection Issues](troubleshooting.md#agent-network-and-connection-issues) for more information.
+
+### Should I restart my agent when I see "All API request attempts failed"?
+
+No, usually not. This message indicates that all retry attempts were exhausted, often due to temporary network issues or server downtime. If this happens repeatedly, the circuit breaker will activate and the agent will automatically attempt recovery. Check network connectivity and server health first. The agent only needs restarting if configuration changes are required. See [When to Restart an Agent](troubleshooting-agents.md#when-to-restart-an-agent) for guidance.
+
 ## Integration and API
 
 ### Does CipherSwarm v2 have an API?
