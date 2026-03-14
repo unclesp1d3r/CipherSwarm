@@ -132,6 +132,7 @@ class Campaign < ApplicationRecord
   # Callbacks
   after_commit :mark_attacks_complete, on: [:update]
   after_commit :broadcast_eta_update, on: [:update]
+  after_commit :trigger_priority_rebalance_if_needed, on: [:update]
 
   # Provides a label indicating the number of incomplete attacks out of the total number of attacks.
   #
@@ -181,15 +182,10 @@ class Campaign < ApplicationRecord
     attacks.without_states(%i[paused completed]).empty? && attacks.with_state(:paused).any?
   end
 
-  # Converts the campaign's priority to a corresponding emoji.
+  # Maps the campaign's priority to an emoji representation.
   #
-  # @return [String] the emoji representing the campaign's priority.
-  #   - "deferred" => "🕰"
-  #   - "normal" => "🔄"
-  #   - "high" => "🔴"
-  ##
-  # Maps the campaign's priority to a single emoji representing that priority.
-  # @return [String] The emoji for the campaign's priority: "🕰" for deferred, "🔄" for normal, "🔴" for high, "❓" for any other or unknown value.
+  # @return [String] the emoji for the campaign's priority:
+  #   "🕰" for deferred, "🔄" for normal, "🔴" for high, "❓" for unknown.
   def priority_to_emoji
     case priority
     when "deferred"
@@ -235,7 +231,7 @@ class Campaign < ApplicationRecord
   # @return [Time, nil] the max ETA of running attacks, or nil if none are running
   # @see CampaignEtaCalculator#current_eta
   def calculate_current_eta
-    eta_calculator.send(:calculate_current_eta)
+    CampaignEtaCalculator.new(self, cache: false).current_eta
   end
 
   # Calculates the total ETA for all incomplete attacks without caching.
@@ -247,7 +243,7 @@ class Campaign < ApplicationRecord
   # @return [Time, nil] the estimated total completion time, or nil if no incomplete attacks
   # @see CampaignEtaCalculator#total_eta
   def calculate_total_eta
-    eta_calculator.send(:calculate_total_eta)
+    CampaignEtaCalculator.new(self, cache: false).total_eta
   end
 
   # Returns the ETA calculator service for this campaign.
@@ -284,5 +280,34 @@ class Campaign < ApplicationRecord
   # @return [void]
   def mark_attacks_complete
     attacks.without_state(:completed).each(&:complete) if completed?
+  end
+
+  # Enqueues a task preemption rebalance when the campaign's priority is raised.
+  #
+  # Only fires when priority increases (e.g. normal → high), not on decreases or
+  # unchanged saves. Uses Campaign.priorities to compare integer values of the
+  # old and new priority strings returned by saved_change_to_priority.
+  #
+  # @return [void]
+  def trigger_priority_rebalance_if_needed
+    return unless saved_change_to_priority?
+
+    old_priority, new_priority = saved_change_to_priority
+    old_value = Campaign.priorities[old_priority]
+    new_value = Campaign.priorities[new_priority]
+
+    return if old_value.nil? || new_value.nil?
+    return unless new_value > old_value
+
+    begin
+      CampaignPriorityRebalanceJob.perform_later(id)
+    rescue StandardError => e
+      Rails.logger.error(
+        "[Campaign##{id}] Failed to enqueue priority rebalance: #{e.class} - #{e.message} - " \
+        "Backtrace: #{Array(e.backtrace).first(5).join(' | ')}"
+      )
+      # Don't re-raise in after_commit — the save already succeeded; the periodic
+      # rebalance in UpdateStatusJob will catch up.
+    end
   end
 end

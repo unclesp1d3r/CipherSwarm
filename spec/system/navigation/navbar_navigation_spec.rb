@@ -34,10 +34,10 @@ RSpec.describe "Navbar navigation" do
       click_button(class: "navbar-toggler") if page.has_css?("button.navbar-toggler", visible: true)
 
       # Find the Tools dropdown and click it
-      find("a.dropdown-toggle", text: /Tools/i).click
+      click_button(class: "dropdown-toggle", text: /Tools/i)
 
       # Use JavaScript to click the link to bypass Bootstrap dropdown timing issues
-      word_lists_link = find("a[href='#{word_lists_path}']", visible: :all)
+      word_lists_link = first("a[href='#{word_lists_path}']", visible: :all)
       page.execute_script("arguments[0].click()", word_lists_link.native)
 
       expect(page).to have_current_path(word_lists_path)
@@ -50,10 +50,10 @@ RSpec.describe "Navbar navigation" do
     it "navigates to edit profile", js: true do
       visit root_path
 
-      find("a.nav-link.dropdown-toggle", text: user.name).click
+      click_button(class: "nav-link dropdown-toggle", text: user.name)
 
       # Use JavaScript to click the link to bypass Bootstrap dropdown timing issues
-      edit_profile_link = find("a[href='#{edit_user_registration_path}']", visible: :all)
+      edit_profile_link = first("a[href='#{edit_user_registration_path}']", visible: :all)
       page.execute_script("arguments[0].click()", edit_profile_link.native)
 
       expect(page).to have_current_path(edit_user_registration_path)

@@ -6,12 +6,12 @@
   <td><%= hash_list.project.name %></td>
   <td><%= hash_list.completion %></td>
   <td>
-    <div class="btn-group btn-group-sm">
-      <%= link_to icon("eye"), hash_list, class: "btn btn-primary btn-sm" if can? :read, hash_list %>
-      <%= link_to icon("pencil"), edit_hash_list_path(hash_list), class: "btn btn-warning btn-sm" if can? :update, hash_list %>
+    <div class="btn-group btn-group-sm" role="group" aria-label="<%= hash_list.name %> actions">
+      <%= link_to icon("eye"), hash_list, class: "btn btn-primary btn-sm", aria: { label: "View #{hash_list.name}" } if can? :read, hash_list %>
+      <%= link_to icon("pencil"), edit_hash_list_path(hash_list), class: "btn btn-warning btn-sm", aria: { label: "Edit #{hash_list.name}" } if can? :update, hash_list %>
       <%= link_to icon("trash"), hash_list, method: :delete,
                                             data: { turbo_method: :delete, turbo_confirm: "Are you sure?" },
-                                            class: "btn btn-danger btn-sm" if can? :destroy, hash_list %>
+                                            class: "btn btn-danger btn-sm", aria: { label: "Delete #{hash_list.name}" } if can? :destroy, hash_list %>
     </div>
   </td>
 </tr>

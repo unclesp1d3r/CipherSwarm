@@ -1,0 +1,138 @@
+/*!
+ * Catppuccin Macchiato palette for CipherSwarm
+ * https://github.com/catppuccin/catppuccin
+ *
+ * Dark-first theme with DarkViolet (Mauve) accents.
+ * Override Bootstrap SCSS variables BEFORE @import "bootstrap".
+ */
+
+// Catppuccin Macchiato — base palette
+$ctp-rosewater: #f4dbd6;
+$ctp-flamingo:  #f0c6c6;
+$ctp-pink:      #f5bde6;
+$ctp-mauve:     #c6a0f6; // Catppuccin Mauve (used for subtle accents)
+$ctp-violet:    #a855f7; // DarkViolet lightened — primary accent
+$ctp-red:       #ed8796;
+$ctp-maroon:    #ee99a0;
+$ctp-peach:     #f5a97f;
+$ctp-yellow:    #eed49f;
+$ctp-green:     #a6da95;
+$ctp-teal:      #8bd5ca;
+$ctp-sky:       #91d7e3;
+$ctp-sapphire:  #7dc4e4;
+$ctp-blue:      #8aadf4;
+$ctp-lavender:  #b7bdf8;
+
+$ctp-text:      #cad3f5;
+$ctp-subtext1:  #b8c0e0;
+$ctp-subtext0:  #a5adcb;
+$ctp-overlay2:  #939ab7;
+$ctp-overlay1:  #8087a2;
+$ctp-overlay0:  #6e738d;
+$ctp-surface2:  #5b6078;
+$ctp-surface1:  #494d64;
+$ctp-surface0:  #363a4f;
+$ctp-base:      #24273a;
+$ctp-mantle:    #1e2030;
+$ctp-crust:     #181926;
+
+// ---------------------------------------------------------------------------
+// Typography — self-hosted fonts (air-gap safe via @fontsource)
+// Font files are copied to app/assets/builds/ by the build:css:fonts script.
+// ---------------------------------------------------------------------------
+
+// Space Grotesk — geometric, technical headings (variable: 300–700)
+@font-face {
+  font-family: "Space Grotesk";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 300 700;
+  src: url("space-grotesk-latin-wght-normal.woff2") format("woff2-variations");
+}
+
+// IBM Plex Sans — technical heritage body text (individual weights)
+@each $weight in 400, 500, 600, 700 {
+  @font-face {
+    font-family: "IBM Plex Sans";
+    font-style: normal;
+    font-display: swap;
+    font-weight: $weight;
+    src: url("ibm-plex-sans-latin-#{$weight}-normal.woff2") format("woff2");
+  }
+}
+
+// JetBrains Mono — monospace for hashes, masks, technical data (variable: 100–800)
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 800;
+  src: url("jetbrains-mono-latin-wght-normal.woff2") format("woff2-variations");
+}
+
+// Bootstrap font stack overrides
+$font-family-sans-serif: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+$font-family-monospace:  "JetBrains Mono", SFMono-Regular, Menlo, monospace;
+$headings-font-family:   "Space Grotesk", $font-family-sans-serif;
+$headings-font-weight:   600;
+
+// ---------------------------------------------------------------------------
+// Bootstrap theme color overrides
+// ---------------------------------------------------------------------------
+$primary:   $ctp-violet;
+$secondary: $ctp-overlay1;
+$success:   $ctp-green;
+$info:      $ctp-blue;
+$warning:   $ctp-yellow;
+$danger:    $ctp-red;
+$light:     $ctp-surface0;
+$dark:      $ctp-crust;
+
+// ---------------------------------------------------------------------------
+// Bootstrap dark-mode variable overrides (compiled into [data-bs-theme="dark"])
+// ---------------------------------------------------------------------------
+$body-color-dark:              $ctp-text;
+$body-bg-dark:                 $ctp-base;
+$body-secondary-color-dark:    rgba($ctp-text, .75);
+$body-secondary-bg-dark:       $ctp-mantle;
+$body-tertiary-color-dark:     rgba($ctp-text, .5);
+$body-tertiary-bg-dark:        $ctp-surface0;
+$body-emphasis-color-dark:     $ctp-rosewater;
+$border-color-dark:            $ctp-surface1;
+$border-color-translucent-dark: rgba($ctp-overlay0, .25);
+$headings-color-dark:          inherit;
+
+// Links — Lavender for links, Mauve on hover
+$link-color-dark:       $ctp-lavender;
+$link-hover-color-dark: $ctp-violet;
+
+// Subtle semantic backgrounds (used by alert-*, bg-*-subtle)
+$primary-bg-subtle-dark:   shade-color($ctp-violet, 80%);
+$success-bg-subtle-dark:   shade-color($ctp-green, 80%);
+$info-bg-subtle-dark:      shade-color($ctp-blue, 80%);
+$warning-bg-subtle-dark:   shade-color($ctp-yellow, 80%);
+$danger-bg-subtle-dark:    shade-color($ctp-red, 80%);
+$light-bg-subtle-dark:     $ctp-surface1;
+$dark-bg-subtle-dark:      $ctp-crust;
+
+// Subtle semantic borders
+$primary-border-subtle-dark:   shade-color($ctp-violet, 40%);
+$success-border-subtle-dark:   shade-color($ctp-green, 40%);
+$info-border-subtle-dark:      shade-color($ctp-blue, 40%);
+$warning-border-subtle-dark:   shade-color($ctp-yellow, 40%);
+$danger-border-subtle-dark:    shade-color($ctp-red, 40%);
+$light-border-subtle-dark:     $ctp-surface2;
+$dark-border-subtle-dark:      $ctp-mantle;
+
+// Text emphasis (used by text-*-emphasis)
+$primary-text-emphasis-dark:   tint-color($ctp-violet, 40%);
+$success-text-emphasis-dark:   tint-color($ctp-green, 40%);
+$info-text-emphasis-dark:      tint-color($ctp-blue, 40%);
+$warning-text-emphasis-dark:   tint-color($ctp-yellow, 40%);
+$danger-text-emphasis-dark:    tint-color($ctp-red, 40%);
+
+// Form validation colors
+$form-valid-color-dark:          $ctp-green;
+$form-valid-border-color-dark:   $ctp-green;
+$form-invalid-color-dark:        $ctp-red;
+$form-invalid-border-color-dark: $ctp-red;

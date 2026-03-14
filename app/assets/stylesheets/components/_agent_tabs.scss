@@ -12,6 +12,10 @@
     &.d-none {
       opacity: 0;
     }
+
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+    }
   }
 }
 
@@ -80,7 +84,7 @@
     align-items: center;
     padding: 0.75rem;
     border-radius: 0.25rem;
-    background-color: var(--bs-light);
+    background-color: var(--bs-tertiary-bg);
 
     svg {
       flex-shrink: 0;

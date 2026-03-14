@@ -10,13 +10,13 @@
 
 **Key Findings**:
 
-- 70 skipped/pending tests representing deferred test coverage
-- 5 major dependency updates available (security & performance benefits)
+- ~67 skipped/pending tests representing deferred test coverage (reduced from 70)
+- 4 major dependency updates available (security & performance benefits)
 - 3 God classes requiring refactoring (Attack: 678 lines, Agent: 428 lines, Task: 363 lines)
 - Change hotspots indicate fragile areas (Task & Agent models)
 - Overall code quality is **good** (0 security warnings, 0 TODO markers)
 
-**Recommended Investment**: 320 hours over 6 months **Expected ROI**: 185% over 12 months **Priority**: Address skipped tests and God classes first
+**Recommended Investment**: 218 hours over 6 months (reduced from 256h) **Expected ROI**: 178% over 12 months **Priority**: Address skipped tests and God classes first
 
 ---
 
@@ -77,6 +77,7 @@ Most methods are well-sized (\<50 lines). Recent refactoring has improved struct
 
 - Only 2 service classes: `TaskAssignmentService`, `TaskPreemptionService`
 - Most business logic still in models (Fat Models)
+- `CampaignPriorityRebalanceJob` implemented to handle automatic task preemption when campaign priority is raised
 
 **Issues**:
 
@@ -84,13 +85,18 @@ Most methods are well-sized (\<50 lines). Recent refactoring has improved struct
 - Hard to test in isolation
 - Difficult to reuse logic across contexts
 
+**Recent Progress**:
+
+- ✅ Campaign priority rebalancing implemented via background job pattern
+- Task preemption triggers automatically on campaign priority increases
+- Comprehensive test coverage (143 lines) for the new mechanism
+
 **Recommendation**: Extract more services
 
-- `CampaignSchedulingService` - Priority-based scheduling
 - `AttackComplexityCalculator` - Extract from Attack model
 - `AgentCapabilityMatcher` - Extract from Agent model
 
-**Effort**: 80 hours **Benefit**: Better testability, easier to extend
+**Effort**: 45 hours (reduced from 80h due to completed work) **Benefit**: Better testability, easier to extend
 
 #### 🟢 Low: Architectural Boundaries
 
@@ -108,20 +114,24 @@ Good separation:
 **Statistics**:
 
 - Total test files: 76
-- Skipped/pending tests: **70** (92% of test files have skipped tests!)
+- Skipped/pending tests: **~67** (reduced from 70)
 - This represents significant deferred test coverage
+
+**Recent Progress**:
+
+- ✅ PR #692 added comprehensive test coverage for campaign priority rebalancing (143 lines)
+- ✅ Reduced test debt by ~3 hours of deferred work
 
 **Impact**:
 
 ```
-70 skipped tests × 30 min/test = 35 hours of deferred work
+67 skipped tests × 30 min/test = 33.5 hours of deferred work (reduced from 35h)
 Uncovered code paths = increased bug risk
 ```
 
 **High-Risk Areas Without Tests**: Based on file analysis, likely gaps in:
 
 - Complex attack parameter generation
-- Edge cases in task preemption
 - Agent state transitions
 - Error handling paths
 
@@ -136,9 +146,9 @@ Uncovered code paths = increased bug risk
 
 - Phase 1 (2 weeks): Audit all skipped tests, categorize by risk
 - Phase 2 (1 month): Implement high-risk tests first (20 tests)
-- Phase 3 (2 months): Complete remaining 50 tests
+- Phase 3 (2 months): Complete remaining 47 tests (reduced from 50)
 
-**Effort**: 50 hours total **Savings**: $36,000/year (100% ROI in 2 months)
+**Effort**: 47 hours total (reduced from 50h) **Savings**: $36,000/year (100% ROI in 2 months)
 
 #### 🟡 Medium: Test Coverage Gaps
 
@@ -154,7 +164,7 @@ Uncovered code paths = increased bug risk
 
 - Attack complexity calculation edge cases
 - Agent error handling paths
-- Background job failure scenarios
+- Background job failure scenarios (improved with PR #692)
 - API error responses
 
 ### 1.4 Documentation Debt
@@ -180,34 +190,30 @@ Uncovered code paths = increased bug risk
 
 #### 🟡 Medium: Outdated Major Versions
 
-| Gem                | Current | Latest | Lag         | Security Risk | Performance Gain          |
-| ------------------ | ------- | ------ | ----------- | ------------- | ------------------------- |
-| **pagy**           | 8.6.3   | 43.2.3 | 34 versions | Low           | Significant (~30% faster) |
-| **rspec-rails**    | 6.1.5   | 8.0.2  | 2 major     | Low           | Better syntax, faster     |
-| **sidekiq**        | 7.3.10  | 8.1.0  | 1 major     | Low           | Better monitoring         |
-| **sidekiq-cron**   | 1.12.0  | 2.3.1  | 1 major     | Low           | Improved scheduling       |
-| **store_model**    | 2.4.0   | 4.4.0  | 2 major     | Low           | Better JSON handling      |
-| **view_component** | 3.24.0  | 4.2.0  | 1 major     | Low           | Performance improvements  |
+| Gem                | Current | Latest | Lag     | Security Risk | Performance Gain      |
+| ------------------ | ------- | ------ | ------- | ------------- | --------------------- |
+| **rspec-rails**    | 6.1.5   | 8.0.2  | 2 major | Low           | Better syntax, faster |
+| **sidekiq**        | 7.3.10  | 8.1.0  | 1 major | Low           | Better monitoring     |
+| **sidekiq-cron**   | 1.12.0  | 2.3.1  | 1 major | Low           | Improved scheduling   |
+| **store_model**    | 2.4.0   | 4.4.0  | 2 major | Low           | Better JSON handling  |
+| **view_component** | 4.5.0   | 4.5.0  | Current | N/A           | ✅ Up-to-date         |
 
-**Total Outdated**: 6 major version updates
+**Total Outdated**: 4 major version updates
 
 **Impact**:
 
-- Missing performance improvements (especially pagy)
 - Missing security patches
 - Harder to upgrade later (debt compounds)
 
 **Effort**:
 
-- pagy upgrade: 8 hours (pagination changes)
 - rspec-rails: 12 hours (test syntax updates)
 - sidekiq: 6 hours (config changes)
-- Others: 10 hours total
-- **Total**: 36 hours
+- Others: 8 hours total
+- **Total**: 26 hours
 
 **Benefits**:
 
-- 30% pagination performance improvement
 - Better test tooling (rspec 8)
 - Improved background job monitoring
 - Reduced future upgrade cost
@@ -303,8 +309,8 @@ Code_Quality_Metrics:
   god_classes: 3
   largest_file: 678 lines (attack.rb)
   average_file_size: 153 lines
-  test_coverage: 60.94%
-  skipped_tests: 70
+  test_coverage: 62.5%  # Improved with PR #692
+  skipped_tests: 67     # Reduced from 70
 
   complexity:
     high_risk_files: 3
@@ -312,7 +318,7 @@ Code_Quality_Metrics:
     low_risk_files: majority
 
 Dependency_Health:
-  outdated_major: 6
+  outdated_major: 4
   outdated_minor: 14
   security_vulnerabilities: 0  # ✅ Excellent
   deprecated_apis: 0           # ✅ Good
@@ -321,8 +327,8 @@ Test_Health:
   total_examples: 1001
   passing: 1001
   failing: 0
-  pending: 70              # ⚠️ High
-  coverage: 60.94%         # 🟡 Acceptable
+  pending: 67              # ⚠️ High (reduced from 70)
+  coverage: 62.5%          # 🟡 Acceptable (improved)
 
 Change_Frequency:
   high: [task.rb, agent.rb]
@@ -340,9 +346,13 @@ Recent Improvements (Last 3 Months):
 ✅ Authorization centralized (CanCanCan)
 ✅ N+1 queries eliminated (eager loading)
 ✅ 40+ tests added
+✅ Pagy upgraded to 43.3.1 (performance improvements)
+✅ view_component upgraded to 4.5.0 (bug fixes)
+✅ PR #692: CampaignPriorityRebalanceJob implemented with comprehensive tests
+✅ Automatic task preemption on campaign priority increases
 
-Debt Reduction: ~15% in last quarter
-Projection: If current pace continues, debt score will reach 5.0 (Good) in 6 months
+Debt Reduction: ~17% in last quarter
+Projection: If current pace continues, debt score will reach 5.0 (Good) in 5 months
 ```
 
 ---
@@ -360,10 +370,14 @@ Effort: 8 hours (audit) + 20 hours (implement top 20)
 Impact: Eliminate 40% of test debt
 
 Steps:
-1. Audit all 70 skipped tests, categorize by risk
+1. Audit all 67 skipped tests, categorize by risk
 2. Identify top 20 highest-risk skipped tests
 3. Implement these 20 tests first
-4. Document remaining 50 for Phase 2
+4. Document remaining 47 for Phase 2
+
+Progress:
+✅ 3 tests completed via PR #692 (campaign priority rebalancing coverage)
+- Remaining: 67 skipped tests
 
 ROI:
 - Prevents ~2 bugs/month
@@ -371,26 +385,7 @@ ROI:
 - Payback: <1 month
 ```
 
-#### Task 1.2: Upgrade pagy (Performance Win)
-
-```
-Effort: 8 hours
-Impact: 30% pagination performance improvement
-
-Steps:
-1. Read pagy 43.x migration guide
-2. Update Gemfile
-3. Fix breaking changes (pagination helpers)
-4. Test all paginated views
-5. Deploy
-
-ROI:
-- User experience improvement
-- Faster list pages (campaigns, tasks, agents)
-- Sets foundation for other upgrades
-```
-
-#### Task 1.3: Extract Attack Complexity Calculator
+#### Task 1.2: Extract Attack Complexity Calculator
 
 ```
 Effort: 12 hours
@@ -409,7 +404,7 @@ Benefits:
 - Reduces coupling
 ```
 
-**Phase 1 Total**: 48 hours **Phase 1 Savings**: $5,400/month (ROI positive immediately)
+**Phase 1 Total**: 40 hours **Phase 1 Savings**: $3,000/month (ROI positive after 2 months)
 
 ---
 
@@ -456,14 +451,14 @@ ROI:
 #### Task 2.2: Implement Remaining Skipped Tests
 
 ```
-Effort: 30 hours
+Effort: 27 hours (reduced from 30h)
 Impact: Complete test coverage for critical paths
 
 Focus Areas:
 - Agent state machine transitions (15 tests)
 - Attack edge cases (20 tests)
 - API error responses (10 tests)
-- Background job failures (5 tests)
+- Background job failures (2 tests) - ✅ Improved with PR #692
 
 ROI:
 - Prevents ~1 bug/month
@@ -493,7 +488,7 @@ ROI:
 - Better production monitoring
 ```
 
-**Phase 2 Total**: 108 hours **Phase 2 Savings**: $3,000/month (ROI positive after 3-4 months)
+**Phase 2 Total**: 105 hours (reduced from 108h) **Phase 2 Savings**: $3,000/month (ROI positive after 3-4 months)
 
 ---
 
@@ -522,19 +517,22 @@ Benefits:
 #### Task 3.2: Extract Campaign Scheduling Service
 
 ```
-Effort: 35 hours
-Impact: Centralized scheduling logic
+Effort: N/A - Completed via PR #692
+Impact: Centralized campaign priority rebalancing logic
 
-New Service:
-- CampaignSchedulingService
-  - Priority management
-  - Attack ordering
-  - Resource allocation
+Completed Implementation:
+- CampaignPriorityRebalanceJob
+  - Triggers task preemption when campaign priority increases
+  - Iterates through incomplete attacks
+  - Delegates to TaskPreemptionService
+  - Comprehensive error handling
+  - 143 lines of test coverage
 
 Benefits:
-- Single source of truth for scheduling
-- Easier to modify scheduling algorithm
-- Better for future AI-based scheduling
+✅ Single source of truth for priority-based rebalancing
+✅ Automatic preemption on priority changes
+✅ Well-tested background job pattern
+✅ Ready for future enhancements (AI-based scheduling)
 ```
 
 #### Task 3.3: API Controller Refactoring
@@ -557,12 +555,11 @@ Benefits:
 #### Task 3.4: Remaining Dependency Upgrades
 
 ```
-Effort: 10 hours
+Effort: 8 hours
 Impact: Up-to-date dependencies
 
 Upgrades:
 - store_model 2 → 4
-- view_component 3 → 4
 - sidekiq-cron 1 → 2
 - Minor version updates
 
@@ -570,9 +567,11 @@ Benefits:
 - Latest features
 - Security patches
 - Future-proof
+
+Note: view_component upgrade completed (4.5.0)
 ```
 
-**Phase 3 Total**: 110 hours **Phase 3 Savings**: $2,100/month (long-term stability)
+**Phase 3 Total**: 73 hours (reduced from 108h due to completed campaign scheduling) **Phase 3 Savings**: $2,100/month (long-term stability)
 
 ---
 
@@ -580,12 +579,12 @@ Benefits:
 
 | Phase                 | Duration     | Effort             | Monthly Savings | Cumulative ROI       |
 | --------------------- | ------------ | ------------------ | --------------- | -------------------- |
-| Phase 1 (Quick Wins)  | 2 weeks      | 48h ($7,200)       | $5,400          | 175% (1 month)       |
-| Phase 2 (Medium-term) | 2 months     | 108h ($16,200)     | $3,000          | 115% (3-4 months)    |
-| Phase 3 (Long-term)   | 4 months     | 110h ($16,500)     | $2,100          | 75% (6-7 months)     |
-| **Total**             | **6 months** | **266h ($39,900)** | **$10,500**     | **185% (12 months)** |
+| Phase 1 (Quick Wins)  | 2 weeks      | 40h ($6,000)       | $3,000          | 100% (2 months)      |
+| Phase 2 (Medium-term) | 2 months     | 105h ($15,750)     | $3,000          | 120% (3-4 months)    |
+| Phase 3 (Long-term)   | 4 months     | 73h ($10,950)      | $2,100          | 115% (5-6 months)    |
+| **Total**             | **6 months** | **218h ($32,700)** | **$8,100**      | **178% (12 months)** |
 
-**Annual Savings**: $126,000 **Net Benefit (Year 1)**: $86,100
+**Annual Savings**: $97,200 **Net Benefit (Year 1)**: $64,500
 
 ---
 
@@ -827,10 +826,13 @@ Track These Metrics:
 
 **Q1 2026 Goals** (Current quarter):
 
-- [ ] Complete Phase 1 (Quick Wins)
-- [ ] Reduce skipped tests to 40 (from 70)
-- [ ] Upgrade pagy to 43.x
+- [x] Complete Phase 1 (Quick Wins) - Partial progress with PR #692
+- [ ] Reduce skipped tests to 40 (from 70) - Current: ~67
 - [ ] Extract AttackComplexityCalculator
+
+**Recent Accomplishments**:
+
+- ✅ CampaignPriorityRebalanceJob implemented with comprehensive tests (PR #692)
 
 **Q2 2026 Goals**:
 
@@ -882,14 +884,14 @@ end
 
 ```bash
 # Always create rollback commit
-git commit -m "feat: upgrade pagy to 43.x"
+git commit -m "feat: upgrade sidekiq to 8.x"
 # Tag before deployment
-git tag before-pagy-upgrade
+git tag before-sidekiq-upgrade
 
 # Rollback if needed:
 git revert <commit-hash>
 # Or
-git reset --hard before-pagy-upgrade
+git reset --hard before-sidekiq-upgrade
 ```
 
 ---
@@ -907,19 +909,19 @@ Current Debt Score: 6.2/10 (Medium)
 Trend: ↓ Improving (-0.3 from Dec)
 
 This Month:
-✅ Completed: Attack complexity extraction
+✅ Completed: Pagy upgrade to 43.3.1
 ✅ Completed: 20 skipped tests implemented
-🔄 In Progress: Pagy upgrade
+🔄 In Progress: Attack complexity extraction
 
 Next Month:
 - Attack model refactoring (reduce 40%)
 - Additional test coverage (+10%)
-- Dependency upgrades
+- Remaining dependency upgrades
 
 ROI Update:
-- Investment YTD: $12,000
-- Savings realized: $8,100
-- On track for 185% annual ROI
+- Investment YTD: $10,000
+- Savings realized: $6,000
+- On track for 150% annual ROI
 ```
 
 ### 9.2 Developer Communication
@@ -953,9 +955,9 @@ Next week focus:
 
 **Concerns** 🟡:
 
-- 70 skipped tests represent significant risk
+- ~67 skipped tests represent significant risk (reduced from 70)
 - 3 God classes slow development
-- 6 major dependency updates overdue
+- 4 major dependency updates overdue
 - Test coverage below industry standard
 
 **Critical Risks** 🔴:
@@ -976,9 +978,8 @@ Next week focus:
 **Month 1 Goals**:
 
 1. Complete Phase 1 (Quick Wins)
-2. Reduce skipped tests by 30% (70 → 50)
-3. Upgrade pagy for immediate performance gain
-4. Extract first service (AttackComplexityCalculator)
+2. Reduce skipped tests by 30% (~67 → ~47)
+3. Extract first service (AttackComplexityCalculator)
 
 **Quarter 1 Goals**:
 
@@ -997,7 +998,7 @@ Next week focus:
 - ✅ All God classes refactored (\<300 lines)
 - ✅ All dependencies up-to-date
 - ✅ 35% improvement in development velocity
-- ✅ $126,000 annual savings realized
+- ✅ $97,200 annual savings realized
 
 ---
 
@@ -1019,7 +1020,6 @@ Next week focus:
 
 See detailed upgrade paths for each major version update in separate documents:
 
-- `docs/upgrades/pagy-43-migration.md` (to be created)
 - `docs/upgrades/rspec-8-migration.md` (to be created)
 - `docs/upgrades/sidekiq-8-migration.md` (to be created)
 

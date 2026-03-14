@@ -338,6 +338,9 @@ Rails.application.routes.draw do
   get "system_health", to: "system_health#index", as: :system_health
 
   resources :agents do
+    member do
+      post :expire_benchmarks
+    end
     collection do
       get :cards
     end

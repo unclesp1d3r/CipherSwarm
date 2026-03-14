@@ -1,13 +1,18 @@
 <%# locals: (resource:,projects:) -%>
-<%= render Railsboot::HeaderComponent.new do |header| %>
-  <% header.with_heading do %>
-    <%= title resource.name %>
-  <% end %>
-  <% header.with_breadcrumb.with_items([
-       { text: "Dashboard", href: root_path },
-       { text: resource.class.model_name.human.pluralize, href: url_for(controller: controller_name) },
-       { text: resource.name, href: resource },
-       { text: "Edit", active: true }
-     ]) %>
-<% end %>
+<div class="card">
+  <div class="card-body">
+    <nav aria-label="breadcrumb" class="mt-0 mb-1 fw-light">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><%= link_to "Dashboard", root_path %></li>
+        <li class="breadcrumb-item"><%= link_to resource.class.model_name.human.pluralize, url_for(controller: controller_name) %></li>
+        <li class="breadcrumb-item"><%= link_to resource.name, resource %></li>
+        <li class="breadcrumb-item active" aria-current="page">Edit</li>
+      </ol>
+    </nav>
+    <div class="d-flex justify-content-between align-items-center">
+      <h2 class="mb-0"><%= title resource.name %></h2>
+      <div></div>
+    </div>
+  </div>
+</div>
 <%= render "shared/attack_resource/form", resource: resource, projects: projects %>
