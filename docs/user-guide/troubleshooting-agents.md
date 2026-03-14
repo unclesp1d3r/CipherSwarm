@@ -439,6 +439,43 @@ grep "\[Attack.*Abandoning attack" /var/log/cipherswarm/production.log | \
 - Abandonments affecting multiple agents simultaneously
 - No clear trigger (check for system issues)
 
+### Task Assignment Skip Reasons
+
+When agents request work but receive no tasks, the task assignment service logs detailed reasons to help operators diagnose agent idleness. These `[TaskAssignment]` log entries make it easier to understand why agents remain idle.
+
+**Log Pattern:**
+
+When no task is assigned, you'll see an info-level log entry like:
+
+```
+[TaskAssignment] no_task_assigned: agent_id=123 reasons=no_available_attacks, all_hashes_cracked allowed_hash_type_ids=[...] project_ids=[...] timestamp=...
+```
+
+**Skip Reasons:**
+
+- `no_available_attacks` - No attacks are available for the agent's hash types and projects
+- `all_hashes_cracked` - All hashes in available attacks have been cracked
+- `pending_tasks_not_owned` - Pending tasks exist but are assigned to other agents
+- `performance_threshold_not_met` - Agent doesn't meet performance requirements for available attacks
+- `grace_period_active` - Paused tasks exist but are still in the grace period (waiting for original agent)
+
+**Additional Debug Logs:**
+
+For more granular diagnostics, enable debug-level logging to see per-attack skip reasons:
+
+- `[TaskAssignment] no_uncracked_hashes: agent_id=X attack_id=Y` - Specific attack has no remaining work
+- `[TaskAssignment] pending_tasks_taken: agent_id=X attack_id=Y` - Another agent owns pending tasks for this attack
+- `[TaskAssignment] grace_period_active: agent_id=X grace_cutoff=... blocked_task_count=N` - Tasks are blocked by grace period
+- `[TaskAssignment] performance_threshold_not_met: agent_id=X attack_id=Y hash_mode=Z` - Agent's benchmark too slow for this attack
+
+**Troubleshooting with Skip Reasons:**
+
+1. **no_available_attacks**: Check that campaigns are active and match the agent's configured hash types and project assignments
+2. **all_hashes_cracked**: All work is complete; consider starting new campaigns or adjusting hash lists
+3. **pending_tasks_not_owned**: Other agents have claimed available work; this is normal in multi-agent environments
+4. **performance_threshold_not_met**: Review agent benchmark results and attack complexity requirements
+5. **grace_period_active**: Tasks are temporarily reserved for their original agents; wait for grace period expiration or agent reconnection
+
 ### Correlating Agent Logs with Server Logs
 
 **Process:**
@@ -1178,10 +1215,24 @@ grep "\[Attack.*Abandoning attack" production.log
 grep "\[TaskNotFound\]" production.log
 ```
 
+**Find all task assignment issues:**
+
+```bash
+grep "\[TaskAssignment\]" production.log
+```
+
 **Count 404 errors in last hour:**
 
 ```bash
 grep "\[TaskNotFound\]" production.log | \
+  grep "$(date -u +%Y-%m-%d\ %H)" | \
+  wc -l
+```
+
+**Count idle agents with skip reasons in last hour:**
+
+```bash
+grep "\[TaskAssignment\] no_task_assigned" production.log | \
   grep "$(date -u +%Y-%m-%d\ %H)" | \
   wc -l
 ```
@@ -1194,6 +1245,13 @@ grep "\[TaskNotFound\]" production.log | \
 - Look for task reassignment patterns
 - Verify agent timeout settings
 - Check network stability
+
+**Agents Not Receiving Tasks:**
+
+- Check `[TaskAssignment]` logs for skip reasons
+- Verify agent hash type and project configuration
+- Review agent benchmark performance
+- Ensure campaigns have uncracked hashes
 
 **Slow Task Completion:**
 
@@ -1219,6 +1277,9 @@ grep "\[TaskNotFound\]" production.log | \
 | `[TaskNotFound].*task_deleted`                               | Agent tried to use deleted task           | Normal, agent should request new work         |
 | `[TaskNotFound].*task_not_assigned`                          | Agent tried to access other agent's task  | Check for configuration issues                |
 | `[TaskNotFound].*task_invalid`                               | Invalid task ID used                      | Possible client bug, investigate              |
+| `[TaskAssignment] no_task_assigned.*no_available_attacks`    | No attacks match agent's configuration    | Check hash types and project assignments      |
+| `[TaskAssignment] no_task_assigned.*all_hashes_cracked`      | All available work is complete            | Start new campaigns or adjust hash lists      |
+| `[TaskAssignment] no_task_assigned.*performance_threshold`   | Agent too slow for available attacks      | Review benchmarks or adjust thresholds        |
 | Multiple `[TaskNotFound]` for same agent in short time       | Agent not recovering properly             | Check agent configuration and code            |
 | `[Attack.*Abandoning attack]` multiple times for same attack | Attack repeatedly abandoned and restarted | Investigate root cause                        |
 | `Circuit breaker open, server appears unresponsive`          | Circuit breaker protecting against cascading failures | Check server availability and health; agent will auto-recover |
