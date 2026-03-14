@@ -3,7 +3,7 @@
     <nav aria-label="breadcrumb" class="mt-0 mb-1 fw-light">
       <ol class="breadcrumb">
         <li class="breadcrumb-item"><%= link_to "Dashboard", root_path %></li>
-        <li class="breadcrumb-item"><%= link_to @resource.class.model_name.human.pluralize, "#" %></li>
+        <li class="breadcrumb-item"><%= link_to @resource.class.model_name.human.pluralize, polymorphic_path(@resource.class) %></li>
         <li class="breadcrumb-item"><%= link_to @resource.name, @resource %></li>
         <li class="breadcrumb-item active" aria-current="page">View File Contents</li>
       </ol>
