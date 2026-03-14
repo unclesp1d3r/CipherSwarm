@@ -1,12 +1,12 @@
 <nav class="navbar navbar-expand-md bg-body-tertiary">
   <div class="container-fluid">
-    <a class="navbar-brand">
+    <%= link_to root_path, class: "navbar-brand" do %>
       <%= inline_svg_tag "logo.svg",
                          size: "30px",
                          title: "CipherSwarm Logo",
                          aria_hidden: true %>
       <%= current_site %>
-    </a>
+    <% end %>
     <% if user_signed_in? %>
       <button type="button" class="navbar-toggler d-md-none" data-bs-toggle="offcanvas" data-bs-target="#sidebarOffcanvas" aria-controls="sidebarOffcanvas" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
