@@ -108,7 +108,7 @@ Implement system health monitoring dashboard with service status checks, diagnos
   - Latency display (if available)
   - Error message display (if unhealthy)
 
-- [ ] Component follows existing Railsboot patterns
+- [ ] Components use plain Bootstrap HTML and utility classes directly (Railsboot abstraction layer has been removed)
 
 - [ ] Component tested with component specs
 
@@ -145,6 +145,22 @@ Implement system health monitoring dashboard with service status checks, diagnos
 - Test Redis lock with concurrent requests (use threads in test)
 - Ensure health checks work in air-gapped environment
 - Consider adding timeout to health checks (5 seconds) to prevent hanging
+
+**Component Development Guidelines:**
+
+The Railsboot component abstraction layer has been fully removed from the codebase (PR #706). All components must now follow these patterns:
+
+- Use ViewComponent framework for reusable logic and organization
+- Render Bootstrap HTML and utility classes directly in component templates (no abstraction layer)
+- Reference [Bootstrap documentation](https://getbootstrap.com/docs/5.3) for component patterns
+- Use plain Bootstrap utility classes (e.g., `card`, `card-body`, `badge`, `text-bg-success`, `text-body-secondary`)
+- Do not create abstraction layers; use Bootstrap classes directly in ERB templates
+- Refer to [AGENTS.md](AGENTS.md) for frontend development patterns and layout guidelines
+- Refer to [GOTCHAS.md](GOTCHAS.md) for accessibility considerations and common pitfalls
+
+**Architectural Note:**
+
+The Railsboot component abstraction layer was removed in PR #706. All views and components now use plain ERB templates with Bootstrap utility classes. For example, `SystemHealthCardComponent` renders direct Bootstrap markup (`<div class="card">`) instead of using wrapper components like `Railsboot::CardComponent`.
 
 ## Estimated Effort
 

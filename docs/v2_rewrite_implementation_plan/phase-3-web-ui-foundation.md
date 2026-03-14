@@ -228,8 +228,10 @@ A new test-seeding endpoint needs to be created in the backend to seed the datab
 - [x] **COMPLETED**: **Server-side API client** for `+page.server.ts` integration
 - [x] **COMPLETED**: Implemented shared layout with sidebar, topbar, modal container, and toast container (`+layout.svelte`, `Sidebar`, `Header`, `Toast` components)
 - [x] **COMPLETED**: Implemented comprehensive toast notification system using svelte-sonner
-- [ ] Configure `frontend/app.css` with Catppuccin Macchiato + DarkViolet accent (see `docs/development/style-guide.md` for style guide)
+- [x] **COMPLETED**: Configure `frontend/app.css` with Catppuccin Macchiato + DarkViolet accent (implemented via `_catppuccin.scss` with Bootstrap variable overrides)
 - [ ] Add dark mode toggle using Shadcn-Svelte utilities
+
+**Note**: The Rails backend has implemented a comprehensive Catppuccin Macchiato theme. The frontend implementation should align with these patterns when applicable.
 - [x] **COMPLETED**: Implemented login page (with email + password)
 - [x] **COMPLETED**: Implemented account/profile pages with user management
 - [x] **COMPLETED**: Implemented settings page
@@ -421,6 +423,15 @@ A new test-seeding endpoint needs to be created in the backend to seed the datab
 ## Design Goals & User Experience Intent
 
 This section captures the comprehensive UX design goals and interface patterns derived from the API implementation planning. These goals guide the frontend implementation to ensure a cohesive, user-friendly experience across all CipherSwarm features.
+
+**Design Reference**: See `DESIGN.md` in the Rails backend for comprehensive design context including user personas, brand personality ("Technical, Accessible, Performant, Minimal"), and design principles. The SvelteKit frontend should align with these design goals where applicable.
+
+**Frontend Gotchas**: See `GOTCHAS.md` (Frontend & Accessibility section) for important implementation considerations:
+- Navbar dropdown accessibility patterns
+- Z-index layering with Bootstrap utilities
+- Sidebar ARIA attributes for proper navigation semantics
+- Turbo morph constraints (Rails-specific but relevant for understanding real-time update patterns)
+- Asset caching issues to watch for during development
 
 ### Authentication & User Management UX
 
@@ -631,10 +642,19 @@ This section captures the comprehensive UX design goals and interface patterns d
 ## Visual Theme
 
 - Catppuccin Macchiato base
-- DarkViolet accent (`#9400D3`)
-- Layout surfaces use `base`, `surface0`, `crust`
+- DarkViolet accent (`#9400D3`, implemented as `#a855f7` in the Rails backend's `_catppuccin.scss`)
+- Layout surfaces use `base`, `surface0`, `crust` with proper hierarchy:
+  - **Crust**: Navbar background (darkest layer)
+  - **Mantle**: Sidebar background
+  - **Base**: Main body background
+  - **Surface0**: Cards, inputs, and elevated surfaces
 - **✅ COMPLETED**: Shadcn-Svelte components provide theme-compatible styling
-- **Note**: Dark mode toggle still pending implementation but theme foundation established
+- **✅ COMPLETED**: Fully implemented with Catppuccin Macchiato palette integrated into Bootstrap variables (Rails backend)
+- **Font Stack**: Self-hosted fonts for air-gap safety:
+  - **Space Grotesk** (300-700): Geometric headings
+  - **IBM Plex Sans** (400-700): Technical body text
+  - **JetBrains Mono** (100-800): Monospace for code/technical data
+- **Note**: Dark mode toggle still pending implementation but theme foundation established. The Rails implementation provides a reference for proper Catppuccin Macchiato integration.
 
 ---
 
@@ -714,10 +734,12 @@ This section captures the comprehensive UX design goals and interface patterns d
 ### Component Architecture Established
 
 - **39 Svelte components** created from legacy templates
-- **Shadcn-Svelte integration** throughout the application
+- **Shadcn-Svelte integration** throughout the application (note: Rails backend uses ViewComponent with plain Bootstrap HTML, not external component libraries)
 - **formsnap forms** with Zod validation for all user input
 - **TypeScript interfaces** for type safety across components
 - **Role-based access control** implemented consistently
+
+**Component Pattern Note**: The Rails backend implementation removed Railsboot component abstractions in favor of plain ERB + Bootstrap classes. The SvelteKit frontend uses Shadcn-Svelte components, which is appropriate for the modern TypeScript/Svelte ecosystem, but developers should be aware that the backend uses a different philosophy (direct Bootstrap HTML without component abstraction layers).
 
 ### Testing Foundation Complete
 
