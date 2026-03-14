@@ -4,6 +4,8 @@
 
 Implement campaign progress monitoring with accurate ETAs, error visibility, and recent crack results. This ticket delivers the campaign progress monitoring flow from spec:50650885-e043-4e99-960b-672342fc4139/c565e255-83e7-4d16-a4ec-d45011fa5cad.
 
+**Note**: The Railsboot component abstraction layer was removed in PR #706. This ticket's implementation should use plain ERB templates with Bootstrap utility classes as documented in AGENTS.md.
+
 ## Scope
 
 **Included:**
@@ -80,7 +82,7 @@ Implement campaign progress monitoring with accurate ETAs, error visibility, and
 
 - [ ] `CampaignProgressComponent` created with progress bar and ETA display
 - [ ] `ErrorModalComponent` created with severity badge and error details
-- [ ] Components follow existing Railsboot patterns
+- [ ] Components use plain Bootstrap HTML and utility classes (Railsboot abstraction layer has been removed)
 - [ ] Components tested with component specs
 
 ### Testing
@@ -116,6 +118,49 @@ Implement campaign progress monitoring with accurate ETAs, error visibility, and
 - Bootstrap modal component for error display
 - Test with campaigns that have multiple attacks in different states
 - Verify real-time updates work in air-gapped environment
+
+### Component Development Guidelines
+
+- Use ViewComponent for reusable UI logic
+- Render Bootstrap HTML directly in ERB templates (no abstraction layer)
+- Use Bootstrap utility classes (`d-flex`, `gap-3`, `text-body-secondary`, `row`, `col-*`, etc.)
+- Reference Bootstrap 5 documentation for component patterns
+- Do not create component abstraction layers
+
+**Progress Component Example**:
+```erb
+<div class="row g-3 align-items-start">
+  <div class="col-12 col-sm-7">
+    <div class="progress" role="progressbar" aria-valuenow="<%= percentage %>">
+      <div class="progress-bar"><%= percentage %>%</div>
+    </div>
+  </div>
+  <div class="col-12 col-sm-5">
+    <span class="badge bg-primary"><%= status %></span>
+    <span class="text-body-secondary"><%= eta %></span>
+  </div>
+</div>
+```
+
+**Modal Component Example**:
+```erb
+<div class="modal fade" id="errorModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Error Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <%= error_message %>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+```
 
 ## Estimated Effort
 

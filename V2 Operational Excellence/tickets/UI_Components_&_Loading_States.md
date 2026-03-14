@@ -110,7 +110,7 @@ HashcatStatus updates trigger hash rate broadcasts via `update_agent_metrics` me
 - [ ] Template created: app/components/task_actions_component.html.erb
 - [ ] Conditional buttons: cancel, retry, reassign, view logs, download results
 - [ ] Buttons shown based on task state and user permissions
-- [ ] Uses Railsboot button components
+- [ ] Uses plain Bootstrap button classes (`btn btn-primary`, `btn btn-danger`, `btn-sm`, etc.)
 
 **SkeletonLoaderComponent:**
 
@@ -189,10 +189,24 @@ HashcatStatus updates trigger hash rate broadcasts via `update_agent_metrics` me
 - Follow existing ViewComponent patterns in file:app/components/
 - Use `dry-initializer` option syntax (already used in existing components)
 - Inherit from `ApplicationViewComponent`
-- Use Railsboot components for layout/structure where possible
+- Use plain Bootstrap HTML and utility classes for layout/structure
+- ViewComponents should render Bootstrap HTML directly (no abstraction layer)
+- Use Bootstrap utility classes: `btn btn-primary`, `d-flex`, `gap-2`, `card`, `list-group`, etc.
 - Test components in isolation before integrating
 - Ensure all assets (CSS, JS) are bundled for air-gapped deployment
 - Use Bootstrap 5 components (already in stack)
+
+**Component Development Guidelines:**
+
+The Railsboot component abstraction layer has been removed (PR #706). All ViewComponents now use plain ERB templates with Bootstrap utility classes directly.
+
+- **Button patterns:** `<button class="btn btn-primary btn-sm">`, `<a href="..." class="btn btn-secondary">`
+- **Layout utilities:** `d-flex`, `justify-content-between`, `align-items-center`, `gap-2`, `gap-3`
+- **Card structure:** `<div class="card"><div class="card-body">...</div></div>`
+- **List groups:** `<ul class="list-group"><li class="list-group-item">...</li></ul>`
+- **Reference implementations:** See `agent_status_card_component.html.erb`, `agent_detail_tabs_component.html.erb` for examples of plain Bootstrap HTML patterns
+
+For detailed component patterns and theming guidelines, reference doc:AGENTS.md sections on "Catppuccin Macchiato Theme" and "Layout Grid". For frontend gotchas (navbar buttons, z-index utilities, Railsboot removal), reference doc:GOTCHAS.md section "Frontend & Accessibility".
 
 **Turbo Stream Broadcast Pattern:**
 
