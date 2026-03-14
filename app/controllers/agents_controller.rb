@@ -16,7 +16,9 @@ class AgentsController < ApplicationController
   load_and_authorize_resource
 
   # GET /agents or /agents.json
-  def index; end
+  def index
+    @agents = @agents.includes(:projects)
+  end
 
   # GET /agents/cards
   # Returns agent cards for turbo frame lazy loading
@@ -73,6 +75,17 @@ class AgentsController < ApplicationController
     end
   end
 
+  # POST /agents/1/expire_benchmarks
+  # Deletes all benchmarks for the agent and transitions it to pending,
+  # forcing the agent to re-benchmark on its next heartbeat.
+  def expire_benchmarks
+    @agent.hashcat_benchmarks.destroy_all
+    @agent.check_benchmark_age
+
+    redirect_to agent_url(@agent, anchor: "capabilities"),
+                notice: "Benchmarks expired. The agent will re-benchmark on its next check-in."
+  end
+
   # DELETE /agents/1 or /agents/1.json
   def destroy
     @agent.destroy!
@@ -89,7 +102,6 @@ class AgentsController < ApplicationController
   def agent_params
     permitted = [:client_signature, :command_parameters, :cpu_only, :ignore_errors,
       :enabled, :trusted, :last_ipaddress, :last_seen_at, :custom_label, :operating_system,
-      :token,
       advanced_configuration_attributes: %i[agent_update_interval use_native_hashcat backend_device opencl_devices],
       project_ids: []]
     # Allow admins to assign agents to users

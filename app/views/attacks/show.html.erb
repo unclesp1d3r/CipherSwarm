@@ -1,21 +1,25 @@
-<%= render Railsboot::HeaderComponent.new do |header| %>
-  <% header.with_heading do %>
-    <%= title "#{@attack.name}" %>
-  <% end %>
-  <%= header.with_actions do %>
-    <% if can? :edit, @attack %>
-      <%= render Railsboot::ButtonComponent.new(tag: "a", href: edit_campaign_attack_path(@campaign, @attack), size: "sm") do %>
-        <%= icon("pencil") %>
-      <% end %>
-    <% end %>
-  <% end %>
-  <% header.with_breadcrumb.with_items([
-       { text: "Dashboard", href: root_path },
-       { text: "Activity", href: campaigns_path },
-       { text: @attack.campaign.name, href: @attack.campaign },
-       { text: @attack.name, href: [@attack.campaign, @attack], active: true }
-     ]) %>
-<% end %>
+<div class="card">
+  <div class="card-body">
+    <nav aria-label="breadcrumb" class="mt-0 mb-1 fw-light">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><%= link_to "Dashboard", root_path %></li>
+        <li class="breadcrumb-item"><%= link_to "Activity", campaigns_path %></li>
+        <li class="breadcrumb-item"><%= link_to @attack.campaign.name, @attack.campaign %></li>
+        <li class="breadcrumb-item active" aria-current="page"><%= @attack.name %></li>
+      </ol>
+    </nav>
+    <div class="d-flex justify-content-between align-items-center">
+      <h2 class="mb-0"><%= title @attack.name %></h2>
+      <div>
+        <% if can? :edit, @attack %>
+          <%= link_to edit_campaign_attack_path(@campaign, @attack), class: "btn btn-primary btn-sm", aria: { label: "Edit attack" } do %>
+            <%= icon("pencil") %>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
 <%= show_for @attack do |a| %>
   <%= a.attribute :attack_mode %>
   <%= a.attribute :state %>

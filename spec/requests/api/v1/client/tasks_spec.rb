@@ -975,4 +975,124 @@ RSpec.describe "api/v1/client/tasks" do
       end
     end
   end
+
+  describe "RecordNotUnique error handling" do
+    let(:agent) { create(:agent) }
+    let(:attack) { create(:dictionary_attack) }
+    let(:task) { create(:task, agent: agent, attack: attack, state: "running") }
+    let(:headers) { { "Authorization" => "Bearer #{agent.token}", "Content-Type" => "application/json" } }
+
+    it "returns conflict with generic Duplicate record message" do
+      allow(Rails.logger).to receive(:error)
+
+      # Stub the controller action to raise RecordNotUnique
+      allow_any_instance_of(Api::V1::Client::TasksController).to receive(:submit_status) # rubocop:disable RSpec/AnyInstance
+        .and_raise(ActiveRecord::RecordNotUnique.new("Duplicate entry"))
+
+      post "/api/v1/client/tasks/#{task.id}/submit_status",
+           headers: headers,
+           params: {}.to_json
+
+      expect(response).to have_http_status(:conflict)
+      expect(response.parsed_body["error"]).to eq("Duplicate record")
+    end
+  end
+
+  describe "activate_pending_agent_with_benchmarks" do
+    context "when agent is pending with benchmarks" do
+      it "auto-activates the agent" do
+        pending_agent = create(:agent, state: "pending")
+        create(:hashcat_benchmark, agent: pending_agent)
+        allow(Rails.logger).to receive(:info)
+
+        get "/api/v1/client/tasks/new",
+            headers: { "Authorization" => "Bearer #{pending_agent.token}" }
+
+        pending_agent.reload
+        expect(pending_agent.state).to eq("active")
+        expect(Rails.logger).to have_received(:info).with(/\[AgentLifecycle\] auto_activate/).at_least(:once)
+      end
+    end
+
+    context "when agent is pending without benchmarks" do
+      it "does not activate the agent" do
+        pending_agent = create(:agent, state: "pending")
+        allow(Rails.logger).to receive(:info)
+
+        get "/api/v1/client/tasks/new",
+            headers: { "Authorization" => "Bearer #{pending_agent.token}" }
+
+        pending_agent.reload
+        expect(pending_agent.state).to eq("pending")
+      end
+    end
+
+    context "when agent is already active" do
+      it "does not attempt activation" do
+        active_agent = create(:agent, state: "active")
+        allow(Rails.logger).to receive(:info)
+
+        get "/api/v1/client/tasks/new",
+            headers: { "Authorization" => "Bearer #{active_agent.token}" }
+
+        active_agent.reload
+        expect(active_agent.state).to eq("active")
+        expect(Rails.logger).not_to have_received(:info).with(/\[AgentLifecycle\] auto_activate/)
+      end
+    end
+
+    context "when activate fails" do
+      it "does not log activation" do
+        pending_agent = create(:agent, state: "pending")
+        create(:hashcat_benchmark, agent: pending_agent)
+        allow(Rails.logger).to receive(:info)
+        allow_any_instance_of(Agent).to receive(:activate).and_return(false) # rubocop:disable RSpec/AnyInstance
+
+        get "/api/v1/client/tasks/new",
+            headers: { "Authorization" => "Bearer #{pending_agent.token}" }
+
+        expect(Rails.logger).not_to have_received(:info).with(/\[AgentLifecycle\] auto_activate/)
+      end
+    end
+  end
+
+  describe "submit_crack parameter validation" do
+    let(:agent) { create(:agent) }
+    let(:attack) { create(:dictionary_attack) }
+    let(:task) { create(:task, agent: agent, attack: attack, state: "running") }
+    let(:headers) { { "Authorization" => "Bearer #{agent.token}", "Content-Type" => "application/json" } }
+
+    context "when hash parameter is missing" do
+      it "returns bad_request with missing parameters error" do
+        post "/api/v1/client/tasks/#{task.id}/submit_crack",
+             headers: headers,
+             params: { plain_text: "plaintext" }.to_json
+
+        expect(response).to have_http_status(:bad_request)
+        expect(response.parsed_body["error"]).to include("Missing required parameters")
+      end
+    end
+
+    context "when plain_text parameter is missing" do
+      it "returns bad_request with missing parameters error" do
+        post "/api/v1/client/tasks/#{task.id}/submit_crack",
+             headers: headers,
+             params: { hash: "somehash" }.to_json
+
+        expect(response).to have_http_status(:bad_request)
+        expect(response.parsed_body["error"]).to include("Missing required parameters")
+      end
+    end
+
+    context "when both hash and plain_text are blank" do
+      it "returns bad_request with missing parameters error" do
+        post "/api/v1/client/tasks/#{task.id}/submit_crack",
+             headers: headers,
+             params: { hash: "", plain_text: "" }.to_json
+
+        expect(response).to have_http_status(:bad_request)
+        expect(response.parsed_body["error"]).to include("Missing required parameters")
+      end
+    end
+  end
 end

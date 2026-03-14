@@ -262,6 +262,8 @@ RSpec.describe "RuleLists" do
         end
       end
     end
+
+    it_behaves_like "downloadable file preview", :rule_list
   end
 
   describe "POST /create" do

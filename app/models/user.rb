@@ -118,6 +118,6 @@ class User < ApplicationRecord
   #
   # @return [void]
   def assign_default_role
-    self.add_role(:basic) if self.roles.blank?
+    add_role(:basic) if roles.blank?
   end
 end

@@ -1,8 +1,8 @@
-# Rails 8.0+ Upgrade Notes
+# Rails 8.x Upgrade Notes
 
 ## Overview
 
-Successfully upgraded CipherSwarm from Rails 7.2 to Rails 8.0.4 as part of GitHub Issue #431.
+CipherSwarm has been upgraded from Rails 7.2 through 8.0 to Rails 8.1.2.
 
 ## Changes Made
 
@@ -200,4 +200,28 @@ As per Issue #431, the following tasks depend on this upgrade:
 
 ---
 
-**Upgrade Date**: October 30, 2025 **Rails Version**: 8.0.4 **Status**: ✅ COMPLETED
+**8.0 Upgrade Date**: October 30, 2025 | **8.1 Upgrade Date**: March 10, 2026 | **Current Version**: 8.1.2 | **Status**: ✅ COMPLETED
+
+## Rails 8.1 Upgrade (8.0 → 8.1.2)
+
+### Changes
+
+- Updated `config.load_defaults` from `8.0` to `8.1`
+- Removed `config/initializers/new_framework_defaults_8_0.rb` (all 8.0 defaults adopted)
+- No `new_framework_defaults_8_1.rb` needed — all 8.1 defaults are compatible
+
+### Rails 8.1 Default Behaviors Adopted
+
+- `yjit = !Rails.env.local?` — YJIT enabled only in production
+- `action_controller.escape_json_responses = false` — No double-escaping of JSON
+- `action_controller.action_on_path_relative_redirect = :raise` — Stricter redirects
+- `active_record.raise_on_missing_required_finder_order_columns = true` — Stricter finders
+- `active_support.escape_js_separators_in_json = false` — No escaping JS separators
+- `action_view.render_tracker = :ruby` — Ruby-based render tracking
+- `action_view.remove_hidden_field_autocomplete = true` — Security improvement
+
+### Intentional Deviations from Rails 8.1 Defaults
+
+- **No Solid Cache**: Using Redis (`redis_cache_store`) for production cache
+- **No Solid Cable**: Using Redis adapter for Action Cable
+- **No Solid Queue**: Using Sidekiq for background jobs
