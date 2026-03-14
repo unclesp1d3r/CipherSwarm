@@ -10,6 +10,14 @@ queue_rules:
       - or:
           - label = lgtm
           - author = dependabot[bot]
+    autoqueue: true
+    queue_conditions:
+      - and:
+          - label = lgtm
+          - author = @unclesp1d3r
+      - or:
+          - author = dosubot[bot]
+          - author = dependabot[bot]
 pull_request_rules:
   - name: Queue maintainer PRs with lgtm label
     conditions:
