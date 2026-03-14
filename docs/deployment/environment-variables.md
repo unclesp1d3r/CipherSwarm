@@ -4,12 +4,12 @@ This document provides a comprehensive reference for all environment variables u
 
 ## Quick Reference
 
-| Category | Variables | Required in Production? |
-|----------|-----------|------------------------|
-| **Critical** | `RAILS_MASTER_KEY`, `POSTGRES_PASSWORD`, `APPLICATION_HOST` | ✅ Yes |
-| **Important** | `DISABLE_SSL`, `ACTIVE_STORAGE_SERVICE`, `REDIS_URL` | Recommended |
-| **Optional** | `RAILS_LOG_LEVEL`, `RAILS_MAX_THREADS`, `WEB_CONCURRENCY`, `PORT` | No |
-| **S3 Storage** | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_ENDPOINT`, etc. | Only when using S3 |
+| Category       | Variables                                                          | Required in Production? |
+| -------------- | ------------------------------------------------------------------ | ----------------------- |
+| **Critical**   | `RAILS_MASTER_KEY`, `POSTGRES_PASSWORD`, `APPLICATION_HOST`        | ✅ Yes                  |
+| **Important**  | `DISABLE_SSL`, `ACTIVE_STORAGE_SERVICE`, `REDIS_URL`               | Recommended             |
+| **Optional**   | `RAILS_LOG_LEVEL`, `RAILS_MAX_THREADS`, `WEB_CONCURRENCY`, `PORT`  | No                      |
+| **S3 Storage** | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_ENDPOINT`, etc. | Only when using S3      |
 
 ## Critical Variables - Required for Production
 
@@ -26,11 +26,13 @@ These variables are **required** for production deployments. The application wil
 **Production Requirement:** ✅ Required
 
 **Example:**
+
 ```bash
 RAILS_MASTER_KEY=a1b2c3d4e5f6...
 ```
 
 **How to Obtain:**
+
 - Generated automatically when running `rails credentials:edit` for the first time
 - Located in `config/master.key` (this file is gitignored)
 - Transfer this file securely to your production system
@@ -50,11 +52,13 @@ RAILS_MASTER_KEY=a1b2c3d4e5f6...
 **Production Requirement:** ✅ Required
 
 **Example:**
+
 ```bash
 POSTGRES_PASSWORD=strongSecurePassword123!
 ```
 
 **Usage:** Automatically used in `DATABASE_URL` construction:
+
 ```
 postgres://root:${POSTGRES_PASSWORD}@postgres-db/cipherswarm
 ```
@@ -68,6 +72,7 @@ postgres://root:${POSTGRES_PASSWORD}@postgres-db/cipherswarm
 **Purpose:** Sets the host for URLs in mailer templates, redirects, and Devise configuration
 
 **Impact if Missing:**
+
 - Email links will be broken or point to wrong host
 - Password reset emails fail
 - User confirmation emails fail
@@ -78,16 +83,19 @@ postgres://root:${POSTGRES_PASSWORD}@postgres-db/cipherswarm
 **Production Requirement:** ✅ Required
 
 **Example:**
+
 ```bash
 APPLICATION_HOST=cipherswarm.company.com
 ```
 
 **Used In:**
+
 - `config/environments/production.rb` (line 72): `config.action_mailer.default_url_options`
 - `app/mailers/application_mailer.rb` (line 7): Email `from` address
 - `config/initializers/devise.rb` (line 29): Devise mailer sender
 
 **Common Mistakes:**
+
 - Including `http://` or `https://` prefix (wrong: `https://example.com`, right: `example.com`)
 - Using `localhost` in production
 - Using IP addresses instead of hostnames for public-facing deployments
@@ -103,17 +111,20 @@ These variables have sensible defaults but should be configured based on your de
 **Purpose:** Controls SSL/HTTPS enforcement and redirects
 
 **Impact if Not Set:** In production, the application will:
+
 - Force all HTTP requests to redirect to HTTPS
 - Set secure-only cookies
 - Enable Strict-Transport-Security header
 
 **Default Value:**
+
 - `true` (development)
 - unset/blank (production - SSL enforced)
 
 **Production Requirement:** Set to `true` only if behind a reverse proxy that handles SSL termination
 
 **Example:**
+
 ```bash
 DISABLE_SSL=true  # When behind nginx/HAProxy handling SSL
 # or
@@ -121,13 +132,16 @@ DISABLE_SSL=true  # When behind nginx/HAProxy handling SSL
 ```
 
 **Used In:**
+
 - `config/environments/production.rb` (lines 36, 40): `config.assume_ssl` and `config.force_ssl`
 
 **When to Set:**
+
 - ✅ Set to `true`: Behind nginx, HAProxy, or cloud load balancer handling SSL
 - ❌ Leave unset: Direct Internet exposure with Rails handling SSL
 
 **Common Issues:**
+
 - Reverse proxy redirect loops if not set correctly
 - "Too many redirects" errors in browser
 - Mixed content warnings
@@ -145,10 +159,12 @@ DISABLE_SSL=true  # When behind nginx/HAProxy handling SSL
 **Production Requirement:** Recommended to set explicitly
 
 **Options:**
+
 - `local` - Local disk storage (default, works with Docker volumes)
 - `s3` - S3-compatible storage (AWS S3, MinIO, SeaweedFS, etc.)
 
 **Example:**
+
 ```bash
 ACTIVE_STORAGE_SERVICE=local
 # or
@@ -156,13 +172,16 @@ ACTIVE_STORAGE_SERVICE=s3
 ```
 
 **Used In:**
+
 - `config/environments/production.rb` (line 32): Storage service selection
 - `config/storage.yml`: Storage backend configuration
 
 **Dependencies:**
+
 - When set to `s3`, requires all `AWS_*` variables (see S3 Storage Configuration section)
 
 **Trade-offs:**
+
 - **local**: Simpler, no external dependencies, good for single-server or Docker volume setups
 - **s3**: Better for multi-server deployments, easier backups, requires external S3-compatible service
 
@@ -179,6 +198,7 @@ ACTIVE_STORAGE_SERVICE=s3
 **Production Requirement:** Recommended to set when using non-default Redis configuration
 
 **Example:**
+
 ```bash
 REDIS_URL=redis://redis-db:6379/0
 # or with authentication
@@ -188,11 +208,13 @@ REDIS_URL=rediss://redis-host:6379/0
 ```
 
 **Used In:**
+
 - `config/environments/production.rb` (line 60): Cache store configuration
 - `config/cable.yml`: Action Cable adapter (production)
 - Sidekiq configuration (implicit)
 
 **Common Mistakes:**
+
 - Using `localhost` in Docker environments (should be service name like `redis-db`)
 - Forgetting to include database number (e.g., `/0`)
 - Not enabling authentication in production Redis instances
@@ -214,15 +236,18 @@ These variables have sensible defaults and are only needed for specific tuning o
 **Options:** `debug`, `info`, `warn`, `error`, `fatal`
 
 **Example:**
+
 ```bash
 RAILS_LOG_LEVEL=warn  # Less verbose
 RAILS_LOG_LEVEL=debug # Very verbose, includes SQL queries
 ```
 
 **Used In:**
+
 - `config/environments/production.rb` (line 50): Log level configuration
 
 **When to Change:**
+
 - **debug**: Troubleshooting production issues (temporary), includes SQL queries and detailed traces
 - **warn** or **error**: High-traffic production to reduce log volume
 - **info** (default): Balanced for normal production use
@@ -240,15 +265,18 @@ RAILS_LOG_LEVEL=debug # Very verbose, includes SQL queries
 **Default Value:** `3`
 
 **Example:**
+
 ```bash
 RAILS_MAX_THREADS=5
 ```
 
 **Used In:**
+
 - `config/puma.rb` (line 29): Thread pool configuration
 - Database connection pool sizing (should match or exceed thread count)
 
 **Tuning Guidance:**
+
 - **Low thread count (1-3)**: Simple apps, low concurrency needs
 - **Medium thread count (5-10)**: Balanced throughput and latency
 - **High thread count (10+)**: I/O-bound apps, may hit diminishing returns due to GVL
@@ -266,19 +294,23 @@ RAILS_MAX_THREADS=5
 **Default Value:** `1`
 
 **Example:**
+
 ```bash
 WEB_CONCURRENCY=4  # 4 worker processes
 ```
 
 **Used In:**
+
 - `config/puma.rb` (line 10 comment): Worker process configuration
 
 **Tuning Guidance:**
+
 - **1 worker**: Development, small deployments
 - **2-4 workers**: Standard production (1-2 per CPU core)
 - **4+ workers**: High-traffic production
 
 **Scaling Formula:**
+
 - For `n` active cracking agents, consider `n + 1` web replicas with load balancing (see [Production Load Balancing](production-load-balancing.md))
 
 **Memory Consideration:** Each worker consumes ~200-300MB RAM. Monitor memory usage when increasing worker count.
@@ -294,14 +326,17 @@ WEB_CONCURRENCY=4  # 4 worker processes
 **Default Value:** `3000`
 
 **Example:**
+
 ```bash
 PORT=8080
 ```
 
 **Used In:**
+
 - `config/puma.rb` (line 33): Port binding configuration
 
 **When to Change:**
+
 - Port 3000 conflicts with another service
 - Corporate firewall requires specific port
 - Running multiple Rails apps on same host
@@ -319,14 +354,17 @@ PORT=8080
 **Default Value:** unset (disabled)
 
 **Example:**
+
 ```bash
 SOLID_QUEUE_IN_PUMA=true
 ```
 
 **Used In:**
+
 - `config/puma.rb` (line 39): Solid Queue plugin activation
 
 **When to Use:**
+
 - ✅ Single-server deployments where running separate Sidekiq is inconvenient
 - ✅ Development/testing environments
 - ❌ Production multi-server deployments (use dedicated Sidekiq workers instead)
@@ -344,14 +382,17 @@ SOLID_QUEUE_IN_PUMA=true
 **Default Value:** `tmp/pids/server.pid` (development), unset (production)
 
 **Example:**
+
 ```bash
 PIDFILE=/var/run/puma.pid
 ```
 
 **Used In:**
+
 - `config/puma.rb` (line 43): PID file configuration
 
 **When to Set:**
+
 - Process monitoring tools require specific PID file location
 - Running multiple Puma instances on same host
 - System service management (systemd, init.d)
@@ -373,15 +414,18 @@ These variables are **only required** when `ACTIVE_STORAGE_SERVICE=s3`. The appl
 **Production Requirement:** ✅ Required when using S3
 
 **Example:**
+
 ```bash
 AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
 ```
 
 **Used In:**
+
 - `config/storage.yml` (line 14): S3 service configuration
 - `config/initializers/storage_config_check.rb`: Startup validation
 
 **S3-Compatible Services:**
+
 - AWS S3: Use IAM access key
 - MinIO: Use `MINIO_ROOT_USER`
 - SeaweedFS: Use S3 gateway access key
@@ -399,11 +443,13 @@ AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
 **Production Requirement:** ✅ Required when using S3
 
 **Example:**
+
 ```bash
 AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
 ```
 
 **Used In:**
+
 - `config/storage.yml` (line 15): S3 service configuration
 - `config/initializers/storage_config_check.rb`: Startup validation
 
@@ -422,6 +468,7 @@ AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
 **Production Requirement:** ✅ Required for MinIO, SeaweedFS, or other S3-compatible services
 
 **Example:**
+
 ```bash
 AWS_ENDPOINT=http://minio:9000          # MinIO
 AWS_ENDPOINT=http://seaweedfs:8333      # SeaweedFS S3 gateway
@@ -429,6 +476,7 @@ AWS_ENDPOINT=https://s3.custom.com      # Custom S3-compatible service
 ```
 
 **Used In:**
+
 - `config/storage.yml` (line 17): S3 endpoint configuration
 
 **Important for Air-Gapped Deployments:** Must point to internal S3-compatible service.
@@ -444,14 +492,17 @@ AWS_ENDPOINT=https://s3.custom.com      # Custom S3-compatible service
 **Default Value:** `application`
 
 **Example:**
+
 ```bash
 AWS_BUCKET=cipherswarm-storage
 ```
 
 **Used In:**
+
 - `config/storage.yml` (line 13): Bucket configuration
 
 **Prerequisites:** Bucket must exist before application starts. Create manually via:
+
 - AWS CLI: `aws s3 mb s3://bucket-name`
 - MinIO CLI: `mc mb local/bucket-name`
 - SeaweedFS S3: Auto-created on first PUT
@@ -467,12 +518,14 @@ AWS_BUCKET=cipherswarm-storage
 **Default Value:** `us-east-1`
 
 **Example:**
+
 ```bash
 AWS_REGION=us-west-2      # AWS S3
 AWS_REGION=us-east-1      # MinIO (placeholder, not used)
 ```
 
 **Used In:**
+
 - `config/storage.yml` (line 16): Region configuration
 
 **Note:** MinIO and SeaweedFS ignore this setting but may require it to be set to avoid SDK errors.
@@ -490,14 +543,17 @@ AWS_REGION=us-east-1      # MinIO (placeholder, not used)
 **Production Requirement:** ✅ Required for MinIO (set to `true`)
 
 **Example:**
+
 ```bash
 AWS_FORCE_PATH_STYLE=true   # Required for MinIO
 ```
 
 **Used In:**
+
 - `config/storage.yml` (line 18): Force path style configuration
 
 **URL Style Comparison:**
+
 - Virtual-hosted: `http://bucket.s3.amazonaws.com/key` (AWS S3 default)
 - Path-style: `http://s3.amazonaws.com/bucket/key` (required for MinIO)
 
@@ -510,10 +566,12 @@ CipherSwarm includes built-in validation for critical environment variables:
 ### Startup Validation
 
 **S3 Credentials Check** (`config/initializers/storage_config_check.rb`):
+
 - Validates `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` when `ACTIVE_STORAGE_SERVICE=s3`
 - **Fails fast at startup** with clear error message if credentials are missing
 
 **Example Error:**
+
 ```
 S3 storage is active (ACTIVE_STORAGE_SERVICE=s3) but required credentials are missing:
   AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
@@ -523,6 +581,7 @@ Set these environment variables or switch to local storage (ACTIVE_STORAGE_SERVI
 ### Future Enhancements
 
 The following validations are planned (see issue for tracking):
+
 - `APPLICATION_HOST` validation in production (fails fast if missing)
 - `RAILS_MASTER_KEY` validation (currently handled by Rails itself)
 - Clear error messages for missing `POSTGRES_PASSWORD` with connection details
@@ -534,6 +593,7 @@ The following validations are planned (see issue for tracking):
 ### Scenario 1: Single-Server Docker Deployment (Local Storage)
 
 **Minimal Production Configuration:**
+
 ```bash
 # Required
 RAILS_MASTER_KEY=<from-config/master.key>
@@ -553,6 +613,7 @@ REDIS_URL=redis://redis-db:6379/0
 ### Scenario 2: Multi-Server Docker Deployment (S3 Storage)
 
 **Full Production Configuration:**
+
 ```bash
 # Required
 RAILS_MASTER_KEY=<from-config/master.key>
@@ -584,6 +645,7 @@ WEB_CONCURRENCY=4
 ### Scenario 3: Air-Gapped Deployment (Local Storage)
 
 **Air-Gapped Configuration:**
+
 ```bash
 # Required
 RAILS_MASTER_KEY=<from-config/master.key>
@@ -608,6 +670,7 @@ See [Air-Gapped Deployment Guide](air-gapped-deployment.md) for complete instruc
 ### Scenario 4: Development Environment
 
 **Development Configuration:**
+
 ```bash
 # Minimal for development (most have defaults)
 POSTGRES_PASSWORD=password
@@ -635,10 +698,11 @@ CipherSwarm uses standard Rails environment variable loading:
 The `docker-compose.yml` file uses anchors to share common environment variables:
 
 ```yaml
-x-common-env-vars: &common-env-vars
+x-common-env-vars:
   RAILS_MASTER_KEY: ${RAILS_MASTER_KEY}
   REDIS_URL: redis://redis-db:6379
-  DATABASE_URL: postgres://root:${POSTGRES_PASSWORD:-password}@postgres-db/cipherswarm
+  DATABASE_URL: 
+    postgres://root:${POSTGRES_PASSWORD:-password}@postgres-db/cipherswarm
   APPLICATION_HOST: ${APPLICATION_HOST:-localhost}
   DISABLE_SSL: ${DISABLE_SSL:-true}
   ACTIVE_STORAGE_SERVICE: ${ACTIVE_STORAGE_SERVICE:-local}
@@ -677,11 +741,13 @@ Docker Compose will automatically load this file.
 **Symptom:** Application exits immediately after startup
 
 **Possible Causes:**
+
 - Missing `RAILS_MASTER_KEY`: Check `config/master.key` exists and `RAILS_MASTER_KEY` is set
 - Database connection failure: Verify `POSTGRES_PASSWORD` and database is running
 - Missing S3 credentials: When `ACTIVE_STORAGE_SERVICE=s3`, ensure all `AWS_*` variables are set
 
 **Debug Steps:**
+
 ```bash
 # Check environment variables are loaded
 docker compose exec web env | grep -E "RAILS_MASTER_KEY|POSTGRES_PASSWORD|APPLICATION_HOST"
@@ -702,12 +768,14 @@ docker compose exec web bin/rails runner "puts ActiveRecord::Base.connection.exe
 **Cause:** Missing or incorrect `APPLICATION_HOST`
 
 **Fix:**
+
 ```bash
 # Set APPLICATION_HOST to your domain (no http:// prefix)
 APPLICATION_HOST=cipherswarm.company.com
 ```
 
 **Verify:**
+
 ```bash
 # Check mailer configuration
 docker compose exec web bin/rails runner "puts ActionMailer::Base.default_url_options"
@@ -723,12 +791,14 @@ docker compose exec web bin/rails runner "puts ActionMailer::Base.default_url_op
 **Cause:** `DISABLE_SSL` not set when behind reverse proxy handling SSL
 
 **Fix:**
+
 ```bash
 # When nginx/HAProxy handles SSL termination
 DISABLE_SSL=true
 ```
 
 **Verify nginx configuration includes:**
+
 ```nginx
 proxy_set_header X-Forwarded-Proto $scheme;
 ```
@@ -740,12 +810,14 @@ proxy_set_header X-Forwarded-Proto $scheme;
 **Symptom:** File uploads fail or return 500 errors
 
 **Cause:**
+
 - Incorrect `ACTIVE_STORAGE_SERVICE` setting
 - Missing or incorrect S3 credentials
 - S3 bucket doesn't exist
 - Wrong `AWS_ENDPOINT` for S3-compatible service
 
 **Debug Steps:**
+
 ```bash
 # Check storage service configuration
 docker compose exec web bin/rails runner "puts Rails.application.config.active_storage.service"
@@ -763,15 +835,15 @@ docker compose exec minio mc ls local/
 
 Environment variables are referenced in the following files:
 
-| File | Purpose | Variables Used |
-|------|---------|----------------|
-| `config/environments/production.rb` | Production environment config | `ACTIVE_STORAGE_SERVICE`, `DISABLE_SSL`, `RAILS_LOG_LEVEL`, `APPLICATION_HOST`, `REDIS_URL` |
-| `config/storage.yml` | Storage backend configuration | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_BUCKET`, `AWS_REGION`, `AWS_ENDPOINT`, `AWS_FORCE_PATH_STYLE` |
-| `config/puma.rb` | Puma web server configuration | `RAILS_MAX_THREADS`, `PORT`, `SOLID_QUEUE_IN_PUMA`, `PIDFILE` |
-| `app/mailers/application_mailer.rb` | Mailer base class | `APPLICATION_HOST` |
-| `config/initializers/devise.rb` | Devise authentication | `APPLICATION_HOST` |
-| `config/initializers/storage_config_check.rb` | S3 credentials validation | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` |
-| `docker-compose.yml` | Docker Compose orchestration | `RAILS_MASTER_KEY`, `POSTGRES_PASSWORD`, `APPLICATION_HOST`, `DISABLE_SSL`, `ACTIVE_STORAGE_SERVICE` |
+| File                                          | Purpose                       | Variables Used                                                                                                   |
+| --------------------------------------------- | ----------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `config/environments/production.rb`           | Production environment config | `ACTIVE_STORAGE_SERVICE`, `DISABLE_SSL`, `RAILS_LOG_LEVEL`, `APPLICATION_HOST`, `REDIS_URL`                      |
+| `config/storage.yml`                          | Storage backend configuration | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_BUCKET`, `AWS_REGION`, `AWS_ENDPOINT`, `AWS_FORCE_PATH_STYLE` |
+| `config/puma.rb`                              | Puma web server configuration | `RAILS_MAX_THREADS`, `PORT`, `SOLID_QUEUE_IN_PUMA`, `PIDFILE`                                                    |
+| `app/mailers/application_mailer.rb`           | Mailer base class             | `APPLICATION_HOST`                                                                                               |
+| `config/initializers/devise.rb`               | Devise authentication         | `APPLICATION_HOST`                                                                                               |
+| `config/initializers/storage_config_check.rb` | S3 credentials validation     | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`                                                                     |
+| `docker-compose.yml`                          | Docker Compose orchestration  | `RAILS_MASTER_KEY`, `POSTGRES_PASSWORD`, `APPLICATION_HOST`, `DISABLE_SSL`, `ACTIVE_STORAGE_SERVICE`             |
 
 ---
 

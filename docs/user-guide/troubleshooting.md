@@ -141,7 +141,8 @@ Check agent logs for retry attempts before investigating further. Brief network 
 
 **What it means**: The circuit breaker activates after repeated connection failures (default: 5 consecutive failures) to prevent cascading failures and resource exhaustion. This is distinct from authentication errors—it indicates the agent is protecting itself from an unresponsive server.
 
-**Behavior**: 
+**Behavior**:
+
 - Circuit opens automatically after threshold failures
 - Agent skips new requests while circuit is open
 - Circuit automatically attempts recovery after timeout (default: 30 seconds)
@@ -164,17 +165,20 @@ Check agent logs for retry attempts before investigating further. Brief network 
 Network resilience settings can be tuned via CLI flags or server configuration:
 
 **Timeout Settings**:
+
 - `--connect-timeout`: TCP connection timeout (default: 10s)
 - `--read-timeout`: Response read timeout (default: 30s)
 - `--write-timeout`: Request write timeout (default: 10s)
 - `--request-timeout`: Overall request timeout (default: 60s)
 
 **Retry Settings**:
+
 - `--api-max-retries`: Maximum retry attempts (default: 3)
 - `--api-retry-initial-delay`: Initial retry delay (default: 1s)
 - `--api-retry-max-delay`: Maximum retry backoff (default: 30s)
 
 **Circuit Breaker Settings**:
+
 - `--circuit-breaker-failure-threshold`: Failures before circuit opens (default: 5)
 - `--circuit-breaker-timeout`: Wait time before retry attempt (default: 30s)
 
@@ -304,18 +308,21 @@ For detailed agent troubleshooting, see [Agent Troubleshooting](troubleshooting-
 When diagnosing agent connection issues, distinguish between different failure types:
 
 1. **Transient errors** (automatically handled):
+
    - Brief network interruptions
    - Temporary server overload (5xx responses)
    - Check logs for retry attempts—agent handles these automatically
    - No action needed unless retries are consistently exhausted
 
 2. **Circuit breaker activation** (indicates persistent server issues):
+
    - "Circuit breaker open" or `ErrCircuitOpen` in logs
    - Multiple consecutive failures exceeded threshold
    - Focus on server availability and network connectivity
    - Agent will automatically attempt recovery after timeout
 
 3. **Authentication/authorization failures** (require configuration changes):
+
    - 401 or 403 HTTP status codes
    - Invalid or expired agent token
    - Agent disabled in web interface
@@ -563,18 +570,18 @@ See [Agent Troubleshooting](troubleshooting-agents.md#log-analysis) for agent-sp
 
 ## Common Error Messages
 
-| Error Message                   | Meaning                                | Solution                                         |
-| ------------------------------- | -------------------------------------- | ------------------------------------------------ |
-| "You are not authorized"        | Missing permissions for this action    | Check role and project access                    |
-| "Record not found"              | Resource was deleted or doesn't exist  | Verify resource exists, check project context    |
-| "Hash list is still processing" | Hash list upload hasn't completed      | Wait for processing, check job queue             |
-| "No agents available"           | No online agents in this project       | Register agents or check agent status            |
-| "Resource download failed"      | Agent couldn't download wordlist/rules | Check file storage status and agent connectivity |
-| "Invalid attack configuration"  | Attack parameters are incorrect        | Review attack settings, check hash type compat   |
-| "Connection refused"            | A backend service is down              | Check system health dashboard                    |
-| "Task expired"                  | Agent took too long to complete a task | Check agent performance, increase timeout        |
-| "Circuit breaker open"          | Agent protecting against failed server | Check server health and network connectivity     |
-| "All API request attempts failed" | Retries exhausted for API request    | Check network stability and server availability  |
+| Error Message                     | Meaning                                | Solution                                         |
+| --------------------------------- | -------------------------------------- | ------------------------------------------------ |
+| "You are not authorized"          | Missing permissions for this action    | Check role and project access                    |
+| "Record not found"                | Resource was deleted or doesn't exist  | Verify resource exists, check project context    |
+| "Hash list is still processing"   | Hash list upload hasn't completed      | Wait for processing, check job queue             |
+| "No agents available"             | No online agents in this project       | Register agents or check agent status            |
+| "Resource download failed"        | Agent couldn't download wordlist/rules | Check file storage status and agent connectivity |
+| "Invalid attack configuration"    | Attack parameters are incorrect        | Review attack settings, check hash type compat   |
+| "Connection refused"              | A backend service is down              | Check system health dashboard                    |
+| "Task expired"                    | Agent took too long to complete a task | Check agent performance, increase timeout        |
+| "Circuit breaker open"            | Agent protecting against failed server | Check server health and network connectivity     |
+| "All API request attempts failed" | Retries exhausted for API request      | Check network stability and server availability  |
 
 ---
 
