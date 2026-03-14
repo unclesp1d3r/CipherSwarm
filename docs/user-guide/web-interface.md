@@ -21,6 +21,7 @@ The CipherSwarm v2 web interface provides a modern, responsive dashboard for man
   - [Settings & Administration](#settings--administration)
   - [Keyboard Shortcuts](#keyboard-shortcuts)
   - [Dark Mode & Theming](#dark-mode--theming)
+  - [Accessibility](#accessibility)
   - [Troubleshooting](#troubleshooting)
 
 <!-- mdformat-toc end -->
@@ -128,6 +129,7 @@ Real-time notifications appear when hashes are cracked:
 - **Batch Toasts**: For multiple cracks (e.g., "5 new hashes cracked")
 - **Rate Limiting**: Prevents notification spam
 - **Contextual Info**: Shows plaintext, attack used, timestamp
+- **Auto-dismiss Behavior**: Success and info toasts auto-dismiss after 5 seconds; danger/error toasts persist and require manual dismissal to ensure important error messages are not missed
 
 ## Campaign Management
 
@@ -507,12 +509,33 @@ allowed_extensions: [.txt, .zip, .pdf]
 
 ## Dark Mode & Theming
 
-CipherSwarm v2 includes comprehensive dark mode support:
+CipherSwarm v2 uses a dark-first design with the **Catppuccin Macchiato** theme and DarkViolet accents:
 
-- **Auto-detection**: Respects system preferences
-- **Manual Toggle**: Theme switcher in navigation
-- **Persistent**: Remembers user preference
-- **Catppuccin Theme**: Modern color palette with DarkViolet accents
+### Theme Palette
+
+- **Catppuccin Macchiato**: Professional dark color palette designed for extended viewing
+- **Primary Accent**: DarkViolet (#a855f7) for interactive elements and primary actions
+- **Surface Hierarchy**: Layered depth using Catppuccin's surface system
+  - Crust (navbar, darkest)
+  - Mantle (sidebar)
+  - Base (main content background)
+  - Surface0 (cards, inputs, elevated elements)
+
+### Typography
+
+CipherSwarm uses self-hosted fonts for air-gapped deployment compatibility:
+
+- **Space Grotesk** (variable, 300-700): Geometric headings with technical character
+- **IBM Plex Sans** (400, 500, 600, 700): Technical heritage body text for readability
+- **JetBrains Mono** (variable, 100-800): Monospace for hashes, masks, and technical data
+
+All fonts load via `font-display: swap` with system fallbacks to prevent blocking.
+
+### Theme Control
+
+- **System Preference Detection**: Automatically respects `prefers-color-scheme`
+- **Manual Toggle**: Theme switcher available in navigation
+- **Persistent Setting**: User preference stored across sessions
 
 ```html
 <button class="theme-toggle" onclick="toggleTheme()">
@@ -524,6 +547,39 @@ CipherSwarm v2 includes comprehensive dark mode support:
  </svg>
 </button>
 ```
+
+## Accessibility
+
+CipherSwarm v2 is designed to meet WCAG 2.1 AA compliance standards for accessibility:
+
+### Keyboard Navigation
+
+- **Skip Links**: Press Tab at page load to reveal "Skip to main content" link, bypassing navigation to reach primary content
+- **Full Keyboard Support**: All interactive elements accessible via keyboard (Tab, Enter, Space)
+- **Tab Panels**: Use arrow keys (Left/Right) to navigate between tabs, Home/End to jump to first/last tab
+- **Dropdown Menus**: Navigate with arrow keys, close with Escape
+
+### Semantic HTML & ARIA
+
+- **Proper Landmarks**: `<nav>`, `<main>`, `<aside>` elements structure page regions
+- **ARIA Labels**: Navigation regions and interactive elements include descriptive `aria-label` attributes
+- **Button Semantics**: Navbar dropdowns use `<button type="button">` instead of anchor links for correct screen reader behavior
+- **Focus Management**: Visible focus indicators on all interactive elements
+
+### Visual Accessibility
+
+- **Contrast Ratios**: All text meets WCAG AA 4.5:1 minimum contrast requirements
+- **Semantic Colors**: Bootstrap utility classes (e.g., `text-body-secondary`) ensure theme-aware accessible contrast
+- **No Inline Sizing**: CSS classes replace inline `style="font-size:..."` attributes for consistent scaling
+- **Motion Preferences**: Respects `prefers-reduced-motion` system setting
+
+### Testing
+
+Accessibility features are verified through:
+
+- **Automated Testing**: Playwright browser automation for keyboard navigation flows
+- **Manual Verification**: Screen reader testing and keyboard-only navigation
+- **Component Tests**: Focus management and ARIA attribute specs
 
 ## Troubleshooting
 
