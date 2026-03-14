@@ -50,7 +50,7 @@ RSpec.describe "Navbar navigation" do
     it "navigates to edit profile", js: true do
       visit root_path
 
-      find("a.nav-link.dropdown-toggle", text: user.name).click
+      click_button(class: "nav-link dropdown-toggle", text: user.name)
 
       # Use JavaScript to click the link to bypass Bootstrap dropdown timing issues
       edit_profile_link = find("a[href='#{edit_user_registration_path}']", visible: :all)
