@@ -1,6 +1,6 @@
 # Common Issues and Quick Fixes
 
-This guide covers the most frequently encountered issues in CipherSwarm v2 and their quick solutions.
+This guide covers the most frequently encountered issues in CipherSwarm v2 and their quick solutions, including circuit breaker protection and network resilience. For detailed diagnostics and troubleshooting workflows, see the comprehensive [Troubleshooting Guide](troubleshooting.md) and [Agent Troubleshooting Guide](troubleshooting-agents.md).
 
 ## Authentication Issues
 
@@ -137,7 +137,62 @@ CipherSwarm-agent test auth
 - Agent not assigned to projects
 - Firewall blocking connections
 
-### 7. Low Agent Performance
+**Note**: If agent logs show "circuit breaker open" messages, see section 7 below. The agent includes automatic retry logic and circuit breaker protection for network failures—see the [comprehensive troubleshooting guide](troubleshooting.md#agent-network-and-connection-issues) for details.
+
+### 7. Agent Circuit Breaker Activation
+
+**Problem**: Agent logs show "circuit breaker open" or "circuit open" messages, or agent appears to stop communicating with server but doesn't crash.
+
+**What This Means**:
+
+The circuit breaker is a protective mechanism that activates after repeated connection failures (default: 5 consecutive failures). This prevents cascading failures and resource exhaustion when the server is unavailable or experiencing issues.
+
+**This is not an agent error**—it's the agent protecting itself from an unresponsive server.
+
+**Quick Check**:
+
+```bash
+# Verify the CipherSwarm server is running and accessible
+curl -I https://CipherSwarm.example.com
+
+# Check network connectivity between agent and server
+ping CipherSwarm.example.com
+
+# Review server health using the System Health Dashboard
+curl https://CipherSwarm.example.com/api/v1/web/health/components
+
+# Wait for automatic recovery (circuit breaker attempts recovery after 60 seconds by default)
+journalctl -u CipherSwarm-agent -f
+```
+
+**What You'll See in Logs**:
+
+During circuit open state:
+```
+[Warn] Circuit breaker open, server appears unresponsive
+[Warn] Circuit breaker open, skipping task retrieval
+```
+
+After automatic recovery:
+```
+[Info] Applied server-recommended timeouts - connect=10s, read=30s, write=10s, request=60s
+[Info] Agent authenticated successfully
+```
+
+**Resolution**:
+
+The circuit breaker will automatically attempt recovery. No agent restart is needed. If the circuit remains open for more than 5 minutes, investigate server availability and network connectivity.
+
+**Common Causes**:
+
+- Server is unavailable (restart, maintenance, crash)
+- Network connectivity problems between agent and server
+- Repeated server errors (5xx responses)
+- Sustained connection failures
+
+**For Detailed Information**: See [Agent Network and Connection Issues](troubleshooting.md#agent-network-and-connection-issues) and [Circuit Breaker Recovery](troubleshooting-agents.md#circuit-breaker-recovery).
+
+### 8. Low Agent Performance
 
 **Problem**: Agent hash rates significantly lower than expected.
 
@@ -162,7 +217,7 @@ watch -n 1 nvidia-smi
 - Driver issues
 - Suboptimal configuration
 
-### 8. Agent Task Failures
+### 9. Agent Task Failures
 
 **Problem**: Tasks marked as "Failed" with agent errors.
 
@@ -191,7 +246,7 @@ df -h
 
 ## Campaign and Attack Issues
 
-### 9. Campaign Won't Start
+### 10. Campaign Won't Start
 
 **Problem**: Campaign remains in "Draft" state or "Start Campaign" button disabled.
 
@@ -211,7 +266,7 @@ df -h
 - No available agents
 - Missing or inaccessible resources
 
-### 10. No Tasks Generated
+### 11. No Tasks Generated
 
 **Problem**: Campaign shows "Running" but no progress or tasks assigned.
 
@@ -231,7 +286,7 @@ df -h
 - Invalid attack parameters
 - Agent capability mismatches
 
-### 11. Attack Validation Errors
+### 12. Attack Validation Errors
 
 **Problem**: Cannot save attack configuration with validation errors.
 
@@ -253,7 +308,7 @@ df -h
 
 ## Resource Management Issues
 
-### 12. Upload Failures
+### 13. Upload Failures
 
 **Problem**: Resource uploads fail or files don't appear in resource list.
 
@@ -279,7 +334,7 @@ curl -I https://CipherSwarm.example.com/api/v1/web/resources/
 - Invalid file format or encoding
 - Storage space limitations
 
-### 13. Resource Access Denied
+### 14. Resource Access Denied
 
 **Problem**: Resources not visible in dropdowns or "Access denied" errors.
 
@@ -298,7 +353,7 @@ curl -I https://CipherSwarm.example.com/api/v1/web/resources/
 - Insufficient user permissions
 - Resource marked as private/restricted
 
-### 14. Line Editing Not Working
+### 15. Line Editing Not Working
 
 **Problem**: Cannot edit resources inline or changes not saving.
 
@@ -320,7 +375,7 @@ curl -I https://CipherSwarm.example.com/api/v1/web/resources/
 
 ## Live Updates and SSE Issues
 
-### 15. Real-time Updates Not Working
+### 16. Real-time Updates Not Working
 
 **Problem**: Dashboard not updating automatically or stale data displayed.
 
@@ -348,7 +403,7 @@ curl -H "Accept: text/event-stream" -H "Authorization: Bearer $TOKEN" https://Ci
 - Firewall blocking persistent connections
 - JavaScript errors preventing updates
 
-### 16. Frequent Connection Drops
+### 17. Frequent Connection Drops
 
 **Problem**: "Connection lost" notifications or intermittent update failures.
 
@@ -373,7 +428,7 @@ mtr CipherSwarm.example.com
 - Proxy/VPN interference
 - Server-side connection limits
 
-### 17. "Real-time updates disconnected" Toast Message
+### 18. "Real-time updates disconnected" Toast Message
 
 **Problem**: Toast notification appears saying "Real-time updates disconnected. Please refresh the page."
 
@@ -406,7 +461,7 @@ This message appears when the system has exhausted all automatic reconnection at
 
 ## Performance Issues
 
-### 18. Slow Web Interface
+### 19. Slow Web Interface
 
 **Problem**: Pages load slowly or UI elements are unresponsive.
 
@@ -427,7 +482,7 @@ This message appears when the system has exhausted all automatic reconnection at
 - Network latency
 - Server performance issues
 
-### 19. High System Resource Usage
+### 20. High System Resource Usage
 
 **Problem**: High CPU, memory, or disk usage affecting performance.
 
@@ -456,7 +511,7 @@ nvidia-smi
 
 ## Hash List and Data Issues
 
-### 20. Hash Type Detection Failures
+### 21. Hash Type Detection Failures
 
 **Problem**: System cannot detect hash type or shows incorrect detection.
 
@@ -476,7 +531,7 @@ nvidia-smi
 - Unsupported hash formats
 - Encoding issues
 
-### 21. Crackable Upload Errors
+### 22. Crackable Upload Errors
 
 **Problem**: Uploaded files fail to process or extract hashes.
 

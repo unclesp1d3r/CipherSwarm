@@ -473,6 +473,10 @@ The health dashboard is the first place to check when issues arise:
 - **MinIO red**: File uploads and downloads will fail, agents cannot get resources
 - **Application degraded**: Check memory and job queue for bottlenecks
 
+**Using the Dashboard for Troubleshooting:**
+
+The System Health Dashboard is your first stop when agents report connection issues or circuit breaker activation. If agent logs show "circuit breaker open" messages, check this dashboard to verify all services are operational. Green indicators mean services are healthy; red indicators require immediate attention. For detailed troubleshooting of agent network issues, see [Agent Network and Connection Issues](troubleshooting.md#agent-network-and-connection-issues).
+
 #### Legacy Health Overview
 
 The dashboard also shows aggregate health metrics:
@@ -608,6 +612,16 @@ Accessibility features are verified through:
    - Verify agent token is correct
    - Check agent logs for connection errors
    - Ensure agent has project access
+
+5. **Agent Circuit Breaker Activation**
+
+   - **Symptom**: Agent logs show "circuit breaker open" messages
+   - **Meaning**: The agent is protecting itself from repeated server connection failures
+   - **Check**: Verify all services are green on the System Health Dashboard
+   - **Action**: The agent will automatically attempt recovery after 60 seconds. If the circuit remains open for more than 5 minutes, investigate server availability and network connectivity.
+   - **Details**: See [Circuit Breaker Recovery](troubleshooting-agents.md#circuit-breaker-recovery)
+
+For comprehensive agent troubleshooting including network resilience, automatic retry behavior, and detailed recovery procedures, see the [Agent Troubleshooting Guide](troubleshooting-agents.md).
 
 ### Performance Tips
 
