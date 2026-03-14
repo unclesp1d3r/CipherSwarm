@@ -23,6 +23,16 @@ RSpec.describe ToastNotificationComponent, type: :component do
       expect(page).to have_css("[data-toast-delay-value='5000']")
     end
 
+    it "disables autohide for danger variant" do
+      render_inline(described_class.new(message: "Error", variant: "danger"))
+      expect(page).to have_css("[data-toast-autohide-value='false']")
+    end
+
+    it "enables autohide for non-danger variants" do
+      render_inline(described_class.new(message: "Done", variant: "success"))
+      expect(page).to have_css("[data-toast-autohide-value='true']")
+    end
+
     it "renders close button" do
       render_inline(described_class.new(message: "Test"))
       expect(page).to have_css("button[data-bs-dismiss='toast']")

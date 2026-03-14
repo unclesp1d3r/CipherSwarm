@@ -1,5 +1,14 @@
 <%= simple_form_for @campaign do |f| %>
-  <%= render Railsboot::ErrorsComponent.new(@campaign) %>
+  <% if @campaign.errors.any? %>
+    <div class="alert alert-danger" role="alert">
+      <h4 class="alert-heading"><%= pluralize(@campaign.errors.count, "error") %> prevent this from saving.</h4>
+      <ul>
+        <% @campaign.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
   <%= f.input :name, hint: "Enter a unique name for this campaign" %>
   <%= f.association :hash_list, collection: @hash_lists, include_blank: false,
                                 hint: "Select a hash list to associate with this campaign" %>
@@ -9,7 +18,7 @@
   <div class="row mb-0">
     <div class="col-sm-9 offset-sm-3">
       <%= f.button :submit, "Submit", class: "btn-success" %>
-      <%= render Railsboot::ButtonComponent.new(tag: "a", href: campaigns_path, variant: "danger", text: "Cancel") %>
+      <%= link_to "Cancel", campaigns_path, class: "btn btn-secondary" %>
     </div>
   </div>
 <% end %>

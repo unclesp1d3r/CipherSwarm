@@ -55,7 +55,7 @@ RSpec.describe "Tabs controller regressions", skip: ENV["CI"].present? do
 
       tab_links = page.all("[data-tabs-target='tab']")
       tab_links.each do |tab_link|
-        expect(tab_link[:"data-action"]).to eq("click->tabs#switch")
+        expect(tab_link[:"data-action"]).to eq("click->tabs#switch keydown->tabs#keydown")
       end
     end
   end

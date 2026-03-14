@@ -8,10 +8,10 @@
       <table class="table table-sm table-hover">
         <thead>
           <tr>
-            <th>Date</th>
-            <th>Severity</th>
-            <th>Message</th>
-            <th>Actions</th>
+            <th scope="col">Date</th>
+            <th scope="col">Severity</th>
+            <th scope="col">Message</th>
+            <th scope="col">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -25,16 +25,10 @@
       <noscript><%== pagy.series_nav %></noscript>
     <% end %>
   <% else %>
-    <%= render Railsboot::BlankSlateComponent.new do |blank_slate| %>
-      <% blank_slate.with_icon do %>
-        <span style="font-size: 64px;"><%= icon("check-circle") %></span>
-      <% end %>
-      <% blank_slate.with_heading do %>
-        No errors recorded
-      <% end %>
-      <% blank_slate.with_description do %>
-        This agent has not reported any errors yet.
-      <% end %>
-    <% end %>
+    <div class="text-center">
+      <div><span class="empty-state-icon"><%= icon("check-circle") %></span></div>
+      <h3>No errors recorded</h3>
+      <p class="small text-secondary mt-3">This agent has not reported any errors yet.</p>
+    </div>
 <% end %>
 <% end %>

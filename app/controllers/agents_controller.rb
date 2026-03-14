@@ -75,6 +75,17 @@ class AgentsController < ApplicationController
     end
   end
 
+  # POST /agents/1/expire_benchmarks
+  # Deletes all benchmarks for the agent and transitions it to pending,
+  # forcing the agent to re-benchmark on its next heartbeat.
+  def expire_benchmarks
+    @agent.hashcat_benchmarks.destroy_all
+    @agent.check_benchmark_age
+
+    redirect_to agent_url(@agent, anchor: "capabilities"),
+                notice: "Benchmarks expired. The agent will re-benchmark on its next check-in."
+  end
+
   # DELETE /agents/1 or /agents/1.json
   def destroy
     @agent.destroy!

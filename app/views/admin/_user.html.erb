@@ -13,14 +13,14 @@
     <% end %>
   </td>
   <td>
-    <div class="btn-group btn-group-sm">
+    <div class="btn-group btn-group-sm" role="group" aria-label="<%= user.name %> actions">
       <% if user != current_user %>
         <% if user.access_locked? %>
-          <%= button_to unlock_user_path(user), method: :post, data: { turbo_method: :post }, class: "btn btn-primary btn-sm", id: "unlock-user-#{user.id}" do %>
+          <%= button_to unlock_user_path(user), method: :post, data: { turbo_method: :post }, class: "btn btn-primary btn-sm", id: "unlock-user-#{user.id}", aria: { label: "Unlock #{user.name}" } do %>
             <%= icon("lock-fill") %>
           <% end %>
         <% else %>
-          <%= button_to lock_user_path(user), method: :post, data: { turbo_method: :post }, class: "btn btn-primary btn-sm", id: "lock-user-#{user.id}" do %>
+          <%= button_to lock_user_path(user), method: :post, data: { turbo_method: :post }, class: "btn btn-primary btn-sm", id: "lock-user-#{user.id}", aria: { label: "Lock #{user.name}" } do %>
             <%= icon("unlock-fill") %>
           <% end %>
         <% end %>
