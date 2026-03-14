@@ -33,6 +33,8 @@ Welcome to the CipherSwarm documentation. This directory contains comprehensive 
 
 ### Deployment Guides
 
+- [**Environment Variables Reference**](deployment/environment-variables.md) - Comprehensive guide to all environment variables
+- [Air-Gapped Deployment](deployment/air-gapped-deployment.md) - Deploying in isolated environments
 - [Production Load Balancing](deployment/production-load-balancing.md) - Nginx load balancing with horizontal web scaling
 
 ### Development Documentation
