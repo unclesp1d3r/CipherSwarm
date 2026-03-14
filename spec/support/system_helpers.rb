@@ -59,7 +59,7 @@ module SystemHelpers
     sleep 0.2 # Brief pause for animation
     # Find the Log out button (button_to renders a submit button) and click it
     # Use execute_script to bypass visibility issues with Bootstrap dropdown
-    logout_form = find("form[action*='sign_out']", visible: :all)
+    logout_form = first("form[action*='sign_out']", visible: :all)
     page.execute_script("arguments[0].submit()", logout_form.native)
     expect(page).to have_current_path(new_user_session_path)
   end
