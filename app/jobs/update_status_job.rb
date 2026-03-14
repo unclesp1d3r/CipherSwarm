@@ -10,27 +10,24 @@
 # - Removes running status for incomplete tasks.
 # - Cleans up agent error records older than the configured retention period.
 # - Abandons tasks that have been running for more than a configurable amount of time without activity.
+# - Rebalances task assignments for non-deferred (normal and high) priority campaigns via preemption.
 #
-# The job is executed with a high priority queue.
-#
-# Methods:
-# - perform(*_args): Executes the status update operations within a database connection pool.
-#   Ensures that active connections are cleared and closed after execution.
+# Runs within an explicit connection pool checkout to avoid leaking connections.
+# Scheduled via sidekiq-cron (see config/schedule.yml, default: every 3 minutes).
+# Executed with a high priority queue.
 class UpdateStatusJob < ApplicationJob
+  include AttackPreemptionLoop
+
   queue_as :high
 
-  # Performs the following tasks:
-  # 1. Checks the online status of agents that have been offline for more than a configurable amount of time.
-  # 2. Removes old status for tasks in a finished state.
-  # 3. Removes running status for incomplete tasks.
-  # 4. Cleans up agent error records older than the configured retention period.
-  # 5. Abandons tasks that have been running for more than a configurable amount of time without activity.
-  # 6. Rebalances task assignments for high-priority campaigns.
-  #
   ##
-  # Executes periodic status maintenance tasks (agent heartbeats, task status cleanup, task abandonment, and assignment rebalancing)
+  # Executes periodic status maintenance tasks within an explicit connection pool checkout.
   #
-  # Runs the sequence of status-update operations: check agents' online status, remove status records for finished and incomplete tasks, clean up old agent errors, abandon inactive running tasks, and rebalance task assignments for high-priority campaigns. Ensures the ActiveRecord connection pool is cleared of active connections after execution to avoid connection leaks.
+  # Runs the sequence of status-update operations: check agents' online status, remove
+  # status records for finished and incomplete tasks, clean up old agent errors, abandon
+  # inactive running tasks, and rebalance task assignments for non-deferred campaigns.
+  # Individual sub-tasks rescue their own errors to prevent one failure from blocking
+  # the rest; however, connection-level errors in rebalancing propagate for Sidekiq retry.
   def perform(*_args)
     ActiveRecord::Base.connection_pool.with_connection do
       check_agents_online_status
@@ -40,14 +37,12 @@ class UpdateStatusJob < ApplicationJob
       abandon_inactive_tasks
       rebalance_task_assignments
     end
-  ensure
-    ActiveRecord::Base.connection_handler.clear_active_connections!
   end
 
   private
 
   def abandon_inactive_tasks
-    Task.with_state(:running).inactive_for(ApplicationConfig.task_considered_abandoned_age).each { |task| task.abandon }
+    Task.with_state(:running).inactive_for(ApplicationConfig.task_considered_abandoned_age).find_each(&:abandon)
   end
 
   ##
@@ -59,7 +54,10 @@ class UpdateStatusJob < ApplicationJob
       Rails.logger.info("[AgentErrorCleanup] Removed #{deleted_count} agent errors older than #{ApplicationConfig.agent_error_retention}")
     end
   rescue StandardError => e
-    Rails.logger.error("[AgentErrorCleanup] Error cleaning up old agent errors: #{e.message}")
+    Rails.logger.error(
+      "[AgentErrorCleanup] Error cleaning up old agent errors: #{e.class} - #{e.message} - " \
+      "Backtrace: #{Array(e.backtrace).first(5).join(' | ')}"
+    )
   end
 
   ##
@@ -85,8 +83,7 @@ class UpdateStatusJob < ApplicationJob
   #   (device_statuses and hashcat_guess have dependent: :destroy, touch: true on task).
   # - Alternatives considered:
   #   1. delete_all (faster but skips callbacks, orphans dependent records)
-  #   2. destroy_all on full set (chosen - ensures data integrity)
-  #   3. in_batches.destroy_all (unnecessary complexity for typical volumes)
+  #   2. destroy_all on full set (simple but loads all records into memory)
   # - Decision: Use in_batches.destroy_all for memory efficiency while preserving callbacks.
   # - Performance: Slightly slower than delete_all but maintains referential integrity.
   def remove_finished_tasks_status
@@ -98,7 +95,10 @@ class UpdateStatusJob < ApplicationJob
       Rails.logger.info("[StatusCleanup] Removed #{deleted_count} hashcat_statuses for finished tasks")
     end
   rescue StandardError => e
-    Rails.logger.error("[StatusCleanup] Error removing finished task statuses: #{e.message}")
+    Rails.logger.error(
+      "[StatusCleanup] Error removing finished task statuses: #{e.class} - #{e.message} - " \
+      "Backtrace: #{Array(e.backtrace).first(5).join(' | ')}"
+    )
   end
 
   ##
@@ -156,45 +156,26 @@ class UpdateStatusJob < ApplicationJob
       end
     end
   rescue StandardError => e
-    Rails.logger.error("[StatusCleanup] Error removing incomplete task statuses: #{e.message}")
+    Rails.logger.error(
+      "[StatusCleanup] Error removing incomplete task statuses: #{e.class} - #{e.message} - " \
+      "Backtrace: #{Array(e.backtrace).first(5).join(' | ')}"
+    )
   end
 
-  # Rebalances task assignments by checking for pending high-priority attacks
-  # and attempting to preempt lower-priority tasks if needed.
-  # Includes comprehensive error handling to ensure individual failures don't
   ##
-  # Rebalances task assignments by ensuring high-priority attacks can acquire workers through preemption when needed.
-  # Iterates incomplete attacks in high-priority campaigns that have no running tasks and, for each attack with remaining work (`uncracked_count > 0`), attempts to preempt lower-priority tasks. Per-attack errors are logged and skipped; any error during the overall rebalance is logged and not re-raised.
+  # Rebalances task assignments by ensuring non-deferred attacks can acquire workers through preemption when needed.
+  # Iterates incomplete attacks in non-deferred (normal and high) priority campaigns that have no running tasks and,
+  # for each attack with remaining work (`uncracked_count > 0`), attempts to preempt lower-priority tasks.
+  # Per-attack errors are logged and skipped; connection-level errors propagate for Sidekiq retry.
   def rebalance_task_assignments
-    begin
-      # Find high-priority attacks with no running tasks
-      # Eager load campaign and hash_list to avoid N+1 queries when checking uncracked_count
-      high_priority_attacks = Attack.incomplete
-                                     .joins(:campaign)
-                                     .includes(:campaign, campaign: :hash_list)
-                                     .where(campaigns: { priority: Campaign.priorities[:high] })
-                                     .where.not(id: Task.with_state(:running).select(:attack_id))
+    # Find non-deferred priority attacks with no running tasks
+    # Eager load campaign and hash_list to avoid N+1 queries when checking uncracked_count
+    preemptable_attacks = Attack.incomplete
+                                .joins(:campaign)
+                                .includes(:campaign, campaign: :hash_list)
+                                .where(campaigns: { priority: [Campaign.priorities[:normal], Campaign.priorities[:high]] })
+                                .where.not(id: Task.with_state(:running).select(:attack_id))
 
-      high_priority_attacks.each do |attack|
-        begin
-          next if attack.uncracked_count.zero?
-
-          # Attempt preemption
-          TaskPreemptionService.new(attack).preempt_if_needed
-        rescue StandardError => e
-          Rails.logger.error(
-            "[TaskRebalance] Error preempting tasks for attack #{attack.id} - " \
-            "Error: #{e.class} - #{e.message}"
-          )
-          # Continue with next attack
-        end
-      end
-    rescue StandardError => e
-      Rails.logger.error(
-        "[TaskRebalance] Error in rebalance_task_assignments - " \
-        "Error: #{e.class} - #{e.message} - Backtrace: #{e.backtrace.first(5).join(' | ')}"
-      )
-      # Don't re-raise - this is a background job that should complete
-    end
+    preempt_attacks(preemptable_attacks)
   end
 end

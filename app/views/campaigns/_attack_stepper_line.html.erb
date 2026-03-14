@@ -1,5 +1,5 @@
-<%# locals: (stepper:, campaign:, attack:, failed_attack_error_map:) -%>
-<% stepper.with_item(active: attack.completed?) do %>
+<%# locals: (campaign:, attack:, failed_attack_error_map:) -%>
+<li class="stepper-item <%= "active" if attack.completed? %>">
   <div id="attack-progress-<%= attack.id %>" class="d-flex flex-column gap-2 w-100">
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
       <span class="fw-medium"><%= attack.to_label_with_complexity %></span>
@@ -13,25 +13,24 @@
             <%= icon("exclamation-triangle-fill") %>
           </button>
         <% end %>
-        <%= render Railsboot::ButtonGroupComponent.new(aria_label: "Attack Actions for #{attack.name}", size: "sm") do %>
+        <div class="btn-group btn-group-sm" role="group" aria-label="Attack Actions for <%= attack.name %>">
           <% if can? :read, attack %>
-            <%= render Railsboot::Button::LinkComponent.new(href: campaign_attack_path(campaign, attack), aria_label: "View attack details") do %>
+            <%= link_to campaign_attack_path(campaign, attack), class: "btn btn-primary", aria: { label: "View attack details" } do %>
               <%= icon("eye") %>
             <% end %>
           <% end %>
           <% if can? :edit, attack %>
-            <%= render Railsboot::Button::LinkComponent.new(href: edit_campaign_attack_path(campaign, attack), variant: "warning", aria_label: "Edit attack") do %>
+            <%= link_to edit_campaign_attack_path(campaign, attack), class: "btn btn-warning", aria: { label: "Edit attack" } do %>
               <%= icon("pencil") %>
             <% end %>
           <% end %>
           <% if can? :destroy, attack %>
-            <%= render Railsboot::Button::LinkComponent.new(href: [campaign, attack], variant: "danger", method: :delete,
-                                                            data: { turbo_method: :delete, turbo_confirm: "Are you sure?" },
-                                                            aria_label: "Delete attack") do %>
+            <%= link_to [campaign, attack], class: "btn btn-danger", aria: { label: "Delete attack" },
+                        data: { turbo_method: :delete, turbo_confirm: "Are you sure?" } do %>
               <%= icon("trash-fill") %>
             <% end %>
           <% end %>
-        <% end %>
+        </div>
       </div>
     </div>
     <%= render(CampaignProgressComponent.new(
@@ -42,4 +41,4 @@
     )) %>
   </div>
   <%= turbo_stream_from attack %>
-<% end %>
+</li>

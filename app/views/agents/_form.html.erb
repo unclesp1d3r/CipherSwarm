@@ -1,10 +1,19 @@
 <%= simple_form_for @agent do |f| %>
-  <%= render Railsboot::ErrorsComponent.new(@agent) %>
+  <% if @agent.errors.any? %>
+    <div class="alert alert-danger" role="alert">
+      <h4 class="alert-heading"><%= pluralize(@agent.errors.count, "error") %> prevent this from saving.</h4>
+      <ul>
+        <% @agent.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
 
 
   <%= f.input :custom_label, hint: "A custom label for the agent" %>
   <% if @agent.new_record? %>
-    <small class="text-muted">A random host name will be generated until the agent checks in for the first time</small>
+    <small class="text-body-secondary">A random host name will be generated until the agent checks in for the first time</small>
   <% end %>
   <%= f.input :enabled, hint: "Permitted to request jobs and cracker updates" %>
   <%= f.association :user, hint: "The user that the agent is associated with" if current_user.has_role?(:admin) %>
@@ -26,5 +35,5 @@
   </fieldset>
 
   <%= f.button :submit, "Submit", class: "btn btn-primary" %>
-  <%= render Railsboot::ButtonComponent.new(tag: "a", href: agents_path, variant: "danger", text: "Cancel") %>
+  <%= link_to "Cancel", agents_path, class: "btn btn-secondary" %>
 <% end %>

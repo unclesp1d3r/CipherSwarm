@@ -227,6 +227,7 @@ class HashList < ApplicationRecord
     Rails.cache.fetch("#{cache_key_with_version}/recent_cracks/#{limit}", expires_in: 1.minute) do
       hash_items.where(cracked: true)
                 .where("cracked_time > ?", 24.hours.ago)
+                .includes(:attack)
                 .order(cracked_time: :desc)
                 .limit(limit)
                 .to_a

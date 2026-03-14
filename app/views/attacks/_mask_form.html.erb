@@ -1,7 +1,7 @@
 <%# locals: (form:, attack:) -%>
 
 <%= field_set_tag "Mask Attack", id: "mask_attack_set" do %>
-  <small class="form-text text-muted">
+  <small class="form-text">
     A mask attack is a brute-force attack that uses a mask to define the character set to use for each position in the
     password.
     Please select either a custom mask or a mask list to use for the attack.
@@ -10,7 +10,7 @@
   <%= form.association :mask_list, collection: @mask_lists, hint: "Select a provided hcmask-formatted mask list to attempt." %>
 <% end %>
 <%= field_set_tag "Incremental Mode", id: "incremental_attack_set" do %>
-  <small class="form-text text-muted">
+  <small class="form-text">
     Incremental mode causes the attack to iterate through each position in the mask.
     For example, an eight-character mask of '?a?a?a?a?a?a?a?a' will first attempt '?a', then '?a?a', then '?a?a?a' and
     so on.
@@ -20,7 +20,7 @@
   <%= form.input :increment_maximum, hint: "The maximum number of character positions to attempt in the mask." %>
 <% end %>
 <%= field_set_tag "Character Sets", id: "character_sets_attack_set" do %>
-  <small class="form-text text-muted">
+  <small class="form-text">
     Character sets define the types of characters to use for each position in the mask.
     By default, the attack will use the default character sets defined in the hashcat configuration.
     You can override these defaults by providing custom character sets below. They are referenced in the mask using '?1'
@@ -32,7 +32,7 @@
   <%= form.input :custom_charset_4 %>
 <% end %>
 <%= field_set_tag "Markov (Advanced Setting)", id: "markov_attack_set" do %>
-  <small class="form-text text-muted">
+  <small class="form-text">
     Markov chains are used to generate passwords based on the probability of characters appearing next to each other.
     This can be useful for generating passwords that are similar to those used by the target.
     The classic Markov setting uses a pre-defined set of probabilities, while the disable Markov setting will disable

@@ -1,24 +1,15 @@
 <%= turbo_frame_tag "agents-cards" do %>
   <% if agents.empty? %>
-    <%= render Railsboot::BlankSlateComponent.new do |blank_slate| %>
-      <% blank_slate.with_icon do %>
-        <%= icon("robot") %>
-      <% end %>
-
-      <% blank_slate.with_heading do %>
-        No Agents Found
-      <% end %>
-
-      <% blank_slate.with_description do %>
-        Create your first agent to start cracking hashes
-      <% end %>
-
+    <div class="text-center">
+      <div><%= icon("robot") %></div>
+      <h3>No Agents Found</h3>
+      <p class="small text-secondary mt-3">Create your first agent to start cracking hashes</p>
       <% if can? :create, Agent %>
-        <% blank_slate.with_primary_action do %>
+        <div class="mt-4">
           <%= link_to "New Agent", new_agent_path, class: "btn btn-primary", data: { turbo_frame: "_top" } %>
-        <% end %>
+        </div>
       <% end %>
-    <% end %>
+    </div>
   <% else %>
     <div class="row g-4">
       <% agents.each do |agent| %>
