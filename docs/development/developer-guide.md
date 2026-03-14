@@ -101,8 +101,10 @@ just db-reset     # Reset database (drop, create, migrate, seed)
 | Framework       | Rails 8.0+                               |
 | Database        | PostgreSQL 17+                           |
 | Cache/Jobs      | Redis 7.2+ (Solid Cache, Sidekiq)        |
-| Frontend        | Hotwire (Turbo + Stimulus), Tailwind CSS |
-| Components      | ViewComponent                            |
+| Frontend        | Hotwire (Turbo + Stimulus), Bootstrap 5 with Catppuccin Macchiato theme |
+| Typography      | Self-hosted: Space Grotesk, IBM Plex Sans, JetBrains Mono              |
+| Icons           | Bootstrap Icons                                                         |
+| Components      | ViewComponent                                                           |
 | Authentication  | Rails 8 Auth + Devise                    |
 | Authorization   | CanCanCan + Rolify                       |
 | Background Jobs | Sidekiq + Sidekiq-Cron                   |
@@ -251,6 +253,63 @@ spec/
 ---
 
 ## Development Patterns
+
+### Frontend Development
+
+**Views**: Use plain ERB templates with Bootstrap 5 utility classes. No component abstraction layer.
+
+**Theming**: Catppuccin Macchiato theme implemented via SCSS variable overrides:
+
+- `_catppuccin.scss` defines the full palette and overrides Bootstrap variables (imported BEFORE `@import "bootstrap"`)
+- Primary accent: `$ctp-violet: #a855f7` (DarkViolet lightened for dark-mode contrast)
+- Surface hierarchy: Crust (navbar) → Mantle (sidebar) → Base (body) → Surface0 (cards, inputs)
+- Component-level dark theme overrides in `application.bootstrap.scss` via `[data-bs-theme="dark"]` selector
+- Available color variables: `$ctp-violet`, `$ctp-surface0`, `$ctp-text`, `$ctp-overlay0`, etc.
+
+**Typography**: Self-hosted fonts via `@fontsource` packages (air-gap safe):
+
+- Space Grotesk (variable, 300–700) — headings
+- IBM Plex Sans (400, 500, 600, 700) — body text
+- JetBrains Mono (variable, 100–800) — monospace for hashes/masks
+- Font files copied to `app/assets/builds/` by `build:css:fonts` script
+
+**ViewComponent**: Use for reusable logic, but render Bootstrap markup directly (no abstraction layer):
+
+```ruby
+# Good - ViewComponent with plain Bootstrap HTML
+class AgentStatusComponent < ViewComponent::Base
+  def initialize(agent:)
+    @agent = agent
+  end
+
+  def badge_class
+    case @agent.state
+    when "active" then "badge bg-success"
+    when "error" then "badge bg-danger"
+    else "badge bg-secondary"
+    end
+  end
+end
+
+# View template uses Bootstrap HTML
+<span class="<%= badge_class %>">
+  <%= @agent.state.titleize %>
+</span>
+```
+
+**CSS Patterns**:
+
+- Empty states: use `.empty-state-icon` class (not inline `style="font-size: 64px;"`)
+- Skeleton loaders: use `.skeleton-progress`, `.skeleton-avatar` classes
+- Reference Catppuccin color hierarchy in custom styles
+
+**Accessibility**: All new UI must meet WCAG 2.1 AA standards:
+
+- Skip link targeting `#main-content` (already present in layout)
+- Interactive elements use semantic HTML (`<button>`, not `<a href="#">`)
+- All navigation landmarks have `aria-label` attributes
+- Keyboard navigation support (arrow keys for tabs, focus management)
+- Semantic color classes (`text-body-secondary`, not `text-muted`)
 
 ### Service Objects
 
@@ -843,6 +902,15 @@ bin/rails generate component AgentStatus agent
 - Must be completely self-contained and use only data passed via `locals`
 - See GOTCHAS.md and Turbo Stream Broadcast Constraints documentation
 - Use stable DOM IDs with `dom_id(record, :suffix)` for targeted updates
+
+### Frontend Patterns
+
+- Navbar dropdowns must use `<button type="button">`, not `<a href="#">` (scroll-to-top issue)
+- Use Bootstrap z-index utilities (`z-1` through `z-3`) instead of inline styles
+- Empty state icons: use `.empty-state-icon` class, not inline `style="font-size: 64px;"`
+- Skeleton loaders: use `.skeleton-progress`, `.skeleton-avatar` classes
+- After `bun run build:css`, run `touch tmp/restart.txt` to reload Propshaft asset cache
+- `rails assets:clobber` deletes ALL build artifacts — run `just assets-build` to recover
 
 ### State Machine Cascades
 
