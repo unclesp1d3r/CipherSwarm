@@ -872,4 +872,104 @@ RSpec.describe TaskAssignmentService do
       # rubocop:enable RSpec/SubjectStub
     end
   end
+
+  describe "skip-reason logging (#653)" do
+    let(:log_messages) { [] }
+
+    before do
+      allow(Rails.logger).to receive(:info) { |*args, &block| log_messages << (block ? block.call : args.first) }
+      allow(Rails.logger).to receive(:debug) { |*args, &block| log_messages << (block ? block.call : args.first) }
+    end
+
+    context "when no attacks match agent's hash types" do
+      let(:unsupported_hash_type) { create(:hash_type, hashcat_mode: 9999, name: "Unsupported") }
+      let(:unsupported_hash_list) { create(:hash_list, hash_type: unsupported_hash_type, project: project) }
+      let(:unsupported_campaign) { create(:campaign, hash_list: unsupported_hash_list, project: project) }
+
+      before do
+        create(:dictionary_attack, campaign: unsupported_campaign, state: :pending)
+        create(:hash_item, hash_list: unsupported_hash_list, cracked: false)
+      end
+
+      it "logs a summary with no_available_attacks reason" do
+        service.find_next_task
+        expect(log_messages).to include(match(/no_task_assigned.*no_available_attacks/))
+      end
+
+      it "includes agent_id in the summary" do
+        service.find_next_task
+        expect(log_messages).to include(match(/no_task_assigned.*agent_id=#{agent.id}/))
+      end
+    end
+
+    context "when attacks exist but in a different project" do
+      let(:other_project) { create(:project) }
+      let(:other_hash_list) { create(:hash_list, hash_type: hash_type, project: other_project) }
+      let(:other_campaign) { create(:campaign, hash_list: other_hash_list, project: other_project) }
+
+      before do
+        create(:dictionary_attack, campaign: other_campaign, state: :pending)
+        create(:hash_item, hash_list: other_hash_list, cracked: false)
+      end
+
+      it "logs a summary with no_available_attacks reason" do
+        service.find_next_task
+        expect(log_messages).to include(match(/no_task_assigned.*no_available_attacks/))
+      end
+    end
+
+    context "when agent does not meet performance threshold for any attack" do
+      before do
+        create(:dictionary_attack, campaign: campaign, state: :pending)
+        create(:hash_item, hash_list: hash_list, cracked: false)
+        agent.hashcat_benchmarks.find_each { |b| b.update!(hash_speed: 500) }
+      end
+
+      it "logs a summary with performance_threshold_not_met reason" do
+        service.find_next_task
+        expect(log_messages).to include(match(/no_task_assigned.*performance_threshold_not_met/))
+      end
+    end
+
+    context "when all hashes are already cracked" do
+      before do
+        create(:dictionary_attack, campaign: campaign, state: :pending)
+        hash_list.hash_items.delete_all
+        create(:hash_item, hash_list: hash_list, cracked: true)
+      end
+
+      it "logs a summary with all_hashes_cracked reason" do
+        service.find_next_task
+        expect(log_messages).to include(match(/no_task_assigned.*all_hashes_cracked/))
+      end
+    end
+
+    context "when a task is successfully assigned" do
+      before do
+        create(:dictionary_attack, campaign: campaign, state: :pending)
+        create(:hash_item, hash_list: hash_list, cracked: false)
+      end
+
+      it "does not log a no_task_assigned summary" do
+        service.find_next_task
+        expect(log_messages).not_to include(match(/no_task_assigned/))
+      end
+    end
+
+    context "when pending tasks exist but belong to other agents" do
+      let(:other_agent) { create(:agent, user: user, projects: [project]) }
+
+      before do
+        attack = create(:dictionary_attack, campaign: campaign, state: :pending)
+        create(:hashcat_benchmark, agent: other_agent, hash_type: 0, hash_speed: 10_000_000)
+        create(:task, agent: other_agent, attack: attack, state: :pending)
+        create(:hash_item, hash_list: hash_list, cracked: false)
+      end
+
+      it "logs a summary with pending_tasks_not_owned reason" do
+        service.find_next_task
+        expect(log_messages).to include(match(/no_task_assigned.*pending_tasks_not_owned/))
+      end
+    end
+  end
 end

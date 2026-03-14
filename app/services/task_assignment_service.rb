@@ -28,6 +28,7 @@ class TaskAssignmentService
   # @param agent [Agent] the agent requesting a new task
   def initialize(agent)
     @agent = agent
+    @skip_reasons = []
   end
 
   # Finds and returns the next available task for the agent.
@@ -42,10 +43,13 @@ class TaskAssignmentService
   #
   # @return [Task, nil] the next task to work on, or nil if no tasks are available
   def find_next_task
-    find_existing_incomplete_task ||
+    task = find_existing_incomplete_task ||
       find_own_paused_task ||
       find_unassigned_paused_task ||
       find_task_from_available_attacks
+
+    log_no_task_assigned_summary if task.nil?
+    task
   end
 
   private
@@ -129,13 +133,15 @@ class TaskAssignmentService
     task = nil
 
     Task.transaction do
+      grace_cutoff = ApplicationConfig.agent_considered_offline_time.ago
+
       scope = Task.with_state(:paused)
                    .where(claimed_by_agent_id: nil)
                    .where.not(agent_id: agent.id)
                    .joins(:agent)
                    .where(
                      "tasks.paused_at IS NULL OR tasks.paused_at < :grace_cutoff OR agents.state IN (:orphan_states)",
-                     grace_cutoff: ApplicationConfig.agent_considered_offline_time.ago,
+                     grace_cutoff: grace_cutoff,
                      orphan_states: %w[offline stopped]
                    )
                    .joins(attack: { campaign: :hash_list })
@@ -149,7 +155,30 @@ class TaskAssignmentService
                  .lock("FOR UPDATE OF tasks SKIP LOCKED")
                  .first
 
-      return nil unless task
+      if task.nil?
+        grace_blocked_scope = Task.with_state(:paused)
+                                   .where(claimed_by_agent_id: nil)
+                                   .where.not(agent_id: agent.id)
+                                   .joins(:agent)
+                                   .where("tasks.paused_at >= :grace_cutoff AND agents.state NOT IN (:orphan_states)",
+                                          grace_cutoff: grace_cutoff,
+                                          orphan_states: %w[offline stopped])
+                                   .joins(attack: { campaign: :hash_list })
+                                   .where(hash_lists: { hash_type_id: allowed_hash_type_ids })
+
+        grace_blocked_scope = grace_blocked_scope.where(campaigns: { project_id: agent.project_ids }) if agent.project_ids.present?
+
+        blocked_count = grace_blocked_scope.count
+        if blocked_count.positive?
+          Rails.logger.debug {
+            "[TaskAssignment] grace_period_active: agent_id=#{agent.id} " \
+            "grace_cutoff=#{grace_cutoff} blocked_task_count=#{blocked_count} " \
+            "timestamp=#{Time.zone.now}"
+          }
+        end
+
+        return nil
+      end
 
       # Reassign ownership to the claiming agent
       # rubocop:disable Rails/SkipsModelValidations
@@ -194,8 +223,26 @@ class TaskAssignmentService
   #
   # @return [Task, nil] the found or newly created task, or nil if none available
   def find_task_from_available_attacks
-    available_attacks.each do |attack|
-      next if attack.uncracked_count.zero?
+    attacks = available_attacks
+    if attacks.none?
+      @skip_reasons << "no_available_attacks"
+      Rails.logger.info(
+        "[TaskAssignment] no_available_attacks: agent_id=#{agent.id} " \
+        "allowed_hash_type_ids=#{allowed_hash_type_ids} " \
+        "project_ids=#{agent.project_ids} timestamp=#{Time.zone.now}"
+      )
+      return nil
+    end
+
+    attacks.each do |attack|
+      if attack.uncracked_count.zero?
+        @skip_reasons << "all_hashes_cracked"
+        Rails.logger.debug {
+          "[TaskAssignment] no_uncracked_hashes: agent_id=#{agent.id} " \
+          "attack_id=#{attack.id} timestamp=#{Time.zone.now}"
+        }
+        next
+      end
 
       task = find_or_create_task_for_attack(attack)
       return task if task
@@ -272,7 +319,15 @@ class TaskAssignmentService
   # @param attack [Attack] the attack to search in
   # @return [Task, nil] a pending task, or nil
   def find_pending_task(attack)
-    attack.tasks.with_state(:pending).where(agent: agent).order(:id).first
+    task = attack.tasks.with_state(:pending).where(agent: agent).order(:id).first
+    if task.nil? && attack.tasks.with_state(:pending).exists?
+      @skip_reasons << "pending_tasks_not_owned"
+      Rails.logger.debug {
+        "[TaskAssignment] pending_tasks_taken: agent_id=#{agent.id} " \
+        "attack_id=#{attack.id} timestamp=#{Time.zone.now}"
+      }
+    end
+    task
   end
 
   # Creates a new task if the agent meets performance requirements and no pending tasks exist.
@@ -337,10 +392,31 @@ class TaskAssignmentService
   # @param attack [Attack] the attack that was skipped
   # @return [AgentError] the created error record
   def log_performance_skip(attack)
+    @skip_reasons << "performance_threshold_not_met"
     agent.agent_errors.create(
       severity: :info,
       message: "Task skipped for agent because it does not meet the performance threshold",
       metadata: { attack_id: attack.id, hash_type: attack.hash_type }
+    )
+    Rails.logger.info(
+      "[TaskAssignment] performance_threshold_not_met: agent_id=#{agent.id} " \
+      "attack_id=#{attack.id} hash_mode=#{attack.hash_mode} timestamp=#{Time.zone.now}"
+    )
+  end
+
+  # Logs a summary of why no task was assigned to the agent.
+  #
+  # Emits a single info-level log line with all collected skip reasons,
+  # making it easy for operators to diagnose idle agents.
+  #
+  # @return [void]
+  def log_no_task_assigned_summary
+    reasons = @skip_reasons.uniq.join(", ").presence || "no_matching_work"
+    Rails.logger.info(
+      "[TaskAssignment] no_task_assigned: agent_id=#{agent.id} " \
+      "reasons=#{reasons} " \
+      "allowed_hash_type_ids=#{allowed_hash_type_ids} " \
+      "project_ids=#{agent.project_ids} timestamp=#{Time.zone.now}"
     )
   end
 end
