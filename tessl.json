@@ -22,6 +22,13 @@
           "doc-scanner"
         ]
       }
+    },
+    "popey/github-action-monitor": {
+      "version": "0.5.0"
+    },
+    "pbakaus/impeccable": {
+      "version": "15332dd293986e0a310fa54c103025d21142c3dd",
+      "source": "https://github.com/pbakaus/impeccable"
     }
   }
 }

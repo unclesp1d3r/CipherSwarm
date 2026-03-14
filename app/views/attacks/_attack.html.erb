@@ -37,7 +37,7 @@
     <tr>
       <td colspan="5" class="table-sm text-center">
         <%= render ProgressBarComponent.new(percentage: attack.percentage_complete, label: "Attack completion progress") if attack.dictionary? %>
-        <small class="text-muted"><%= attack.progress_text %></small>
+        <small class="text-body-secondary"><%= attack.progress_text %></small>
       </td>
     </tr>
   <% end %>
