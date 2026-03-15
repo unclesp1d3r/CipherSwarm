@@ -157,12 +157,14 @@ Circuit breaker errors indicate server problems, not agent issues:
 **What You'll See:**
 
 Agent logs during circuit open state:
+
 ```
 [Warn] Circuit breaker open, server appears unresponsive
 [Warn] Circuit breaker open, skipping task retrieval
 ```
 
 Agent logs after recovery:
+
 ```
 [Info] Applied server-recommended timeouts - connect=10s, read=30s, write=10s, request=60s
 [Info] Agent authenticated successfully
@@ -284,7 +286,7 @@ The server rejected the acceptance for reasons other than task unavailability (e
 
 **Normal or Concerning?**
 
-This is **concerning behavior** that requires investigation. Non-404 acceptance failures indicate a systemic issue with the server, agent configuration, or attack parameters. These should be rare (<1%) and investigated immediately.
+This is **concerning behavior** that requires investigation. Non-404 acceptance failures indicate a systemic issue with the server, agent configuration, or attack parameters. These should be rare (\<1%) and investigated immediately.
 
 ### When to Restart an Agent
 
@@ -535,7 +537,6 @@ agent:
   retry_backoff_multiplier: 2
   max_retry_backoff: 60 # seconds
   request_new_task_interval: 300 # 5 minutes when idle
-  
   # HTTP resilience settings (can be overridden by server-recommended values)
   connect_timeout: 10 # seconds - TCP connect timeout
   read_timeout: 30 # seconds - API response read timeout
@@ -591,13 +592,13 @@ These parameters allow server operators to tune agent behavior without redeployi
 
 2. **Acceptance Failure Rate**: `(non_404_accept_failures / total_accept_attempts) * 100`
 
-   - Target: <1%
+   - Target: \<1%
    - Alert: >2%
    - Note: Excludes 404 errors, which are normal race conditions
 
 3. **Acceptance 404 Rate**: `(404_accept_failures / total_accept_attempts) * 100`
 
-   - Target: <5%
+   - Target: \<5%
    - Warning: 5-10% (too many idle agents)
    - Alert: >10% (task assignment issues)
 
@@ -850,6 +851,7 @@ The agent automatically handles network interruptions through retry and circuit 
 **What You'll See in Logs:**
 
 During the outage:
+
 ```
 [Warn] Heartbeat failed, backing off - failures=3, next_retry=8s
 [Warn] Circuit breaker open, server appears unresponsive - failures=5
@@ -857,6 +859,7 @@ During the outage:
 ```
 
 After recovery:
+
 ```
 [Info] Applied server-recommended timeouts - connect=10s, read=30s, write=10s, request=60s
 [Info] Agent authenticated successfully
@@ -921,7 +924,7 @@ The task no longer exists on the server (another agent claimed it), so calling A
 
 **Monitoring:**
 
-- **Normal**: Occasional 404s during acceptance (<5% of attempts)
+- **Normal**: Occasional 404s during acceptance (\<5% of attempts)
 - **Warning**: Frequent 404s (5-10% of attempts) may indicate too many idle agents
 - **Critical**: Very high 404 rate (>10% of attempts) suggests task assignment issues
 
@@ -968,20 +971,21 @@ When the server becomes unavailable during a restart:
 
 **Resolution:**
 
-1. Agent detects server unavailability through failed API requests
-2. Retry transport attempts each request up to 3 times with exponential backoff
-3. After exhausting retries, circuit breaker opens if failure threshold reached
-4. Agent logs "circuit open" messages instead of attempting failed requests
-5. After circuit breaker timeout (60s), agent sends probe request
-6. When server is back online, circuit breaker closes
-7. Agent re-authenticates with server
-8. Agent abandons all current task references (now stale)
-9. Agent requests new tasks
+01. Agent detects server unavailability through failed API requests
+02. Retry transport attempts each request up to 3 times with exponential backoff
+03. After exhausting retries, circuit breaker opens if failure threshold reached
+04. Agent logs "circuit open" messages instead of attempting failed requests
+05. After circuit breaker timeout (60s), agent sends probe request
+06. When server is back online, circuit breaker closes
+07. Agent re-authenticates with server
+08. Agent abandons all current task references (now stale)
+09. Agent requests new tasks
 10. Agent resumes normal operations
 
 **What You'll See in Logs:**
 
 During server downtime:
+
 ```
 [Warn] Heartbeat failed, backing off - failures=3, next_retry=8s
 [Warn] Circuit breaker open, server appears unresponsive - failures=5
@@ -989,6 +993,7 @@ During server downtime:
 ```
 
 After server recovery:
+
 ```
 [Info] Applied server-recommended timeouts - connect=10s, read=30s, write=10s, request=60s
 [Info] Agent authenticated successfully
@@ -1269,21 +1274,21 @@ grep "\[TaskAssignment\] no_task_assigned" production.log | \
 
 ### Common Log Patterns and Meanings
 
-| Pattern                                                      | Meaning                                   | Action Required                               |
-| ------------------------------------------------------------ | ----------------------------------------- | --------------------------------------------- |
-| `[Attack.*Abandoning attack.*destroying N tasks]`            | Attack abandoned, N tasks destroyed       | Normal if occasional, investigate if frequent |
-| `[Task.*State change.*-> running]`                           | Task accepted and started                 | Normal operation                              |
-| `[Task.*State change.*-> completed]`                         | Task completed successfully               | Normal operation                              |
-| `[TaskNotFound].*task_deleted`                               | Agent tried to use deleted task           | Normal, agent should request new work         |
-| `[TaskNotFound].*task_not_assigned`                          | Agent tried to access other agent's task  | Check for configuration issues                |
-| `[TaskNotFound].*task_invalid`                               | Invalid task ID used                      | Possible client bug, investigate              |
-| `[TaskAssignment] no_task_assigned.*no_available_attacks`    | No attacks match agent's configuration    | Check hash types and project assignments      |
-| `[TaskAssignment] no_task_assigned.*all_hashes_cracked`      | All available work is complete            | Start new campaigns or adjust hash lists      |
-| `[TaskAssignment] no_task_assigned.*performance_threshold`   | Agent too slow for available attacks      | Review benchmarks or adjust thresholds        |
-| Multiple `[TaskNotFound]` for same agent in short time       | Agent not recovering properly             | Check agent configuration and code            |
-| `[Attack.*Abandoning attack]` multiple times for same attack | Attack repeatedly abandoned and restarted | Investigate root cause                        |
+| Pattern                                                      | Meaning                                               | Action Required                                               |
+| ------------------------------------------------------------ | ----------------------------------------------------- | ------------------------------------------------------------- |
+| `[Attack.*Abandoning attack.*destroying N tasks]`            | Attack abandoned, N tasks destroyed                   | Normal if occasional, investigate if frequent                 |
+| `[Task.*State change.*-> running]`                           | Task accepted and started                             | Normal operation                                              |
+| `[Task.*State change.*-> completed]`                         | Task completed successfully                           | Normal operation                                              |
+| `[TaskNotFound].*task_deleted`                               | Agent tried to use deleted task                       | Normal, agent should request new work                         |
+| `[TaskNotFound].*task_not_assigned`                          | Agent tried to access other agent's task              | Check for configuration issues                                |
+| `[TaskNotFound].*task_invalid`                               | Invalid task ID used                                  | Possible client bug, investigate                              |
+| `[TaskAssignment] no_task_assigned.*no_available_attacks`    | No attacks match agent's configuration                | Check hash types and project assignments                      |
+| `[TaskAssignment] no_task_assigned.*all_hashes_cracked`      | All available work is complete                        | Start new campaigns or adjust hash lists                      |
+| `[TaskAssignment] no_task_assigned.*performance_threshold`   | Agent too slow for available attacks                  | Review benchmarks or adjust thresholds                        |
+| Multiple `[TaskNotFound]` for same agent in short time       | Agent not recovering properly                         | Check agent configuration and code                            |
+| `[Attack.*Abandoning attack]` multiple times for same attack | Attack repeatedly abandoned and restarted             | Investigate root cause                                        |
 | `Circuit breaker open, server appears unresponsive`          | Circuit breaker protecting against cascading failures | Check server availability and health; agent will auto-recover |
-| `Circuit breaker open, skipping task retrieval`              | Agent avoiding failed requests during outage | Normal during server downtime; no action needed |
+| `Circuit breaker open, skipping task retrieval`              | Agent avoiding failed requests during outage          | Normal during server downtime; no action needed               |
 
 ### Tools for Log Analysis
 

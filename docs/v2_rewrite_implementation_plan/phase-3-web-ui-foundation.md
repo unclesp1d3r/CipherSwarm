@@ -232,6 +232,7 @@ A new test-seeding endpoint needs to be created in the backend to seed the datab
 - [ ] Add dark mode toggle using Shadcn-Svelte utilities
 
 **Note**: The Rails backend has implemented a comprehensive Catppuccin Macchiato theme. The frontend implementation should align with these patterns when applicable.
+
 - [x] **COMPLETED**: Implemented login page (with email + password)
 - [x] **COMPLETED**: Implemented account/profile pages with user management
 - [x] **COMPLETED**: Implemented settings page
@@ -427,6 +428,7 @@ This section captures the comprehensive UX design goals and interface patterns d
 **Design Reference**: See `DESIGN.md` in the Rails backend for comprehensive design context including user personas, brand personality ("Technical, Accessible, Performant, Minimal"), and design principles. The SvelteKit frontend should align with these design goals where applicable.
 
 **Frontend Gotchas**: See `GOTCHAS.md` (Frontend & Accessibility section) for important implementation considerations:
+
 - Navbar dropdown accessibility patterns
 - Z-index layering with Bootstrap utilities
 - Sidebar ARIA attributes for proper navigation semantics

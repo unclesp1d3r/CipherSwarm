@@ -95,20 +95,20 @@ just db-reset     # Reset database (drop, create, migrate, seed)
 
 ### Technology Stack
 
-| Layer           | Technology                               |
-| --------------- | ---------------------------------------- |
-| Language        | Ruby 3.4.5                               |
-| Framework       | Rails 8.0+                               |
-| Database        | PostgreSQL 17+                           |
-| Cache/Jobs      | Redis 7.2+ (Solid Cache, Sidekiq)        |
+| Layer           | Technology                                                              |
+| --------------- | ----------------------------------------------------------------------- |
+| Language        | Ruby 3.4.5                                                              |
+| Framework       | Rails 8.0+                                                              |
+| Database        | PostgreSQL 17+                                                          |
+| Cache/Jobs      | Redis 7.2+ (Solid Cache, Sidekiq)                                       |
 | Frontend        | Hotwire (Turbo + Stimulus), Bootstrap 5 with Catppuccin Macchiato theme |
-| Typography      | Self-hosted: Space Grotesk, IBM Plex Sans, JetBrains Mono              |
+| Typography      | Self-hosted: Space Grotesk, IBM Plex Sans, JetBrains Mono               |
 | Icons           | Bootstrap Icons                                                         |
 | Components      | ViewComponent                                                           |
-| Authentication  | Rails 8 Auth + Devise                    |
-| Authorization   | CanCanCan + Rolify                       |
-| Background Jobs | Sidekiq + Sidekiq-Cron                   |
-| API Docs        | RSwag (OpenAPI)                          |
+| Authentication  | Rails 8 Auth + Devise                                                   |
+| Authorization   | CanCanCan + Rolify                                                      |
+| Background Jobs | Sidekiq + Sidekiq-Cron                                                  |
+| API Docs        | RSwag (OpenAPI)                                                         |
 
 ### High-Level Architecture
 
