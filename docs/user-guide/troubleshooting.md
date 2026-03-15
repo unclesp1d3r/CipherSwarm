@@ -303,32 +303,9 @@ For detailed agent troubleshooting, see [Agent Troubleshooting](troubleshooting-
 - **Agent not accepting tasks**: Verify project assignment and agent state
 - **Agent errors**: Check the agent error tab in the web interface
 
-### Troubleshooting Workflow
+### Connection Troubleshooting
 
-When diagnosing agent connection issues, distinguish between different failure types:
-
-1. **Transient errors** (automatically handled):
-
-   - Brief network interruptions
-   - Temporary server overload (5xx responses)
-   - Check logs for retry attempts—agent handles these automatically
-   - No action needed unless retries are consistently exhausted
-
-2. **Circuit breaker activation** (indicates persistent server issues):
-
-   - "Circuit breaker open" or `ErrCircuitOpen` in logs
-   - Multiple consecutive failures exceeded threshold
-   - Focus on server availability and network connectivity
-   - Agent will automatically attempt recovery after timeout
-
-3. **Authentication/authorization failures** (require configuration changes):
-
-   - 401 or 403 HTTP status codes
-   - Invalid or expired agent token
-   - Agent disabled in web interface
-   - Requires token verification or administrator intervention
-
-Check the error type in agent logs first to determine the appropriate troubleshooting path.
+For detailed network diagnostics including retry behavior, circuit breaker recovery, and configurable timeout settings, see [Agent Network and Connection Issues](#agent-network-and-connection-issues) above.
 
 ---
 
