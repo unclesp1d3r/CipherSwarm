@@ -161,19 +161,21 @@ ping CipherSwarm.example.com
 # Review server health using the System Health Dashboard
 curl https://CipherSwarm.example.com/api/v1/web/health/components
 
-# Wait for automatic recovery (circuit breaker attempts recovery after 60 seconds by default)
+# Wait for automatic recovery (circuit breaker attempts recovery after timeout period)
 journalctl -u CipherSwarm-agent -f
 ```
 
 **What You'll See in Logs**:
 
 During circuit open state:
+
 ```
 [Warn] Circuit breaker open, server appears unresponsive
 [Warn] Circuit breaker open, skipping task retrieval
 ```
 
 After automatic recovery:
+
 ```
 [Info] Applied server-recommended timeouts - connect=10s, read=30s, write=10s, request=60s
 [Info] Agent authenticated successfully
