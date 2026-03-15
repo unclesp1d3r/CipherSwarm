@@ -12,13 +12,13 @@ queue_rules:
           - author = dependabot[bot]
     autoqueue: true
     queue_conditions:
-      - branch-protection-review-decision = APPROVED
-      - or:
+      - and:
           - label = lgtm
           - author = @unclesp1d3r
       - or:
           - author = dosubot[bot]
           - author = dependabot[bot]
+    batch_size: 3
 pull_request_rules:
   - name: Auto-approve and queue dosubot PRs
     description: Approve and queue dosubot PRs through the merge queue with full CI
