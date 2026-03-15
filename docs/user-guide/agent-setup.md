@@ -469,7 +469,7 @@ Agent statuses are updated in real time via Turbo Streams:
 
 The agent list page shows all registered agents with:
 
-- **Status Badges**: Color-coded indicators (green=active, gray=offline, red=error, yellow=pending)
+- **Status Badges**: Color-coded indicators (green=active, gray=offline, red=error, gray=pending)
 - **Current Task**: What the agent is currently working on
 - **Hash Rate**: Live cracking speed
 - **Error Count Badge**: Number of recent errors displayed as a badge on the agent card

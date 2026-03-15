@@ -32,9 +32,9 @@ RSpec.describe "Agent status card regressions" do
       end
     end
 
-    it "renders warning badge for pending agent" do
+    it "renders secondary badge for pending agent" do
       within(agents_index.agent_card("Pending Agent")) do
-        expect(page).to have_css(".badge.rounded-pill.text-bg-warning", text: "Pending")
+        expect(page).to have_css(".badge.rounded-pill.text-bg-secondary", text: "Pending")
       end
     end
 
