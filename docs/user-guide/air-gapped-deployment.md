@@ -151,7 +151,37 @@ volumes:
   redis_data:
 ```
 
-### Step 3: Verify Asset Precompilation
+### Step 3: Configure Environment Variables
+
+Create a `.env` file in the CipherSwarm project root. Copy the provided `.env.example` file as a starting point and customize values for your air-gapped environment:
+
+```bash
+# Copy the example file
+cp .env.example .env
+
+# Edit with your values
+nano .env
+```
+
+**Required Variables for Air-Gapped Deployment:**
+
+```bash
+# Required
+RAILS_MASTER_KEY=<your-master-key>
+POSTGRES_PASSWORD=<strong-password>
+APPLICATION_HOST=<your-hostname>
+
+# Important for air-gapped environments
+DISABLE_SSL=true  # Unless you have internal SSL certificates
+ACTIVE_STORAGE_SERVICE=local
+REDIS_URL=redis://redis:6379/0
+```
+
+The `RAILS_MASTER_KEY` is found in `config/master.key` on the system where the app was originally configured. Transfer this file securely to the air-gapped environment.
+
+For comprehensive documentation of all environment variables, including deployment scenarios and troubleshooting, see the [Environment Variables Reference](../deployment/environment-variables.md).
+
+### Step 4: Verify Asset Precompilation
 
 Before starting the application, verify that all assets are bundled in the container:
 
@@ -166,7 +196,7 @@ docker run --rm cipherswarm:latest ls public/assets/*.css
 docker run --rm cipherswarm:latest ls public/assets/*.js
 ```
 
-### Step 4: Start the Stack
+### Step 5: Start the Stack
 
 ```bash
 # Start all services
@@ -182,14 +212,14 @@ docker compose exec web bin/rails db:create db:migrate
 docker compose exec web bin/rails db:seed
 ```
 
-### Step 5: Verify the Deployment
+### Step 6: Verify the Deployment
 
 1. Access the web interface at `http://<server-ip>:3000`
 2. Log in with the default admin credentials (from seed data)
 3. Check the system health dashboard for all green statuses
 4. Register an agent and verify connectivity
 
-### Step 6: Bundle Documentation (Optional)
+### Step 7: Bundle Documentation (Optional)
 
 To make documentation available offline within the deployment:
 

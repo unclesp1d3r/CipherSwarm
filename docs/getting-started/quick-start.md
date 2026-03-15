@@ -39,14 +39,35 @@ Open your web browser and navigate to your CipherSwarm installation:
 - Direct access: `http://your-server:8000`
 - Through reverse proxy: `http://your-domain.com`
 
-### 2. First Login
+### 2. Environment Configuration
 
-Login with the admin credentials you configured during installation:
+If you haven't already configured your environment during installation:
+
+1. Copy the provided `.env.example` file to `.env` for environment configuration
+2. Set the required variables for your deployment scenario
+
+For detailed explanations of all configuration options, see the [Environment Variables Reference](../deployment/environment-variables.md), which includes:
+
+- Detailed explanations of all variables with examples
+- Development environment scenario with minimal required variables
+- Default values for quick local setup
+- Common configuration scenarios for different deployment types
+
+Key variables you'll need to configure:
+
+- **FIRST_SUPERUSER**: Admin email address
+- **FIRST_SUPERUSER_PASSWORD**: Admin password (use a strong, unique password)
+- **POSTGRES_PASSWORD**: Database password
+- **APPLICATION_HOST**: Your server's domain name (e.g., `cipherswarm.company.com`)
+
+### 3. First Login
+
+Login with the admin credentials you configured:
 
 - **Email**: The value you set for `FIRST_SUPERUSER` in your `.env` file
 - **Password**: The value you set for `FIRST_SUPERUSER_PASSWORD` in your `.env` file
 
-### 3. Change Default Password
+### 4. Change Default Password
 
 For security, immediately change your admin password:
 
