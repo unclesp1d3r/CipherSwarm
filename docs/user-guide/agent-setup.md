@@ -205,6 +205,18 @@ agent:
   name: GPU-Node-01
   description: Primary GPU cracking node
   update_interval: 10    # Heartbeat interval (1-15 seconds)
+  
+  # HTTP resilience settings (can be overridden by server-recommended values)
+  connect_timeout: 10    # seconds - TCP connection timeout
+  read_timeout: 30    # seconds - API response read timeout
+  write_timeout: 10    # seconds - API request write timeout
+  request_timeout: 60    # seconds - overall request timeout
+  api_max_retries: 3    # total attempts (1 = no retry)
+  api_retry_initial_delay: 1    # seconds - first retry delay
+  api_retry_max_delay: 30    # seconds - cap for exponential backoff
+  circuit_breaker_failure_threshold: 5    # failures before circuit opens
+  circuit_breaker_timeout: 60    # seconds - duration before half-open retry
+  
     # Hardware capabilities (auto-detected)
   capabilities:
     gpus:
@@ -286,6 +298,8 @@ security:
     - 192.168.1.0/24
     - 10.0.0.0/8
 ```
+
+**HTTP Resilience Settings:** The agent includes automatic retry logic and circuit breaker protection for network failures. These settings control timeout behavior, exponential backoff for retries, and circuit breaker activation thresholds. The server can provide recommended values via the `/configuration` endpoint that override local settings. For troubleshooting circuit breaker activation and network issues, see [Agent Network and Connection Issues](troubleshooting.md#agent-network-and-connection-issues).
 
 ### 4. Project Context
 
@@ -691,6 +705,10 @@ iotop
    - Verify CUDA installation: `nvidia-smi`
    - Check hashcat GPU detection: `hashcat -I`
    - Ensure user has GPU access permissions
+
+  6. **Network Connection Issues**
+
+     If agent logs show "circuit breaker open" messages, this indicates the agent is protecting against repeated server connection failures. The circuit breaker automatically attempts recovery after 60 seconds by default. See [Circuit Breaker Recovery](troubleshooting-agents.md#circuit-breaker-recovery) for details. No agent restart is needed.
 
 ## Maintenance
 

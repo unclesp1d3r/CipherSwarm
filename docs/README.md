@@ -22,10 +22,10 @@ Welcome to the CipherSwarm documentation. This directory contains comprehensive 
 - [Attack Configuration](user-guide/attack-configuration.md) - Configuring dictionary, mask, brute force, and hybrid attacks
 - [Understanding Results](user-guide/understanding-results.md) - Viewing, interpreting, and exporting cracking results
 - [Agent Setup](user-guide/agent-setup.md) - Installing, registering, and configuring agents
-- [Agent Troubleshooting](user-guide/troubleshooting-agents.md) - Task lifecycle diagnostics and recovery
+- [Agent Troubleshooting](user-guide/troubleshooting-agents.md) - Comprehensive agent troubleshooting including circuit breaker recovery, HTTP resilience settings, task acceptance failure handling, monitoring metrics, and detailed recovery procedures
 - [Resource Management](user-guide/resource-management.md) - Managing wordlists, rules, masks, and charsets
 - [Web Interface](user-guide/web-interface.md) - Complete web interface reference
-- [Troubleshooting](user-guide/troubleshooting.md) - System diagnostics, common issues, and solutions
+- [Troubleshooting](user-guide/troubleshooting.md) - System diagnostics, agent network troubleshooting (including circuit breaker behavior, automatic retry logic, and configurable timeouts), common issues, and troubleshooting workflows
 - [Common Issues](user-guide/common-issues.md) - Quick fixes for frequently encountered problems
 - [FAQ](user-guide/faq.md) - Frequently asked questions
 - [Performance Optimization](user-guide/optimization.md) - Hardware tuning, attack strategies, and system optimization
