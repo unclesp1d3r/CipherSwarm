@@ -98,7 +98,10 @@ If agents experience timeouts during large file uploads or downloads, increase `
 - Required environment variables:
   - `RAILS_MASTER_KEY` — Rails credentials encryption key
   - `POSTGRES_PASSWORD` — PostgreSQL root password
+  - `APPLICATION_HOST` — Application host for mailers and redirects
   - `MINIO_PUBLIC_IP` — Public IP for MinIO (if using MinIO storage)
+
+> **Note:** See [Environment Variables Reference](environment-variables.md) for comprehensive documentation of all configuration options, including `DISABLE_SSL` for reverse proxy setups, production validation requirements, common configuration scenarios, and troubleshooting guidance.
 
 ### Step-by-Step Deployment
 
@@ -215,13 +218,13 @@ The nginx access log includes upstream context (`upstream=`, `upstream_status=`,
 
 ### SSL/TLS Termination
 
-The current configuration serves plain HTTP on port 80. The `DISABLE_SSL` environment variable is set to `true` by default in `docker-compose-production.yml`, which disables Rails `force_ssl` and `assume_ssl` redirects.
+The current configuration serves plain HTTP on port 80. The `DISABLE_SSL` environment variable controls Rails SSL/HTTPS enforcement (see [Environment Variables Reference](environment-variables.md) for detailed `DISABLE_SSL` documentation).
 
 For deployments exposed to untrusted networks:
 
-1. **Recommended**: Place an external TLS-terminating reverse proxy (e.g., Caddy, Traefik, or a cloud load balancer) in front of the nginx service. Then remove `DISABLE_SSL` (or set it to empty) so Rails enforces HTTPS.
-2. **Self-signed certificates** (typical for lab environments): Add TLS certificates to the nginx configuration directly by mounting certs and updating the server block to listen on 443 with `ssl_certificate` and `ssl_certificate_key`. Then remove `DISABLE_SSL`.
-3. **Isolated lab environments**: The default configuration (plain HTTP with `DISABLE_SSL=true`) is appropriate when the deployment is not exposed to untrusted networks.
+1. **Recommended**: Place an external TLS-terminating reverse proxy (e.g., Caddy, Traefik, or a cloud load balancer) in front of the nginx service. Set `DISABLE_SSL=true` so Rails delegates SSL enforcement to the upstream proxy.
+2. **Self-signed certificates** (typical for lab environments): Add TLS certificates to the nginx configuration directly by mounting certs and updating the server block to listen on 443 with `ssl_certificate` and `ssl_certificate_key`. Leave `DISABLE_SSL` unset or set to empty.
+3. **Isolated lab environments**: The default configuration (plain HTTP) is appropriate when the deployment is not exposed to untrusted networks. Set `DISABLE_SSL=true` to prevent Rails from forcing HTTPS redirects.
 
 ### Header Forwarding
 
