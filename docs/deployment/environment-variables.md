@@ -575,13 +575,18 @@ S3 storage is active (ACTIVE_STORAGE_SERVICE=s3) but required credentials are mi
 Set these environment variables or switch to local storage (ACTIVE_STORAGE_SERVICE=local).
 ```
 
-### Future Enhancements
+### Current Validations
 
-The following validations are planned (see issue for tracking):
+The following environment variables are validated at boot by `config/initializers/production_env_check.rb`:
 
-- `APPLICATION_HOST` validation in production (fails fast if missing)
-- `RAILS_MASTER_KEY` validation (currently handled by Rails itself)
-- Clear error messages for missing `POSTGRES_PASSWORD` with connection details
+- `APPLICATION_HOST` — fails fast if missing in production
+- `REDIS_URL` — fails fast if missing in production (Sidekiq and Action Cable require it)
+
+Other critical variables are validated by their respective subsystems:
+
+- `RAILS_MASTER_KEY` — Rails raises on boot if credentials cannot be decrypted
+- `POSTGRES_PASSWORD` — PostgreSQL rejects connections with a clear auth error
+- S3 credentials — validated by `config/initializers/storage_config_check.rb` when `ACTIVE_STORAGE_SERVICE=s3`
 
 ---
 
@@ -697,7 +702,7 @@ The `docker-compose.yml` file uses anchors to share common environment variables
 ```yaml
 x-common-env-vars:
   RAILS_MASTER_KEY: ${RAILS_MASTER_KEY}
-  REDIS_URL: redis://redis-db:6379
+  REDIS_URL: redis://redis-db:6379/0
   DATABASE_URL: 
     postgres://root:${POSTGRES_PASSWORD:-password}@postgres-db/cipherswarm
   APPLICATION_HOST: ${APPLICATION_HOST:-localhost}

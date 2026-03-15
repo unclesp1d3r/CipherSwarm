@@ -3,7 +3,7 @@
 # Copy .env.example to .env and fill in your values
 x-common-env-vars: &common-env-vars
   RAILS_MASTER_KEY: ${RAILS_MASTER_KEY}
-  REDIS_URL: redis://redis-db:6379
+  REDIS_URL: redis://redis-db:6379/0
   DATABASE_URL: postgres://root:${POSTGRES_PASSWORD:-password}@postgres-db/cipherswarm
   APPLICATION_HOST: ${APPLICATION_HOST:-localhost}
   DISABLE_SSL: ${DISABLE_SSL:-true}
