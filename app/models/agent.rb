@@ -132,6 +132,16 @@ class Agent < ApplicationRecord
       locals: { agent: self }
   end
 
+  # Replaces just the error count on index cards when a new AgentError is created.
+  # Called from AgentError#after_create_commit to keep the broadcast contract on Agent,
+  # matching the pattern of broadcast_index_state and broadcast_index_last_seen.
+  def broadcast_index_errors
+    broadcast_replace_later_to self,
+      target: ActionView::RecordIdentifier.dom_id(self, :index_errors),
+      partial: "agents/index_errors",
+      locals: { agent: self }
+  end
+
   # Replaces just the "Last Seen" value on index cards when last_seen_at changes.
   def broadcast_index_last_seen
     return unless saved_change_to_last_seen_at?
