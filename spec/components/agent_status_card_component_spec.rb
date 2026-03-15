@@ -85,9 +85,9 @@ RSpec.describe AgentStatusCardComponent, type: :component do
     context "when agent is pending" do
       let(:agent) { create(:agent, user: user, state: :pending) }
 
-      it "displays warning badge" do
+      it "displays secondary badge" do
         render_inline(described_class.new(agent: agent))
-        expect(page).to have_css(".badge.rounded-pill.text-bg-warning", text: "Pending")
+        expect(page).to have_css(".badge.rounded-pill.text-bg-secondary", text: "Pending")
       end
     end
 
@@ -151,9 +151,9 @@ RSpec.describe AgentStatusCardComponent, type: :component do
         expect(component.status_badge_variant).to eq("success")
       end
 
-      it "returns warning for pending state" do
+      it "returns secondary for pending state" do
         agent.state = "pending"
-        expect(component.status_badge_variant).to eq("warning")
+        expect(component.status_badge_variant).to eq("secondary")
       end
 
       it "returns secondary for stopped state" do
