@@ -116,10 +116,7 @@ These variables have sensible defaults but should be configured based on your de
 - Set secure-only cookies
 - Enable Strict-Transport-Security header
 
-**Default Value:**
-
-- `true` (development)
-- unset/blank (production - SSL enforced)
+**Default Value:** unset. Only evaluated in production. When unset in production, SSL is enforced. Not referenced in development.
 
 **Production Requirement:** Set to `true` only if behind a reverse proxy that handles SSL termination
 
@@ -191,9 +188,9 @@ ACTIVE_STORAGE_SERVICE=s3
 
 **Purpose:** Redis connection string for caching, Action Cable, and Sidekiq
 
-**Impact if Not Set:** Uses default `redis://localhost:6379/0`, which may fail if Redis is on a different host/port
+**Impact if Not Set:** Cache store falls back to `redis://localhost:6379/0`, Action Cable falls back to `redis://localhost:6379/1` (different Redis database). In Docker, `localhost` will not resolve to the Redis container, causing silent failures.
 
-**Default Value:** `redis://localhost:6379/0`
+**Default Value:** Unset. When `REDIS_URL` is set, the same URL is used for both cache and Action Cable.
 
 **Production Requirement:** Recommended to set when using non-default Redis configuration
 
@@ -281,7 +278,7 @@ RAILS_MAX_THREADS=5
 - **Medium thread count (5-10)**: Balanced throughput and latency
 - **High thread count (10+)**: I/O-bound apps, may hit diminishing returns due to GVL
 
-**Important:** Ensure database connection pool (`config/database.yml` pool setting) is at least equal to `RAILS_MAX_THREADS` × `WEB_CONCURRENCY`.
+**Important:** Ensure database connection pool (`config/database.yml` pool setting) is at least equal to `RAILS_MAX_THREADS` (per process). Total DB connections across all workers = `RAILS_MAX_THREADS` × `WEB_CONCURRENCY`.
 
 ---
 
@@ -289,9 +286,9 @@ RAILS_MAX_THREADS=5
 
 **Purpose:** Number of Puma worker processes (multi-process for CPU utilization)
 
-**Impact if Not Set:** Runs single worker process
+**Impact if Not Set:** Runs in single-process mode (no forking)
 
-**Default Value:** `1`
+**Default Value:** `0` (single-process mode, no forking). Set to 2+ for multi-process mode.
 
 **Example:**
 
@@ -305,7 +302,7 @@ WEB_CONCURRENCY=4  # 4 worker processes
 
 **Tuning Guidance:**
 
-- **1 worker**: Development, small deployments
+- **0 (default)**: Single-process mode, development, small deployments
 - **2-4 workers**: Standard production (1-2 per CPU core)
 - **4+ workers**: High-traffic production
 
@@ -369,7 +366,7 @@ SOLID_QUEUE_IN_PUMA=true
 - ✅ Development/testing environments
 - ❌ Production multi-server deployments (use dedicated Sidekiq workers instead)
 
-**Note:** CipherSwarm currently uses Sidekiq, not Solid Queue. This variable is a placeholder for future Rails 8+ migration.
+**Note:** CipherSwarm uses Sidekiq, not Solid Queue. This variable exists in Puma's default config but has no effect in this application.
 
 ---
 
@@ -377,9 +374,9 @@ SOLID_QUEUE_IN_PUMA=true
 
 **Purpose:** Specifies Puma PID file location
 
-**Impact if Not Set:** Uses default location (`tmp/pids/server.pid` in development)
+**Impact if Not Set:** No PID file is created
 
-**Default Value:** `tmp/pids/server.pid` (development), unset (production)
+**Default Value:** unset (no PID file created)
 
 **Example:**
 
