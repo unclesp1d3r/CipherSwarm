@@ -19,18 +19,18 @@ queue_rules:
           - author = dosubot[bot]
           - author = dependabot[bot]
 pull_request_rules:
-  - name: Automatic merge dosubot
-    description: Merge when PR passes all branch protection and has label automerge
+  - name: Auto-approve and queue dosubot PRs
+    description: Approve and queue dosubot PRs through the merge queue with full CI
     conditions:
+      - base = main
       - author = dosubot[bot]
+      - label != do-not-merge
     actions:
-      merge:
-  - name: Automatic merge
-    description: Merge when PR passes all branch protection and has label automerge
-    conditions:
-      - author = dosubot[bot]
-    actions:
+      review:
+        type: APPROVE
+        message: Automatically approved by Mergify
       queue:
+        name: default
   - name: Queue maintainer PRs with lgtm label
     conditions:
       - base = main
@@ -66,6 +66,7 @@ pull_request_rules:
       - base = main
       - -conflict
       - -draft
+      - -author = dependabot[bot]
       - label != do-not-merge
     actions:
       update: {}
@@ -75,6 +76,7 @@ merge_protections:
     if:
       - base = main
       - author != dependabot[bot]
+      - author != dosubot[bot]
     success_conditions:
       - "title ~=
         ^(fix|feat|docs|style|refactor|perf|test|build|ci|chore|revert)(?:\\(.+\
