@@ -28,7 +28,7 @@ Implement comprehensive agent monitoring with real-time status updates, performa
 
 - [ ] Agent list displays cards (not table) with:
 
-  - Status badge (active/offline/pending with color coding)
+  - Status badge (active=green/offline=danger/pending=gray with color coding)
   - Agent name (custom_label or host_name)
   - Hash rate (formatted: "—", "0 H/s", or "X.X MH/s")
   - Error indicator (red badge with count if errors in last 24h)
