@@ -10,6 +10,10 @@
 Rails.application.config.after_initialize do
   next unless Rails.env.production?
 
+  # Skip during asset precompilation — Redis/mailers aren't needed for asset builds.
+  # CI runs `RAILS_ENV=production bin/rails assets:precompile` without Redis.
+  next if defined?(Rake) && Rake.application.top_level_tasks.include?("assets:precompile")
+
   missing = []
 
   # APPLICATION_HOST is required for mailer URLs and Devise configuration.
