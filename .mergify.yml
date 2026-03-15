@@ -12,7 +12,8 @@ queue_rules:
           - author = dependabot[bot]
     autoqueue: true
     queue_conditions:
-      - and:
+      - branch-protection-review-decision = APPROVED
+      - or:
           - label = lgtm
           - author = @unclesp1d3r
       - or:
