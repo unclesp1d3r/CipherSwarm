@@ -44,15 +44,33 @@ docker images | grep -E "cipherswarm|postgres|redis"
 
 ## Step 3: Configure Environment
 
-Create a `.env` file in the CipherSwarm project root (if not already present):
+Create a `.env` file in the CipherSwarm project root. Use the provided `.env.example` as a template:
+
+```bash
+# Copy the example file
+cp .env.example .env
+
+# Edit with your values
+nano .env
+```
+
+**Required Variables for Air-Gapped Deployment:**
 
 ```bash
 # Required
 RAILS_MASTER_KEY=<your-master-key>
 POSTGRES_PASSWORD=<strong-password>
+APPLICATION_HOST=<your-hostname>
+
+# Important for air-gapped environments
+DISABLE_SSL=true  # Unless you have internal SSL certificates
+ACTIVE_STORAGE_SERVICE=local
+REDIS_URL=redis://redis-db:6379/0
 ```
 
 The `RAILS_MASTER_KEY` is found in `config/master.key` on the system where the app was originally configured. Transfer this file securely.
+
+For complete documentation of all environment variables, see [Environment Variables Reference](environment-variables.md).
 
 ### Default Local Storage
 

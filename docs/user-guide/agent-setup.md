@@ -205,7 +205,6 @@ agent:
   name: GPU-Node-01
   description: Primary GPU cracking node
   update_interval: 10    # Heartbeat interval (1-15 seconds)
-  
   # HTTP resilience settings (can be overridden by server-recommended values)
   connect_timeout: 10    # seconds - TCP connection timeout
   read_timeout: 30    # seconds - API response read timeout
@@ -216,8 +215,8 @@ agent:
   api_retry_max_delay: 30    # seconds - cap for exponential backoff
   circuit_breaker_failure_threshold: 5    # failures before circuit opens
   circuit_breaker_timeout: 60    # seconds - duration before half-open retry
-  
-    # Hardware capabilities (auto-detected)
+
+  # Hardware capabilities (auto-detected)
   capabilities:
     gpus:
       - id: 0
@@ -706,9 +705,9 @@ iotop
    - Check hashcat GPU detection: `hashcat -I`
    - Ensure user has GPU access permissions
 
-  6. **Network Connection Issues**
+6. **Network Connection Issues**
 
-     If agent logs show "circuit breaker open" messages, this indicates the agent is protecting against repeated server connection failures. The circuit breaker automatically attempts recovery after 60 seconds by default. See [Circuit Breaker Recovery](troubleshooting-agents.md#circuit-breaker-recovery) for details. No agent restart is needed.
+   If agent logs show "circuit breaker open" messages, this indicates the agent is protecting against repeated server connection failures. The circuit breaker automatically attempts recovery after 60 seconds by default. See [Circuit Breaker Recovery](troubleshooting-agents.md#circuit-breaker-recovery) for details. No agent restart is needed.
 
 ## Maintenance
 

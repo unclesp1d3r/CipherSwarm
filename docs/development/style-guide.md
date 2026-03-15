@@ -154,14 +154,14 @@ Use Bootstrap's built-in tooltip component for any inline rule help or config ex
 
 ### Button & Badge Color Reference
 
-| Element Type | State     | Bootstrap Classes                | Catppuccin Variable |
-| ------------ | --------- | -------------------------------- | ------------------- |
-| Button       | Primary   | `.btn .btn-primary`              | `$ctp-violet`       |
-| Button       | Secondary | `.btn .btn-outline-primary`      | `$ctp-violet`       |
-| Badge        | Success   | `.badge .bg-success`             | `$ctp-green`        |
-| Badge        | Warning   | `.badge .bg-warning`             | `$ctp-yellow`       |
-| Badge        | Error     | `.badge .bg-danger`              | `$ctp-red`          |
-| Badge        | Info      | `.badge .bg-info`                | `$ctp-blue`         |
+| Element Type | State     | Bootstrap Classes           | Catppuccin Variable |
+| ------------ | --------- | --------------------------- | ------------------- |
+| Button       | Primary   | `.btn .btn-primary`         | `$ctp-violet`       |
+| Button       | Secondary | `.btn .btn-outline-primary` | `$ctp-violet`       |
+| Badge        | Success   | `.badge .bg-success`        | `$ctp-green`        |
+| Badge        | Warning   | `.badge .bg-warning`        | `$ctp-yellow`       |
+| Badge        | Error     | `.badge .bg-danger`         | `$ctp-red`          |
+| Badge        | Info      | `.badge .bg-info`           | `$ctp-blue`         |
 
 All colors are mapped in `_catppuccin.scss` and applied via Bootstrap's theming system.
 
@@ -304,4 +304,3 @@ CipherSwarm is not designed for mobile-first usage but must remain usable in con
 - Icons: Bootstrap Icons font loaded via asset pipeline
 - Do **not** rely on Google Fonts, CDN icons, or paid icon libraries
 - All assets copied to `app/assets/builds/` by build scripts and served via Propshaft
-

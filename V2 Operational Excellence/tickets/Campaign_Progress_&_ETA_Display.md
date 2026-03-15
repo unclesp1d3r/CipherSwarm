@@ -128,6 +128,7 @@ Implement campaign progress monitoring with accurate ETAs, error visibility, and
 - Do not create component abstraction layers
 
 **Progress Component Example**:
+
 ```erb
 <div class="row g-3 align-items-start">
   <div class="col-12 col-sm-7">
@@ -143,6 +144,7 @@ Implement campaign progress monitoring with accurate ETAs, error visibility, and
 ```
 
 **Modal Component Example**:
+
 ```erb
 <div class="modal fade" id="errorModal" tabindex="-1">
   <div class="modal-dialog">
