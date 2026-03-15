@@ -73,7 +73,7 @@ gem "administrate-field-jsonb", "~> 0.4.8"
 gem "anyway_config", "~> 2.8.0"
 gem "ar_lazy_preload", "~> 2.1.1"
 gem "audited", "~> 5.8.0"
-gem "aws-sdk-s3", "~> 1.215.0", groups: %i[production development]
+gem "aws-sdk-s3", "~> 1.216.0", groups: %i[production development]
 gem "cancancan", "~> 3.6.1"
 gem "csv", "~> 3.3.5" # Required for Ruby 3.4+ (no longer in standard library)
 gem "devise", "~> 5.0.2"
