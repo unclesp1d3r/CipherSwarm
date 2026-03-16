@@ -30,6 +30,8 @@ module TempStorageValidation
   # @raise [InsufficientTempStorageError] if available space <= blob byte_size
   def ensure_temp_storage_available!(attachment)
     blob = attachment.blob
+    return if blob.nil?
+
     stat = Sys::Filesystem.stat(Dir.tmpdir)
     available = stat.bytes_available
 

@@ -66,6 +66,14 @@ RSpec.describe TempStorageValidation do
     end
   end
 
+  context "when the blob is nil (file purged)" do
+    let(:attachment) { double("ActiveStorage::Attached::One", blob: nil) } # rubocop:disable RSpec/VerifiedDoubles
+
+    it "does not raise an error" do
+      expect { test_job_class.new.perform(attachment) }.not_to raise_error
+    end
+  end
+
   context "when Sys::Filesystem raises an error" do
     before do
       allow(Sys::Filesystem).to receive(:stat).and_raise(Sys::Filesystem::Error, "permission denied")
