@@ -108,6 +108,9 @@ services:
         condition: service_healthy
       postgres-db:
         condition: service_healthy
+    tmpfs:
+      - /tmp:size=512m,mode=1777
+      - /rails/tmp:size=256m,mode=1777
     volumes:
       - storage:/rails/storage
     networks:
@@ -171,6 +174,7 @@ services:
         condition: service_healthy
     tmpfs:
       - /tmp:size=512m,mode=1777
+      - /rails/tmp:size=256m,mode=1777
     volumes:
       - storage:/rails/storage
     networks:
