@@ -6,17 +6,21 @@ Sidekiq containers can exhaust their overlay filesystem when processing large Ac
 
 ## Root Cause
 
-Background jobs (e.g., `ProcessHashListJob`, `CountFileLinesJob`) must download attack resources — hash lists, wordlists, rule files, mask lists — from storage (local disk or S3) to a temporary location for analysis during ingest. Active Storage's `blob.open` streams the entire file into `Dir.tmpdir` (defaults to `/tmp`), processes it, and deletes the temp file when the job completes. The files are **not** retained after the job finishes; this is only needed for initial ingest and analysis.
+Background jobs (e.g., `ProcessHashListJob`, `CountFileLinesJob`, `CalculateMaskComplexityJob`) must download attack resources — hash lists, wordlists, rule files, mask lists — from storage (local disk or S3) to a temporary location for analysis during ingest. Active Storage's `blob.open` calls Ruby's `Tempfile.open` which writes the entire file to `Dir.tmpdir`. On Linux (including Docker Alpine containers), this defaults to `/tmp`. The files are **not** retained after the job finishes; this is only needed for initial ingest and analysis.
 
 In a Docker container, `/tmp` lives on the container's writable overlay layer — a thin, size-limited filesystem backed by the host's Docker storage driver. Under sustained load (multiple Sidekiq threads downloading and processing large files concurrently), the overlay fills up and subsequent writes fail.
 
-This applies regardless of storage backend — even when using S3, Active Storage must download the full blob to local temp storage before the job can read its contents.
+This applies regardless of storage backend — even when using S3, Active Storage must download the full blob to `/tmp` before the job can read its contents.
 
 The problem is amplified in production where:
 
-- Sidekiq runs with concurrency 10 (up to 10 concurrent blob downloads per container)
+- Sidekiq runs with concurrency 10 (up to 10 concurrent blob downloads to `/tmp` per container)
 - Multiple Sidekiq replicas share the same image but each has its own overlay
 - Attack resources (especially wordlists) can be hundreds of megabytes or larger
+
+### Why /tmp and not /rails/tmp?
+
+Active Storage's download path is: `blob.open` → `ActiveStorage::Downloader#open_tempfile` → `Tempfile.open(name, nil)`. When the `tmpdir` argument is `nil` (the default), Ruby uses `Dir.tmpdir`, which resolves to `/tmp` on Linux unless the `TMPDIR` environment variable is set. The CipherSwarm Dockerfile does not set `TMPDIR`, so all Active Storage temp files land in `/tmp`.
 
 ## Fix: tmpfs Mount
 
@@ -46,18 +50,61 @@ The right tmpfs size depends on your deployment scale and the size of files your
 
 ### Minimum size requirement
 
-The tmpfs **must** be at least as large as your single largest attack file (word list, mask list, rule file, or hash list). Active Storage downloads the entire blob to `/tmp` before processing, so a file that exceeds the tmpfs size will always fail with `Errno::ENOSPC` regardless of concurrency.
+The tmpfs **must** be at least as large as your single largest attack file (word list, mask list, rule file, or hash list). Active Storage downloads the entire blob to `/tmp` before processing, so a file that exceeds the tmpfs size will always fail — regardless of concurrency or retry attempts.
 
 In practice, the tmpfs should be **several times larger** than your largest file because Sidekiq processes multiple jobs concurrently — each downloading its own blob to `/tmp` at the same time.
 
 ### Estimating tmpfs needs
 
-```
+```text
 minimum_tmpfs  = largest_single_file
 recommended    = largest_single_file * sidekiq_concurrency
 ```
 
 For example, if your largest wordlist is 200 MB and Sidekiq concurrency is 10, peak tmp usage could reach 2 GB. The absolute minimum tmpfs would be 200 MB (enough for one file), but 512 MB–2 GB is recommended to handle concurrent downloads plus Ruby's own temp files and OS overhead.
+
+## Pre-Download Space Check
+
+Before downloading any blob, each ingest job checks whether `/tmp` has enough available space to hold the file. This prevents jobs from starting a large download that would exhaust the tmpfs mid-transfer, leaving behind a partial temp file that wastes space until the container restarts.
+
+The check compares `Sys::Filesystem.stat(Dir.tmpdir).bytes_available` against the blob's `byte_size`. If available space is less than or equal to the blob size, the job raises `InsufficientTempStorageError` **before** the download begins — no bytes are written to `/tmp`.
+
+### Which jobs are protected
+
+All three jobs that call `blob.open` include the `TempStorageValidation` concern:
+
+- **`ProcessHashListJob`** — downloads hash lists to parse and ingest hash items
+- **`CountFileLinesJob`** — downloads wordlists, rule lists, mask lists, and hash lists to count lines
+- **`CalculateMaskComplexityJob`** — downloads mask lists to compute keyspace complexity
+
+### Retry and discard behavior
+
+**Retry:** Jobs retry 5 times with increasing delays (polynomial backoff). This handles transient space pressure — when multiple jobs are downloading concurrently, space often frees up as other jobs finish and their temp files are cleaned up.
+
+**Discard:** After 5 failed attempts, the job is permanently discarded and a structured log message is emitted:
+
+```text
+[TempStorage] ProcessHashListJob discarded after retries — [TempStorage] Not enough temp
+storage to download wordlist.txt (524288000 bytes required, 104857600 bytes available
+in /tmp). Action: increase tmpfs size or reduce Sidekiq concurrency.
+See docs/deployment/docker-storage-and-tmp.md
+```
+
+**If you see this in logs**, the tmpfs is persistently too small for the files being processed. Either:
+
+1. Increase the tmpfs size (and container memory limit) to accommodate your largest files
+2. Reduce Sidekiq concurrency to limit concurrent downloads
+3. Switch to the TMPDIR volume approach for disk-backed temp storage
+
+### What the check does NOT do
+
+The pre-download check is a best-effort safeguard, not a guarantee:
+
+- It checks available space at a single point in time — concurrent jobs may consume space between the check and the download
+- It does not reserve space; another job could claim the space after the check passes
+- If `Sys::Filesystem.stat` fails (e.g., unsupported filesystem), the check is skipped and the download proceeds normally
+
+The tmpfs mount remains the primary defense. The pre-download check provides early failure with clear diagnostics rather than allowing a download to fail partway through.
 
 ## Alternative: TMPDIR Redirect
 
@@ -98,7 +145,7 @@ docker compose -f docker-compose-production.yml exec sidekiq df -h /tmp
 
 Expected output shows `tmpfs` as the filesystem type with the configured size:
 
-```
+```text
 Filesystem      Size  Used Avail Use% Mounted on
 tmpfs           512M     0  512M   0% /tmp
 ```
@@ -134,26 +181,3 @@ If a Sidekiq container hits `Errno::ENOSPC`:
 2. **Check for stuck jobs** — large temp files from failed jobs may linger until the container restarts.
 
 3. **Review job logs** — identify which blobs triggered the space exhaustion and consider whether the tmpfs size needs increasing.
-
-## Pre-Download Space Check
-
-All background jobs that download Active Storage blobs (`ProcessHashListJob`, `CountFileLinesJob`, `CalculateMaskComplexityJob`) check available temp storage space before starting the download. If the available space in `Dir.tmpdir` is less than or equal to the blob's size, the job raises `InsufficientTempStorageError` instead of attempting the download.
-
-This check prevents partial downloads that would fill the tmpfs and fail mid-transfer with `Errno::ENOSPC`.
-
-**Retry behavior:** Jobs retry 5 times with increasing delays (polynomial backoff). This handles transient space pressure when multiple jobs are downloading concurrently — as other jobs finish and clean up their temp files, space becomes available.
-
-**Discard behavior:** After 5 failed attempts, the job is discarded and a structured log message is emitted:
-
-```text
-[TempStorage] ProcessHashListJob discarded after retries — [TempStorage] Not enough temp
-storage to download wordlist.txt (524288000 bytes required, 104857600 bytes available
-in /tmp). Action: increase tmpfs size or reduce Sidekiq concurrency.
-See docs/deployment/docker-storage-and-tmp.md
-```
-
-If you see this in logs, either:
-
-1. Increase the tmpfs size (and container memory limit) to accommodate your largest files
-2. Reduce Sidekiq concurrency to limit concurrent downloads
-3. Switch to the TMPDIR volume approach for disk-backed temp storage
