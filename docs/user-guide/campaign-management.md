@@ -252,12 +252,12 @@ Quarantine is an automatic safety mechanism that flags campaigns with fatal conf
 
 Campaigns are automatically quarantined when agents encounter certain unrecoverable errors:
 
-| Error Type                    | Description                                    | Example Causes                                      |
-| ----------------------------- | ---------------------------------------------- | --------------------------------------------------- |
-| **Token length exception**    | Hash format does not match the selected type   | NTLM hashes in an MD5 hash list                     |
-| **No hashes loaded**          | Hash file is empty or unreadable               | Corrupted file, wrong encoding, empty file          |
-| **Hash format mismatch**      | Hashes cannot be parsed by hashcat             | Mixed hash types, invalid characters, wrong format  |
-| **Incompatible attack params**| Attack configuration incompatible with hash type | Mask too short/long, invalid charset configuration |
+| Error Type                     | Description                                      | Example Causes                                     |
+| ------------------------------ | ------------------------------------------------ | -------------------------------------------------- |
+| **Token length exception**     | Hash format does not match the selected type     | NTLM hashes in an MD5 hash list                    |
+| **No hashes loaded**           | Hash file is empty or unreadable                 | Corrupted file, wrong encoding, empty file         |
+| **Hash format mismatch**       | Hashes cannot be parsed by hashcat               | Mixed hash types, invalid characters, wrong format |
+| **Incompatible attack params** | Attack configuration incompatible with hash type | Mask too short/long, invalid charset configuration |
 
 These errors are identified by structured error metadata reported by agents, not by parsing error message text.
 

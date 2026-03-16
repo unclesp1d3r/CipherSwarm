@@ -579,19 +579,19 @@ See [Agent Troubleshooting](troubleshooting-agents.md#log-analysis) for agent-sp
 
 ## Common Error Messages
 
-| Error Message                     | Meaning                                          | Solution                                         |
-| --------------------------------- | ------------------------------------------------ | ------------------------------------------------ |
-| "You are not authorized"          | Authorization failure (HTML, 403)                | Check role and project access                    |
-| "Forbidden" (JSON)                | Authorization failure (JSON API, 403)            | Check role and project access                    |
-| "Record not found"                | Resource was deleted or doesn't exist            | Verify resource exists, check project context    |
-| "Hash list is still processing"   | Hash list upload hasn't completed                | Wait for processing, check job queue             |
-| "No agents available"             | No online agents in this project                 | Register agents or check agent status            |
-| "Resource download failed"        | Agent couldn't download wordlist/rules           | Check file storage status and agent connectivity |
-| "Invalid attack configuration"    | Attack parameters are incorrect                  | Review attack settings, check hash type compat   |
-| "Connection refused"              | A backend service is down                        | Check system health dashboard                    |
-| "Task expired"                    | Agent took too long to complete a task           | Check agent performance, increase timeout        |
-| "Circuit breaker open"            | Agent protecting against failed server           | Check server health and network connectivity     |
-| "All API request attempts failed" | Retries exhausted for API request                | Check network stability and server availability  |
+| Error Message                     | Meaning                                | Solution                                         |
+| --------------------------------- | -------------------------------------- | ------------------------------------------------ |
+| "You are not authorized"          | Authorization failure (HTML, 403)      | Check role and project access                    |
+| "Forbidden" (JSON)                | Authorization failure (JSON API, 403)  | Check role and project access                    |
+| "Record not found"                | Resource was deleted or doesn't exist  | Verify resource exists, check project context    |
+| "Hash list is still processing"   | Hash list upload hasn't completed      | Wait for processing, check job queue             |
+| "No agents available"             | No online agents in this project       | Register agents or check agent status            |
+| "Resource download failed"        | Agent couldn't download wordlist/rules | Check file storage status and agent connectivity |
+| "Invalid attack configuration"    | Attack parameters are incorrect        | Review attack settings, check hash type compat   |
+| "Connection refused"              | A backend service is down              | Check system health dashboard                    |
+| "Task expired"                    | Agent took too long to complete a task | Check agent performance, increase timeout        |
+| "Circuit breaker open"            | Agent protecting against failed server | Check server health and network connectivity     |
+| "All API request attempts failed" | Retries exhausted for API request      | Check network stability and server availability  |
 
 ---
 

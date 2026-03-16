@@ -537,24 +537,26 @@ The server quarantines a campaign when an agent submits an error with structured
 
 **Common Error Types That Trigger Quarantine:**
 
-| Error Type | Example Message | Reason |
-|------------|-----------------|--------|
-| **Token Length Exception** | Token length exception | Hash list format doesn't match hash type specification |
-| **Separator Unmatched** | Separator unmatched | Hash delimiter incorrect for hash type |
-| **Hash Encoding Error** | Hash encoding exception | Hash list encoding invalid or corrupted |
-| **No Hashes Loaded** | No hashes loaded | Hash list is empty or unreadable |
-| **Invalid Attack Mode** | Invalid attack mode for hash type | Attack configuration incompatible with hash type |
-| **Terminal Hashcat Error** | Device memory allocation failed | Unrecoverable hardware or configuration error |
+| Error Type                 | Example Message                   | Reason                                                 |
+| -------------------------- | --------------------------------- | ------------------------------------------------------ |
+| **Token Length Exception** | Token length exception            | Hash list format doesn't match hash type specification |
+| **Separator Unmatched**    | Separator unmatched               | Hash delimiter incorrect for hash type                 |
+| **Hash Encoding Error**    | Hash encoding exception           | Hash list encoding invalid or corrupted                |
+| **No Hashes Loaded**       | No hashes loaded                  | Hash list is empty or unreadable                       |
+| **Invalid Attack Mode**    | Invalid attack mode for hash type | Attack configuration incompatible with hash type       |
+| **Terminal Hashcat Error** | Device memory allocation failed   | Unrecoverable hardware or configuration error          |
 
 ### Identifying Quarantined Campaigns
 
 **Web Interface Indicators:**
 
 1. **Campaigns Index:**
+
    - Red "Quarantined" badge appears on quarantined campaign cards
    - Use the "Quarantined" filter button to view all quarantined campaigns
 
 2. **Campaign Show Page:**
+
    - Red alert banner displays at the top with "Campaign Quarantined" message
    - Shows the quarantine reason (original error message from agent)
    - Admin users see a "Clear Quarantine" button
@@ -596,10 +598,12 @@ The following task assignment paths exclude quarantined campaigns:
 Quarantine automatically clears when you update the underlying configuration that caused the error:
 
 **Hash List Changes (clears quarantine on all associated campaigns):**
+
 - Change hash type: `hash_list.update!(hash_type: new_hash_type)`
 - Replace hash list file: `hash_list.file.attach(new_file)`
 
 **Attack Parameter Changes (clears quarantine on parent campaign):**
+
 - Attack mode change
 - Word list, rule list, or mask list reassignment
 - Mask changes
@@ -677,17 +681,20 @@ If quarantine triggering fails (rare):
 **Scenario: Campaign Quarantined Immediately After Creation**
 
 **Symptoms:**
+
 - New campaign quarantined after first agent attempts task
 - Agents not receiving tasks from campaign
 - Error logs show hash format errors
 
 **Diagnosis:**
+
 1. Check hash list format matches selected hash type
 2. Verify hash list file is not empty
 3. Ensure attack mode is compatible with hash type
 4. Review agent error message for specific issue
 
 **Resolution:**
+
 1. Download a sample of the hash list
 2. Verify hashes match the expected format for the hash type
 3. Fix hash list formatting or change hash type
@@ -696,14 +703,17 @@ If quarantine triggering fails (rare):
 **Scenario: Campaign Quarantined After Hash Type Change**
 
 **Symptoms:**
+
 - Campaign was working, then quarantined after hash type change
 - Agent errors mention token length or separator issues
 
 **Cause:**
+
 - Hash list format is incompatible with new hash type
 - Hash type was changed without updating hash list
 
 **Resolution:**
+
 1. Revert hash type to original value (clears quarantine)
 2. OR reformat hash list for new hash type and re-upload
 
@@ -1473,21 +1483,21 @@ grep "\[TaskAssignment\] no_task_assigned" production.log | \
 
 ### Common Log Patterns and Meanings
 
-| Pattern                                                      | Meaning                                               | Action Required                                               |
-| ------------------------------------------------------------ | ----------------------------------------------------- | ------------------------------------------------------------- |
-| `[Attack.*Abandoning attack.*destroying N tasks]`            | Attack abandoned, N tasks destroyed                   | Normal if occasional, investigate if frequent                 |
-| `[Task.*State change.*-> running]`                           | Task accepted and started                             | Normal operation                                              |
-| `[Task.*State change.*-> completed]`                         | Task completed successfully                           | Normal operation                                              |
-| `[TaskNotFound].*task_deleted`                               | Agent tried to use deleted task                       | Normal, agent should request new work                         |
-| `[TaskNotFound].*task_not_assigned`                          | Agent tried to access other agent's task              | Check for configuration issues                                |
-| `[TaskNotFound].*task_invalid`                               | Invalid task ID used                                  | Possible client bug, investigate                              |
+| Pattern                                                      | Meaning                                               | Action Required                                                            |
+| ------------------------------------------------------------ | ----------------------------------------------------- | -------------------------------------------------------------------------- |
+| `[Attack.*Abandoning attack.*destroying N tasks]`            | Attack abandoned, N tasks destroyed                   | Normal if occasional, investigate if frequent                              |
+| `[Task.*State change.*-> running]`                           | Task accepted and started                             | Normal operation                                                           |
+| `[Task.*State change.*-> completed]`                         | Task completed successfully                           | Normal operation                                                           |
+| `[TaskNotFound].*task_deleted`                               | Agent tried to use deleted task                       | Normal, agent should request new work                                      |
+| `[TaskNotFound].*task_not_assigned`                          | Agent tried to access other agent's task              | Check for configuration issues                                             |
+| `[TaskNotFound].*task_invalid`                               | Invalid task ID used                                  | Possible client bug, investigate                                           |
 | `[TaskAssignment] no_task_assigned.*no_available_attacks`    | No attacks match agent's configuration                | Check hash types and project assignments; verify campaigns not quarantined |
-| `[TaskAssignment] no_task_assigned.*all_hashes_cracked`      | All available work is complete                        | Start new campaigns or adjust hash lists                      |
-| `[TaskAssignment] no_task_assigned.*performance_threshold`   | Agent too slow for available attacks                  | Review benchmarks or adjust thresholds                        |
-| Multiple `[TaskNotFound]` for same agent in short time       | Agent not recovering properly                         | Check agent configuration and code                            |
-| `[Attack.*Abandoning attack]` multiple times for same attack | Attack repeatedly abandoned and restarted             | Investigate root cause                                        |
-| `Circuit breaker open, server appears unresponsive`          | Circuit breaker protecting against cascading failures | Check server availability and health; agent will auto-recover |
-| `Circuit breaker open, skipping task retrieval`              | Agent avoiding failed requests during outage          | Normal during server downtime; no action needed               |
+| `[TaskAssignment] no_task_assigned.*all_hashes_cracked`      | All available work is complete                        | Start new campaigns or adjust hash lists                                   |
+| `[TaskAssignment] no_task_assigned.*performance_threshold`   | Agent too slow for available attacks                  | Review benchmarks or adjust thresholds                                     |
+| Multiple `[TaskNotFound]` for same agent in short time       | Agent not recovering properly                         | Check agent configuration and code                                         |
+| `[Attack.*Abandoning attack]` multiple times for same attack | Attack repeatedly abandoned and restarted             | Investigate root cause                                                     |
+| `Circuit breaker open, server appears unresponsive`          | Circuit breaker protecting against cascading failures | Check server availability and health; agent will auto-recover              |
+| `Circuit breaker open, skipping task retrieval`              | Agent avoiding failed requests during outage          | Normal during server downtime; no action needed                            |
 
 ### Tools for Log Analysis
 
