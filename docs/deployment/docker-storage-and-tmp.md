@@ -39,12 +39,13 @@ Rails uses `/rails/tmp` for Bootsnap bytecode cache (`tmp/cache/bootsnap/`), Pum
 ```yaml
 # Both web and sidekiq services
 tmpfs:
-  - /tmp:size=512m,mode=1777
-  - /rails/tmp:size=256m,mode=1777
+  - /tmp:size=${TMPFS_TMP_SIZE:-512m},mode=1777
+  - /rails/tmp:size=${TMPFS_RAILS_TMP_SIZE:-256m},mode=1777
 ```
 
 - **`size`** — Maximum size of the tmpfs. Counts against the container's memory limit.
 - **`mode=1777`** — Standard `/tmp` permissions (world-writable with sticky bit).
+- **`TMPFS_TMP_SIZE`** / **`TMPFS_RAILS_TMP_SIZE`** — Environment variables that override the default sizes. Set these in `.env` or your deployment environment to tune for your workload.
 
 The `/tmp` mount needs to be large enough for concurrent blob downloads (see sizing guidance below). The `/rails/tmp` mount is smaller since it only holds framework temp files — 256 MB is generous for typical deployments.
 

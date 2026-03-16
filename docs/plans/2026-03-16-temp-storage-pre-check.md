@@ -10,6 +10,8 @@
 
 ---
 
+## Implementation Tasks
+
 ### Task 1: Add `sys-filesystem` gem
 
 **Files:**
@@ -592,7 +594,7 @@ Run: `just undercover` Expected: No uncovered lines in changed files.
 
 Add a new `## Pre-Download Space Check` section after the `## Recovery` section:
 
-```markdown
+````markdown
 ## Pre-Download Space Check
 
 All background jobs that download Active Storage blobs (`ProcessHashListJob`, `CountFileLinesJob`, `CalculateMaskComplexityJob`) check available temp storage space before starting the download. If the available space in `Dir.tmpdir` is less than or equal to the blob's size, the job raises `InsufficientTempStorageError` instead of attempting the download.
@@ -603,17 +605,15 @@ This check prevents partial downloads that would fill the tmpfs and fail mid-tra
 
 **Discard behavior:** After 5 failed attempts, the job is discarded and a structured log message is emitted:
 
-```
-
+```text
 [TempStorage] ProcessHashListJob discarded after retries — Not enough temp storage to download wordlist.txt (524288000 bytes required, 104857600 bytes available in /tmp). Action: increase tmpfs size or reduce Sidekiq concurrency. See docs/deployment/docker-storage-and-tmp.md
-
-```
+````
 
 If you see this in logs, either:
+
 1. Increase the tmpfs size (and container memory limit) to accommodate your largest files
 2. Reduce Sidekiq concurrency to limit concurrent downloads
 3. Switch to the TMPDIR volume approach for disk-backed temp storage
-```
 
 **Step 2: Commit**
 

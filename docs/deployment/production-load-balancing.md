@@ -6,26 +6,21 @@ When many cracking agents are active simultaneously, a single CipherSwarm web in
 
 ## Architecture Overview
 
-```
-                         ┌──────────────────┐
-    Cracking Agents ────>│  Nginx (port 80)  │
-                         │  Load Balancer    │
-                         └────────┬─────────┘
-                                  │
-              ┌───────────────────┼───────────────────┐
-              │                   │                   │
-     ┌────────▼──────┐  ┌────────▼──────┐  ┌────────▼──────┐
-     │  Web Replica 1 │  │  Web Replica 2 │  │  Web Replica N │
-     │  Puma │  │  Puma │  │  Puma │
-     └───────┬────────┘  └───────┬────────┘  └───────┬────────┘
-             │                   │                   │
-             └───────────────────┼───────────────────┘
-                                 │
-                    ┌────────────┼────────────┐
-                    │            │            │
-              ┌─────▼───┐ ┌─────▼───┐ ┌──────▼─────┐
-              │PostgreSQL│ │  Redis  │ │  Sidekiq   │
-              └─────────┘ └─────────┘ └────────────┘
+```mermaid
+graph TD
+    Agents[Cracking Agents] --> Nginx["Nginx (port 80)<br/>Load Balancer"]
+    Nginx --> Web1["Web Replica 1<br/>Puma"]
+    Nginx --> Web2["Web Replica 2<br/>Puma"]
+    Nginx --> WebN["Web Replica N<br/>Puma"]
+    Web1 --> PG[(PostgreSQL)]
+    Web1 --> Redis[(Redis)]
+    Web1 --> Sidekiq[Sidekiq]
+    Web2 --> PG
+    Web2 --> Redis
+    Web2 --> Sidekiq
+    WebN --> PG
+    WebN --> Redis
+    WebN --> Sidekiq
 ```
 
 **Component roles:**

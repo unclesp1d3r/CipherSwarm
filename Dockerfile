@@ -90,4 +90,4 @@ ENTRYPOINT ["/rails/bin/docker-entrypoint"]
 # and asset caching in production deployments.
 EXPOSE 80
 ENV PORT=80
-CMD ["./bin/rails", "server"]
+CMD ["./bin/rails", "server", "-b", "0.0.0.0"]
