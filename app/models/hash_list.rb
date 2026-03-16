@@ -255,8 +255,11 @@ class HashList < ApplicationRecord
   #
   # @return [void]
   def clear_campaigns_quarantine_if_needed
-    changed = saved_change_to_hash_type_id? || file.attachment&.saved_change_to_blob_id?
-    campaigns.update_all(quarantined: false, quarantine_reason: nil) if changed # rubocop:disable Rails/SkipsModelValidations -- bulk clear avoids loading campaigns; no callbacks needed
+    hash_type_changed = saved_change_to_hash_type_id? && saved_change_to_hash_type_id.then { |old_val, new_val| old_val != new_val && old_val.present? }
+    blob_changed = file.attachment&.saved_change_to_blob_id?
+    return unless hash_type_changed || blob_changed
+
+    campaigns.update_all(quarantined: false, quarantine_reason: nil) # rubocop:disable Rails/SkipsModelValidations -- bulk clear avoids loading campaigns; no callbacks needed
   end
 
   # Checks if a file is attached and not processed.
