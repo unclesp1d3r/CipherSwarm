@@ -225,6 +225,7 @@ Network resilience settings can be tuned via CLI flags or server configuration:
 2. **No agents available** - Verify agents are online and assigned to the project
 3. **Priority preemption** - A higher-priority campaign may be using all agents
 4. **Hash list processing** - The hash list may still be processing
+5. **Campaign quarantined** - The campaign was automatically quarantined due to unrecoverable errors
 
 **Solutions**:
 
@@ -232,6 +233,7 @@ Network resilience settings can be tuned via CLI flags or server configuration:
 2. Go to **Agents** and verify at least one agent is online and in the correct project
 3. Check if higher-priority campaigns are running
 4. Verify the hash list status shows "Processed"
+5. Check for a red "Quarantined" badge on the campaign page (see Campaign Quarantine below)
 
 ### Campaign Stuck with No Progress
 
@@ -255,6 +257,32 @@ Network resilience settings can be tuned via CLI flags or server configuration:
 **Symptoms**: Progress percentage seems incorrect or jumps unexpectedly.
 
 **Explanation**: Progress is based on keyspace processed. Some attack types (like rule-based dictionary attacks) have keyspace estimates that adjust as processing proceeds. This can cause apparent jumps or reversals in progress.
+
+### Campaign Quarantine
+
+**Symptoms**: Campaign shows a red "Quarantined" badge, alert banner displays quarantine reason, agents are not receiving new tasks from the campaign.
+
+**Cause**: Campaign was automatically quarantined due to unrecoverable agent errors. CipherSwarm automatically quarantines campaigns when agents report fatal hashcat errors that cannot be resolved by retrying the task. Common quarantine triggers include:
+
+- **Token length exception**: Hash format does not match the selected hash type (e.g., MD5 hashes loaded but SHA-256 hash type selected)
+- **No hashes loaded**: Hash list file is empty or improperly formatted
+- **Invalid hash type for attack mode**: The attack configuration is incompatible with the hash type
+- **Other terminal hashcat errors**: Fatal errors that hashcat cannot recover from
+
+**Resolution**:
+
+1. **Review the quarantine reason**: Check the alert banner on the campaign show page for the specific error message
+2. **Fix the underlying issue**:
+   - **If hash format error**: Verify the hash type setting matches the actual hash format in your hash list file
+   - **If no hashes loaded**: Check that the hash list file is not empty and contains properly formatted hashes
+   - **If attack parameter error**: Review attack configuration for compatibility with the selected hash type
+3. **Update the problematic parameter**:
+   - Quarantine automatically clears when you update the hash type or hash list file
+   - Quarantine automatically clears when you update attack parameters (word lists, rules, masks, attack mode, etc.)
+   - Administrators can manually clear quarantine using the "Clear Quarantine" button
+4. **Retry the campaign**: After clearing quarantine, agents will resume receiving tasks from the campaign
+
+**Prevention**: Validate hash list format and attack parameters before starting campaigns. Ensure the hash type matches your hash file format and that attack configurations are compatible with the selected hash type.
 
 ---
 
@@ -324,12 +352,14 @@ CipherSwarm V2 provides task management actions directly from the web interface.
 1. No agents are available (all busy or offline)
 2. Agent capabilities do not match task requirements
 3. Agents are not assigned to the task's project
+4. Campaign is quarantined due to unrecoverable errors
 
 **Solutions**:
 
 1. Check agent availability in the **Agents** page
 2. Wait for agents to complete their current tasks
 3. Verify agent project assignments match the campaign's project
+4. Check the campaign for a "Quarantined" badge (see [Campaign Quarantine](#campaign-quarantine))
 
 ### Task Failures
 
@@ -549,19 +579,19 @@ See [Agent Troubleshooting](troubleshooting-agents.md#log-analysis) for agent-sp
 
 ## Common Error Messages
 
-| Error Message                     | Meaning                                | Solution                                         |
-| --------------------------------- | -------------------------------------- | ------------------------------------------------ |
-| "You are not authorized"          | Authorization failure (HTML, 403)      | Check role and project access                    |
-| "Forbidden" (JSON)                | Authorization failure (JSON API, 403)  | Check role and project access                    |
-| "Record not found"                | Resource was deleted or doesn't exist  | Verify resource exists, check project context    |
-| "Hash list is still processing"   | Hash list upload hasn't completed      | Wait for processing, check job queue             |
-| "No agents available"             | No online agents in this project       | Register agents or check agent status            |
-| "Resource download failed"        | Agent couldn't download wordlist/rules | Check file storage status and agent connectivity |
-| "Invalid attack configuration"    | Attack parameters are incorrect        | Review attack settings, check hash type compat   |
-| "Connection refused"              | A backend service is down              | Check system health dashboard                    |
-| "Task expired"                    | Agent took too long to complete a task | Check agent performance, increase timeout        |
-| "Circuit breaker open"            | Agent protecting against failed server | Check server health and network connectivity     |
-| "All API request attempts failed" | Retries exhausted for API request      | Check network stability and server availability  |
+| Error Message                     | Meaning                                          | Solution                                         |
+| --------------------------------- | ------------------------------------------------ | ------------------------------------------------ |
+| "You are not authorized"          | Authorization failure (HTML, 403)                | Check role and project access                    |
+| "Forbidden" (JSON)                | Authorization failure (JSON API, 403)            | Check role and project access                    |
+| "Record not found"                | Resource was deleted or doesn't exist            | Verify resource exists, check project context    |
+| "Hash list is still processing"   | Hash list upload hasn't completed                | Wait for processing, check job queue             |
+| "No agents available"             | No online agents in this project                 | Register agents or check agent status            |
+| "Resource download failed"        | Agent couldn't download wordlist/rules           | Check file storage status and agent connectivity |
+| "Invalid attack configuration"    | Attack parameters are incorrect                  | Review attack settings, check hash type compat   |
+| "Connection refused"              | A backend service is down                        | Check system health dashboard                    |
+| "Task expired"                    | Agent took too long to complete a task           | Check agent performance, increase timeout        |
+| "Circuit breaker open"            | Agent protecting against failed server           | Check server health and network connectivity     |
+| "All API request attempts failed" | Retries exhausted for API request                | Check network stability and server availability  |
 
 ---
 
