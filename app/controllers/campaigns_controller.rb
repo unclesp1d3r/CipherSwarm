@@ -22,6 +22,8 @@ class CampaignsController < ApplicationController
   # GET /campaigns or /campaigns.json
   def index
     @campaigns = @campaigns.includes(:project, :hash_list, :attacks).by_priority
+    @campaigns = @campaigns.quarantined if params[:filter] == "quarantined"
+    @filter = params[:filter]
   end
 
   # GET /campaigns/1 or /campaigns/1.json
@@ -117,6 +119,12 @@ class CampaignsController < ApplicationController
       format.html { redirect_to campaigns_url, notice: "Campaign was successfully destroyed." }
       format.json { head :no_content }
     end
+  end
+
+  def clear_quarantine
+    authorize! :clear_quarantine, @campaign
+    @campaign.clear_quarantine!
+    redirect_back_or_to campaign_path(@campaign), notice: "Campaign quarantine has been cleared."
   end
 
   def toggle_hide_completed_activities

@@ -28,6 +28,8 @@
 # - completed: attacks in completed state
 # - active: attacks in running/paused/pending state
 # - in_projects: by project IDs
+# - quarantined: campaigns flagged with unrecoverable errors
+# - not_quarantined: campaigns not flagged as quarantined
 #
 # @callbacks
 # - after_commit: manage priority-based campaign execution
@@ -40,11 +42,14 @@
 #
 # @instance_methods
 # - `attack_count_label` - Summary label for incomplete vs total attacks.
+# - `clear_quarantine!` - Removes quarantine flag and reason.
 # - `completed?` - Checks whether all attacks or associated hashes are complete.
 # - `hash_count_label` - Summary label for cracked vs total hash items.
 # - `pause` - Pauses associated attacks.
 # - `paused?` - Determines if the campaign is paused based on attack states.
 # - `priority_to_emoji` - Provides an emoji representation of the campaign priority.
+# - `quarantine!(reason)` - Flags campaign as quarantined with a reason.
+# - `quarantined?` - Returns whether the campaign is currently quarantined.
 # - `resume` - Resumes paused attacks associated with the campaign.
 #
 # @class_methods
@@ -60,6 +65,8 @@
 #  description                                    :text
 #  name                                           :string           not null
 #  priority(-1: Deferred, 0: Normal, 2: High)     :integer          default("normal"), not null, indexed, indexed => [project_id]
+#  quarantine_reason                              :text
+#  quarantined                                    :boolean          default(FALSE), not null, indexed
 #  created_at                                     :datetime         not null
 #  updated_at                                     :datetime         not null
 #  creator_id(The user who created this campaign) :bigint           indexed
@@ -74,6 +81,7 @@
 #  index_campaigns_on_priority                 (priority)
 #  index_campaigns_on_project_id               (project_id)
 #  index_campaigns_on_project_id_and_priority  (project_id,priority)
+#  index_campaigns_on_quarantined              (quarantined) WHERE (quarantined = true)
 #
 # Foreign Keys
 #
@@ -122,6 +130,8 @@ class Campaign < ApplicationRecord
   scope :completed, -> { joins(:attacks).where(attacks: { state: :completed }) }
   scope :active, -> { joins(:attacks).where(attacks: { state: %i[running paused pending] }) }
   scope :in_projects, ->(ids) { where(project_id: ids) }
+  scope :quarantined, -> { where(quarantined: true) }
+  scope :not_quarantined, -> { where(quarantined: false) }
 
   # Delegations
   delegate :uncracked_count, :cracked_count, :hash_item_count, to: :hash_list
@@ -140,6 +150,14 @@ class Campaign < ApplicationRecord
   def attack_count_label
     # PERFORMANCE: Use .count for SQL aggregation instead of .size which loads records into memory
     "#{attacks.incomplete.count} / #{attacks.count}"
+  end
+
+  # Removes the quarantine flag and clears the reason.
+  #
+  # @return [true] always returns true on success.
+  # @raise [ActiveRecord::RecordInvalid] if the update fails validation.
+  def clear_quarantine!
+    update!(quarantined: false, quarantine_reason: nil)
   end
 
   # Checks if the campaign is completed.
@@ -197,6 +215,26 @@ class Campaign < ApplicationRecord
     else
       "❓"
     end
+  end
+
+  # Flags the campaign as quarantined with the given reason.
+  #
+  # @param reason [String] a description of why the campaign was quarantined.
+  # @return [true] always returns true on success.
+  # @raise [ActiveRecord::RecordInvalid] if the update fails validation.
+  def quarantine!(reason)
+    update!(quarantined: true, quarantine_reason: reason)
+  end
+
+  # Returns whether this campaign is currently quarantined.
+  #
+  # Delegates to the ActiveRecord-generated predicate for the `quarantined` boolean column.
+  # Explicitly defined here to document the intended model API and make the quarantine
+  # lifecycle methods discoverable as a cohesive set: quarantine!, clear_quarantine!, quarantined?
+  #
+  # @return [Boolean] true if the campaign is quarantined, false otherwise.
+  def quarantined?
+    super
   end
 
   # Resumes all attacks associated with the campaign.

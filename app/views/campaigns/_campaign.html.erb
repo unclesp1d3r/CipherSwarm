@@ -15,6 +15,9 @@
       <%= campaign.hash_count_label %>
     </td>
     <td>
+      <% if campaign.quarantined? %>
+        <span class="badge text-bg-danger">Quarantined</span>
+      <% end %>
       <% if campaign.attacks.empty? %>
         <span class="badge text-bg-warning">No attacks</span>
       <% else %>

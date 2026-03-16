@@ -38,8 +38,43 @@ FactoryBot.define do
       severity { :critical }
     end
 
+    trait :fatal do
+      severity { :fatal }
+    end
+
     trait :with_task do
       task
+    end
+
+    trait :with_structured_metadata do
+      metadata do
+        {
+          error_date: Time.zone.now,
+          other: {
+            platform: "linux",
+            version: "0.6.1",
+            category: "hash_format",
+            retryable: false,
+            error_type: "token_length_exception",
+            affected_count: 1024,
+            total_count: 1024
+          }
+        }
+      end
+    end
+
+    trait :with_terminal_metadata do
+      metadata do
+        {
+          error_date: Time.zone.now,
+          other: {
+            category: "hash_format",
+            retryable: false,
+            error_type: "no_hashes_loaded",
+            terminal: true
+          }
+        }
+      end
     end
   end
 end

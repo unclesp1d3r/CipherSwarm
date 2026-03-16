@@ -460,6 +460,7 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 - Methods in alphabetical order (except initialize, CRUD actions)
 - Maximum 4 parameters per method
 - Use RuboCop with Rails Omakase configuration
+- Bang methods (`method!`) must use bang ActiveRecord calls (`update!`, `save!`) — raise on failure, don't return false
 
 **Testing Standards:**
 
@@ -517,10 +518,25 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 - Success/warning/info toasts auto-dismiss after 5 seconds
 - `ToastNotificationComponent#autohide?` returns `false` for `danger` variant
 
+**Boolean Column Conventions:**
+
+- Always define both positive and negative scopes: `scope :quarantined` + `scope :not_quarantined`
+- Bang lifecycle methods use `update!` (not `update`) — consistent with the bang convention
+- Explicit predicate methods (`quarantined?`) with `super` delegation are acceptable for API discoverability
+
+**Active Storage Change Detection:**
+
+- `saved_change_to_file?` does NOT exist for Active Storage attachments
+- Use `file.attachment&.saved_change_to_blob_id?` inside `after_commit` to detect when the attached file blob was swapped
+
 **Nested Resources:**
 
 - Attacks are nested under Campaigns: `/campaigns/:campaign_id/attacks`
 - Create attacks via `new_campaign_attack_path(campaign)`
+
+**Custom Member Actions:**
+
+- Use `redirect_back_or_to` (not `redirect_to`) for actions callable from multiple pages (index, show)
 
 **Priority-Based Execution:**
 
@@ -553,12 +569,23 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 - Agents submit status updates via `POST /api/v1/client/tasks/:id/submit_status`
 - Agents submit cracks via `POST /api/v1/client/tasks/:id/submit_crack`
 
+**Agent Error Metadata Contract:**
+
+- Agent errors submitted via `POST /api/v1/client/agents/:id/submit_error` include structured metadata in `metadata.other`:
+  - `category` — error domain: `hash_format`, `hardware`, `runtime`, `config`
+  - `retryable` — boolean: whether the error is transient (`true`) or permanent (`false`)
+  - `terminal` — boolean: definitive failures where no retry can succeed (e.g., `no_hashes_loaded`)
+  - `error_type` — machine-readable identifier: `token_length_exception`, `no_hashes_loaded`, `hashfile_empty_or_corrupt`, etc.
+  - `affected_count` / `total_count` — for hash parse failures, how many hashes failed vs total
+- Server-side code that evaluates error severity should match on these structured fields, not raw message text
+
 **Authorization Flow:**
 
 - CanCanCan abilities defined in app/models/ability.rb
 - `authorize!` in controllers
 - Project-based scoping for all resources
 - Admin users have unrestricted access
+- Admin-only custom actions use deny-first pattern: `cannot :action, Model` in general block + `can :action, Model` in admin block — prevents `can :manage, Campaign` (project-scoped) from granting the ability to non-admins
 - `CanCan::AccessDenied` returns 403 Forbidden (authenticated but lacks permission)
 - Devise unauthenticated non-HTML requests (CSV, JSON) return 401 Unauthorized
 - Administrate dashboard non-admin access returns 401 (separate auth mechanism, not CanCan)

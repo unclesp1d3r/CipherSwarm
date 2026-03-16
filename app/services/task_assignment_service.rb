@@ -70,6 +70,7 @@ class TaskAssignmentService
     agent.tasks.incomplete
          .where.not(id: AgentError.where(agent: agent, severity: :fatal).select(:task_id))
          .joins(attack: { campaign: :hash_list })
+         .where(campaigns: { quarantined: false })
          .where("EXISTS (SELECT 1 FROM hash_items WHERE hash_items.hash_list_id = hash_lists.id AND hash_items.cracked = false)")
          .order(:id)
          .first
@@ -90,6 +91,7 @@ class TaskAssignmentService
     task = agent.tasks.with_state(:paused)
                 .where(claimed_by_agent_id: [nil, agent.id])
                 .joins(attack: { campaign: :hash_list })
+                .where(campaigns: { quarantined: false })
                 .where("EXISTS (SELECT 1 FROM hash_items WHERE hash_items.hash_list_id = hash_lists.id AND hash_items.cracked = false)")
                 .order(:id)
                 .first
@@ -146,6 +148,7 @@ class TaskAssignmentService
                    )
                    .joins(attack: { campaign: :hash_list })
                    .where(hash_lists: { hash_type_id: allowed_hash_type_ids })
+                   .where(campaigns: { quarantined: false })
 
       scope = scope.where(campaigns: { project_id: agent.project_ids }) if agent.project_ids.present?
 
@@ -209,6 +212,7 @@ class TaskAssignmentService
                                       orphan_states: %w[offline stopped])
                                .joins(attack: { campaign: :hash_list })
                                .where(hash_lists: { hash_type_id: allowed_hash_type_ids })
+                               .where(campaigns: { quarantined: false })
 
     grace_blocked_scope = grace_blocked_scope.where(campaigns: { project_id: agent.project_ids }) if agent.project_ids.present?
 
@@ -371,6 +375,12 @@ class TaskAssignmentService
   # Agents with no project assignments can work on any project (same convention
   # as attack resources like word lists, rule lists, and Task#compatible_agent?).
   #
+  # REASONING:
+  # - Quarantined campaigns are excluded to prevent agents from being assigned
+  #   tasks from campaigns with unrecoverable hash-format errors (e.g. token
+  #   length exception, no hashes loaded). The campaigns table is already joined
+  #   via .joins(campaign: ...), so no additional join is needed.
+  #
   # Ordering strategy:
   # 1. campaigns.priority DESC: Higher campaign priority first (high=2, normal=0, deferred=-1)
   # 2. attacks.complexity_value: Within same priority, simpler attacks first
@@ -382,6 +392,7 @@ class TaskAssignmentService
                   .joins(campaign: { hash_list: :hash_type })
                   .includes(campaign: %i[hash_list project])
                   .where(hash_lists: { hash_type_id: allowed_hash_type_ids })
+                  .where(campaigns: { quarantined: false })
 
     scope = scope.where(campaigns: { project_id: agent.project_ids }) if agent.project_ids.present?
 

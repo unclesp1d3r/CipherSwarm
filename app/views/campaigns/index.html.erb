@@ -21,6 +21,12 @@
     </div>
   </div>
 </div>
+<div class="d-flex gap-2 my-2">
+  <%= link_to "All", campaigns_path,
+        class: "btn btn-sm #{@filter.blank? ? 'btn-secondary' : 'btn-outline-secondary'}" %>
+  <%= link_to "Quarantined", campaigns_path(filter: "quarantined"),
+        class: "btn btn-sm #{@filter == 'quarantined' ? 'btn-danger' : 'btn-outline-danger'}" %>
+</div>
 <% if @campaigns.empty? %>
   <div class="text-center">
     <div class="mb-4">
