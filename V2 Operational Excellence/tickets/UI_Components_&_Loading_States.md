@@ -38,6 +38,7 @@ Implement reusable UI components and loading state patterns for consistent user 
 - [x] Broadcast partials are minimal and don't reference current_user
 - [x] Stable DOM IDs enable targeted replacement
 - [x] `error_count_last_24h` method removed from component class, moved to partial logic
+- [x] Fragment cache key uses `cache: agent` (not `cache: true`) to incorporate `cache_key_with_version` with agent's `updated_at` timestamp, preventing stale cached cards when agent state or errors change
 
 **Agent Index Partials:**
 
@@ -64,11 +65,13 @@ after_update_commit :broadcast_index_state, if: -> { saved_change_to_state? }
 after_update_commit :broadcast_index_last_seen, if: -> { saved_change_to_last_seen_at? }
 ```
 
-AgentError model callback:
+AgentError model callback triggers `Agent#broadcast_index_errors`:
 
 ```ruby
-after_create_commit :broadcast_index_errors
+after_create_commit -> { agent.broadcast_index_errors }
 ```
+
+The `Agent#broadcast_index_errors` method follows the same pattern as `broadcast_index_state` and `broadcast_index_last_seen`: it uses `broadcast_replace_later_to` with a stable DOM ID (`dom_id(agent, :index_errors)`) to update the error count display on agent index cards in real-time. Keeping the broadcast contract on the Agent model maintains consistency across all agent index card updates.
 
 HashcatStatus updates trigger hash rate broadcasts via `update_agent_metrics` method (uses `update_columns` to bypass callbacks, then manually broadcasts).
 
@@ -212,13 +215,15 @@ For detailed component patterns and theming guidelines, reference doc:AGENTS.md 
 
 The AgentStatusCardComponent demonstrates a reusable pattern for real-time component updates:
 
-1. **Extract Minimal Partials** - Create small partials (`_index_state.html.erb`, `_index_hash_rate.html.erb`) that wrap a single UI element with a stable DOM ID using `dom_id(record, :suffix)`.
+1. **Extract Minimal Partials** - Create small partials (`_index_state.html.erb`, `_index_hash_rate.html.erb`, `_index_errors.html.erb`) that wrap a single UI element with a stable DOM ID using `dom_id(record, :suffix)`.
 
-2. **Model Callbacks** - Use conditional `after_update_commit` callbacks (e.g., `if: -> { saved_change_to_state? }`) to broadcast only when specific attributes change, reducing unnecessary updates.
+2. **Model Callbacks** - Use conditional `after_update_commit` callbacks (e.g., `if: -> { saved_change_to_state? }`) to broadcast only when specific attributes change, reducing unnecessary updates. The `Agent#broadcast_index_errors` method is called from the `AgentError` model's `after_create_commit` callback to keep the broadcast contract on the Agent model.
 
 3. **Background Job Context** - Broadcast partials run in background jobs WITHOUT access to `current_user` or session. All data must come from the model or explicit locals.
 
 4. **Targeted Replacement** - Use `broadcast_replace_later_to` with the stable DOM ID as the target to update individual sections without full-page refresh.
+
+5. **Fragment Cache Invalidation** - When using fragment caching on index cards, use `cache: agent` (not `cache: true`) so that `cache_key_with_version` incorporates the agent's `updated_at` timestamp. This ensures cached cards are invalidated when agent state or errors change, preventing stale content from being served.
 
 This pattern extends to other real-time components. See the Attack model's `broadcast_index_state` implementation for a similar approach. For constraints and gotchas, reference doc:GOTCHAS.md section "Turbo Stream Broadcasts".
 
