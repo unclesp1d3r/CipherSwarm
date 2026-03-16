@@ -38,6 +38,20 @@ RSpec.describe "Campaigns" do
         expect(response).to render_template(:index)
       end
     end
+
+    context "when filtering by quarantined" do
+      let!(:quarantined_campaign) do
+        create(:campaign, project: project, quarantined: true, quarantine_reason: "No hashes loaded")
+      end
+
+      it "returns only quarantined campaigns" do
+        sign_in(admin)
+        get campaigns_path, params: { filter: "quarantined" }
+        expect(response).to have_http_status(:success)
+        expect(response.body).to include(quarantined_campaign.name)
+        expect(response.body).not_to include(campaign.name)
+      end
+    end
   end
 
   describe "GET /new" do
@@ -309,6 +323,32 @@ RSpec.describe "Campaigns" do
         expect(response).to have_http_status(:forbidden)
         expect(response).to render_template("errors/not_authorized")
         expect(project_campaign.reload.priority).to eq("normal")
+      end
+    end
+  end
+
+  describe "POST /campaigns/:id/clear_quarantine" do
+    let!(:quarantined_campaign) do
+      create(:campaign, project: project, quarantined: true, quarantine_reason: "Token length exception")
+    end
+
+    context "when admin clears quarantine" do
+      it "clears the quarantine and redirects" do
+        sign_in(admin)
+        post clear_quarantine_campaign_path(quarantined_campaign)
+        expect(quarantined_campaign.reload).not_to be_quarantined
+        expect(quarantined_campaign.quarantine_reason).to be_nil
+        expect(response).to redirect_to(campaign_path(quarantined_campaign))
+        expect(flash[:notice]).to eq("Campaign quarantine has been cleared.")
+      end
+    end
+
+    context "when non-admin attempts to clear quarantine" do
+      it "returns forbidden" do
+        sign_in(project_user)
+        post clear_quarantine_campaign_path(quarantined_campaign)
+        expect(response).to have_http_status(:forbidden)
+        expect(quarantined_campaign.reload).to be_quarantined
       end
     end
   end
