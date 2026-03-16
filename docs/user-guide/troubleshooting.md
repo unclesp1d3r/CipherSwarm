@@ -200,7 +200,7 @@ Network resilience settings can be tuned via CLI flags or server configuration:
 
 ### Permission Denied
 
-**Symptoms**: "You are not authorized" error when accessing resources.
+**Symptoms**: Authorization error when accessing resources (HTML: "You are not authorized"; JSON API: `{"error": "Forbidden", "status": 403}`).
 
 **Solutions**:
 
@@ -208,6 +208,8 @@ Network resilience settings can be tuned via CLI flags or server configuration:
 2. Check that the resource belongs to your currently selected project
 3. Switch to the correct project using the project selector
 4. Contact your administrator if you need elevated permissions
+
+**Note**: This is a 403 Forbidden error (authenticated user lacking permissions), distinct from 401 Unauthorized errors (authentication failures).
 
 ---
 
@@ -547,18 +549,19 @@ See [Agent Troubleshooting](troubleshooting-agents.md#log-analysis) for agent-sp
 
 ## Common Error Messages
 
-| Error Message                     | Meaning                                | Solution                                         |
-| --------------------------------- | -------------------------------------- | ------------------------------------------------ |
-| "You are not authorized"          | Missing permissions for this action    | Check role and project access                    |
-| "Record not found"                | Resource was deleted or doesn't exist  | Verify resource exists, check project context    |
-| "Hash list is still processing"   | Hash list upload hasn't completed      | Wait for processing, check job queue             |
-| "No agents available"             | No online agents in this project       | Register agents or check agent status            |
-| "Resource download failed"        | Agent couldn't download wordlist/rules | Check file storage status and agent connectivity |
-| "Invalid attack configuration"    | Attack parameters are incorrect        | Review attack settings, check hash type compat   |
-| "Connection refused"              | A backend service is down              | Check system health dashboard                    |
-| "Task expired"                    | Agent took too long to complete a task | Check agent performance, increase timeout        |
-| "Circuit breaker open"            | Agent protecting against failed server | Check server health and network connectivity     |
-| "All API request attempts failed" | Retries exhausted for API request      | Check network stability and server availability  |
+| Error Message                     | Meaning                                          | Solution                                         |
+| --------------------------------- | ------------------------------------------------ | ------------------------------------------------ |
+| "You are not authorized"          | Authorization failure (HTML, 403)                | Check role and project access                    |
+| "Forbidden" (JSON)                | Authorization failure (JSON API, 403)            | Check role and project access                    |
+| "Record not found"                | Resource was deleted or doesn't exist            | Verify resource exists, check project context    |
+| "Hash list is still processing"   | Hash list upload hasn't completed                | Wait for processing, check job queue             |
+| "No agents available"             | No online agents in this project                 | Register agents or check agent status            |
+| "Resource download failed"        | Agent couldn't download wordlist/rules           | Check file storage status and agent connectivity |
+| "Invalid attack configuration"    | Attack parameters are incorrect                  | Review attack settings, check hash type compat   |
+| "Connection refused"              | A backend service is down                        | Check system health dashboard                    |
+| "Task expired"                    | Agent took too long to complete a task           | Check agent performance, increase timeout        |
+| "Circuit breaker open"            | Agent protecting against failed server           | Check server health and network connectivity     |
+| "All API request attempts failed" | Retries exhausted for API request                | Check network stability and server availability  |
 
 ---
 
