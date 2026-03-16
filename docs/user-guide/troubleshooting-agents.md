@@ -9,6 +9,7 @@ This guide provides detailed troubleshooting steps for common agent issues, with
 - [Task Not Found Errors](#task-not-found-errors)
 - [Agent Recovery Procedures](#agent-recovery-procedures)
 - [Server-Side Diagnostics](#server-side-diagnostics)
+- [Campaign Quarantine from Agent Errors](#campaign-quarantine-from-agent-errors)
 - [Best Practices](#best-practices)
 - [Common Scenarios](#common-scenarios)
 - [Network Connectivity Issues](#network-connectivity-issues)
@@ -472,7 +473,7 @@ For more granular diagnostics, enable debug-level logging to see per-attack skip
 
 **Troubleshooting with Skip Reasons:**
 
-1. **no_available_attacks**: Check that campaigns are active and match the agent's configured hash types and project assignments
+1. **no_available_attacks**: Check that campaigns are active and match the agent's configured hash types and project assignments. Verify campaigns are not quarantined.
 2. **all_hashes_cracked**: All work is complete; consider starting new campaigns or adjusting hash lists
 3. **pending_tasks_not_owned**: Other agents have claimed available work; this is normal in multi-agent environments
 4. **performance_threshold_not_met**: Review agent benchmark results and attack complexity requirements
@@ -519,6 +520,203 @@ For more granular diagnostics, enable debug-level logging to see per-attack skip
    - Task reassignment due to timeout
    - System maintenance or restart
    - Bug or unexpected behavior
+
+---
+
+## Campaign Quarantine from Agent Errors
+
+CipherSwarm automatically quarantines campaigns when agents submit errors indicating unrecoverable configuration or hash format issues. This prevents agents from repeatedly attempting tasks that will always fail due to misconfigured attacks or incompatible hash lists.
+
+### What Triggers Campaign Quarantine?
+
+The server quarantines a campaign when an agent submits an error with structured metadata meeting these conditions:
+
+- `metadata.other.retryable == false` (error is not transient), AND
+- `metadata.other.category == "hash_format"` (hash format error), OR
+- `metadata.other.terminal == true` (terminal hashcat failure)
+
+**Common Error Types That Trigger Quarantine:**
+
+| Error Type | Example Message | Reason |
+|------------|-----------------|--------|
+| **Token Length Exception** | Token length exception | Hash list format doesn't match hash type specification |
+| **Separator Unmatched** | Separator unmatched | Hash delimiter incorrect for hash type |
+| **Hash Encoding Error** | Hash encoding exception | Hash list encoding invalid or corrupted |
+| **No Hashes Loaded** | No hashes loaded | Hash list is empty or unreadable |
+| **Invalid Attack Mode** | Invalid attack mode for hash type | Attack configuration incompatible with hash type |
+| **Terminal Hashcat Error** | Device memory allocation failed | Unrecoverable hardware or configuration error |
+
+### Identifying Quarantined Campaigns
+
+**Web Interface Indicators:**
+
+1. **Campaigns Index:**
+   - Red "Quarantined" badge appears on quarantined campaign cards
+   - Use the "Quarantined" filter button to view all quarantined campaigns
+
+2. **Campaign Show Page:**
+   - Red alert banner displays at the top with "Campaign Quarantined" message
+   - Shows the quarantine reason (original error message from agent)
+   - Admin users see a "Clear Quarantine" button
+
+**Checking Quarantine Status via Rails Console:**
+
+```ruby
+# Find all quarantined campaigns
+Campaign.quarantined
+
+# Check if specific campaign is quarantined
+campaign = Campaign.find(123)
+campaign.quarantined?  # => true or false
+campaign.quarantine_reason  # => error message
+```
+
+### How Quarantine Affects Task Assignment
+
+**Task Assignment Behavior:**
+
+- `TaskAssignmentService` excludes quarantined campaigns from all task queries
+- Agents will NOT receive new tasks from quarantined campaigns
+- Prevents agents from wasting compute resources on tasks that will always fail
+- Existing tasks already running on agents are NOT affected (they continue to completion or error)
+
+**Task Assignment Queries Affected:**
+
+The following task assignment paths exclude quarantined campaigns:
+
+1. `find_existing_incomplete_task` - resuming agent's own incomplete tasks
+2. `find_own_paused_task` - resuming agent's own paused tasks
+3. `find_unassigned_paused_task` - claiming unassigned paused tasks during grace period
+4. `available_attacks` - creating new tasks from available attacks
+
+### Resolving Quarantine
+
+#### Automatic Quarantine Clearing
+
+Quarantine automatically clears when you update the underlying configuration that caused the error:
+
+**Hash List Changes (clears quarantine on all associated campaigns):**
+- Change hash type: `hash_list.update!(hash_type: new_hash_type)`
+- Replace hash list file: `hash_list.file.attach(new_file)`
+
+**Attack Parameter Changes (clears quarantine on parent campaign):**
+- Attack mode change
+- Word list, rule list, or mask list reassignment
+- Mask changes
+- Custom charset modifications
+- Markov settings changes
+- Any hashcat configuration parameter update
+
+**Why Automatic Clearing?**
+
+The server assumes that configuration changes indicate the administrator has corrected the underlying issue. This allows campaigns to be retried without manual intervention.
+
+#### Manual Quarantine Clearing (Admin Only)
+
+**Via Web Interface:**
+
+1. Navigate to the quarantined campaign's show page
+2. Click the "Clear Quarantine" button in the red alert banner
+3. Confirm the action
+4. The campaign becomes eligible for task assignment again
+
+**Via Rails Console:**
+
+```ruby
+campaign = Campaign.find(123)
+campaign.clear_quarantine!
+# => Sets quarantined=false, clears quarantine_reason
+```
+
+**Before Clearing Quarantine:**
+
+- Review the quarantine reason (error message)
+- Verify the underlying issue has been fixed
+- Check agent error logs for details
+- Ensure hash list and attack parameters are correct
+- Test with a small hash list if unsure
+
+**After Clearing Quarantine:**
+
+If you clear quarantine without fixing the underlying issue:
+
+- Agents will receive tasks from the campaign again
+- The campaign will likely be re-quarantined immediately when the same error occurs
+- Agent resources will be wasted on doomed tasks
+
+### Quarantine vs Agent Errors
+
+**Not All Errors Trigger Quarantine:**
+
+- **Retryable Errors:** Network failures, temporary GPU errors, and transient issues do NOT quarantine campaigns
+- **Transient Failures:** Agent crashes, connection losses, and timeout errors are NOT terminal
+- **Recoverable Errors:** Errors with `retryable: true` metadata never trigger quarantine
+
+**Error Visibility:**
+
+- All agent errors are visible in the campaign/attack error logs regardless of quarantine status
+- Quarantine only affects task assignment, not error reporting
+- You can view error details even for quarantined campaigns
+
+**Quarantine Lifecycle Log Events:**
+
+The server logs quarantine events for audit and troubleshooting:
+
+```
+[AgentLifecycle] campaign_quarantined: campaign_id=123 agent_id=45 task_id=678 reason="Token length exception" timestamp=2026-03-16 10:30:00 UTC
+```
+
+If quarantine triggering fails (rare):
+
+```
+[AgentLifecycle] quarantine_failed: campaign_id=123 agent_id=45 task_id=678 error=ActiveRecord::RecordInvalid - Validation failed timestamp=2026-03-16 10:30:00 UTC
+```
+
+### Troubleshooting Quarantined Campaigns
+
+**Scenario: Campaign Quarantined Immediately After Creation**
+
+**Symptoms:**
+- New campaign quarantined after first agent attempts task
+- Agents not receiving tasks from campaign
+- Error logs show hash format errors
+
+**Diagnosis:**
+1. Check hash list format matches selected hash type
+2. Verify hash list file is not empty
+3. Ensure attack mode is compatible with hash type
+4. Review agent error message for specific issue
+
+**Resolution:**
+1. Download a sample of the hash list
+2. Verify hashes match the expected format for the hash type
+3. Fix hash list formatting or change hash type
+4. Upload corrected hash list (quarantine clears automatically)
+
+**Scenario: Campaign Quarantined After Hash Type Change**
+
+**Symptoms:**
+- Campaign was working, then quarantined after hash type change
+- Agent errors mention token length or separator issues
+
+**Cause:**
+- Hash list format is incompatible with new hash type
+- Hash type was changed without updating hash list
+
+**Resolution:**
+1. Revert hash type to original value (clears quarantine)
+2. OR reformat hash list for new hash type and re-upload
+
+**Scenario: Checking if Agents Are Skipping Quarantined Campaigns**
+
+Use task assignment skip logs to see if quarantine is blocking work:
+
+```bash
+# Check for quarantine-related task assignment skips
+grep "no_available_attacks" /var/log/cipherswarm/production.log | grep "agent_id=123"
+```
+
+If agents are idle and campaigns are quarantined, they won't appear in skip logs (quarantined campaigns are excluded from queries before skip reason logging).
 
 ---
 
@@ -1257,6 +1455,7 @@ grep "\[TaskAssignment\] no_task_assigned" production.log | \
 - Verify agent hash type and project configuration
 - Review agent benchmark performance
 - Ensure campaigns have uncracked hashes
+- Check if campaigns are quarantined (quarantined campaigns are excluded from task assignment)
 
 **Slow Task Completion:**
 
@@ -1282,7 +1481,7 @@ grep "\[TaskAssignment\] no_task_assigned" production.log | \
 | `[TaskNotFound].*task_deleted`                               | Agent tried to use deleted task                       | Normal, agent should request new work                         |
 | `[TaskNotFound].*task_not_assigned`                          | Agent tried to access other agent's task              | Check for configuration issues                                |
 | `[TaskNotFound].*task_invalid`                               | Invalid task ID used                                  | Possible client bug, investigate                              |
-| `[TaskAssignment] no_task_assigned.*no_available_attacks`    | No attacks match agent's configuration                | Check hash types and project assignments                      |
+| `[TaskAssignment] no_task_assigned.*no_available_attacks`    | No attacks match agent's configuration                | Check hash types and project assignments; verify campaigns not quarantined |
 | `[TaskAssignment] no_task_assigned.*all_hashes_cracked`      | All available work is complete                        | Start new campaigns or adjust hash lists                      |
 | `[TaskAssignment] no_task_assigned.*performance_threshold`   | Agent too slow for available attacks                  | Review benchmarks or adjust thresholds                        |
 | Multiple `[TaskNotFound]` for same agent in short time       | Agent not recovering properly                         | Check agent configuration and code                            |
