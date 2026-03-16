@@ -22,18 +22,31 @@ The problem is amplified in production where:
 
 Active Storage's download path is: `blob.open` → `ActiveStorage::Downloader#open_tempfile` → `Tempfile.open(name, nil)`. When the `tmpdir` argument is `nil` (the default), Ruby uses `Dir.tmpdir`, which resolves to `/tmp` on Linux unless the `TMPDIR` environment variable is set. The CipherSwarm Dockerfile does not set `TMPDIR`, so all Active Storage temp files land in `/tmp`.
 
-## Fix: tmpfs Mount
+## Fix: tmpfs Mounts
 
-Both `docker-compose.yml` and `docker-compose-production.yml` mount a `tmpfs` filesystem at `/tmp` on the Sidekiq service. This keeps temp files in RAM, automatically clears on container restart, and isolates temp storage from the overlay filesystem.
+Both `docker-compose.yml` and `docker-compose-production.yml` mount tmpfs filesystems on the Sidekiq and web services. There are **two** temp directories that need protection from overlay exhaustion:
+
+### /tmp — Active Storage blob downloads
+
+Active Storage's `blob.open` writes temp files to `/tmp` via Ruby's `Tempfile.open`. This is where the large attack resource downloads land during ingest jobs.
+
+### /rails/tmp — Rails application temp directory
+
+Rails uses `/rails/tmp` for Bootsnap bytecode cache (`tmp/cache/bootsnap/`), Puma PID files (`tmp/pids/`), and other framework temp files. While individual files are small, they accumulate over the lifetime of a container and can exhaust the overlay filesystem on long-running deployments.
+
+### Configuration
 
 ```yaml
-sidekiq:
-  tmpfs:
-    - /tmp:size=512m,mode=1777
+# Both web and sidekiq services
+tmpfs:
+  - /tmp:size=512m,mode=1777
+  - /rails/tmp:size=256m,mode=1777
 ```
 
 - **`size`** — Maximum size of the tmpfs. Counts against the container's memory limit.
 - **`mode=1777`** — Standard `/tmp` permissions (world-writable with sticky bit).
+
+The `/tmp` mount needs to be large enough for concurrent blob downloads (see sizing guidance below). The `/rails/tmp` mount is smaller since it only holds framework temp files — 256 MB is generous for typical deployments.
 
 ## Sizing Guidance
 
@@ -133,21 +146,22 @@ This approach is better when memory is scarce but disk is plentiful.
 
 ## Verification
 
-Confirm the tmpfs is mounted inside a running Sidekiq container:
+Confirm the tmpfs mounts inside a running Sidekiq container:
 
 ```bash
 # Development
-docker compose exec sidekiq df -h /tmp
+docker compose exec sidekiq df -h /tmp /rails/tmp
 
 # Production
-docker compose -f docker-compose-production.yml exec sidekiq df -h /tmp
+docker compose -f docker-compose-production.yml exec sidekiq df -h /tmp /rails/tmp
 ```
 
-Expected output shows `tmpfs` as the filesystem type with the configured size:
+Expected output shows `tmpfs` as the filesystem type for both paths:
 
 ```text
 Filesystem      Size  Used Avail Use% Mounted on
 tmpfs           512M     0  512M   0% /tmp
+tmpfs           256M     0  256M   0% /rails/tmp
 ```
 
 ## Monitoring
@@ -155,11 +169,14 @@ tmpfs           512M     0  512M   0% /tmp
 Watch for signs that the tmpfs is filling up:
 
 ```bash
-# Check current usage
-docker compose exec sidekiq du -sh /tmp
+# Check current usage of both temp directories
+docker compose exec sidekiq df -h /tmp /rails/tmp
 
-# Monitor in real-time
+# Monitor /tmp in real-time (blob downloads)
 docker compose exec sidekiq watch -n 5 'df -h /tmp && echo "---" && ls -la /tmp'
+
+# Check /rails/tmp usage (framework temp files)
+docker compose exec sidekiq du -sh /rails/tmp/*
 ```
 
 If tmpfs usage regularly exceeds 80%, consider:
