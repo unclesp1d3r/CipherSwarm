@@ -353,7 +353,7 @@ For smaller resources (under configured size limits):
 
 The Agent Status Sheet (accessible from dashboard) shows:
 
-- **Agent Cards**: Individual agent status with real-time status badges
+- **Agent Cards**: Individual agent status with real-time status badges (Active=green, Pending=gray, Stopped=gray, Error=red)
 - **Performance Metrics**: Current hash rates, 8-hour trend charts, and performance history
 - **Task Assignment**: Current campaign/attack assignments with live progress
 - **Hardware Status**: Temperature, utilization, and error count badges

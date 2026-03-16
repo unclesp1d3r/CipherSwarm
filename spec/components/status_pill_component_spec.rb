@@ -16,4 +16,16 @@ RSpec.describe StatusPillComponent, type: :component do
     render_inline(described_class.new(status: "failed"))
     expect(page).to have_css("i.bi-x-circle")
   end
+
+  it "renders secondary pill for pending status" do
+    expect(
+      render_inline(described_class.new(status: "pending"))
+    ).to have_css(".text-bg-secondary", text: "Pending")
+  end
+
+  it "renders warning pill for paused status" do
+    expect(
+      render_inline(described_class.new(status: "paused"))
+    ).to have_css(".text-bg-warning", text: "Paused")
+  end
 end
