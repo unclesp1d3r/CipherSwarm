@@ -78,6 +78,61 @@ RSpec.describe HashList do
     it { is_expected.to have_db_column(:separator).of_type(:string).with_options(default: ":", null: false) }
   end
 
+  describe "#clear_campaigns_quarantine_if_needed" do
+    let(:hash_list) { create(:hash_list) }
+    let!(:campaign) { create(:campaign, hash_list: hash_list) }
+
+    before do
+      # Set quarantine after all creation callbacks have settled to avoid interference
+      campaign.update_columns(quarantined: true, quarantine_reason: "No hashes loaded") # rubocop:disable Rails/SkipsModelValidations
+    end
+
+    it "clears quarantine when hash_type_id changes" do
+      new_hash_type = create(:hash_type)
+      hash_list.update!(hash_type: new_hash_type)
+
+      expect(campaign.reload.quarantined).to be false
+      expect(campaign.quarantine_reason).to be_nil
+    end
+
+    it "clears quarantine when file attachment blob changes" do
+      # Stub the attachment's saved_change_to_blob_id? to simulate a file replacement
+      # within the same transaction as a hash_list update (as happens in the controller)
+      attachment = hash_list.file.attachment
+      allow(attachment).to receive(:saved_change_to_blob_id?).and_return(true)
+      allow(hash_list.file).to receive(:attachment).and_return(attachment)
+
+      hash_list.update!(description: "trigger update commit")
+
+      expect(campaign.reload.quarantined).to be false
+      expect(campaign.quarantine_reason).to be_nil
+    end
+
+    it "does not clear quarantine when unrelated fields change" do
+      hash_list.update!(description: "Updated description")
+
+      expect(campaign.reload.quarantined).to be true
+      expect(campaign.quarantine_reason).to eq("No hashes loaded")
+    end
+
+    it "does not clear quarantine when sensitive flag changes" do
+      hash_list.update!(sensitive: !hash_list.sensitive)
+
+      expect(campaign.reload.quarantined).to be true
+    end
+
+    it "clears quarantine on all associated campaigns" do
+      campaign2 = create(:campaign, hash_list: hash_list)
+      campaign2.update_columns(quarantined: true, quarantine_reason: "Token length exception") # rubocop:disable Rails/SkipsModelValidations
+      new_hash_type = create(:hash_type)
+
+      hash_list.update!(hash_type: new_hash_type)
+
+      expect(campaign.reload.quarantined).to be false
+      expect(campaign2.reload.quarantined).to be false
+    end
+  end
+
   describe "instance methods" do
     let(:hash_list) { create(:hash_list) }
 

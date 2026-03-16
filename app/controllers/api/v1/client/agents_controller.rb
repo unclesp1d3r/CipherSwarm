@@ -221,6 +221,7 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
     end
 
     if error_record.save
+      quarantine_campaign_if_fatal!(error_record)
       head :no_content
       return
     end
@@ -229,6 +230,40 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
   end
 
   private
+
+  # Inspects the structured metadata from the agent and quarantines the
+  # associated campaign when the error is definitively unrecoverable.
+  #
+  # Quarantine is triggered when:
+  #   - metadata.other.retryable is false, AND
+  #   - metadata.other.category is "hash_format" OR metadata.other.terminal is true
+  #
+  # @param error_record [AgentError] the saved error record
+  # @return [void]
+  def quarantine_campaign_if_fatal!(error_record)
+    return if error_record.task_id.blank?
+
+    other = error_record.metadata.with_indifferent_access[:other]
+    return unless other.is_a?(Hash)
+
+    other = other.with_indifferent_access
+    return unless other[:retryable] == false
+    return unless other[:category] == "hash_format" || other[:terminal] == true
+
+    campaign = error_record.task.attack.campaign
+
+    campaign.quarantine!(error_record.message)
+
+    Rails.logger.info(
+      "[AgentLifecycle] campaign_quarantined: campaign_id=#{campaign.id} agent_id=#{@agent.id} " \
+      "task_id=#{error_record.task_id} reason=\"#{error_record.message}\" timestamp=#{Time.zone.now}"
+    )
+  rescue StandardError => e
+    Rails.logger.error(
+      "[AgentLifecycle] quarantine_failed: agent_id=#{@agent.id} task_id=#{error_record.task_id} " \
+      "error=#{e.class} - #{e.message} timestamp=#{Time.zone.now}"
+    )
+  end
 
   # Returns the permitted parameters for creating or updating an agent.
   def agent_params

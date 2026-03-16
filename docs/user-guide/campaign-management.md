@@ -11,6 +11,7 @@ This guide covers creating, monitoring, and managing campaigns in CipherSwarm v2
 - [Adding Attacks](#adding-attacks)
 - [Campaign Progress Monitoring](#campaign-progress-monitoring)
 - [Managing Running Campaigns](#managing-running-campaigns)
+- [Campaign Quarantine](#campaign-quarantine)
 - [Campaign Actions](#campaign-actions)
 - [Priority-Based Execution](#priority-based-execution)
 - [Best Practices](#best-practices)
@@ -32,6 +33,8 @@ Campaigns progress through the following states:
 | **Paused**    | Temporarily stopped by user or priority preemption | Yellow      |
 | **Completed** | All attacks finished successfully                  | Green       |
 | **Failed**    | One or more attacks encountered errors             | Red         |
+
+**Note:** Campaigns can also be flagged as **Quarantined** when agents encounter unrecoverable errors (e.g., hash format mismatches, invalid hash types). Quarantine is a separate flag that can occur alongside other states. See [Campaign Quarantine](#campaign-quarantine) for details.
 
 ### Campaign Hierarchy
 
@@ -221,6 +224,88 @@ You can edit campaign details while it is running:
 - **Priority**: Raising a campaign's priority enqueues a rebalance job that may trigger task preemption for lower-priority campaigns. Lowering priority has no immediate effect; the lowered campaign's tasks continue running until they complete or are preempted by higher-priority campaigns during the normal periodic rebalancing cycle.
 - **Attacks**: Adding new attacks to a running campaign is supported
 - **Editing running attacks**: Modifying a running or completed attack resets it to pending state. A confirmation dialog warns about this behavior.
+
+**Troubleshooting Stalled Campaigns:**
+
+If a campaign stops making progress:
+
+1. Check if the campaign is quarantined (see [Campaign Quarantine](#campaign-quarantine))
+2. Review the campaign error log for task failures
+3. Verify agents are online and accepting tasks
+4. Check agent compatibility with the hash type
+
+---
+
+## Campaign Quarantine
+
+CipherSwarm automatically quarantines campaigns when agents report unrecoverable errors that prevent task execution. Quarantined campaigns are excluded from task assignment to prevent agents from repeatedly encountering the same error.
+
+### What is Quarantine?
+
+Quarantine is an automatic safety mechanism that flags campaigns with fatal configuration or data errors. When a campaign is quarantined:
+
+- Agents will not be assigned tasks from the quarantined campaign
+- The campaign retains its current state (running, paused, etc.) but cannot make progress
+- A clear error message explains why the campaign was quarantined
+
+### Quarantine Triggers
+
+Campaigns are automatically quarantined when agents encounter certain unrecoverable errors:
+
+| Error Type                    | Description                                    | Example Causes                                      |
+| ----------------------------- | ---------------------------------------------- | --------------------------------------------------- |
+| **Token length exception**    | Hash format does not match the selected type   | NTLM hashes in an MD5 hash list                     |
+| **No hashes loaded**          | Hash file is empty or unreadable               | Corrupted file, wrong encoding, empty file          |
+| **Hash format mismatch**      | Hashes cannot be parsed by hashcat             | Mixed hash types, invalid characters, wrong format  |
+| **Incompatible attack params**| Attack configuration incompatible with hash type | Mask too short/long, invalid charset configuration |
+
+These errors are identified by structured error metadata reported by agents, not by parsing error message text.
+
+### Identifying Quarantined Campaigns
+
+**In the Campaign Index:**
+
+- A red **"Quarantined"** badge appears next to the campaign name
+- Use the **Quarantined** filter button in the toolbar to show only quarantined campaigns
+- The **All** filter button returns to the unfiltered view
+
+**On the Campaign Show Page:**
+
+- A dismissible alert banner appears at the top displaying the quarantine reason
+- Example: "Campaign Quarantined — Token length exception (hash length: 32, expected: 16)"
+- Administrators see a **Clear Quarantine** button in the alert
+
+### Clearing Quarantine
+
+Quarantine is designed to be cleared automatically when you fix the underlying problem.
+
+**Automatic Clearing:**
+
+Quarantine is automatically cleared when you:
+
+- Update the hash list's **hash type** to match the actual hash format
+- Replace the hash list **file** with a corrected version
+- Modify **attack parameters** that were causing configuration errors (e.g., mask length, charsets, wordlist references)
+
+The system detects these changes and removes the quarantine flag immediately.
+
+**Manual Clearing (Admin Only):**
+
+Administrators can manually clear quarantine from the campaign show page:
+
+1. Click **Clear Quarantine** in the alert banner
+2. Confirm the action
+3. The quarantine flag is removed
+
+**Important:** Manual clearing is only available to administrators. If you manually clear quarantine without fixing the underlying issue, the campaign will be immediately re-quarantined when the next agent attempts a task.
+
+### Best Practices
+
+- **Fix before clearing**: Always correct the hash list or attack configuration before clearing quarantine
+- **Check the error message**: The quarantine reason tells you exactly what needs to be fixed
+- **Verify hash format**: Use a hash identifier tool to confirm your hash type matches the hash list setting
+- **Test with a small subset**: If unsure, test the configuration with a small hash list first
+- **Re-upload clean files**: If the hash file is corrupted, re-export from your source system
 
 ---
 

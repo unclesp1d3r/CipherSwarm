@@ -13,6 +13,8 @@
 #  description                                    :text
 #  name                                           :string           not null
 #  priority(-1: Deferred, 0: Normal, 2: High)     :integer          default("normal"), not null, indexed, indexed => [project_id]
+#  quarantine_reason                              :text
+#  quarantined                                    :boolean          default(FALSE), not null, indexed
 #  created_at                                     :datetime         not null
 #  updated_at                                     :datetime         not null
 #  creator_id(The user who created this campaign) :bigint           indexed
@@ -27,6 +29,7 @@
 #  index_campaigns_on_priority                 (priority)
 #  index_campaigns_on_project_id               (project_id)
 #  index_campaigns_on_project_id_and_priority  (project_id,priority)
+#  index_campaigns_on_quarantined              (quarantined) WHERE (quarantined = true)
 #
 # Foreign Keys
 #

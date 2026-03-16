@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_10_033817) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_16_042410) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -178,6 +178,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_10_033817) do
     t.string "name", null: false
     t.integer "priority", default: 0, null: false, comment: "-1: Deferred, 0: Normal, 2: High"
     t.bigint "project_id", null: false
+    t.text "quarantine_reason"
+    t.boolean "quarantined", default: false, null: false
     t.datetime "updated_at", null: false
     t.index ["creator_id"], name: "index_campaigns_on_creator_id"
     t.index ["deleted_at"], name: "index_campaigns_on_deleted_at"
@@ -185,6 +187,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_10_033817) do
     t.index ["priority"], name: "index_campaigns_on_priority"
     t.index ["project_id", "priority"], name: "index_campaigns_on_project_id_and_priority"
     t.index ["project_id"], name: "index_campaigns_on_project_id"
+    t.index ["quarantined"], name: "index_campaigns_on_quarantined", where: "(quarantined = true)"
   end
 
   create_table "device_statuses", force: :cascade do |t|

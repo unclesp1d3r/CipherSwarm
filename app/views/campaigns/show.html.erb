@@ -41,6 +41,21 @@
     </div>
   </div>
 </div>
+<% if @campaign.quarantined? %>
+  <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+    <strong>Campaign Quarantined</strong>
+    <% if @campaign.quarantine_reason.present? %>
+      — <%= @campaign.quarantine_reason %>
+    <% end %>
+    <% if can? :clear_quarantine, @campaign %>
+      <%= button_to "Clear Quarantine", clear_quarantine_campaign_path(@campaign),
+            method: :post,
+            class: "btn btn-sm btn-outline-light ms-3",
+            data: { turbo_confirm: "Are you sure you want to clear the quarantine?" } %>
+    <% end %>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+<% end %>
 <%= turbo_stream_from @campaign %>
 <div aria-live="polite" aria-atomic="false">
 

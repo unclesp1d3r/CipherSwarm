@@ -68,6 +68,7 @@ class Ability
     # Campaign permissions
     can :manage, Campaign, project: { id: user.all_project_ids } # User can manage campaigns in their projects
     cannot :set_high_priority, Campaign # By default, users cannot set high priority
+    cannot :clear_quarantine, Campaign # Only admins can clear quarantine
 
     # High priority campaign permissions - only project admins/owners and global admins can set high priority
     can :set_high_priority, Campaign do |campaign|
@@ -104,6 +105,7 @@ class Ability
 
     return unless user.admin?
 
+    can :clear_quarantine, Campaign
     can :manage, :all
     can :read, :admin_dashboard
   end

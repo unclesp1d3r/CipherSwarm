@@ -239,6 +239,80 @@ RSpec.describe Attack do
     end
   end
 
+  describe "#clear_campaign_quarantine_if_needed" do
+    let(:campaign) { create(:campaign) }
+    let(:attack) { create(:dictionary_attack, campaign: campaign) }
+
+    before do
+      # Set quarantine after all creation callbacks have settled to avoid interference
+      campaign.update_columns(quarantined: true, quarantine_reason: "Token length exception") # rubocop:disable Rails/SkipsModelValidations
+    end
+
+    it "clears quarantine when word_list_id changes" do
+      new_word_list = create(:word_list)
+      attack.update!(word_list: new_word_list)
+
+      expect(campaign.reload.quarantined).to be false
+      expect(campaign.quarantine_reason).to be_nil
+    end
+
+    it "clears quarantine when attack_mode changes" do
+      mask_list = create(:mask_list)
+      attack.update!(attack_mode: :mask, word_list: nil, mask_list: mask_list, rule_list: nil)
+
+      expect(campaign.reload.quarantined).to be false
+    end
+
+    it "clears quarantine when left_rule changes" do
+      attack.update!(left_rule: "u")
+
+      expect(campaign.reload.quarantined).to be false
+    end
+
+    it "clears quarantine when right_rule changes" do
+      attack.update!(right_rule: "l")
+
+      expect(campaign.reload.quarantined).to be false
+    end
+
+    it "clears quarantine when markov_threshold changes" do
+      attack.update!(markov_threshold: 500)
+
+      expect(campaign.reload.quarantined).to be false
+    end
+
+    it "clears quarantine when workload_profile changes" do
+      attack.update!(workload_profile: 2)
+
+      expect(campaign.reload.quarantined).to be false
+    end
+
+    it "clears quarantine when custom_charset_1 changes" do
+      attack.update!(custom_charset_1: "?l?d")
+
+      expect(campaign.reload.quarantined).to be false
+    end
+
+    it "clears quarantine when optimized changes" do
+      attack.update!(optimized: !attack.optimized)
+
+      expect(campaign.reload.quarantined).to be false
+    end
+
+    it "does not clear quarantine when only name changes" do
+      attack.update!(name: "Renamed Attack")
+
+      expect(campaign.reload.quarantined).to be true
+      expect(campaign.quarantine_reason).to eq("Token length exception")
+    end
+
+    it "does not clear quarantine when only description changes" do
+      attack.update!(description: "Updated description")
+
+      expect(campaign.reload.quarantined).to be true
+    end
+  end
+
   describe "#resume_tasks" do
     let(:attack) { create(:dictionary_attack, :running) }
     let(:agent) { create(:agent, state: :active) }
