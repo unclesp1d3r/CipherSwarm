@@ -242,7 +242,6 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
   # @return [void]
   def quarantine_campaign_if_fatal!(error_record)
     return if error_record.task_id.blank?
-    return unless error_record.metadata.is_a?(Hash)
 
     other = error_record.metadata.with_indifferent_access[:other]
     return unless other.is_a?(Hash)
