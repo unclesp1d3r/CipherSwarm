@@ -94,6 +94,8 @@ services:
     depends_on:
       - redis-db
       - postgres-db
+    tmpfs:
+      - /tmp:size=1g,mode=1777
     volumes:
       - storage:/rails/storage
     networks:
