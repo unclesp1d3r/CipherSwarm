@@ -251,9 +251,7 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
     return unless other[:retryable] == false
     return unless other[:category] == "hash_format" || other[:terminal] == true
 
-    task = error_record.task
-    campaign = task&.attack&.campaign
-    return unless campaign
+    campaign = error_record.task.attack.campaign
 
     campaign.quarantine!(error_record.message)
 

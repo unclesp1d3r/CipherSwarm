@@ -1202,6 +1202,32 @@ RSpec.describe "api/v1/client/agents" do
       end
     end
 
+    context "when a non-retryable error has unrecognized category and no terminal flag" do
+      let(:task) { create(:task, agent: agent) }
+      let(:campaign) { task.attack.campaign }
+
+      it "does not quarantine the campaign" do
+        post "/api/v1/client/agents/#{agent.id}/submit_error",
+             headers: headers,
+             params: {
+               message: "Unknown device error",
+               severity: "fatal",
+               task_id: task.id,
+               metadata: {
+                 error_date: Time.zone.now,
+                 other: {
+                   category: "hardware",
+                   retryable: false,
+                   error_type: "device_memory"
+                 }
+               }
+             }.to_json
+
+        expect(response).to have_http_status(:no_content)
+        expect(campaign.reload).not_to be_quarantined
+      end
+    end
+
     context "when a retryable error is submitted" do
       let(:task) { create(:task, agent: agent) }
       let(:campaign) { task.attack.campaign }
