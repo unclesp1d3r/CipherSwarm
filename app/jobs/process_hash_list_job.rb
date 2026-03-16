@@ -24,6 +24,8 @@
 # @raise [ActiveRecord::RecordNotSaved] if the hash list record disappears during processing
 # @raise [StandardError] if no hash items were processed from the file
 class ProcessHashListJob < ApplicationJob
+  include TempStorageValidation
+
   queue_as :ingest
   retry_on ActiveStorage::FileNotFoundError, wait: :polynomially_longer, attempts: 10
   discard_on ActiveRecord::RecordNotFound
@@ -75,6 +77,8 @@ class ProcessHashListJob < ApplicationJob
   def ingest_hash_items(list)
     # Clean up any partial results from a prior failed attempt to ensure idempotent ingestion.
     list.hash_items.delete_all
+
+    ensure_temp_storage_available!(list.file)
 
     hash_items = []
     processed_count = 0
