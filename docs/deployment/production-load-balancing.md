@@ -2,7 +2,7 @@
 
 ## Introduction
 
-When many cracking agents are active simultaneously, a single CipherSwarm web instance can become a bottleneck. Each agent sends periodic status updates, crack submissions, and task requests — all of which compete for the same Puma thread pool. This guide describes how to horizontally scale the web tier using nginx as a reverse proxy load balancer in front of multiple Thruster/Puma replicas.
+When many cracking agents are active simultaneously, a single CipherSwarm web instance can become a bottleneck. Each agent sends periodic status updates, crack submissions, and task requests — all of which compete for the same Puma thread pool. This guide describes how to horizontally scale the web tier using nginx as a reverse proxy load balancer in front of multiple Puma replicas.
 
 ## Architecture Overview
 
@@ -16,7 +16,7 @@ When many cracking agents are active simultaneously, a single CipherSwarm web in
               │                   │                   │
      ┌────────▼──────┐  ┌────────▼──────┐  ┌────────▼──────┐
      │  Web Replica 1 │  │  Web Replica 2 │  │  Web Replica N │
-     │  Thruster/Puma │  │  Thruster/Puma │  │  Thruster/Puma │
+     │  Puma │  │  Puma │  │  Puma │
      └───────┬────────┘  └───────┬────────┘  └───────┬────────┘
              │                   │                   │
              └───────────────────┼───────────────────┘
@@ -31,7 +31,7 @@ When many cracking agents are active simultaneously, a single CipherSwarm web in
 **Component roles:**
 
 - **Nginx** — Accepts all incoming HTTP traffic on port 80 and distributes requests across web replicas using the `least_conn` algorithm. Uses Docker's embedded DNS (`127.0.0.11`) to discover replicas automatically. Includes a dedicated `/cable` location for Action Cable WebSocket connections (Turbo Streams).
-- **Web replicas (Thruster/Puma)** — Each replica is an independent container running the full Rails stack. Thruster handles HTTP/2 and asset serving per instance. Puma serves Rails requests with its own thread pool.
+- **Web replicas (Puma)** — Each replica is an independent container running the full Rails stack. Puma serves Rails requests with its own thread pool. Nginx handles HTTP/2, compression, and asset caching at the load balancer level.
 - **Backend services** — PostgreSQL, Redis, and Sidekiq are shared by all replicas. Rails cookie-based sessions are stateless, so no sticky sessions are required.
 
 ## Scaling Guidelines

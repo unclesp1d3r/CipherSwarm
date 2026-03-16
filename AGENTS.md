@@ -653,6 +653,17 @@ docker compose up -d postgres-db
 TEST_DATABASE_URL=postgres://root:password@localhost:5432/cipher_swarm_test bundle exec rspec
 ```
 
+**Docker Temp Storage and Uploads:**
+
+- Both `docker-compose.yml` and `docker-compose-production.yml` mount `tmpfs` at `/tmp` and `/rails/tmp` on web and sidekiq services — these prevent overlay filesystem exhaustion
+- Active Storage `blob.open` downloads to `/tmp` (OS temp), not `/rails/tmp` (Rails app temp) — the Dockerfile does not set `TMPDIR`
+- `/rails/tmp` holds Bootsnap cache (~27 MB) — small but accumulates on constrained overlays over time
+- Nginx has `client_max_body_size 0` (unlimited) and `proxy_request_buffering off` for Active Storage direct uploads
+- Thruster has been removed — Puma serves directly on port 80, nginx handles HTTP/2/compression/caching
+- `TempStorageValidation` concern on all blob-downloading jobs checks available `/tmp` space before downloading
+- See `docs/deployment/docker-storage-and-tmp.md` for tmpfs sizing guidance
+- See GOTCHAS.md § Infrastructure for the full set of temp storage and upload gotchas
+
 **Environment Files:**
 
 - `.env` - Contains secrets (gitignored, not committed)
