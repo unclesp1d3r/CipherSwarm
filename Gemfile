@@ -98,6 +98,7 @@ gem "sidekiq-cron", "~> 2.3.1"
 gem "simple_form", "~> 5.4.1"
 gem "state_machines-activerecord", "~> 0.100.0"
 gem "store_model", "~> 4.5"
+gem "sys-filesystem", "~> 1.5"
 gem "thruster", "~> 0.1.19"
 gem "view_component", "~> 4.5.0"
 
