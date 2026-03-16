@@ -78,9 +78,15 @@ RSpec.describe ApplicationJob do
       expect(Rails.logger).to have_received(:error).with(/Not enough space/)
     end
 
-    it "rescues logging errors without raising" do
-      allow(Rails.logger).to receive(:error).and_raise(StandardError, "logging broken")
+    it "logs a fallback message when primary logging fails" do
+      call_count = 0
+      allow(Rails.logger).to receive(:error) do
+        call_count += 1
+        raise StandardError, "logging broken" if call_count == 1
+      end
+
       expect { job.log_temp_storage_discard(error) }.not_to raise_error
+      expect(call_count).to eq(2) # first call raises, fallback call succeeds
     end
   end
 

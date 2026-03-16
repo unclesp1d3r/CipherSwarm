@@ -75,10 +75,11 @@ class ProcessHashListJob < ApplicationJob
   private
 
   def ingest_hash_items(list)
-    # Clean up any partial results from a prior failed attempt to ensure idempotent ingestion.
-    list.hash_items.delete_all
-
     ensure_temp_storage_available!(list.file)
+
+    # Clean up any partial results from a prior failed attempt to ensure idempotent ingestion.
+    # Runs AFTER the temp storage check so existing items are preserved if space is insufficient.
+    list.hash_items.delete_all
 
     hash_items = []
     processed_count = 0

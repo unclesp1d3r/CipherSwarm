@@ -43,7 +43,7 @@ class ApplicationJob < ActiveJob::Base
       "Action: increase tmpfs size or reduce Sidekiq concurrency. " \
       "See docs/deployment/docker-storage-and-tmp.md"
     )
-  rescue StandardError
-    # Avoid failing job execution due to logging errors
+  rescue StandardError => e
+    Rails.logger.error("[TempStorage] Failed to log discard for #{self.class.name}: #{e.message}") rescue nil
   end
 end

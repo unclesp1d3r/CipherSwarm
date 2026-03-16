@@ -41,9 +41,9 @@ module TempStorageValidation
       "[TempStorage] Not enough temp storage to download #{blob.filename} " \
       "(#{blob.byte_size} bytes required, #{available} bytes available in #{Dir.tmpdir})"
   rescue Sys::Filesystem::Error => e
-    Rails.logger.warn(
-      "[TempStorage] Could not check available temp storage: #{e.message}. " \
-      "Proceeding with download anyway."
+    Rails.logger.error(
+      "[TempStorage] Could not check available temp storage in #{Dir.tmpdir}: #{e.message}. " \
+      "Proceeding with download — the pre-download safety check is non-functional."
     )
   end
 end

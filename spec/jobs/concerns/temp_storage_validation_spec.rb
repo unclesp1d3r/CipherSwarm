@@ -79,10 +79,10 @@ RSpec.describe TempStorageValidation do
       allow(Sys::Filesystem).to receive(:stat).and_raise(Sys::Filesystem::Error, "permission denied")
     end
 
-    it "logs a warning and does not block the job" do
-      allow(Rails.logger).to receive(:warn)
+    it "logs an error and does not block the job" do
+      allow(Rails.logger).to receive(:error)
       expect { test_job_class.new.perform(attachment) }.not_to raise_error
-      expect(Rails.logger).to have_received(:warn).with(/\[TempStorage\].*permission denied/)
+      expect(Rails.logger).to have_received(:error).with(/\[TempStorage\].*permission denied/)
     end
   end
 end
