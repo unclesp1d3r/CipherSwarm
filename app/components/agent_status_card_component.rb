@@ -17,7 +17,7 @@ class AgentStatusCardComponent < ApplicationViewComponent
     when "active"
       "success"
     when "pending"
-      "warning"
+      "secondary"
     when "stopped"
       "secondary"
     when "error"

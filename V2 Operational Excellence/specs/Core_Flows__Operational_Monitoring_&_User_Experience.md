@@ -520,6 +520,7 @@ h2 { margin: 0 0 10px 0; font-size: 24px; }
 .breadcrumb { margin-bottom: 20px; color: #6c757d; font-size: 14px; }
 .badge { display: inline-block; padding: 6px 12px; border-radius: 4px; font-size: 14px; font-weight: 600; margin-left: 12px; }
 .badge-running { background: #cfe2ff; color: #084298; }
+.badge-pending { background: #e2e3e5; color: #41464b; }
 .actions { margin: 20px 0; display: flex; gap: 12px; }
 .btn { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 600; }
 .btn-danger { background: #dc3545; color: white; }
