@@ -754,8 +754,25 @@ class Agent < ApplicationRecord
       locals: { agent: self }
     )
   end
+
+  # Replaces just the error count on index cards when a new AgentError is created.
+  # Called from AgentError#after_create_commit to keep the broadcast contract on Agent,
+  # matching the pattern of broadcast_index_state and broadcast_index_last_seen.
+  def broadcast_index_errors
+    broadcast_replace_later_to(
+      self,
+      target: dom_id(self, :index_errors),
+      partial: "agents/index_errors",
+      locals: { agent: self }
+    )
+  end
 end
 ```
+
+**Agent broadcast methods** follow a consistent pattern for targeted partial updates:
+- `broadcast_index_state` - Updates agent state badge (triggered by state changes)
+- `broadcast_index_errors` - Updates error count (triggered when AgentError created)
+- `broadcast_index_last_seen` - Updates last seen timestamp (triggered by last_seen_at changes)
 
 **Critical Gotcha**: Broadcast partials run in background jobs with NO access to `current_user`, `session`, or request context. Partials must be completely self-contained and only use data passed in locals.
 
@@ -854,6 +871,22 @@ add_index :tasks, :paused_at, where: "state = 'paused'"
 ```
 
 This improves performance for orphaned task recovery queries that only target paused tasks. Partial indexes reduce index size and improve query speed by indexing only relevant rows.
+
+### Fragment Cache Best Practices
+
+Use proper cache keys to ensure fragment cache invalidation when records change:
+
+```ruby
+# Good - cache: agent uses cache_key_with_version which includes updated_at
+<%= render AgentStatusCardComponent.new(agent: agent), cache: agent %>
+
+# Bad - cache: true creates a cache key that doesn't invalidate when the agent changes
+<%= render AgentStatusCardComponent.new(agent: agent), cache: true %>
+```
+
+**Why this matters**: `cache: agent` generates a cache key that incorporates the model's `updated_at` timestamp (via `cache_key_with_version`). When agent state, error count, or other fields change and `updated_at` updates, the cache key changes and the cached fragment is automatically invalidated. Using `cache: true` creates a static key that never invalidates, causing stale data to be served.
+
+See PR #737 for the fix that prevented stale agent cards from being served after state/error changes.
 
 ---
 
