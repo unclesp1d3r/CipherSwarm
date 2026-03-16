@@ -50,6 +50,12 @@ RSpec.describe ApplicationJob do
     end
   end
 
+  describe "InsufficientTempStorageError handling" do
+    it "is configured to retry on InsufficientTempStorageError" do
+      expect(described_class.rescue_handlers.map(&:first)).to include("InsufficientTempStorageError")
+    end
+  end
+
   describe "inheritable configuration" do
     # Create a child job class
     let(:child_job_class) do
