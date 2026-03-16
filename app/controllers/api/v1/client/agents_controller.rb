@@ -242,21 +242,17 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
   # @return [void]
   def quarantine_campaign_if_fatal!(error_record)
     return if error_record.task_id.blank?
+    return unless error_record.metadata.is_a?(Hash)
 
-    metadata = error_record.metadata
-    return unless metadata.is_a?(Hash)
-
-    other = metadata.dig("other") || metadata.dig(:other)
+    other = error_record.metadata.with_indifferent_access[:other]
     return unless other.is_a?(Hash)
 
-    retryable = other["retryable"].nil? ? other[:retryable] : other["retryable"]
-    return unless retryable == false
+    other = other.with_indifferent_access
+    return unless other[:retryable] == false
+    return unless other[:category] == "hash_format" || other[:terminal] == true
 
-    category = other["category"] || other[:category]
-    terminal = other["terminal"].nil? ? other[:terminal] : other["terminal"]
-    return unless category == "hash_format" || terminal == true
-
-    campaign = error_record.task&.attack&.campaign
+    task = error_record.task
+    campaign = task&.attack&.campaign
     return unless campaign
 
     campaign.quarantine!(error_record.message)
@@ -266,14 +262,8 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
       "task_id=#{error_record.task_id} reason=\"#{error_record.message}\" timestamp=#{Time.zone.now}"
     )
   rescue StandardError => e
-    campaign_id = begin
-      error_record.task.attack.campaign_id
-    rescue NoMethodError
-      nil
-    end
     Rails.logger.error(
-      "[AgentLifecycle] quarantine_failed: campaign_id=#{campaign_id} " \
-      "agent_id=#{@agent.id} task_id=#{error_record.task_id} " \
+      "[AgentLifecycle] quarantine_failed: agent_id=#{@agent.id} task_id=#{error_record.task_id} " \
       "error=#{e.class} - #{e.message} timestamp=#{Time.zone.now}"
     )
   end

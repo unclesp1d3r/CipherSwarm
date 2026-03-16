@@ -1157,6 +1157,51 @@ RSpec.describe "api/v1/client/agents" do
       end
     end
 
+    context "when metadata has no 'other' key" do
+      let(:task) { create(:task, agent: agent) }
+      let(:campaign) { task.attack.campaign }
+
+      it "does not quarantine the campaign" do
+        post "/api/v1/client/agents/#{agent.id}/submit_error",
+             headers: headers,
+             params: {
+               message: "Some error",
+               severity: "fatal",
+               task_id: task.id,
+               metadata: { error_date: Time.zone.now }
+             }.to_json
+
+        expect(response).to have_http_status(:no_content)
+        expect(campaign.reload).not_to be_quarantined
+      end
+    end
+
+    context "when error has non-hash_format category but terminal flag" do
+      let(:task) { create(:task, agent: agent) }
+      let(:campaign) { task.attack.campaign }
+
+      it "quarantines the campaign" do
+        post "/api/v1/client/agents/#{agent.id}/submit_error",
+             headers: headers,
+             params: {
+               message: "Selftest failed",
+               severity: "fatal",
+               task_id: task.id,
+               metadata: {
+                 error_date: Time.zone.now,
+                 other: {
+                   category: "runtime",
+                   retryable: false,
+                   terminal: true
+                 }
+               }
+             }.to_json
+
+        expect(response).to have_http_status(:no_content)
+        expect(campaign.reload).to be_quarantined
+      end
+    end
+
     context "when a retryable error is submitted" do
       let(:task) { create(:task, agent: agent) }
       let(:campaign) { task.attack.campaign }
