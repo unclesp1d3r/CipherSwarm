@@ -23,7 +23,7 @@ module Admin
       logger.error "not_authorized #{error}"
       respond_to do |format|
         format.html { render template: "errors/not_authorized", status: :forbidden }
-        format.json { render json: { error: "Not Authorized", status: 403 }, status: :forbidden }
+        format.json { render json: { error: "Forbidden", status: 403 }, status: :forbidden }
         format.all { head :forbidden }
       end
     end
