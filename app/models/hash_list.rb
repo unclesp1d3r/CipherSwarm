@@ -24,6 +24,7 @@
 #
 # @callbacks
 # - after_save: processes hash list if file attached
+# - after_commit (on: update): clears quarantine on associated campaigns when hash_type_id or file changes
 #
 # == Schema Information
 #
@@ -82,6 +83,7 @@ class HashList < ApplicationRecord
   delegate :hash_mode, to: :hash_type
 
   after_commit :process_hash_list, if: :file_attached?
+  after_commit :clear_campaigns_quarantine_if_needed, on: [:update]
 
   # Returns a string representing the completion status of the hash list.
   #
@@ -246,6 +248,16 @@ class HashList < ApplicationRecord
   end
 
   private
+
+  # Clears quarantine on associated campaigns when the hash type or file attachment changes.
+  # This allows campaigns that were quarantined due to hash format errors to be retried
+  # after the user corrects the hash list configuration.
+  #
+  # @return [void]
+  def clear_campaigns_quarantine_if_needed
+    changed = saved_change_to_hash_type_id? || file.attachment&.saved_change_to_blob_id?
+    campaigns.update_all(quarantined: false, quarantine_reason: nil) if changed # rubocop:disable Rails/SkipsModelValidations -- bulk clear avoids loading campaigns; no callbacks needed
+  end
 
   # Checks if a file is attached and not processed.
   #

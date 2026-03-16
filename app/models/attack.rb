@@ -38,6 +38,11 @@
 # - to_label_with_complexity:
 #   Generates a label including details about the attack's complexity.
 #
+# @callbacks
+# - after_commit (on: update): broadcasts attack progress update
+# - after_update_commit: broadcasts index state pill when state changes
+# - after_commit (on: update): clears quarantine on parent campaign when attack resource references change
+#
 # == Schema Information
 #
 # Table name: attacks
@@ -196,6 +201,16 @@ class Attack < ApplicationRecord
   # Callbacks
   after_commit :broadcast_attack_progress_update, on: [:update]
   after_update_commit :broadcast_index_state, if: :saved_change_to_state?
+  after_commit :clear_campaign_quarantine_if_needed, on: [:update]
+
+  QUARANTINE_RELEVANT_COLUMNS = %i[
+    word_list_id rule_list_id mask_list_id mask attack_mode
+    left_rule right_rule
+    increment_mode increment_minimum increment_maximum
+    custom_charset_1 custom_charset_2 custom_charset_3 custom_charset_4
+    classic_markov disable_markov markov_threshold
+    optimized slow_candidate_generators workload_profile
+  ].freeze
 
   def to_full_label
     "#{campaign.name} - #{to_label}"
@@ -259,6 +274,20 @@ class Attack < ApplicationRecord
   end
 
   private
+
+  # Clears quarantine on the parent campaign when attack resource references change.
+  # This allows campaigns quarantined due to hashcat configuration errors to be retried
+  # after the user corrects the attack parameters.
+  #
+  # Uses update_all to bypass Campaign callbacks (ETA broadcasts, priority rebalance)
+  # since we're only clearing two columns.
+  #
+  # @return [void]
+  def clear_campaign_quarantine_if_needed
+    return unless QUARANTINE_RELEVANT_COLUMNS.any? { |col| saved_change_to_attribute?(col) }
+
+    Campaign.where(id: campaign_id).update_all(quarantined: false, quarantine_reason: nil) # rubocop:disable Rails/SkipsModelValidations -- bulk clear avoids loading campaign; no callbacks needed
+  end
 
   # Validates the presence of either `mask` or `mask_list`.
   # If both `mask` and `mask_list` are blank, adds errors to both attributes.
