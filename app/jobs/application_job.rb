@@ -11,18 +11,7 @@ class ApplicationJob < ActiveJob::Base
   # After 5 attempts, discard with a structured log message so operators
   # know to increase tmpfs size or reduce Sidekiq concurrency.
   retry_on InsufficientTempStorageError, wait: :polynomially_longer, attempts: 5 do |job, error|
-    begin
-      filter = ActiveSupport::ParameterFilter.new(Rails.application.config.filter_parameters)
-      safe_args = filter.filter(arguments: job.arguments)[:arguments]
-      Rails.logger.error(
-        "[TempStorage] #{job.class.name} discarded after retries — #{error.message}. " \
-        "Job ID: #{job.job_id}. Arguments: #{safe_args.inspect}. " \
-        "Action: increase tmpfs size or reduce Sidekiq concurrency. " \
-        "See docs/deployment/docker-storage-and-tmp.md"
-      )
-    rescue StandardError
-      # Avoid failing job execution due to logging errors
-    end
+    job.log_temp_storage_discard(error)
   end
 
   # Most jobs are safe to ignore if the underlying records are no longer available.
@@ -40,5 +29,21 @@ class ApplicationJob < ActiveJob::Base
     rescue StandardError
       # Avoid failing job execution due to logging errors
     end
+  end
+
+  # Logs a structured message when a job is discarded due to insufficient temp storage.
+  # Extracted as a method so it can be tested independently (the retry_on block
+  # is wrapped by ActiveJob machinery and cannot be invoked directly in tests).
+  def log_temp_storage_discard(error)
+    filter = ActiveSupport::ParameterFilter.new(Rails.application.config.filter_parameters)
+    safe_args = filter.filter(arguments: arguments)[:arguments]
+    Rails.logger.error(
+      "[TempStorage] #{self.class.name} discarded after retries — #{error.message}. " \
+      "Job ID: #{job_id}. Arguments: #{safe_args.inspect}. " \
+      "Action: increase tmpfs size or reduce Sidekiq concurrency. " \
+      "See docs/deployment/docker-storage-and-tmp.md"
+    )
+  rescue StandardError
+    # Avoid failing job execution due to logging errors
   end
 end

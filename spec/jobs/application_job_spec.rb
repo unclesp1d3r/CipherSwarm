@@ -56,6 +56,34 @@ RSpec.describe ApplicationJob do
     end
   end
 
+  describe "#log_temp_storage_discard" do
+    let(:job) { described_class.new }
+    let(:error) { InsufficientTempStorageError.new("[TempStorage] Not enough space") }
+
+    it "logs with TempStorage prefix and discarded message" do
+      allow(Rails.logger).to receive(:error)
+      job.log_temp_storage_discard(error)
+      expect(Rails.logger).to have_received(:error).with(/\[TempStorage\].*discarded after retries/)
+    end
+
+    it "includes filtered arguments in the log" do
+      allow(Rails.logger).to receive(:error)
+      job.log_temp_storage_discard(error)
+      expect(Rails.logger).to have_received(:error).with(/Arguments:/)
+    end
+
+    it "includes the error message" do
+      allow(Rails.logger).to receive(:error)
+      job.log_temp_storage_discard(error)
+      expect(Rails.logger).to have_received(:error).with(/Not enough space/)
+    end
+
+    it "rescues logging errors without raising" do
+      allow(Rails.logger).to receive(:error).and_raise(StandardError, "logging broken")
+      expect { job.log_temp_storage_discard(error) }.not_to raise_error
+    end
+  end
+
   describe "inheritable configuration" do
     # Create a child job class
     let(:child_job_class) do
