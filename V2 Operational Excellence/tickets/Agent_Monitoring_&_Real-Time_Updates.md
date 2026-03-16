@@ -137,12 +137,20 @@ The PR implements targeted Turbo Stream updates using the `broadcast_replace_lat
 
 - `Agent#broadcast_index_state` - Fires only on state transitions to avoid excessive updates
 - `Agent#broadcast_index_last_seen` - Fires when `last_seen_at` changes
-- `AgentError#broadcast_index_errors` - Fires after error creation to update error count
+- `Agent#broadcast_index_errors` - Fires after agent error creation (via callback) to update error count on agent index cards
 - `HashcatStatus#update_agent_metrics` - Manually broadcasts hash rate updates (since `update_columns` bypasses callbacks)
 
 **DOM ID Pattern:**
 
 Each updateable element uses a consistent ID pattern: `dom_id(agent, :index_state)`, `dom_id(agent, :index_hash_rate)`, etc. This ensures broadcasts target the correct element and don't interfere with surrounding content.
+
+**Broadcast Method Organization:**
+
+All broadcast methods live on the `Agent` model following a consistent naming pattern (`broadcast_index_state`, `broadcast_index_last_seen`, `broadcast_index_errors`). The `Agent#broadcast_index_errors` method is triggered by `AgentError` via `after_create_commit -> { agent.broadcast_index_errors }`, keeping the broadcast contract centralized on the Agent model while allowing related models to trigger updates as needed.
+
+**Fragment Cache Invalidation:**
+
+Agent index cards use `cache: agent` (not `cache: true`) to ensure `cache_key_with_version` incorporates the agent's `updated_at` timestamp. This prevents stale cards from being served after state changes, error count updates, or other model changes that touch `updated_at`. Without this, fragment caching would serve outdated card content even after real-time broadcasts update individual card elements.
 
 **Gotchas for Broadcast Partials:**
 

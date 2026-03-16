@@ -224,6 +224,7 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 - Broadcast partials (rendered by `broadcast_replace_to`/`broadcast_replace_later_to`) run in background jobs with NO `current_user` — partials must not reference `current_user` or session data
 - For targeted broadcasts, extract small partials (e.g., `_index_state.html.erb`) that wrap a single element with a stable DOM ID, following the Agent `broadcast_index_state` pattern
 - Never fragment-cache content containing `safe_can?` calls in broadcast-rendered partials — Sidekiq has no `current_user`, so `safe_can?` returns false and poisons the cache for all users. Keep auth-gated elements outside cache blocks.
+- **Never fragment-cache ViewComponents that render `can?` checks or `form_authenticity_token`** — `cache: agent` on `AgentStatusCardComponent` leaked admin action buttons and stale CSRF tokens across users. Either omit caching entirely or scope cache keys to include `current_user.id`. Turbo Stream broadcasts handle freshness for uncached components.
 - Use `saved_changes.keys.intersect?(FIELDS)` or `saved_change_to_<attr>?` guards in `after_update_commit` callbacks to avoid broadcasting tabs whose data didn't change (see `Agent#broadcast_tab_updates`)
 
 **Logging Patterns:**

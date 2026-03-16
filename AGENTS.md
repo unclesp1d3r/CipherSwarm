@@ -641,9 +641,16 @@ TEST_DATABASE_URL=postgres://root:password@localhost:5432/cipher_swarm_test bund
 ### Mergify Merge Queue
 
 - `.mergify.yml` manages merge automation — squash merge, conventional commit enforcement
+- Human PRs: manually enqueued via `/queue` comment (repo permissions restrict to maintainers)
+- Bot PRs (dependabot, dosubot): autoqueued, no label gates
+- Merge protections (CI checks, conventional commits, staleness) apply to all PRs regardless of queue method
 - Dependabot exempt from conventional commit check (uses "Bump ..." titles)
 - `MERGIFY_TOKEN` secret required for CI Insights upload; guarded for forks where secrets are unavailable
 - Dependabot `rebase-strategy: "disabled"` on all ecosystems — Mergify handles branch updates
+
+**GitHub Issue Priority Labels:**
+
+- Use only `priority:critical`, `priority:high`, `priority:medium`, `priority:low` (no spaces, no alternative formats)
 
 ### Storage Backend (ActiveStorage)
 
