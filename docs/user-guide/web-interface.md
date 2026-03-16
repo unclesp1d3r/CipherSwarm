@@ -96,11 +96,13 @@ The main content area shows all campaigns with:
 
 - **Accordion Layout**: Expandable campaign rows
 - **Live Progress**: Real-time progress bars with streaming updates via Turbo Streams
-- **State Indicators**: Color-coded badges (Running=purple, Completed=green, Error=red, Paused=gray)
+- **State Indicators**: Color-coded badges (Running=purple, Completed=green, Error=red, Paused=gray, Quarantined=red)
+- **Quarantine Badge**: Red "Quarantined" badge displayed on quarantined campaign rows
 - **Attack Stepper**: Visual progression through configured attacks (completed, running, pending)
 - **ETA Display**: Estimated time to completion based on current hash rate
 - **Recent Cracks Feed**: Live feed of newly cracked hashes
 - **Attack Details**: Expandable view showing individual attacks with progress and task breakdown
+- **Quarantine Filter**: Filter button in toolbar to show only quarantined campaigns
 
 For detailed campaign management documentation, see [Campaign Management](campaign-management.md).
 
@@ -159,6 +161,7 @@ Campaigns have the following states:
 - **Paused**: Temporarily stopped
 - **Completed**: All attacks finished
 - **Archived**: Completed and archived
+- **Quarantined**: Campaign has encountered unrecoverable errors and is excluded from task assignment
 
 ### Campaign Actions
 
@@ -167,6 +170,24 @@ Campaigns have the following states:
 - **Reorder Attacks**: Drag-and-drop or use move buttons
 - **Export/Import**: Save campaign configuration as JSON
 - **Archive**: Mark campaign as completed
+
+### Quarantine Actions
+
+Campaigns may be automatically quarantined when unrecoverable errors occur (such as hash format issues or critical parameter errors). Quarantined campaigns are excluded from task assignment until the quarantine is cleared.
+
+#### Viewing Quarantine Status
+
+- **Quarantine Alert Banner**: When viewing a quarantined campaign, a dismissible red alert banner appears at the top of the campaign detail page
+- **Quarantine Reason**: The alert displays the specific error message that triggered the quarantine
+- **Campaign Index Badge**: Quarantined campaigns show a red "Quarantined" badge in the campaign list
+- **Quarantine Filter**: Use the "Quarantined" filter button in the campaigns index toolbar to view only quarantined campaigns
+
+#### Clearing Quarantine (Admin Only)
+
+- **Clear Quarantine Button**: Available in the quarantine alert banner on the campaign show page (admin-only)
+- **Manual Clear**: Click "Clear Quarantine" to remove the quarantine flag, making the campaign eligible for task assignment again
+- **Automatic Clear**: Fixing the underlying issue (such as correcting hash list parameters or attack configuration) automatically clears the quarantine
+- **Confirmation**: The system prompts for confirmation before clearing the quarantine
 
 ## Attack Management
 
