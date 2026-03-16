@@ -754,8 +754,26 @@ class Agent < ApplicationRecord
       locals: { agent: self }
     )
   end
+
+  # Replaces just the error count on index cards when a new AgentError is created.
+  # Called from AgentError#after_create_commit to keep the broadcast contract on Agent,
+  # matching the pattern of broadcast_index_state and broadcast_index_last_seen.
+  def broadcast_index_errors
+    broadcast_replace_later_to(
+      self,
+      target: dom_id(self, :index_errors),
+      partial: "agents/index_errors",
+      locals: { agent: self }
+    )
+  end
 end
 ```
+
+**Agent broadcast methods** follow a consistent pattern for targeted partial updates:
+
+- `broadcast_index_state` - Updates agent state badge (triggered by state changes)
+- `broadcast_index_errors` - Updates error count (triggered when AgentError created)
+- `broadcast_index_last_seen` - Updates last seen timestamp (triggered by last_seen_at changes)
 
 **Critical Gotcha**: Broadcast partials run in background jobs with NO access to `current_user`, `session`, or request context. Partials must be completely self-contained and only use data passed in locals.
 
@@ -854,6 +872,23 @@ add_index :tasks, :paused_at, where: "state = 'paused'"
 ```
 
 This improves performance for orphaned task recovery queries that only target paused tasks. Partial indexes reduce index size and improve query speed by indexing only relevant rows.
+
+### Fragment Cache Best Practices
+
+**Never cache partials or components that contain authorization checks (`can?`) or CSRF tokens (`form_authenticity_token`).** Cached output is shared across all users, which can leak admin-only UI or serve invalid CSRF tokens.
+
+```ruby
+# Safe - no caching for auth-dependent components
+<%= render AgentStatusCardComponent.new(agent: agent) %>
+
+# Safe - cache: record for components with NO authorization/session content
+<%= render StaticInfoComponent.new(record: record), cache: record %>
+
+# Unsafe - caches can?/CSRF output, leaks across users
+<%= render AgentStatusCardComponent.new(agent: agent), cache: agent %>
+```
+
+For collection partials, `cache: true` uses each record's `cache_key_with_version` — this is safe only when the partial contains no user-dependent content. When in doubt, omit caching; Turbo Stream broadcasts handle real-time freshness.
 
 ---
 

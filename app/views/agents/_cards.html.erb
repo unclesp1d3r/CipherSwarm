@@ -14,7 +14,7 @@
     <div class="row g-4">
       <% agents.each do |agent| %>
         <div class="col-12 col-md-6 col-lg-4 col-xl-3">
-          <%= render AgentStatusCardComponent.new(agent: agent), cache: true %>
+          <%= render AgentStatusCardComponent.new(agent: agent) %>
         </div>
       <% end %>
     </div>
