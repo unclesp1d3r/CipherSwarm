@@ -289,6 +289,78 @@ RSpec.describe TaskAssignmentService do
     end
   end
 
+  describe "quarantined campaign exclusion" do
+    let(:quarantined_campaign) { create(:campaign, hash_list: hash_list, project: project, quarantined: true, quarantine_reason: "no hashes loaded") }
+
+    context "when agent has an incomplete task from a quarantined campaign" do
+      let(:attack) { create(:dictionary_attack, campaign: quarantined_campaign, state: :running) }
+
+      before do
+        create(:task, agent: agent, attack: attack, state: :running)
+        create(:hash_item, hash_list: hash_list, cracked: false)
+      end
+
+      it "does not return the task" do
+        expect(service.find_next_task).to be_nil
+      end
+
+      it "is excluded by find_existing_incomplete_task" do
+        expect(service.send(:find_existing_incomplete_task)).to be_nil
+      end
+    end
+
+    context "when agent has its own paused task from a quarantined campaign" do
+      let(:attack) { create(:dictionary_attack, campaign: quarantined_campaign, state: :running) }
+
+      before do
+        create(:task, agent: agent, attack: attack, state: :paused, claimed_by_agent_id: nil, paused_at: 5.minutes.ago)
+        create(:hash_item, hash_list: hash_list, cracked: false)
+      end
+
+      it "does not return the paused task" do
+        expect(service.send(:find_own_paused_task)).to be_nil
+      end
+
+      it "is not returned by find_next_task" do
+        expect(service.find_next_task).to be_nil
+      end
+    end
+
+    context "when an orphaned paused task belongs to a quarantined campaign" do
+      let(:offline_agent) { create(:agent, user: user, projects: [project], state: :offline) }
+      let(:attack) { create(:dictionary_attack, campaign: quarantined_campaign, state: :running) }
+
+      before do
+        create(:task, agent: offline_agent, attack: attack, state: :paused, claimed_by_agent_id: nil)
+        create(:hashcat_benchmark, agent: offline_agent, hash_type: 0, hash_speed: 10_000_000)
+        create(:hash_item, hash_list: hash_list, cracked: false)
+      end
+
+      it "does not return the orphaned task" do
+        expect(service.send(:find_unassigned_paused_task)).to be_nil
+      end
+
+      it "is not returned by find_next_task" do
+        expect(service.find_next_task).to be_nil
+      end
+    end
+
+    context "when both quarantined and non-quarantined campaigns have tasks" do
+      let(:quarantined_attack) { create(:dictionary_attack, campaign: quarantined_campaign, state: :running) }
+      let(:normal_attack) { create(:dictionary_attack, campaign: campaign, state: :running) }
+      let!(:normal_task) { create(:task, agent: agent, attack: normal_attack, state: :running) }
+
+      before do
+        create(:task, agent: agent, attack: quarantined_attack, state: :running)
+        create(:hash_item, hash_list: hash_list, cracked: false)
+      end
+
+      it "returns only the task from the non-quarantined campaign" do
+        expect(service.find_next_task).to eq(normal_task)
+      end
+    end
+  end
+
   describe "#find_next_task integration" do
     it "handles multiple consecutive calls correctly" do
       create(:hash_item, hash_list: hash_list, cracked: false)

@@ -16,6 +16,11 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 
 ## State Machines
 
+**TaskAssignmentService Query Paths:**
+
+- Campaign-level filters (e.g., `quarantined: false`) must be applied at ALL 4 query paths: `find_existing_incomplete_task`, `find_own_paused_task`, `find_unassigned_paused_task`, and `log_grace_period_blocked` — not just `available_attacks`
+- All 4 paths already join campaigns via `joins(attack: { campaign: ... })`, so `.where(campaigns: { ... })` works without additional joins
+
 **Agent States:**
 
 - `benchmarked` is an EVENT (not a state) — transitions pending→active after benchmarks complete
@@ -59,6 +64,16 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 - Selenium requires explicit Chrome binary path: `options.binary = ENV["CHROME_BIN"]` in `spec/support/capybara.rb`
 - File downloads don't work in CI headless Chrome; test download content via request specs instead
 - `ProcessHashListJob` can race against DB truncation cleanup causing intermittent `PG::ForeignKeyViolation` on `hash_items` — safe to re-run
+
+**ActiveStorage Blob Change Detection in Tests:**
+
+- `file.attach(...)` on a persisted record runs in its own transaction — `saved_change_to_blob_id?` is false in a subsequent `hash_list.save!`'s `after_commit`
+- To test the blob-change branch of `clear_campaigns_quarantine_if_needed`, stub `attachment.saved_change_to_blob_id?` to return true and trigger a hash_list `update!`
+
+**Factory Callbacks vs Quarantine State:**
+
+- Setting `quarantined: true` in `create(:campaign, quarantined: true)` can be silently cleared by `after_commit` callbacks (e.g., `ProcessHashListJob` → `hash_list.update!(processed: true)` → `clear_campaigns_quarantine_if_needed`)
+- Use `campaign.update_columns(quarantined: true, quarantine_reason: "...")` AFTER record creation to set quarantine state reliably in tests
 
 **Turbo Stream System Test Pattern:**
 
@@ -173,6 +188,12 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 - Use a generic stable error string for clients (e.g., `"Internal health check failure"`), log full exception details server-side with `Rails.logger.error`
 
 ## Database & ActiveRecord
+
+**JSONB Key Access:**
+
+- ActiveRecord deserializes JSONB columns with **string keys** after DB round-trip, but `params` and in-memory hashes use **symbol keys**
+- Code inspecting saved JSONB fields must check both: `hash.dig("key") || hash.dig(:key)`
+- This applies to `AgentError#metadata`, `HashcatStatus` fields, and any other JSONB column read after `save`
 
 **upsert_all:**
 

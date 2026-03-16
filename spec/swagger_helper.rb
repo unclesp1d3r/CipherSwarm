@@ -104,7 +104,20 @@ RSpec.configure do |config|
             description: "Additional metadata about an agent error",
             properties: {
               error_date: { type: :string, format: "date-time", description: "The date of the error" },
-              other: { type: :object, nullable: true, description: "Other metadata", additionalProperties: true }
+              other: {
+                type: :object,
+                nullable: true,
+                description: "Structured error context from the agent",
+                additionalProperties: true,
+                properties: {
+                  category: { type: :string, nullable: true, description: "Error category (e.g. hash_format, device, network)" },
+                  retryable: { type: :boolean, nullable: true, description: "Whether the operation can be retried" },
+                  error_type: { type: :string, nullable: true, description: "Machine-readable error type slug" },
+                  terminal: { type: :boolean, nullable: true, description: "Whether the error is definitively unrecoverable" },
+                  affected_count: { type: :integer, nullable: true, description: "Number of hashes affected by the error" },
+                  total_count: { type: :integer, nullable: true, description: "Total number of hashes in the hash list" }
+                }
+              }
             },
             required: %i[error_date]
           },

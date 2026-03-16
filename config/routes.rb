@@ -310,6 +310,7 @@ Rails.application.routes.draw do
     resources :attacks, only: %i[ create new edit show update destroy ]
     post "toggle_paused"
     member do
+      post :clear_quarantine
       get :eta_summary
       get :recent_cracks
       get :error_log

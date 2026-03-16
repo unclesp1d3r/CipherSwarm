@@ -13,6 +13,8 @@
 #  description                                    :text
 #  name                                           :string           not null
 #  priority(-1: Deferred, 0: Normal, 2: High)     :integer          default("normal"), not null, indexed, indexed => [project_id]
+#  quarantine_reason                              :text
+#  quarantined                                    :boolean          default(FALSE), not null, indexed
 #  created_at                                     :datetime         not null
 #  updated_at                                     :datetime         not null
 #  creator_id(The user who created this campaign) :bigint           indexed
@@ -27,6 +29,7 @@
 #  index_campaigns_on_priority                 (priority)
 #  index_campaigns_on_project_id               (project_id)
 #  index_campaigns_on_project_id_and_priority  (project_id,priority)
+#  index_campaigns_on_quarantined              (quarantined) WHERE (quarantined = true)
 #
 # Foreign Keys
 #
@@ -78,6 +81,28 @@ RSpec.describe Campaign do
       create(:dictionary_attack, campaign: campaign, state: "running")
       expect(described_class.active).to include(campaign)
     end
+
+    describe ".quarantined" do
+      it "returns only quarantined campaigns" do
+        quarantined = create(:campaign, quarantined: true, quarantine_reason: "Token length exception")
+        normal = create(:campaign)
+
+        result = described_class.quarantined
+        expect(result).to include(quarantined)
+        expect(result).not_to include(normal)
+      end
+    end
+
+    describe ".not_quarantined" do
+      it "returns only non-quarantined campaigns" do
+        quarantined = create(:campaign, quarantined: true, quarantine_reason: "Token length exception")
+        normal = create(:campaign)
+
+        result = described_class.not_quarantined
+        expect(result).to include(normal)
+        expect(result).not_to include(quarantined)
+      end
+    end
   end
 
   describe "instance methods" do
@@ -87,6 +112,57 @@ RSpec.describe Campaign do
     let(:campaign) { create(:campaign) }
     let(:attack) { create(:dictionary_attack, campaign: campaign) }
     let(:task) { create(:task, attack: attack) }
+
+    describe "#quarantine!" do
+      it "sets quarantined flag and reason" do
+        campaign.quarantine!("Token length exception")
+        campaign.reload
+
+        expect(campaign.quarantined).to be true
+        expect(campaign.quarantine_reason).to eq("Token length exception")
+      end
+
+      it "raises ActiveRecord::RecordInvalid on validation failure" do
+        campaign.name = nil
+        expect { campaign.quarantine!("Some reason") }.to raise_error(ActiveRecord::RecordInvalid)
+      end
+    end
+
+    describe "#clear_quarantine!" do
+      it "resets quarantined flag and reason" do
+        campaign.update!(quarantined: true, quarantine_reason: "No hashes loaded")
+        campaign.clear_quarantine!
+        campaign.reload
+
+        expect(campaign.quarantined).to be false
+        expect(campaign.quarantine_reason).to be_nil
+      end
+
+      it "raises ActiveRecord::RecordInvalid on validation failure" do
+        campaign.update!(quarantined: true, quarantine_reason: "Error")
+        campaign.name = nil
+        expect { campaign.clear_quarantine! }.to raise_error(ActiveRecord::RecordInvalid)
+      end
+    end
+
+    describe "#quarantined?" do
+      it "returns true when the campaign is quarantined" do
+        campaign.update!(quarantined: true, quarantine_reason: "Token length exception")
+        expect(campaign.quarantined?).to be true
+      end
+
+      it "returns false when the campaign is not quarantined" do
+        expect(campaign.quarantined?).to be false
+      end
+
+      it "reflects persisted state after quarantine! and clear_quarantine!" do
+        campaign.quarantine!("Error")
+        expect(campaign.quarantined?).to be true
+
+        campaign.clear_quarantine!
+        expect(campaign.quarantined?).to be false
+      end
+    end
 
     describe "#paused?" do
       it "returns true if all attacks are paused" do

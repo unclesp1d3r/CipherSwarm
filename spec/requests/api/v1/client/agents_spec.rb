@@ -1100,6 +1100,111 @@ RSpec.describe "api/v1/client/agents" do
     end
   end
 
+  describe "submit_error quarantine behaviour" do
+    let(:agent) { create(:agent) }
+    let(:headers) { { "Authorization" => "Bearer #{agent.token}", "Content-Type" => "application/json" } }
+
+    context "when a fatal hash_format error is submitted with a task" do
+      let(:task) { create(:task, agent: agent) }
+      let(:campaign) { task.attack.campaign }
+
+      it "quarantines the campaign" do
+        post "/api/v1/client/agents/#{agent.id}/submit_error",
+             headers: headers,
+             params: {
+               message: "Token length exception",
+               severity: "fatal",
+               task_id: task.id,
+               metadata: {
+                 error_date: Time.zone.now,
+                 other: {
+                   category: "hash_format",
+                   retryable: false,
+                   error_type: "token_length_exception"
+                 }
+               }
+             }.to_json
+
+        expect(response).to have_http_status(:no_content)
+        expect(campaign.reload).to be_quarantined
+        expect(campaign.quarantine_reason).to eq("Token length exception")
+      end
+    end
+
+    context "when a terminal error is submitted with a task" do
+      let(:task) { create(:task, agent: agent) }
+      let(:campaign) { task.attack.campaign }
+
+      it "quarantines the campaign" do
+        post "/api/v1/client/agents/#{agent.id}/submit_error",
+             headers: headers,
+             params: {
+               message: "No hashes loaded",
+               severity: "fatal",
+               task_id: task.id,
+               metadata: {
+                 error_date: Time.zone.now,
+                 other: {
+                   category: "hash_format",
+                   retryable: false,
+                   terminal: true
+                 }
+               }
+             }.to_json
+
+        expect(response).to have_http_status(:no_content)
+        expect(campaign.reload).to be_quarantined
+      end
+    end
+
+    context "when a retryable error is submitted" do
+      let(:task) { create(:task, agent: agent) }
+      let(:campaign) { task.attack.campaign }
+
+      it "does not quarantine the campaign" do
+        post "/api/v1/client/agents/#{agent.id}/submit_error",
+             headers: headers,
+             params: {
+               message: "Temporary GPU error",
+               severity: "warning",
+               task_id: task.id,
+               metadata: {
+                 error_date: Time.zone.now,
+                 other: {
+                   category: "device",
+                   retryable: true,
+                   error_type: "gpu_timeout"
+                 }
+               }
+             }.to_json
+
+        expect(response).to have_http_status(:no_content)
+        expect(campaign.reload).not_to be_quarantined
+      end
+    end
+
+    context "when a fatal error has no task_id" do
+      it "returns 204 without quarantining" do
+        post "/api/v1/client/agents/#{agent.id}/submit_error",
+             headers: headers,
+             params: {
+               message: "Token length exception",
+               severity: "fatal",
+               metadata: {
+                 error_date: Time.zone.now,
+                 other: {
+                   category: "hash_format",
+                   retryable: false,
+                   error_type: "token_length_exception"
+                 }
+               }
+             }.to_json
+
+        expect(response).to have_http_status(:no_content)
+      end
+    end
+  end
+
   describe "submit_error metadata size validation" do
     let(:agent) { create(:agent) }
     let(:headers) { { "Authorization" => "Bearer #{agent.token}", "Content-Type" => "application/json" } }
