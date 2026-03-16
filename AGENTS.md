@@ -445,6 +445,7 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 - View components: app/components/
 - Custom validations: app/validators/
 - Background jobs: app/jobs/
+- Custom errors: app/errors/ — operational/infrastructure errors (e.g., `InsufficientTempStorageError`). Domain validation errors belong with their models, not here.
 
 **Documentation Indexes:**
 
