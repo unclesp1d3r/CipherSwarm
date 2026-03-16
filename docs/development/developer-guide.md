@@ -770,6 +770,7 @@ end
 ```
 
 **Agent broadcast methods** follow a consistent pattern for targeted partial updates:
+
 - `broadcast_index_state` - Updates agent state badge (triggered by state changes)
 - `broadcast_index_errors` - Updates error count (triggered when AgentError created)
 - `broadcast_index_last_seen` - Updates last seen timestamp (triggered by last_seen_at changes)
@@ -874,19 +875,20 @@ This improves performance for orphaned task recovery queries that only target pa
 
 ### Fragment Cache Best Practices
 
-Use proper cache keys to ensure fragment cache invalidation when records change:
+**Never cache partials or components that contain authorization checks (`can?`) or CSRF tokens (`form_authenticity_token`).** Cached output is shared across all users, which can leak admin-only UI or serve invalid CSRF tokens.
 
 ```ruby
-# Good - cache: agent uses cache_key_with_version which includes updated_at
-<%= render AgentStatusCardComponent.new(agent: agent), cache: agent %>
+# Safe - no caching for auth-dependent components
+<%= render AgentStatusCardComponent.new(agent: agent) %>
 
-# Bad - cache: true creates a cache key that doesn't invalidate when the agent changes
-<%= render AgentStatusCardComponent.new(agent: agent), cache: true %>
+# Safe - cache: record for components with NO authorization/session content
+<%= render StaticInfoComponent.new(record: record), cache: record %>
+
+# Unsafe - caches can?/CSRF output, leaks across users
+<%= render AgentStatusCardComponent.new(agent: agent), cache: agent %>
 ```
 
-**Why this matters**: `cache: agent` generates a cache key that incorporates the model's `updated_at` timestamp (via `cache_key_with_version`). When agent state, error count, or other fields change and `updated_at` updates, the cache key changes and the cached fragment is automatically invalidated. Using `cache: true` creates a static key that never invalidates, causing stale data to be served.
-
-See PR #737 for the fix that prevented stale agent cards from being served after state/error changes.
+For collection partials, `cache: true` uses each record's `cache_key_with_version` — this is safe only when the partial contains no user-dependent content. When in doubt, omit caching; Turbo Stream broadcasts handle real-time freshness.
 
 ---
 
