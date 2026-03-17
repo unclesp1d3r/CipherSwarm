@@ -282,7 +282,17 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 - Active Storage computes an MD5 checksum of the entire file client-side (SparkMD5, 2 MB chunks via `FileReader`) before the upload starts
 - For files >10-20 GB, this silently stalls in the browser — no CPU spike, no error, no network requests, just a frozen submit button
 - The `POST /rails/active_storage/direct_uploads` request (which gets the signed upload URL) only fires AFTER the hash completes — if it never fires, the hash is stuck
-- No upload progress UI exists (#746); no workaround for the stall (#747)
+- Workaround (#747): `direct_upload_override.js` patches `FileChecksum.create` (imported from `@rails/activestorage/src/file_checksum` — NOT the package root, which doesn't export it) to skip hashing for files over a threshold — `blobs.checksum` is NULL and `metadata.checksum_skipped` is `true`
+- Server-side support: custom `ActiveStorage::DirectUploadsController` accepts nil checksum and sets `checksum_skipped` metadata; initializer relaxes Blob validation and patches S3 service to omit nil `Content-MD5` header
+- **Disk service**: skips `ensure_integrity_of` when checksum is nil — no digest verification for large files
+- **S3-compatible services**: `Content-MD5` header is omitted from the direct upload PUT — S3 will not verify integrity on receipt
+- **Threshold scoping**: per-file via WeakMap (not a mutable global) — each Stimulus controller instance can set its own threshold without interfering with others on the same page
+- No upload progress UI exists (#746)
+
+**Active Storage Direct Upload JS Events:**
+
+- **`direct-upload:end` fires even after `direct-upload:error` for the same upload ID** — Stimulus controllers must track errored upload IDs (e.g., via a `Set`) and skip `handleEnd` for those IDs, otherwise the error message is overwritten with "Processing…"
+- **Attach Stimulus controllers to the `<form>`, not a wrapper `<div>`** — Active Storage events bubble from the file input; use `simple_form_for(..., html: { data: { controller: "direct-upload" } })` so the controller's element is the form itself
 
 **Jobs & Callbacks:**
 

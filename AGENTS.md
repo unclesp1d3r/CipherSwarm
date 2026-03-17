@@ -357,6 +357,7 @@ Vitest for JS unit tests:
 4. Run: `just test-js` or `npx vitest run`
 
 - Pagy JS is distributed via the gem's `javascripts/` directory, not npm — `config/initializers/pagy.rb` adds it to asset paths and esbuild resolves via `NODE_PATH`
+- Run `bin/rails stimulus:manifest:update` after adding/removing Stimulus controllers — the manifest can drift if controllers are added manually
 
 > **Vitest mock patterns** — see [GOTCHAS.md § API & rswag](GOTCHAS.md#api--rswag)
 
@@ -506,6 +507,19 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 - CSS: `tom-select/dist/css/tom-select.bootstrap5` imported in application.bootstrap.scss
 - System test helper: `BasePage#tom_select_fill_and_choose(select_id, text)` — requires `dropdown_input` plugin
 - SimpleForm: use `label_method: :to_s` explicitly rather than adding `to_label` to models
+
+### Direct Upload Progress (Active Storage)
+
+- Stimulus controller: `app/javascript/controllers/direct_upload_controller.js`
+- Attached to `<form>` element (not a wrapper div) — Active Storage events bubble from file input to form
+- Shows Bootstrap progress bar during upload, disables submit, displays status/error text
+- Used on: `hash_lists/_form`, `mask_lists/_form`, `shared/attack_resource/_form`
+- Checksum override: `app/javascript/utils/direct_upload_override.js` patches `FileChecksum.create` (imported from internal path `@rails/activestorage/src/file_checksum`, NOT the package root which doesn't export it) to skip client-side MD5 for files exceeding the threshold (default 1 GB) — `blobs.checksum` is NULL for skipped files
+- Override threshold is scoped per-file via a WeakMap (not a mutable global), set from the Stimulus controller's `checksumThresholdValue` during `direct-upload:initialize`
+- Server-side nil-checksum support: `config/initializers/active_storage_large_upload.rb` relaxes Blob checksum validation (allows nil when `metadata.checksum_skipped == true`), and patches S3 service to omit nil `Content-MD5` header
+- Custom `app/controllers/active_storage/direct_uploads_controller.rb` overrides the base controller to accept nil checksum and set `checksum_skipped` metadata
+- Override threshold tunable per-form via `data-direct-upload-checksum-threshold-value` attribute (bytes)
+- `app/javascript/utils/` is the directory for shared JS utility modules (not controllers)
 
 ### Common Patterns
 
