@@ -56,25 +56,26 @@ RSpec.describe ApplicationJob do
     end
   end
 
-  describe "#log_temp_storage_discard" do
+  describe "TEMP_STORAGE_DISCARD_HANDLER" do
+    let(:handler) { described_class::TEMP_STORAGE_DISCARD_HANDLER }
     let(:job) { described_class.new }
     let(:error) { InsufficientTempStorageError.new("[TempStorage] Not enough space") }
 
     it "logs with TempStorage prefix and discarded message" do
       allow(Rails.logger).to receive(:error)
-      job.log_temp_storage_discard(error)
+      handler.call(job, error)
       expect(Rails.logger).to have_received(:error).with(/\[TempStorage\].*discarded after retries/)
     end
 
     it "includes filtered arguments in the log" do
       allow(Rails.logger).to receive(:error)
-      job.log_temp_storage_discard(error)
+      handler.call(job, error)
       expect(Rails.logger).to have_received(:error).with(/Arguments:/)
     end
 
     it "includes the error message" do
       allow(Rails.logger).to receive(:error)
-      job.log_temp_storage_discard(error)
+      handler.call(job, error)
       expect(Rails.logger).to have_received(:error).with(/Not enough space/)
     end
 
@@ -85,7 +86,7 @@ RSpec.describe ApplicationJob do
         raise StandardError, "logging broken" if call_count == 1
       end
 
-      expect { job.log_temp_storage_discard(error) }.not_to raise_error
+      expect { handler.call(job, error) }.not_to raise_error
       expect(call_count).to eq(2) # first call raises, fallback call succeeds
     end
   end
