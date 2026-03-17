@@ -49,7 +49,7 @@ class CountFileLinesJob < ApplicationJob
     klass = type.constantize
     record = klass.find_by(id: id)
     return if record.nil?
-    return if record.processed? || record.file.nil?
+    return if record.processed? || !record.file.attached?
 
     ensure_temp_storage_available!(record.file)
 

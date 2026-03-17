@@ -60,7 +60,7 @@ The right tmpfs size depends on your deployment scale and the size of files your
 | Medium production         | 4                | 10          | 1 GB                   | 512 MB                 |
 | Large production          | 8+               | 10          | 2 GB+                  | 1-2 GB                 |
 
-**Key constraint:** tmpfs memory is subtracted from the container's memory limit (`deploy.resources.limits.memory`). With the default 1 GB memory limit and 512 MB tmpfs, the Ruby process has ~512 MB for heap, stack, and gem memory. If you increase tmpfs, increase the memory limit proportionally.
+**Key constraint:** tmpfs memory is subtracted from the container's memory limit (`deploy.resources.limits.memory`). Both tmpfs mounts count against the limit: the default `/tmp` (512 MB) plus `/rails/tmp` (256 MB) consume 768 MB combined. With the default 2 GB worker memory limit, this leaves ~1.25 GB for the Ruby process (heap, stack, and gem memory). If you increase either tmpfs size, increase the memory limit proportionally to avoid OOM kills.
 
 ### Minimum size requirement
 
