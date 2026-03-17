@@ -33,13 +33,11 @@ import { FileChecksum } from "@rails/activestorage/src/file_checksum";
  * - S3-compatible services: Content-MD5 header is omitted — S3 will not
  *   verify the upload digest, but the PUT will succeed.
  * - In both cases, corruption during transfer will NOT be detected.
- * - If integrity verification is required for large files, implement a
- *   background job that computes checksums after upload completes.
+ * - VerifyChecksumJob computes checksums post-upload for large files.
  */
 
 const fileThresholds = new WeakMap();
 let applied = false;
-const originalCreate = FileChecksum.create.bind(FileChecksum);
 
 /**
  * Registers a checksum threshold for a specific file. Files larger than

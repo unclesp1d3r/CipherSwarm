@@ -15,12 +15,15 @@
 class VerifyChecksumJob < ApplicationJob
   include TempStorageValidation
 
+  ALLOWED_TYPES = %w[WordList RuleList MaskList].freeze
+
   queue_as :default
   discard_on ActiveRecord::RecordNotFound
 
   def perform(resource_id, resource_type)
-    resource_class = resource_type.safe_constantize
-    raise ArgumentError, "Invalid resource type: #{resource_type}" unless resource_class
+    raise ArgumentError, "Invalid resource type: #{resource_type}" unless ALLOWED_TYPES.include?(resource_type)
+
+    resource_class = resource_type.constantize
 
     resource = resource_class.find(resource_id)
     blob = resource.file.blob
@@ -37,7 +40,7 @@ class VerifyChecksumJob < ApplicationJob
     elsif blob.checksum == computed_checksum
       mark_verified(resource)
     else
-      log_mismatch(resource_type, resource_id, blob.checksum, computed_checksum)
+      log_mismatch(resource, expected: blob.checksum, computed: computed_checksum)
     end
   end
 
@@ -60,7 +63,7 @@ class VerifyChecksumJob < ApplicationJob
   def backfill_checksum(blob, computed_checksum, resource)
     blob.update!(
       checksum: computed_checksum,
-      metadata: blob.metadata&.except("checksum_skipped") || {}
+      metadata: (blob.metadata&.except("checksum_skipped") || {})
     )
     resource.update!(checksum_verified: true)
     Rails.logger.info { "[ChecksumVerify] Computed and saved checksum for #{resource.class.name}##{resource.id}" }
@@ -71,9 +74,10 @@ class VerifyChecksumJob < ApplicationJob
     Rails.logger.info { "[ChecksumVerify] Checksum verified for #{resource.class.name}##{resource.id}" }
   end
 
-  def log_mismatch(resource_type, resource_id, expected, computed)
+  def log_mismatch(resource, expected:, computed:)
+    resource.update!(checksum_verified: false)
     Rails.logger.warn do
-      "[ChecksumMismatch] #{resource_type}##{resource_id} — " \
+      "[ChecksumMismatch] #{resource.class.name}##{resource.id} — " \
         "expected #{expected}, computed #{computed}"
     end
   end

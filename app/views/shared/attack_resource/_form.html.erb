@@ -15,16 +15,7 @@
     <%= f.input :description %>
     <%= f.input :file,
                 input_html: { direct_upload: true, data: { direct_upload_target: "input" } } %>
-    <div class="progress mt-2 d-none" data-direct-upload-target="progress">
-      <div class="progress-bar progress-bar-striped progress-bar-animated"
-           data-direct-upload-target="progressBar"
-           role="progressbar"
-           style="width: 0%"
-           aria-valuenow="0"
-           aria-valuemin="0"
-           aria-valuemax="100"></div>
-    </div>
-    <p class="form-text mt-1" data-direct-upload-target="status"></p>
+    <%= render "shared/direct_upload_progress" %>
     <%= f.association :projects, as: :check_boxes, include_blank: false,
                                  collection: projects,
                                  hint: "Select the project(s) to associate this list with. If none are selected, the list will be available to all projects." %>
