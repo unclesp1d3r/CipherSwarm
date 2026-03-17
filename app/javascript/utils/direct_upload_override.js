@@ -8,7 +8,7 @@
 // We import from the internal source path. This is coupled to the package's
 // internal file structure and may break on major activestorage upgrades.
 // Pinned to @rails/activestorage 7.x / 8.x layout — verify after upgrades.
-import { FileChecksum } from "@rails/activestorage/src/file_checksum"
+import { FileChecksum } from "@rails/activestorage/src/file_checksum";
 
 /*
  * Patches FileChecksum.create to skip the client-side MD5 hash for files
@@ -37,9 +37,9 @@ import { FileChecksum } from "@rails/activestorage/src/file_checksum"
  *   background job that computes checksums after upload completes.
  */
 
-const fileThresholds = new WeakMap()
-let applied = false
-const originalCreate = FileChecksum.create.bind(FileChecksum)
+const fileThresholds = new WeakMap();
+let applied = false;
+const originalCreate = FileChecksum.create.bind(FileChecksum);
 
 /**
  * Registers a checksum threshold for a specific file. Files larger than
@@ -49,7 +49,7 @@ const originalCreate = FileChecksum.create.bind(FileChecksum)
  * @param {number} thresholdBytes - Size threshold in bytes.
  */
 export function setFileChecksumThreshold(file, thresholdBytes) {
-  fileThresholds.set(file, thresholdBytes)
+  fileThresholds.set(file, thresholdBytes);
 }
 
 /**
@@ -60,15 +60,36 @@ export function setFileChecksumThreshold(file, thresholdBytes) {
  * thresholds on the same page work correctly.
  */
 export function applyChecksumOverride() {
-  if (applied) return
-  applied = true
+  if (applied) return;
+  applied = true;
 
   FileChecksum.create = function (file, callback) {
-    const threshold = fileThresholds.get(file)
+    const threshold = fileThresholds.get(file);
     if (threshold != null && file.size > threshold) {
-      callback(null, null)
-      return
+      callback(null, null);
+      return;
     }
-    originalCreate(file, callback)
-  }
+
+    // For files under threshold, wrap to emit hashing progress events.
+    // We instantiate FileChecksum directly and override readNextChunk on
+    // the instance to dispatch progress after each chunk is queued.
+    const instance = new FileChecksum(file);
+    const originalReadNextChunk = instance.readNextChunk.bind(instance);
+    const totalChunks = instance.chunkCount;
+
+    instance.readNextChunk = function () {
+      const result = originalReadNextChunk();
+      if (totalChunks > 0) {
+        const progress = Math.min((instance.chunkIndex / totalChunks) * 100, 100);
+        document.dispatchEvent(
+          new CustomEvent("direct-upload:checksum-progress", {
+            detail: { file, progress },
+          }),
+        );
+      }
+      return result;
+    };
+
+    instance.create(callback);
+  };
 }
