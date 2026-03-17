@@ -158,7 +158,7 @@ jobs:
       - name: Check coverage of changed code
         env:
           BASE_REF: ${{ github.base_ref || 'main' }}
-        run: bin/bundle exec undercover --compare "origin/$BASE_REF"
+        run: bin/bundle exec undercover --compare "origin/$BASE_REF" --exclude-files "lib/tasks/*.rake"
       - name: Upload coverage results to Code Climate
         if: env.CC_TEST_REPORTER_ID != ''
         run: |

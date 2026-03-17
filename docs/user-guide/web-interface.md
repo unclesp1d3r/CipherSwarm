@@ -301,7 +301,12 @@ File uploads display a progress bar with percentage indicator:
 
 #### Background Verification
 
-After upload completes, a background job (`VerifyChecksumJob`) computes a server-side checksum for integrity verification. Resources show as `checksum_verified: false` until this completes.
+After upload completes, a background job (`VerifyChecksumJob`) computes a server-side checksum for integrity verification:
+
+- Resources show `checksum_verified: false` until verification completes
+- On success, `checksum_verified` is set to `true` and the checksum is stored
+- On failure (checksum mismatch), the resource remains `checksum_verified: false` and an error is logged — the resource can still be used but re-uploading is recommended
+- Verification status is visible in the resource detail view
 
 #### Error Handling
 
