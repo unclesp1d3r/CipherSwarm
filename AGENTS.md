@@ -657,11 +657,13 @@ TEST_DATABASE_URL=postgres://root:password@localhost:5432/cipher_swarm_test bund
 **Docker Temp Storage and Uploads:**
 
 - Both `docker-compose.yml` and `docker-compose-production.yml` mount `tmpfs` at `/tmp` and `/rails/tmp` on web and sidekiq services — these prevent overlay filesystem exhaustion
+- tmpfs sizes are configurable via `TMPFS_TMP_SIZE` (default: `1g` dev, `512m` prod) and `TMPFS_RAILS_TMP_SIZE` (default: `256m`) environment variables
 - Active Storage `blob.open` downloads to `/tmp` (OS temp), not `/rails/tmp` (Rails app temp) — the Dockerfile does not set `TMPDIR`
 - `/rails/tmp` holds Bootsnap cache (~27 MB) — small but accumulates on constrained overlays over time
 - Nginx has `client_max_body_size 0` (unlimited) and `proxy_request_buffering off` for Active Storage direct uploads
 - Thruster has been removed — Puma serves directly on port 80, nginx handles HTTP/2/compression/caching
-- `TempStorageValidation` concern on all blob-downloading jobs checks available `/tmp` space before downloading
+- `TempStorageValidation` concern on `ProcessHashListJob`, `CountFileLinesJob`, `CalculateMaskComplexityJob` checks available `/tmp` space before downloading
+- `InsufficientTempStorageError` retries 5 times with polynomial backoff, then discards with structured `[TempStorage]` log message
 - See `docs/deployment/docker-storage-and-tmp.md` for tmpfs sizing guidance
 - See GOTCHAS.md § Infrastructure for the full set of temp storage and upload gotchas
 
