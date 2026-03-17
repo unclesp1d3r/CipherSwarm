@@ -33,6 +33,7 @@ class VerifyChecksumJob < ApplicationJob
       return
     end
 
+    ensure_temp_storage_available!(resource.file)
     computed_checksum = compute_checksum(blob)
 
     if blob.checksum.nil? || blob.metadata&.dig("checksum_skipped")
@@ -61,11 +62,13 @@ class VerifyChecksumJob < ApplicationJob
   end
 
   def backfill_checksum(blob, computed_checksum, resource)
-    blob.update!(
-      checksum: computed_checksum,
-      metadata: (blob.metadata&.except("checksum_skipped") || {})
-    )
-    resource.update!(checksum_verified: true)
+    ActiveRecord::Base.transaction do
+      blob.update!(
+        checksum: computed_checksum,
+        metadata: (blob.metadata&.except("checksum_skipped") || {})
+      )
+      resource.update!(checksum_verified: true)
+    end
     Rails.logger.info { "[ChecksumVerify] Computed and saved checksum for #{resource.class.name}##{resource.id}" }
   end
 
@@ -76,9 +79,9 @@ class VerifyChecksumJob < ApplicationJob
 
   def log_mismatch(resource, expected:, computed:)
     resource.update!(checksum_verified: false)
-    Rails.logger.warn do
-      "[ChecksumMismatch] #{resource.class.name}##{resource.id} — " \
-        "expected #{expected}, computed #{computed}"
+    Rails.logger.error do
+      "[ChecksumMismatch] INTEGRITY FAILURE: #{resource.class.name}##{resource.id} — " \
+        "expected #{expected}, computed #{computed}. Re-upload recommended."
     end
   end
 end

@@ -521,9 +521,9 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 - Override threshold is scoped per-file via a WeakMap (not a mutable global), set from the Stimulus controller's `checksumThresholdValue` during `direct-upload:initialize`
 - Server-side nil-checksum support: `config/initializers/active_storage_large_upload.rb` relaxes Blob checksum validation (allows nil when `metadata.checksum_skipped == true`), and patches S3 service to omit nil `Content-MD5` header — uses targeted validator removal (NOT `clear_validators!`)
 - Custom `app/controllers/active_storage/direct_uploads_controller.rb` overrides the base controller to accept nil checksum and set `checksum_skipped` metadata
-- Deferred verification: `VerifyChecksumJob` computes server-side MD5 post-upload, backfills `blobs.checksum`, and sets `checksum_verified: true` on the attack resource — uses `blob.service.open(verify: false)` to skip the Downloader's integrity check
+- Deferred verification: `VerifyChecksumJob` computes server-side MD5 post-upload, backfills `blobs.checksum`, and sets `checksum_verified: true` on the attack resource — uses `blob.service.open(blob.key, ..., verify: false)` to skip the Downloader's integrity check
 - `checksum_verified` boolean column on `word_lists`, `rule_lists`, `mask_lists` (default `true`) — set to `false` on upload of large files, `true` after `VerifyChecksumJob` completes
-- Override threshold tunable per-form via `data-direct-upload-checksum-threshold-value` attribute (bytes)
+- Override threshold tunable per-form via `data-direct-upload-checksum-threshold-value` attribute (bytes); defaults to 1 GB if not specified
 - `app/javascript/utils/` is the directory for shared JS utility modules (not controllers)
 
 ### Common Patterns

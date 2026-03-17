@@ -57,7 +57,12 @@ Rails.application.config.to_prepare do
       # - Alternatives: custom S3 service subclass (more code, harder to maintain)
       # - Decision: patch headers_for_direct_upload to compact nil values
       # - Future: remove if ActiveStorage adds native nil-checksum support
-      alias_method :original_headers_for_direct_upload, :headers_for_direct_upload
+      # Guard against double-patching on code reload (to_prepare runs on every reload in dev).
+      # Without this, the second reload aliases the patched method as "original", causing
+      # infinite recursion → SystemStackError.
+      unless method_defined?(:original_headers_for_direct_upload)
+        alias_method :original_headers_for_direct_upload, :headers_for_direct_upload
+      end
 
       def headers_for_direct_upload(key, content_type:, checksum:, **options)
         headers = original_headers_for_direct_upload(key, content_type: content_type, checksum: checksum, **options)

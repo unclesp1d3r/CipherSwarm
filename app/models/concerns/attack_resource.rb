@@ -39,7 +39,7 @@ module AttackResource
     self.implicit_order_column = :created_at
 
     after_commit :update_line_count, if: :file_attached?
-    after_commit :verify_checksum_if_skipped, if: :file_attached?
+    after_commit :verify_checksum_if_skipped, if: -> { file_attached? && file.attachment&.saved_change_to_blob_id? }
 
     broadcasts_refreshes
 

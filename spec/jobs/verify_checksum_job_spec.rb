@@ -32,15 +32,15 @@ RSpec.describe VerifyChecksumJob do
     end
 
     context "when computed checksum does not match stored checksum" do
-      it "logs warning and leaves checksum_verified false" do
+      it "logs error and sets checksum_verified false" do
         word_list.file.blob.update_column(:checksum, "invalid_checksum") # rubocop:disable Rails/SkipsModelValidations -- intentional: set invalid checksum without validation
-        word_list.update!(checksum_verified: false)
+        word_list.update!(checksum_verified: true)
 
-        allow(Rails.logger).to receive(:warn)
+        allow(Rails.logger).to receive(:error)
         described_class.perform_now(word_list.id, "WordList")
 
         expect(word_list.reload.checksum_verified).to be false
-        expect(Rails.logger).to have_received(:warn)
+        expect(Rails.logger).to have_received(:error)
       end
     end
 
