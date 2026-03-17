@@ -196,5 +196,10 @@ repomix-output.xml
 .playwright-mcp/
 .devcontainer/.devpod-internal/
 
-# Implementation plans — working documents, not committed
-docs/plans/
+# AI assistant artifacts
+.claude.local.md
+.full-review
+docs/plans
+.cursor/commands
+.github/prompts
+.kiro/specs/*
