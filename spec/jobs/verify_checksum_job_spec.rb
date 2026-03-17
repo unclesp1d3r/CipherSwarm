@@ -55,5 +55,11 @@ RSpec.describe VerifyChecksumJob do
         expect { described_class.perform_now(1, "InvalidModel") }.to raise_error(ArgumentError, /Invalid resource type/)
       end
     end
+
+    context "with a valid but disallowed resource type" do
+      it "raises ArgumentError" do
+        expect { described_class.perform_now(1, "User") }.to raise_error(ArgumentError, /Invalid resource type/)
+      end
+    end
   end
 end

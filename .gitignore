@@ -189,14 +189,13 @@ modules.xml
 /config/*.local.yml
 /config/credentials/local.*
 
+# AI assistant artifacts
 .claude.local.md
 .claude/settings.local.json
 .claude/skills/repomix-reference-cipher-swarm/
 repomix-output.xml
 .playwright-mcp/
 .devcontainer/.devpod-internal/
-
-# AI assistant artifacts
 .claude.local.md
 .full-review
 docs/plans

@@ -12,8 +12,8 @@
 # - S3-compatible services: the Content-MD5 header is omitted from the direct
 #   upload PUT, so S3 will not verify integrity on receipt.
 # - In both cases, silent corruption during network transfer will NOT be detected
-#   for large files. If this is unacceptable, add a background job that computes
-#   checksums post-upload and flags mismatches.
+#   for large files. VerifyChecksumJob computes checksums post-upload and flags
+#   mismatches on attack resources (WordList, RuleList, MaskList).
 
 Rails.application.config.to_prepare do
   # Allow nil checksum on blobs created for direct upload of large files.
@@ -33,12 +33,11 @@ Rails.application.config.to_prepare do
     # Blob (including service_name presence), not just the checksum one.
     # Instead, target only the checksum validator for removal.
     _validators.delete(:checksum)
-    _validate_callbacks.each do |callback|
-      next unless callback.filter.is_a?(ActiveModel::Validations::PresenceValidator)
-      if callback.filter.attributes == [:checksum]
-        _validate_callbacks.delete(callback)
-      end
+    checksum_callbacks = _validate_callbacks.select do |cb|
+      cb.filter.is_a?(ActiveModel::Validations::PresenceValidator) &&
+        cb.filter.attributes == [:checksum]
     end
+    checksum_callbacks.each { |cb| _validate_callbacks.delete(cb) }
 
     validates :checksum, presence: true, unless: -> { composed || checksum_skipped? }
 
