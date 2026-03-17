@@ -546,7 +546,7 @@ curl -s http://localhost:3000/docs/README.md
      volumes:
        - sidekiq-tmp:/rails/tmp
        - storage:/rails/storage
-   
+
    volumes:
      sidekiq-tmp:
    ```
