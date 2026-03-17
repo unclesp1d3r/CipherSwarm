@@ -216,6 +216,9 @@ app/
 ├── dashboards/      # Administrate dashboards
 ├── helpers/         # View helpers
 ├── inputs/          # SimpleForm inputs
+├── javascript/
+│   ├── controllers/ # Stimulus controllers
+│   └── utils/       # JavaScript utility modules
 ├── jobs/            # Sidekiq background jobs
 ├── mailers/         # Email templates
 ├── models/
@@ -224,14 +227,18 @@ app/
 ├── validators/      # Custom validators
 └── views/
     ├── components/  # ViewComponent templates
-    └── layouts/     # Layout templates
+    ├── layouts/     # Layout templates
+    └── shared/      # Shared partials
 
 config/
+├── initializers/    # Rails initializers (Active Storage patches, etc.)
 ├── routes/          # Route partials (admin, client_api, devise, errors)
 └── locales/         # I18n translations
 
 spec/
 ├── factories/       # FactoryBot factories
+├── javascript/      # Vitest tests (controllers, utils)
+├── jobs/            # Job specs
 ├── models/          # Model specs
 ├── requests/        # API request specs (RSwag)
 ├── support/
@@ -396,6 +403,13 @@ module SafeBroadcasting
 end
 ```
 
+**AttackResource Concern**: Shared behavior for file-based attack resources (WordList, RuleList, MaskList):
+
+- `checksum_verified` boolean attribute tracks server-side checksum verification status
+- Default `true` for normal uploads; set to `false` when client-side checksum is skipped (large files)
+- `verify_checksum_if_skipped` callback enqueues `VerifyChecksumJob` for files with `checksum_skipped` metadata
+- Applied to WordList, MaskList, and RuleList models
+
 ### Controller Patterns
 
 Keep controllers thin - authorization, params, response only:
@@ -436,6 +450,41 @@ class CampaignsController < ApplicationController
 end
 ```
 
+### Direct Upload Progress Pattern
+
+CipherSwarm implements a custom progress UI for Active Storage direct uploads with two-phase feedback:
+
+**Two-Phase Progress**:
+
+1. **"Preparing... X%"** — Client-side MD5 checksum calculation (skipped for files >1 GB)
+2. **"Uploading... X%"** — File transfer to storage backend
+
+**Implementation**:
+
+- **Stimulus Controller** (`app/javascript/controllers/direct_upload_controller.js`): Connects via `data-controller="direct-upload"`, manages progress bar visibility, updates progress text/percentage, handles errors by re-enabling submit button with inline error messages
+- **JavaScript Utility** (`app/javascript/utils/direct_upload_override.js`): Patches Active Storage's `FileChecksum.create` to skip client-side MD5 for files >1 GB (configurable via `checksumThreshold` data attribute), preventing browser stalls
+- **Shared Partial** (`app/views/shared/_direct_upload_progress.html.erb`): Bootstrap progress bar component with Stimulus targets, included in upload forms
+
+**Large File Handling**:
+
+- Files >1 GB skip client-side MD5 checksum to prevent browser stalls (GitHub issue #747)
+- `VerifyChecksumJob` performs deferred server-side checksum verification after upload completes
+- `checksum_verified` boolean column tracks verification status on WordList, RuleList, MaskList models
+
+**Replicating This Pattern**:
+
+When creating new upload forms:
+
+```erb
+<%= form_with model: @resource, data: { controller: "direct-upload" } do |f| %>
+  <%= f.file_field :file, direct_upload: true, data: { direct_upload_target: "input" } %>
+  <%= render "shared/direct_upload_progress" %>
+  <%= f.submit "Upload", data: { direct_upload_target: "submit" } %>
+<% end %>
+```
+
+The controller automatically handles progress and error display. See AGENTS.md for comprehensive documentation.
+
 ### Logging Conventions
 
 Use structured logging with consistent prefixes:
@@ -466,6 +515,8 @@ Rails.logger.info("Task preempted")
 - `[JobDiscarded]` - Background job failures
 - `[TaskPreemption]` - Task preemption events
 - `[TaskRebalance]` - Campaign priority rebalancing events
+- `[ChecksumVerify]` - Server-side checksum verification
+- `[ChecksumMismatch]` - File integrity failures
 
 ---
 
@@ -671,6 +722,18 @@ class ProcessHashListJob < ApplicationJob
   end
 end
 ```
+
+### File Upload Verification Jobs
+
+**VerifyChecksumJob**: Performs deferred server-side MD5 checksum verification for large files where client-side checksum was skipped (files >1 GB):
+
+- Runs after upload completes to maintain file integrity
+- Computes checksum via `blob.service.open(verify: false)` to avoid IntegrityError on nil checksum
+- Updates `checksum_verified` column on attack resources (WordList, RuleList, MaskList)
+- Backfills `blobs.checksum` when missing or when `checksum_skipped` metadata is present
+- Logs mismatches as `[ChecksumMismatch]` for investigation
+
+Applied to: WordList, MaskList, RuleList models via `AttackResource` concern's `verify_checksum_if_skipped` after_commit callback.
 
 ### Queue Priorities
 
