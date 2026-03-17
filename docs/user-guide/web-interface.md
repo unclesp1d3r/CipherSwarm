@@ -286,9 +286,67 @@ Simplified brute force interface:
 - **Export Options**: TSV and CSV export formats
 - **Status Tracking**: Cracked vs uncracked hash counts
 
+### Upload Progress Feedback
+
+When uploading files through the web interface, a progress bar provides visual feedback during the upload process:
+
+#### Progress Phases
+
+File uploads display a two-phase progress bar with percentage indicators:
+
+1. **"Preparing... X%"**
+
+   - Displays while the browser calculates the file's MD5 checksum for integrity verification
+   - Shown for files under 1 GB
+   - Progress updates in real-time as chunks are hashed
+
+2. **"Uploading... X%"**
+
+   - Displays during the actual file transfer to the server
+   - Shows upload progress based on bytes transferred
+   - Progress bar updates smoothly with striped animation
+
+#### Large File Handling
+
+For files larger than 1 GB:
+
+- The "Preparing" phase is automatically skipped to prevent browser performance issues
+- Files proceed directly to the "Uploading" phase
+- The server performs checksum verification in the background after the upload completes
+- A background job (`VerifyChecksumJob`) computes the checksum post-upload and updates the resource
+
+#### Error Handling
+
+If an upload error occurs:
+
+- The progress bar is hidden
+- An inline error message appears above the submit button
+- The submit button is re-enabled to allow retry
+- Error messages describe the specific failure
+
+#### Affected Upload Forms
+
+This progress feedback appears when uploading:
+
+- **Hash Lists**: File uploads in hash list creation/editing
+- **Mask Lists**: Mask pattern file uploads
+- **Attack Resources**: Word lists and rule lists
+
+```html
+<div class="progress mt-2 d-none" data-direct-upload-target="progress">
+ <div class="progress-bar progress-bar-striped progress-bar-animated"
+      role="progressbar"
+      style="width: 0%"
+      aria-valuenow="0"
+      aria-valuemin="0"
+      aria-valuemax="100"></div>
+</div>
+<p class="form-text mt-1" data-direct-upload-target="status"></p>
+```
+
 ### Crackable Uploads
 
-New streamlined workflow for non-technical users:
+Streamlined workflow for non-technical users:
 
 #### Supported Formats
 
@@ -627,6 +685,7 @@ Accessibility features are verified through:
    - Check upload status endpoint
    - Review error logs for failed lines
    - Verify file format compatibility
+   - If the progress bar appears stuck during the "Preparing" phase for very large files, this may indicate a browser timeout. Contact your administrator about the large file threshold setting (default 1 GB)
 
 4. **Agent Not Appearing**
 
