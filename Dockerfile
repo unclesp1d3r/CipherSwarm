@@ -86,6 +86,8 @@ ENV RUBY_YJIT_ENABLE="1"
 # Entrypoint prepares the database.
 ENTRYPOINT ["/rails/bin/docker-entrypoint"]
 
-# Start server via Thruster by default, this can be overwritten at runtime
+# Start Puma directly on port 80. Nginx handles HTTP/2, compression,
+# and asset caching in production deployments.
 EXPOSE 80
-CMD ["./bin/thrust", "./bin/rails", "server"]
+ENV PORT=80
+CMD ["./bin/rails", "server", "-b", "0.0.0.0"]

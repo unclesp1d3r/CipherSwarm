@@ -7,6 +7,26 @@ class ApplicationJob < ActiveJob::Base
   # Automatically retry jobs that encountered a deadlock
   retry_on ActiveRecord::Deadlocked
 
+  # Retry when temp storage is full — concurrent jobs may free space.
+  # After 5 attempts, discard with a structured log message so operators
+  # know to increase tmpfs size or reduce Sidekiq concurrency.
+  TEMP_STORAGE_DISCARD_HANDLER = lambda { |job, error|
+    begin
+      filter = ActiveSupport::ParameterFilter.new(Rails.application.config.filter_parameters)
+      safe_args = filter.filter(arguments: job.arguments)[:arguments]
+      Rails.logger.error(
+        "[TempStorage] #{job.class.name} discarded after retries — #{error.message}. " \
+        "Job ID: #{job.job_id}. Arguments: #{safe_args.inspect}. " \
+        "Action: increase tmpfs size or reduce Sidekiq concurrency. " \
+        "See docs/deployment/docker-storage-and-tmp.md"
+      )
+    rescue StandardError => e
+      Rails.logger.error("[TempStorage] Failed to log discard for #{job.class.name}: #{e.message}") rescue nil
+    end
+  }
+
+  retry_on InsufficientTempStorageError, wait: :polynomially_longer, attempts: 5, &TEMP_STORAGE_DISCARD_HANDLER
+
   # Most jobs are safe to ignore if the underlying records are no longer available.
   # Log discarded jobs for visibility and debugging.
   discard_on ActiveJob::DeserializationError do |job, error|

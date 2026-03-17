@@ -8,7 +8,7 @@ options:
   postgresql: true
   redis: true
   root: true
-  thruster: true
+  thruster: false
   windows: true
   yjit: true
   packages:

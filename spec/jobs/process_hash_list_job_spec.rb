@@ -252,6 +252,37 @@ RSpec.describe ProcessHashListJob do
       end
     end
 
+    context "when temp storage is insufficient" do
+      let(:hash_list) do
+        hl = create(:hash_list, processed: true)
+        hl.update_column(:processed, false) # rubocop:disable Rails/SkipsModelValidations
+        HashItem.where(hash_list_id: hl.id).delete_all
+        hl.reload
+      end
+
+      before do
+        fs_stat = instance_double(Sys::Filesystem::Stat, bytes_available: 1.byte)
+        allow(Sys::Filesystem).to receive(:stat).with(Dir.tmpdir).and_return(fs_stat)
+      end
+
+      it "raises InsufficientTempStorageError from the concern" do
+        # Bypass retry_on by calling the private method directly
+        job = described_class.new
+        expect { job.send(:ingest_hash_items, hash_list) }
+          .to raise_error(InsufficientTempStorageError)
+      end
+
+      it "does not create any hash items" do
+        described_class.perform_now(hash_list.id)
+        expect(HashItem.where(hash_list_id: hash_list.id).count).to eq(0)
+      end
+
+      it "rolls back the processed flag" do
+        described_class.perform_now(hash_list.id)
+        expect(hash_list.reload.processed).to be false
+      end
+    end
+
     context "when the file contains only blank lines" do
       let(:hash_list) do
         hl = create(:hash_list, processed: true)

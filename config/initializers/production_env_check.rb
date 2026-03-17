@@ -12,7 +12,7 @@ Rails.application.config.after_initialize do
 
   # Skip during asset precompilation — Redis/mailers aren't needed for asset builds.
   # CI runs `RAILS_ENV=production bin/rails assets:precompile` without Redis.
-  next if defined?(Rake) && Rake.application.top_level_tasks.include?("assets:precompile")
+  next if defined?(Rake) && Rake.respond_to?(:application) && Rake.application.top_level_tasks.include?("assets:precompile")
 
   missing = []
 

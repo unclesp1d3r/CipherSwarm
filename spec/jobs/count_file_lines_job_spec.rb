@@ -88,6 +88,31 @@ RSpec.describe CountFileLinesJob do
       end
     end
 
+    context "when temp storage is insufficient" do
+      let(:rule_list) do
+        rl = create(:rule_list, processed: true, line_count: 999)
+        rl.update_columns(processed: false, line_count: 0) # rubocop:disable Rails/SkipsModelValidations
+        rl.reload
+      end
+
+      before do
+        fs_stat = instance_double(Sys::Filesystem::Stat, bytes_available: 1.byte)
+        allow(Sys::Filesystem).to receive(:stat).with(Dir.tmpdir).and_return(fs_stat)
+      end
+
+      it "raises InsufficientTempStorageError from the concern" do
+        job = described_class.new
+        expect { job.perform(rule_list.id, "RuleList") }
+          .to raise_error(InsufficientTempStorageError)
+      end
+
+      it "does not update the record" do
+        described_class.perform_now(rule_list.id, "RuleList")
+        expect(rule_list.reload.processed).to be false
+        expect(rule_list.reload.line_count).to eq(0)
+      end
+    end
+
     context "when the file is not attached" do
       let(:rule_list) do
         # Create with file, then purge it

@@ -50,6 +50,47 @@ RSpec.describe ApplicationJob do
     end
   end
 
+  describe "InsufficientTempStorageError handling" do
+    it "is configured to retry on InsufficientTempStorageError" do
+      expect(described_class.rescue_handlers.map(&:first)).to include("InsufficientTempStorageError")
+    end
+  end
+
+  describe "TEMP_STORAGE_DISCARD_HANDLER" do
+    let(:handler) { described_class::TEMP_STORAGE_DISCARD_HANDLER }
+    let(:job) { described_class.new }
+    let(:error) { InsufficientTempStorageError.new("[TempStorage] Not enough space") }
+
+    it "logs with TempStorage prefix and discarded message" do
+      allow(Rails.logger).to receive(:error)
+      handler.call(job, error)
+      expect(Rails.logger).to have_received(:error).with(/\[TempStorage\].*discarded after retries/)
+    end
+
+    it "includes filtered arguments in the log" do
+      allow(Rails.logger).to receive(:error)
+      handler.call(job, error)
+      expect(Rails.logger).to have_received(:error).with(/Arguments:/)
+    end
+
+    it "includes the error message" do
+      allow(Rails.logger).to receive(:error)
+      handler.call(job, error)
+      expect(Rails.logger).to have_received(:error).with(/Not enough space/)
+    end
+
+    it "logs a fallback message when primary logging fails" do
+      call_count = 0
+      allow(Rails.logger).to receive(:error) do
+        call_count += 1
+        raise StandardError, "logging broken" if call_count == 1
+      end
+
+      expect { handler.call(job, error) }.not_to raise_error
+      expect(call_count).to eq(2) # first call raises, fallback call succeeds
+    end
+  end
+
   describe "inheritable configuration" do
     # Create a child job class
     let(:child_job_class) do
