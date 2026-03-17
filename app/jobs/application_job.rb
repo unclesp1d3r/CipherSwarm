@@ -34,6 +34,9 @@ class ApplicationJob < ActiveJob::Base
   # Logs a structured message when a job is discarded due to insufficient temp storage.
   # Extracted as a method so it can be tested independently (the retry_on block
   # is wrapped by ActiveJob machinery and cannot be invoked directly in tests).
+  #
+  # @param error [InsufficientTempStorageError] the error that caused the discard
+  # @return [void]
   def log_temp_storage_discard(error)
     filter = ActiveSupport::ParameterFilter.new(Rails.application.config.filter_parameters)
     safe_args = filter.filter(arguments: arguments)[:arguments]
