@@ -27,8 +27,18 @@ Rails.application.config.to_prepare do
     #   (complex, still slow for 20+ GB)
     # - Decision: skip checksum for large files, accept integrity trade-off
     # - Performance: no impact — this removes computation, doesn't add any
-    # - Future: consider post-upload background checksum verification job
-    clear_validators!
+    # - Future: VerifyChecksumJob computes checksums post-upload for large files
+    #
+    # NOTE: Do NOT use clear_validators! here — it removes ALL validators on
+    # Blob (including service_name presence), not just the checksum one.
+    # Instead, target only the checksum validator for removal.
+    _validators.delete(:checksum)
+    _validate_callbacks.each do |callback|
+      next unless callback.filter.is_a?(ActiveModel::Validations::PresenceValidator)
+      if callback.filter.attributes == [:checksum]
+        _validate_callbacks.delete(callback)
+      end
+    end
 
     validates :checksum, presence: true, unless: -> { composed || checksum_skipped? }
 
