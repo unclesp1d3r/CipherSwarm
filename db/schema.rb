@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_16_042410) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_17_034648) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -303,6 +303,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_16_042410) do
   end
 
   create_table "mask_lists", force: :cascade do |t|
+    t.boolean "checksum_verified", default: true, null: false
     t.decimal "complexity_value", default: "0.0", comment: "Total attemptable password values"
     t.datetime "created_at", null: false
     t.bigint "creator_id", comment: "The user who created this list"
@@ -367,6 +368,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_16_042410) do
   end
 
   create_table "rule_lists", force: :cascade do |t|
+    t.boolean "checksum_verified", default: true, null: false
     t.datetime "created_at", null: false
     t.bigint "creator_id", comment: "The user who created this list"
     t.text "description", comment: "Description of the rule list"
@@ -556,6 +558,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_16_042410) do
   end
 
   create_table "word_lists", force: :cascade do |t|
+    t.boolean "checksum_verified", default: true, null: false
     t.datetime "created_at", null: false
     t.bigint "creator_id", comment: "The user who created this list"
     t.text "description", comment: "Description of the word list"
