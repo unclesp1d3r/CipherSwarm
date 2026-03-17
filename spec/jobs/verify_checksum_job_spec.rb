@@ -4,11 +4,38 @@ require "rails_helper"
 
 RSpec.describe VerifyChecksumJob do
   let(:word_list) { create(:word_list) }
+  let(:temp_dir) { Rails.root.join("tmp/test_attack_resources") }
+  let(:test_file_path) { File.join(temp_dir, "test-wordlist.txt") }
+  let(:file_content) { "password123\nadmin\nletmein\n" }
+
+  before do
+    FileUtils.mkdir_p(temp_dir)
+    File.write(test_file_path, file_content)
+    word_list.update_columns(file_path: test_file_path, file_name: "test-wordlist.txt") # rubocop:disable Rails/SkipsModelValidations
+  end
+
+  after do
+    FileUtils.rm_rf(temp_dir)
+  end
 
   describe "#perform" do
-    context "when blob has a valid checksum" do
-      it "marks the resource as checksum_verified" do
-        word_list.update!(checksum_verified: false)
+    context "when resource has a file_path with no checksum" do
+      it "computes and saves checksum, marks as verified" do
+        word_list.update_columns(checksum: nil, checksum_verified: false) # rubocop:disable Rails/SkipsModelValidations
+
+        described_class.perform_now(word_list.id, "WordList")
+
+        word_list.reload
+        expect(word_list.checksum).to be_present
+        expect(word_list.checksum).to eq(Digest::MD5.file(test_file_path).base64digest)
+        expect(word_list.checksum_verified).to be true
+      end
+    end
+
+    context "when checksum matches" do
+      it "marks as verified" do
+        expected = Digest::MD5.file(test_file_path).base64digest
+        word_list.update_columns(checksum: expected, checksum_verified: false) # rubocop:disable Rails/SkipsModelValidations
 
         described_class.perform_now(word_list.id, "WordList")
 
@@ -16,31 +43,32 @@ RSpec.describe VerifyChecksumJob do
       end
     end
 
-    context "when blob has checksum_skipped metadata" do
-      it "computes checksum, updates blob, and marks as verified" do
-        blob = word_list.file.blob
-        blob.update!(checksum: nil, metadata: { "checksum_skipped" => true })
-        word_list.update!(checksum_verified: false)
-
-        described_class.perform_now(word_list.id, "WordList")
-
-        blob.reload
-        expect(blob.checksum).to be_present
-        expect(blob.metadata).not_to include("checksum_skipped")
-        expect(word_list.reload.checksum_verified).to be true
-      end
-    end
-
-    context "when computed checksum does not match stored checksum" do
+    context "when checksum does not match" do
       it "logs error and sets checksum_verified false" do
-        word_list.file.blob.update_column(:checksum, "invalid_checksum") # rubocop:disable Rails/SkipsModelValidations -- intentional: set invalid checksum without validation
-        word_list.update!(checksum_verified: true)
+        word_list.update_columns(checksum: "invalid_checksum", checksum_verified: true) # rubocop:disable Rails/SkipsModelValidations
 
-        allow(Rails.logger).to receive(:error)
+        error_messages = []
+        allow(Rails.logger).to receive(:error) { |*args, &block| error_messages << (block ? block.call : args.first) }
+
         described_class.perform_now(word_list.id, "WordList")
 
         expect(word_list.reload.checksum_verified).to be false
-        expect(Rails.logger).to have_received(:error)
+        expect(error_messages).to include(match(/ChecksumMismatch.*INTEGRITY FAILURE/))
+      end
+    end
+
+    context "when file_path does not exist and no Active Storage fallback" do
+      it "logs warning and returns" do
+        # Purge AS attachment so fallback doesn't kick in
+        word_list.file.purge if word_list.file.attached?
+        word_list.update_columns(file_path: "/nonexistent/path.txt") # rubocop:disable Rails/SkipsModelValidations
+
+        warn_messages = []
+        allow(Rails.logger).to receive(:warn) { |*args, &block| warn_messages << (block ? block.call : args.first) }
+
+        described_class.perform_now(word_list.id, "WordList")
+
+        expect(warn_messages).to include(match(/No file found/))
       end
     end
 

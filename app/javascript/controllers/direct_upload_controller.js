@@ -4,16 +4,11 @@
  */
 
 import { Controller } from "@hotwired/stimulus";
-import {
-  applyChecksumOverride,
-  setFileChecksumThreshold,
-} from "../utils/direct_upload_override";
+import * as tus from "tus-js-client";
 
 // Connects to data-controller="direct-upload"
-// Shows two-phase upload progress for Active Storage direct uploads:
-//   Phase 1: "Preparing..." — client-side checksum hashing (files < threshold)
-//   Phase 2: "Uploading..."  — file transfer to storage service
-// Handles errors with actionable messages and re-enabled submit for retry.
+// Handles resumable file uploads via tus protocol for files of any size.
+// Supports auto-resume after network failure via localStorage fingerprinting.
 export default class extends Controller {
   static targets = [
     "input",
@@ -23,111 +18,91 @@ export default class extends Controller {
     "submit",
     "phase",
     "filename",
+    "tusUploadUrl",
   ];
   static values = {
-    checksumThreshold: { type: Number, default: 1073741824 }, // 1 GB in bytes
+    endpoint: { type: String, default: "/uploads" },
+    chunkSize: { type: Number, default: 52428800 }, // 50 MB
   };
 
   connect() {
-    applyChecksumOverride();
-
-    this.erroredUploadIds = new Set();
-    this.onInitialize = this.handleInitialize.bind(this);
-    this.onStart = this.handleStart.bind(this);
-    this.onProgress = this.handleProgress.bind(this);
-    this.onError = this.handleError.bind(this);
-    this.onEnd = this.handleEnd.bind(this);
-    this.onChecksumProgress = this.handleChecksumProgress.bind(this);
-
-    this.element.addEventListener("direct-upload:initialize", this.onInitialize);
-    this.element.addEventListener("direct-upload:start", this.onStart);
-    this.element.addEventListener("direct-upload:progress", this.onProgress);
-    this.element.addEventListener("direct-upload:error", this.onError);
-    this.element.addEventListener("direct-upload:end", this.onEnd);
-    // Checksum progress is dispatched on document (FileChecksum has no input ref)
-    document.addEventListener(
-      "direct-upload:checksum-progress",
-      this.onChecksumProgress,
-    );
+    this.upload = null;
+    this.boundHandleFileSelect = this.handleFileSelect.bind(this);
+    this.inputTarget.addEventListener("change", this.boundHandleFileSelect);
   }
 
   disconnect() {
-    this.element.removeEventListener(
-      "direct-upload:initialize",
-      this.onInitialize,
-    );
-    this.element.removeEventListener("direct-upload:start", this.onStart);
-    this.element.removeEventListener("direct-upload:progress", this.onProgress);
-    this.element.removeEventListener("direct-upload:error", this.onError);
-    this.element.removeEventListener("direct-upload:end", this.onEnd);
-    document.removeEventListener(
-      "direct-upload:checksum-progress",
-      this.onChecksumProgress,
-    );
+    this.inputTarget.removeEventListener("change", this.boundHandleFileSelect);
+    if (this.upload) {
+      this.upload.abort();
+      this.upload = null;
+    }
   }
 
-  handleInitialize(event) {
-    const file = event.detail.file;
-    if (file) {
-      setFileChecksumThreshold(file, this.checksumThresholdValue);
-      this.showFilename(file);
-    }
+  handleFileSelect() {
+    const file = this.inputTarget.files[0];
+    if (!file) return;
 
+    this.showFilename(file);
+    this.startUpload(file);
+  }
+
+  startUpload(file) {
     this.showStatus("Preparing\u2026");
+    this.showProgressBar();
     this.submitTarget.disabled = true;
-  }
 
-  handleChecksumProgress(event) {
-    const file = event.detail.file;
-    if (!this.hasInputTarget || !this.inputTarget.files) return;
-    if (!Array.from(this.inputTarget.files).includes(file)) return;
+    this.upload = new tus.Upload(file, {
+      endpoint: this.endpointValue,
+      chunkSize: this.chunkSizeValue,
+      retryDelays: [0, 1000, 3000, 5000, 10000],
+      metadata: {
+        filename: file.name,
+        filetype: file.type || "application/octet-stream",
+      },
 
-    const progress = event.detail.progress;
-    this.showProgressBar();
-    this.showPhase("Step 1 of 2");
-    this.updateProgressBar(progress);
-    this.showStatus(`Preparing\u2026 ${Math.round(progress)}%`);
-  }
+      onProgress: (bytesUploaded, bytesTotal) => {
+        const progress = (bytesUploaded / bytesTotal) * 100;
+        this.updateProgressBar(progress);
+        this.showStatus(`Uploading\u2026 ${Math.round(progress)}%`);
+      },
 
-  handleStart() {
-    this.showProgressBar();
-    this.showPhase("Step 2 of 2");
-    this.updateProgressBar(0);
-    this.showStatus("Uploading\u2026 0%");
-  }
+      onSuccess: () => {
+        this.updateProgressBar(100);
+        this.progressBarTarget.classList.remove(
+          "progress-bar-striped",
+          "progress-bar-animated",
+        );
 
-  handleProgress(event) {
-    const progress = event.detail.progress;
-    this.updateProgressBar(progress);
-    this.showStatus(`Uploading\u2026 ${Math.round(progress)}%`);
-  }
+        // Store the tus upload URL in the hidden field for form submission
+        if (this.hasTusUploadUrlTarget && this.upload.url) {
+          this.tusUploadUrlTarget.value = this.upload.url;
+        }
 
-  handleError(event) {
-    event.preventDefault();
-    const id = event.detail.id;
-    this.erroredUploadIds.add(id);
-    this.hideProgressBar();
-    this.hidePhase();
-    this.showStatus(
-      `Upload failed: ${event.detail.error}. Click Submit to retry.`,
-    );
-    this.statusTarget.classList.add("text-danger");
-    this.submitTarget.disabled = false;
-  }
+        this.showReadyStatus();
+        this.submitTarget.disabled = false;
+      },
 
-  handleEnd(event) {
-    const id = event.detail.id;
-    if (this.erroredUploadIds.has(id)) {
-      this.erroredUploadIds.delete(id);
-      return;
-    }
-    this.hidePhase();
-    this.updateProgressBar(100);
-    this.progressBarTarget.classList.remove(
-      "progress-bar-striped",
-      "progress-bar-animated",
-    );
-    this.showProcessingStatus();
+      onError: (error) => {
+        this.hideProgressBar();
+        const message = error.message || "Unknown upload error";
+        this.showStatus(
+          `Upload failed: ${message}. Select the file again to retry.`,
+        );
+        this.statusTarget.classList.add("text-danger");
+        this.submitTarget.disabled = false;
+        this.upload = null;
+      },
+    });
+
+    this.upload.findPreviousUploads().then((previousUploads) => {
+      if (!this.upload) return; // Upload was aborted or errored during findPreviousUploads
+      if (previousUploads.length > 0) {
+        this.upload.resumeFromPreviousUpload(previousUploads[0]);
+        this.showStatus("Resuming upload\u2026");
+      }
+      this.upload.start();
+    });
   }
 
   // -- Private helpers --
@@ -153,29 +128,18 @@ export default class extends Controller {
     this.statusTarget.classList.remove("d-none", "text-danger");
   }
 
-  showProcessingStatus() {
-    // Build spinner + text using safe DOM methods (no innerHTML)
+  showReadyStatus() {
     this.statusTarget.textContent = "";
     this.statusTarget.classList.remove("d-none", "text-danger");
 
-    const spinner = document.createElement("span");
-    spinner.className = "spinner-border spinner-border-sm me-1";
-    spinner.setAttribute("role", "status");
-    spinner.setAttribute("aria-hidden", "true");
+    const icon = document.createElement("span");
+    icon.className = "bi bi-check-circle-fill text-success me-1";
+    icon.setAttribute("aria-hidden", "true");
 
-    this.statusTarget.appendChild(spinner);
-    this.statusTarget.appendChild(document.createTextNode("Processing\u2026"));
-  }
-
-  showPhase(text) {
-    if (!this.hasPhaseTarget) return;
-    this.phaseTarget.textContent = text;
-    this.phaseTarget.classList.remove("d-none");
-  }
-
-  hidePhase() {
-    if (!this.hasPhaseTarget) return;
-    this.phaseTarget.classList.add("d-none");
+    this.statusTarget.appendChild(icon);
+    this.statusTarget.appendChild(
+      document.createTextNode("Upload complete. Ready to submit."),
+    );
   }
 
   showFilename(file) {

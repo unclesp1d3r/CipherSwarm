@@ -14,7 +14,9 @@
     <%= f.input :name %>
     <%= f.input :description %>
     <%= f.input :file,
-                input_html: { direct_upload: true, data: { direct_upload_target: "input" } } %>
+                as: :file,
+                input_html: { data: { direct_upload_target: "input" } } %>
+    <%= hidden_field_tag :tus_upload_url, nil, data: { direct_upload_target: "tusUploadUrl" } %>
     <%= render "shared/direct_upload_progress" %>
     <%= f.association :projects, as: :check_boxes, include_blank: false,
                                  collection: projects,

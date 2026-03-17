@@ -11,6 +11,9 @@
 #  checksum_verified                                   :boolean          default(TRUE), not null
 #  complexity_value(Total attemptable password values) :decimal(, )      default(0.0)
 #  description(Description of the mask list)           :text
+#  file_name                                           :string
+#  file_path                                           :string
+#  file_size                                           :bigint
 #  line_count(Number of lines in the mask list)        :bigint
 #  name(Name of the mask list)                         :string(255)      not null, uniquely indexed
 #  processed(Has the mask list been processed?)        :boolean          default(FALSE), not null, indexed

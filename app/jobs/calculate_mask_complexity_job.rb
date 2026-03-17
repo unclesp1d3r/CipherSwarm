@@ -19,12 +19,10 @@ class CalculateMaskComplexityJob < ApplicationJob
   # The total combinations for all masks are then summed and stored in the MaskList's complexity_value attribute.
   def perform(mask_list_id)
     mask_list = MaskList.find(mask_list_id)
-    return if mask_list.nil? || !mask_list.file.attached? || mask_list.complexity_value != 0
-
-    ensure_temp_storage_available!(mask_list.file)
+    return if mask_list.nil? || mask_list.complexity_value != 0
 
     total_combinations = 0
-    mask_list.file.open do |file|
+    open_file(mask_list) do |file|
       file.each_line do |line|
         mask = line.strip
         next if mask.empty?
@@ -38,5 +36,16 @@ class CalculateMaskComplexityJob < ApplicationJob
     Rails.logger.error("Failed to process file for MaskList ##{mask_list_id}: #{e.message}")
   rescue ActiveRecord::RecordInvalid => e
     Rails.logger.error("Failed to update MaskList ##{mask_list_id}: #{e.record.errors.full_messages.join(", ")}")
+  end
+
+  private
+
+  def open_file(record, &)
+    if record.respond_to?(:file_path) && record.file_path.present? && File.exist?(record.file_path)
+      File.open(record.file_path, &)
+    elsif record.respond_to?(:file) && record.file.attached?
+      ensure_temp_storage_available!(record.file)
+      record.file.open(&)
+    end
   end
 end

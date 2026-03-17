@@ -1,26 +1,46 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { application, registerController } from "../setup";
 
-// Mock the override module — we only test the controller's event handling
-vi.mock("../../../app/javascript/utils/direct_upload_override", () => ({
-  applyChecksumOverride: vi.fn(),
-  setFileChecksumThreshold: vi.fn(),
+// Mock tus-js-client
+const mockStart = vi.fn();
+const mockAbort = vi.fn();
+const mockFindPreviousUploads = vi.fn().mockResolvedValue([]);
+const mockResumeFromPreviousUpload = vi.fn();
+
+vi.mock("tus-js-client", () => ({
+  Upload: vi.fn().mockImplementation((file, options) => {
+    const instance = {
+      file,
+      options,
+      url: null,
+      start: mockStart,
+      abort: mockAbort,
+      findPreviousUploads: mockFindPreviousUploads,
+      resumeFromPreviousUpload: mockResumeFromPreviousUpload,
+    };
+    // Store reference so tests can trigger callbacks
+    vi.mocked(instance).start.mockImplementation(() => {
+      // Simulate starting - controller code calls start() after findPreviousUploads
+    });
+    return instance;
+  }),
 }));
 
 import DirectUploadController from "../../../app/javascript/controllers/direct_upload_controller";
-import { setFileChecksumThreshold } from "../../../app/javascript/utils/direct_upload_override";
+import * as tus from "tus-js-client";
 
 describe("DirectUploadController", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockFindPreviousUploads.mockResolvedValue([]);
 
     // Note: This is a static test fixture, not user-controlled input
     document.body.innerHTML = `
-      <form data-controller="direct-upload" data-direct-upload-checksum-threshold-value="1073741824">
-        <input type="file" data-direct-upload-target="input" data-direct-upload-url="/uploads" />
-        <div class="d-none" data-direct-upload-target="progress">
-          <div class="d-flex justify-content-between align-items-center mb-1">
-            <small class="text-body-secondary d-none" data-direct-upload-target="phase"></small>
+      <form data-controller="direct-upload" data-direct-upload-endpoint-value="/uploads" data-direct-upload-chunk-size-value="52428800">
+        <input type="file" data-direct-upload-target="input" />
+        <input type="hidden" data-direct-upload-target="tusUploadUrl" />
+        <div class="d-none mt-2" data-direct-upload-target="progress">
+          <div class="d-flex justify-content-end mb-1">
             <small class="text-body-secondary d-none" data-direct-upload-target="filename"></small>
           </div>
           <div class="progress">
@@ -41,93 +61,87 @@ describe("DirectUploadController", () => {
     document.body.innerHTML = "";
   });
 
-  function getForm() {
-    return document.querySelector('[data-controller="direct-upload"]');
-  }
-
   function getController() {
-    return application.getControllerForElementAndIdentifier(
-      getForm(),
-      "direct-upload",
-    );
+    const form = document.querySelector('[data-controller="direct-upload"]');
+    return application.getControllerForElementAndIdentifier(form, "direct-upload");
   }
 
-  function dispatch(eventName, detail = {}) {
-    const event = new CustomEvent(eventName, {
-      detail,
-      bubbles: true,
-      cancelable: true,
-    });
-    getForm().querySelector("input[type=file]").dispatchEvent(event);
-    return event;
+  function simulateFileSelect(fileName = "test.txt", size = 1024) {
+    const file = new File(["x"], fileName);
+    Object.defineProperty(file, "size", { value: size });
+    const input = document.querySelector('[data-direct-upload-target="input"]');
+    Object.defineProperty(input, "files", { value: [file], configurable: true });
+    input.dispatchEvent(new Event("change"));
+    return file;
+  }
+
+  function getTusOptions() {
+    return tus.Upload.mock.calls[0]?.[1];
   }
 
   it("connects successfully", () => {
     expect(getController()).toBeTruthy();
   });
 
-  describe("handleInitialize", () => {
-    it("shows status, disables submit, and resets error state", () => {
-      const status = document.querySelector(
-        '[data-direct-upload-target="status"]',
-      );
-      status.classList.add("text-danger");
+  describe("handleFileSelect", () => {
+    it("creates a tus upload with correct endpoint and chunk size", () => {
+      simulateFileSelect();
 
-      dispatch("direct-upload:initialize", {
-        file: new File(["x"], "test.txt"),
-        id: 1,
-      });
-
-      expect(status.textContent).toBe("Preparing\u2026");
-      expect(status.classList.contains("text-danger")).toBe(false);
-      expect(status.classList.contains("d-none")).toBe(false);
-      expect(
-        document.querySelector('[data-direct-upload-target="submit"]').disabled,
-      ).toBe(true);
+      expect(tus.Upload).toHaveBeenCalledTimes(1);
+      const options = getTusOptions();
+      expect(options.endpoint).toBe("/uploads");
+      expect(options.chunkSize).toBe(52428800);
     });
 
-    it("registers file threshold via setFileChecksumThreshold", () => {
-      const file = new File(["x"], "test.txt");
-      dispatch("direct-upload:initialize", { file, id: 1 });
-
-      expect(setFileChecksumThreshold).toHaveBeenCalledWith(file, 1073741824);
-    });
-
-    it("displays filename with size", () => {
-      const file = new File(["x".repeat(5000)], "wordlist.txt");
-      dispatch("direct-upload:initialize", { file, id: 1 });
+    it("displays filename with human-readable size", () => {
+      simulateFileSelect("wordlist.txt", 5368709120); // 5 GB
 
       const filename = document.querySelector(
         '[data-direct-upload-target="filename"]',
       );
       expect(filename.textContent).toMatch(/wordlist\.txt/);
-      expect(filename.classList.contains("d-none")).toBe(false);
+      expect(filename.textContent).toMatch(/5\.00 GB/);
     });
-  });
 
-  describe("handleStart", () => {
-    it("shows progress bar with phase label and Uploading status", () => {
-      dispatch("direct-upload:start", { id: 1 });
+    it("disables submit button and shows preparing status", () => {
+      simulateFileSelect();
 
-      const progress = document.querySelector(
-        '[data-direct-upload-target="progress"]',
-      );
-      const phase = document.querySelector(
-        '[data-direct-upload-target="phase"]',
+      const submit = document.querySelector(
+        '[data-direct-upload-target="submit"]',
       );
       const status = document.querySelector(
         '[data-direct-upload-target="status"]',
       );
+      expect(submit.disabled).toBe(true);
+      expect(status.textContent).toBe("Preparing\u2026");
+    });
 
+    it("shows progress bar", () => {
+      simulateFileSelect();
+
+      const progress = document.querySelector(
+        '[data-direct-upload-target="progress"]',
+      );
       expect(progress.classList.contains("d-none")).toBe(false);
-      expect(phase.textContent).toBe("Step 2 of 2");
-      expect(status.textContent).toBe("Uploading\u2026 0%");
+    });
+
+    it("calls findPreviousUploads and start", async () => {
+      simulateFileSelect();
+
+      // Wait for the promise chain
+      await Promise.resolve();
+
+      expect(mockFindPreviousUploads).toHaveBeenCalled();
+      expect(mockStart).toHaveBeenCalled();
     });
   });
 
-  describe("handleProgress", () => {
-    it("updates progress bar and status text with percentage", () => {
-      dispatch("direct-upload:progress", { progress: 42.7, id: 1 });
+  describe("onProgress callback", () => {
+    it("updates progress bar and status text", () => {
+      simulateFileSelect();
+
+      const options = getTusOptions();
+      options.onProgress(42000, 100000);
 
       const bar = document.querySelector(
         '[data-direct-upload-target="progressBar"]',
@@ -135,20 +149,58 @@ describe("DirectUploadController", () => {
       const status = document.querySelector(
         '[data-direct-upload-target="status"]',
       );
-
-      expect(bar.style.width).toBe("42.7%");
-      expect(bar.getAttribute("aria-valuenow")).toBe("43");
-      expect(status.textContent).toBe("Uploading\u2026 43%");
+      expect(bar.style.width).toBe("42%");
+      expect(bar.getAttribute("aria-valuenow")).toBe("42");
+      expect(status.textContent).toBe("Uploading\u2026 42%");
     });
   });
 
-  describe("handleError", () => {
-    it("hides progress, shows actionable error, re-enables submit", () => {
-      dispatch("direct-upload:start", { id: 1 });
-      const event = dispatch("direct-upload:error", {
-        error: "Network timeout",
-        id: 1,
-      });
+  describe("onSuccess callback", () => {
+    it("sets progress to 100% and re-enables submit", () => {
+      simulateFileSelect();
+
+      const uploadInstance = tus.Upload.mock.results[0].value;
+      uploadInstance.url = "http://localhost:3000/uploads/abc123";
+
+      const options = getTusOptions();
+      options.onSuccess();
+
+      const bar = document.querySelector(
+        '[data-direct-upload-target="progressBar"]',
+      );
+      const submit = document.querySelector(
+        '[data-direct-upload-target="submit"]',
+      );
+      const hidden = document.querySelector(
+        '[data-direct-upload-target="tusUploadUrl"]',
+      );
+
+      expect(bar.style.width).toBe("100%");
+      expect(bar.classList.contains("progress-bar-striped")).toBe(false);
+      expect(submit.disabled).toBe(false);
+      expect(hidden.value).toBe("http://localhost:3000/uploads/abc123");
+    });
+
+    it("shows ready status with check icon", () => {
+      simulateFileSelect();
+
+      const options = getTusOptions();
+      options.onSuccess();
+
+      const status = document.querySelector(
+        '[data-direct-upload-target="status"]',
+      );
+      expect(status.textContent).toContain("Upload complete");
+      expect(status.querySelector(".bi-check-circle-fill")).toBeTruthy();
+    });
+  });
+
+  describe("onError callback", () => {
+    it("hides progress bar, shows error, re-enables submit", () => {
+      simulateFileSelect();
+
+      const options = getTusOptions();
+      options.onError(new Error("Network timeout"));
 
       const progress = document.querySelector(
         '[data-direct-upload-target="progress"]',
@@ -161,108 +213,30 @@ describe("DirectUploadController", () => {
       );
 
       expect(progress.classList.contains("d-none")).toBe(true);
-      expect(status.textContent).toBe(
-        "Upload failed: Network timeout. Click Submit to retry.",
-      );
+      expect(status.textContent).toContain("Upload failed: Network timeout");
       expect(status.classList.contains("text-danger")).toBe(true);
       expect(submit.disabled).toBe(false);
-      expect(event.defaultPrevented).toBe(true);
     });
   });
 
-  describe("handleEnd", () => {
-    it("shows Processing with spinner when no error occurred", () => {
-      dispatch("direct-upload:end", { id: 1 });
+  describe("resume", () => {
+    it("resumes from previous upload when available", async () => {
+      const previousUpload = { uploadUrl: "http://localhost/uploads/prev123" };
+      mockFindPreviousUploads.mockResolvedValue([previousUpload]);
 
-      const status = document.querySelector(
-        '[data-direct-upload-target="status"]',
-      );
-      expect(status.textContent).toBe("Processing\u2026");
-      expect(status.querySelector(".spinner-border")).toBeTruthy();
-    });
+      simulateFileSelect();
+      await Promise.resolve();
 
-    it("sets progress bar to 100% and removes animation", () => {
-      dispatch("direct-upload:end", { id: 1 });
-
-      const bar = document.querySelector(
-        '[data-direct-upload-target="progressBar"]',
-      );
-      expect(bar.style.width).toBe("100%");
-      expect(bar.classList.contains("progress-bar-striped")).toBe(false);
-      expect(bar.classList.contains("progress-bar-animated")).toBe(false);
-    });
-
-    it("skips Processing for errored upload IDs", () => {
-      dispatch("direct-upload:error", { error: "fail", id: 42 });
-      dispatch("direct-upload:end", { id: 42 });
-
-      const status = document.querySelector(
-        '[data-direct-upload-target="status"]',
-      );
-      expect(status.textContent).toContain("Upload failed: fail");
-    });
-  });
-
-  describe("handleChecksumProgress", () => {
-    it("shows hashing progress with phase label for matching file", () => {
-      const file = new File(["content"], "wordlist.txt");
-
-      const input = document.querySelector(
-        '[data-direct-upload-target="input"]',
-      );
-      Object.defineProperty(input, "files", { value: [file], writable: false });
-
-      document.dispatchEvent(
-        new CustomEvent("direct-upload:checksum-progress", {
-          detail: { file, progress: 55 },
-        }),
-      );
-
-      const progress = document.querySelector(
-        '[data-direct-upload-target="progress"]',
-      );
-      const bar = document.querySelector(
-        '[data-direct-upload-target="progressBar"]',
-      );
-      const status = document.querySelector(
-        '[data-direct-upload-target="status"]',
-      );
-      const phase = document.querySelector(
-        '[data-direct-upload-target="phase"]',
-      );
-
-      expect(progress.classList.contains("d-none")).toBe(false);
-      expect(bar.style.width).toBe("55%");
-      expect(status.textContent).toBe("Preparing\u2026 55%");
-      expect(phase.textContent).toBe("Step 1 of 2");
-    });
-
-    it("ignores checksum progress for non-matching file", () => {
-      const file = new File(["content"], "other.txt");
-
-      document.dispatchEvent(
-        new CustomEvent("direct-upload:checksum-progress", {
-          detail: { file, progress: 50 },
-        }),
-      );
-
-      const progress = document.querySelector(
-        '[data-direct-upload-target="progress"]',
-      );
-      expect(progress.classList.contains("d-none")).toBe(true);
+      expect(mockResumeFromPreviousUpload).toHaveBeenCalledWith(previousUpload);
     });
   });
 
   describe("disconnect", () => {
-    it("removes all event listeners", () => {
+    it("aborts in-progress upload", () => {
+      simulateFileSelect();
       const controller = getController();
       controller.disconnect();
-
-      dispatch("direct-upload:start", { id: 1 });
-      const submit = document.querySelector(
-        '[data-direct-upload-target="submit"]',
-      );
-      expect(submit.disabled).toBe(false);
+      expect(mockAbort).toHaveBeenCalled();
     });
   });
 });

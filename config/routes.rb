@@ -297,6 +297,9 @@ Rails.application.routes.draw do
   mount Rswag::Ui::Engine => "/api-docs"
   mount Rswag::Api::Engine => "/api-docs"
 
+  # tus resumable upload server — handles chunked file uploads for attack resources.
+  mount Tus::Server, at: "/uploads"
+
   concern :downloadable do
     member do
       get :view_file

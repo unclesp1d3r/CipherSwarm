@@ -4,17 +4,15 @@
 # SPDX-License-Identifier: MPL-2.0
 
 # REASONING:
-# - Why: Files >1 GB skip client-side MD5 checksum to avoid browser stalls (#747).
-#   This job computes the checksum server-side post-upload for integrity verification.
-# - Alternatives: compute during upload (not possible with S3 direct upload),
+# - Why: tus uploads don't include client-side checksums. This job computes
+#   the checksum server-side post-upload for integrity verification.
+# - Alternatives: compute during upload (tus doesn't support end-to-end checksums),
 #   skip verification entirely (unacceptable — corrupt wordlists waste agent time)
 # - Decision: async verification via Sidekiq, flag resources as checksum_verified
-# - Performance: reads entire blob once — same cost as CountFileLinesJob
+# - Performance: reads file once from disk via file_path (no tmp download)
 # - Future: could add automatic re-download on mismatch
 
 class VerifyChecksumJob < ApplicationJob
-  include TempStorageValidation
-
   ALLOWED_TYPES = %w[WordList RuleList MaskList].freeze
 
   queue_as :default
@@ -23,65 +21,36 @@ class VerifyChecksumJob < ApplicationJob
   def perform(resource_id, resource_type)
     raise ArgumentError, "Invalid resource type: #{resource_type}" unless ALLOWED_TYPES.include?(resource_type)
 
-    resource_class = resource_type.constantize
+    resource = resource_type.constantize.find(resource_id)
+    file_path = resolve_file_path(resource)
 
-    resource = resource_class.find(resource_id)
-    blob = resource.file.blob
-
-    unless blob
-      Rails.logger.warn { "[ChecksumVerify] No blob found for #{resource_type}##{resource_id}" }
+    unless file_path
+      Rails.logger.warn { "[ChecksumVerify] No file found for #{resource_type}##{resource_id}" }
       return
     end
 
-    ensure_temp_storage_available!(resource.file)
-    computed_checksum = compute_checksum(blob)
+    computed_checksum = Digest::MD5.file(file_path).base64digest
 
-    if blob.checksum.nil? || blob.metadata&.dig("checksum_skipped")
-      backfill_checksum(blob, computed_checksum, resource)
-    elsif blob.checksum == computed_checksum
-      mark_verified(resource)
+    if resource.checksum.blank?
+      resource.update!(checksum: computed_checksum, checksum_verified: true)
+      Rails.logger.info { "[ChecksumVerify] Computed and saved checksum for #{resource_type}##{resource_id}" }
+    elsif resource.checksum == computed_checksum
+      resource.update!(checksum_verified: true)
+      Rails.logger.info { "[ChecksumVerify] Checksum verified for #{resource_type}##{resource_id}" }
     else
-      log_mismatch(resource, expected: blob.checksum, computed: computed_checksum)
+      resource.update!(checksum_verified: false)
+      Rails.logger.error do
+        "[ChecksumMismatch] INTEGRITY FAILURE: #{resource_type}##{resource_id} — " \
+          "expected #{resource.checksum}, computed #{computed_checksum}. Re-upload recommended."
+      end
     end
   end
 
   private
 
-  def compute_checksum(blob)
-    # Call service.open directly with verify: false — blob.open always
-    # passes verify: true (unless composed), which raises IntegrityError
-    # when the stored checksum is nil or mismatched.
-    blob.service.open(
-      blob.key,
-      checksum: blob.checksum,
-      verify: false,
-      name: ["ActiveStorage-#{blob.id}-", blob.filename.extension_with_delimiter]
-    ) do |tempfile|
-      Digest::MD5.file(tempfile.path).base64digest
-    end
-  end
+  def resolve_file_path(resource)
+    return resource.file_path if resource.file_path.present? && File.exist?(resource.file_path)
 
-  def backfill_checksum(blob, computed_checksum, resource)
-    ActiveRecord::Base.transaction do
-      blob.update!(
-        checksum: computed_checksum,
-        metadata: (blob.metadata&.except("checksum_skipped") || {})
-      )
-      resource.update!(checksum_verified: true)
-    end
-    Rails.logger.info { "[ChecksumVerify] Computed and saved checksum for #{resource.class.name}##{resource.id}" }
-  end
-
-  def mark_verified(resource)
-    resource.update!(checksum_verified: true)
-    Rails.logger.info { "[ChecksumVerify] Checksum verified for #{resource.class.name}##{resource.id}" }
-  end
-
-  def log_mismatch(resource, expected:, computed:)
-    resource.update!(checksum_verified: false)
-    Rails.logger.error do
-      "[ChecksumMismatch] INTEGRITY FAILURE: #{resource.class.name}##{resource.id} — " \
-        "expected #{expected}, computed #{computed}. Re-upload recommended."
-    end
+    nil
   end
 end

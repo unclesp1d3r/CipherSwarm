@@ -220,7 +220,7 @@ When client-side checksums are skipped for large files:
 
 #### Integrity Verification
 
-- **Regular files (<1 GB)**: Integrity verified during upload via client-side MD5 checksum
+- **Regular files (\<1 GB)**: Integrity verified during upload via client-side MD5 checksum
 - **Large files (>1 GB)**: Integrity verified after upload via server-side background job
 - The system tracks verification status via the `checksum_verified` attribute on each resource
 
@@ -555,7 +555,7 @@ resource_metadata:
 Each uploaded resource includes a `checksum_verified` attribute that indicates the integrity verification status:
 
 - **Verified (true)**: The resource's checksum has been computed and validated
-  - Regular files (<1 GB): Verified during upload via client-side MD5 checksum
+  - Regular files (\<1 GB): Verified during upload via client-side MD5 checksum
   - Large files (>1 GB): Verified after upload via server-side background job
 - **Pending (false)**: Verification is in progress (typical for large files immediately after upload)
 - **Failed**: Checksum mismatch detected — re-upload recommended

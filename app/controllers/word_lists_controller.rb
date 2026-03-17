@@ -45,6 +45,7 @@
 #   access control.
 class WordListsController < ApplicationController
   include Downloadable
+  include TusUploadHandler
   before_action :authenticate_user!
   load_and_authorize_resource
   before_action :set_projects, only: %i[new edit create update]
@@ -70,8 +71,12 @@ class WordListsController < ApplicationController
 
     @word_list.sensitive = @word_list.project_ids.any?
 
+    # Capture filename from the file input before tus replaces it
+    @word_list.file_name ||= params.dig(:word_list, :file)&.original_filename
+
     respond_to do |format|
       if @word_list.save
+        process_tus_upload(@word_list, params[:tus_upload_url])
         format.html { redirect_to word_list_url(@word_list), notice: "Word list was successfully created." }
         format.json { render :show, status: :created, location: @word_list }
       else

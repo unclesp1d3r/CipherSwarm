@@ -11,6 +11,7 @@
 # file-based operations.
 class RuleListsController < ApplicationController
   include Downloadable
+  include TusUploadHandler
   before_action :authenticate_user!
   load_and_authorize_resource
   before_action :set_projects, only: %i[new edit create update]
@@ -36,8 +37,11 @@ class RuleListsController < ApplicationController
 
     @rule_list.sensitive = @rule_list.project_ids.any?
 
+    @rule_list.file_name ||= params.dig(:rule_list, :file)&.original_filename
+
     respond_to do |format|
       if @rule_list.save
+        process_tus_upload(@rule_list, params[:tus_upload_url])
         format.html { redirect_to rule_list_url(@rule_list), notice: "Rule list was successfully created." }
         format.json { render :show, status: :created, location: @rule_list }
       else

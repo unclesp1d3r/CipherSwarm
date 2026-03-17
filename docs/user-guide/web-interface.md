@@ -334,14 +334,11 @@ This progress feedback appears when uploading:
 
 ```html
 <div class="progress mt-2 d-none" data-direct-upload-target="progress">
- <div class="progress-bar progress-bar-striped progress-bar-animated"
-      role="progressbar"
-      style="width: 0%"
-      aria-valuenow="0"
-      aria-valuemin="0"
-      aria-valuemax="100"></div>
+ <div aria-valuemax="100" aria-valuemin="0" aria-valuenow="0" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%">
+ </div>
 </div>
-<p class="form-text mt-1" data-direct-upload-target="status"></p>
+<p class="form-text mt-1" data-direct-upload-target="status">
+</p>
 ```
 
 ### Crackable Uploads
