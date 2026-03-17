@@ -10,9 +10,12 @@ class ApplicationJob < ActiveJob::Base
   # Retry when temp storage is full — concurrent jobs may free space.
   # After 5 attempts, discard with a structured log message so operators
   # know to increase tmpfs size or reduce Sidekiq concurrency.
+  # Logging logic lives in #log_temp_storage_discard (tested independently).
+  # :nocov: -- retry_on block is invoked by ActiveJob retry machinery, not reachable via perform_now in tests
   retry_on InsufficientTempStorageError, wait: :polynomially_longer, attempts: 5 do |job, error|
     job.log_temp_storage_discard(error)
   end
+  # :nocov:
 
   # Most jobs are safe to ignore if the underlying records are no longer available.
   # Log discarded jobs for visibility and debugging.
