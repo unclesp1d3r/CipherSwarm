@@ -39,6 +39,7 @@ module AttackResource
     self.implicit_order_column = :created_at
 
     after_commit :update_line_count, if: :file_attached?
+    after_commit :verify_checksum_if_skipped, if: :file_attached?
 
     broadcasts_refreshes
 
@@ -72,6 +73,22 @@ module AttackResource
         return
       end
       CountFileLinesJob.perform_later(id, self.class.name)
+    end
+
+    # Enqueues deferred checksum verification for files that skipped
+    # client-side MD5 hashing (large files > threshold).
+    #
+    # @return [void]
+    def verify_checksum_if_skipped
+      blob = file.blob
+      return unless blob&.metadata&.dig("checksum_skipped")
+
+      update_column(:checksum_verified, false) # rubocop:disable Rails/SkipsModelValidations -- intentional: avoid callbacks re-triggering this method
+      if Rails.env.test?
+        VerifyChecksumJob.perform_now(id, self.class.name)
+        return
+      end
+      VerifyChecksumJob.perform_later(id, self.class.name)
     end
   end
 end
