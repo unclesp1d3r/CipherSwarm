@@ -1,7 +1,5 @@
 # Temp Storage Pre-Check for Blob Jobs — Implementation Plan
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
-
 **Goal:** Prevent Sidekiq jobs from attempting Active Storage blob downloads when insufficient temp storage is available, failing fast with a clear error instead of mid-download `Errno::ENOSPC`.
 
 **Architecture:** A shared `TempStorageValidation` concern provides `ensure_temp_storage_available!(attachment)` which compares `attachment.blob.byte_size` against `Sys::Filesystem.stat(Dir.tmpdir).bytes_available`. A custom `InsufficientTempStorageError` is raised on failure. Jobs retry with polynomial backoff (transient pressure from concurrent jobs) then discard with a structured log message.

@@ -51,14 +51,14 @@ The `/tmp` mount needs to be large enough for concurrent blob downloads (see siz
 
 ## Sizing Guidance
 
-The right tmpfs size depends on your deployment scale and the size of files your campaigns process. Use this table as a starting point:
+The right tmpfs size depends on your deployment scale and the size of files your campaigns process. The table below assumes typical attack files under 50 MB each. **If your largest file exceeds 50 MB, use the formula in the "Estimating tmpfs needs" section instead.**
 
-| Deployment scale          | Sidekiq replicas | Concurrency | Container memory limit | Recommended tmpfs size |
-| ------------------------- | ---------------- | ----------- | ---------------------- | ---------------------- |
-| Development / single node | 1                | 5           | (unlimited)            | 1 GB                   |
-| Small production          | 1-2              | 10          | 1 GB                   | 512 MB                 |
-| Medium production         | 4                | 10          | 1 GB                   | 512 MB                 |
-| Large production          | 8+               | 10          | 2 GB+                  | 1-2 GB                 |
+| Deployment scale          | Sidekiq replicas | Concurrency | Container memory limit | Recommended `/tmp` tmpfs |
+| ------------------------- | ---------------- | ----------- | ---------------------- | ------------------------ |
+| Development / single node | 1                | 5           | (unlimited)            | 1 GB                     |
+| Small production          | 1-2              | 10          | 2 GB                   | 512 MB                   |
+| Medium production         | 4                | 10          | 2 GB                   | 512 MB                   |
+| Large production          | 8+               | 10          | 4 GB+                  | 1-2 GB                   |
 
 **Key constraint:** tmpfs memory is subtracted from the container's memory limit (`deploy.resources.limits.memory`). Both tmpfs mounts count against the limit: the default `/tmp` (512 MB) plus `/rails/tmp` (256 MB) consume 768 MB combined. With the default 2 GB worker memory limit, this leaves ~1.25 GB for the Ruby process (heap, stack, and gem memory). If you increase either tmpfs size, increase the memory limit proportionally to avoid OOM kills.
 

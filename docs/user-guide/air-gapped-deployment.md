@@ -37,7 +37,7 @@ CipherSwarm V2 is designed to function fully offline. All assets, fonts, icons, 
 - Docker and Docker Compose installed on all nodes
 - Sufficient disk space for container images (~2 GB for images, plus space for data volumes)
 - Sufficient disk space for wordlists, rules, and hash data
-- Sufficient RAM for tmpfs mounts: minimum 768MB per service for tmpfs (512MB for /tmp + 256MB for /rails/tmp). For deployments processing large hash lists (>100MB attack files), allocate 2-4GB total tmpfs per service.
+- Sufficient RAM for Sidekiq tmpfs mounts — tmpfs can grow up to the configured limit (default: 512 MB for `/tmp` + 256 MB for `/rails/tmp`) and counts against the container memory limit. Set container memory to cover worst-case tmpfs usage plus Ruby/Sidekiq process needs. See [Docker Storage and /tmp Management](../deployment/docker-storage-and-tmp.md) for sizing details.
 - Network connectivity between CipherSwarm server components (internal only)
 - Network connectivity between agents and the CipherSwarm server (internal only)
 

@@ -51,11 +51,11 @@ For typical deployments with 30-second heartbeat intervals, fewer replicas may s
 Each web replica is constrained to:
 
 - **CPU**: 1 core (limit), 0.5 core (reservation)
-- **Memory**: 1 GB (limit), 512 MB (reservation)
+- **Memory**: 2 GB (limit), 1 GB (reservation)
 
-Sidekiq workers have higher memory limits (2 GB limit, 1 GB reservation) to accommodate tmpfs mounts (768 MB combined for `/tmp` and `/rails/tmp`) alongside the Ruby process. PostgreSQL also has higher limits (2 GB) to handle connection pooling from multiple web replicas.
+Both web and Sidekiq services need memory headroom for tmpfs mounts (up to 768 MB combined for `/tmp` and `/rails/tmp`) alongside the Ruby process. PostgreSQL also has higher limits (2 GB) to handle connection pooling from multiple web replicas.
 
-Plan your host resources accordingly. For example, 9 web replicas require at minimum 4.5 CPU cores and 4.5 GB RAM reserved, with burst capacity up to 9 cores and 9 GB. See `docker-compose-production.yml` for the canonical resource definitions.
+Plan your host resources accordingly. For example, 9 web replicas require at minimum 4.5 CPU cores and 9 GB RAM reserved, with burst capacity up to 9 cores and 18 GB. See `docker-compose-production.yml` for the canonical resource definitions.
 
 ## Configuration
 
