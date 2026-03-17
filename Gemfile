@@ -76,7 +76,7 @@ gem "audited", "~> 5.8.0"
 gem "aws-sdk-s3", "~> 1.216.0", groups: %i[production development]
 gem "cancancan", "~> 3.6.1"
 gem "csv", "~> 3.3.5" # Required for Ruby 3.4+ (no longer in standard library)
-gem "devise", "~> 5.0.2"
+gem "devise", "~> 5.0.3"
 gem "dry-initializer", "~> 3.2.0"
 gem "inline_svg", "~> 1.10.0"
 
