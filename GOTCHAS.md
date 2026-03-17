@@ -115,6 +115,7 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 - `obj&.method` safe navigation creates an unreachable nil branch when nil is guarded earlier — remove the `&` if nil is impossible
 - Rescue blocks in changed code need explicit error-path tests — stub the failing call with `and_raise`
 - `swagger/v1/swagger.json` changes from `rails rswag` must be committed — schema mismatches cause rswag CI failures
+- `retry_on` / `discard_on` block bodies are unreachable via `perform_now` — undercover flags them as uncovered even with `# :nocov:` (undercover treats `n/a` as uncovered). Workaround: extract handler to a lambda constant (`HANDLER = lambda { |job, error| ... }`) and pass via `&HANDLER` — lambda body gets coverage at class load time. See `ApplicationJob::TEMP_STORAGE_DISCARD_HANDLER`.
 
 **Database Deadlock in Tests:**
 
