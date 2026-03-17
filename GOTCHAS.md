@@ -287,7 +287,12 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 - **Disk service**: skips `ensure_integrity_of` when checksum is nil — no digest verification for large files
 - **S3-compatible services**: `Content-MD5` header is omitted from the direct upload PUT — S3 will not verify integrity on receipt
 - **Threshold scoping**: per-file via WeakMap (not a mutable global) — each Stimulus controller instance can set its own threshold without interfering with others on the same page
-- No upload progress UI exists (#746)
+- Upload progress UI (#746): `direct_upload_controller.js` shows two-phase progress (hashing + uploading)
+
+**Active Storage Blob Validator Patching:**
+
+- **Never use `clear_validators!` on `ActiveStorage::Blob`** — it removes ALL validators (including `service_name` presence), not just the one you want. Use targeted removal: `_validators.delete(:checksum)` + iterate `_validate_callbacks` to remove specific callbacks.
+- **`blob.open` does NOT accept `verify:` kwarg** — that param is on `ActiveStorage::Downloader#open`, not `Blob#open`. To skip integrity verification (e.g., when computing your own checksum), call `blob.service.open(blob.key, checksum: blob.checksum, verify: false)` directly.
 
 **Active Storage Direct Upload JS Events:**
 

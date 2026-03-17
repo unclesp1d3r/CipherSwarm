@@ -285,6 +285,7 @@ Business logic is extracted into service objects and models:
   - `UpdateStatusJob` - Update task status
   - `CampaignPriorityRebalanceJob` - Trigger task preemption when campaign priority is raised
   - `DataCleanupJob` - Data retention enforcement (old errors, audits, hashcat statuses)
+  - `VerifyChecksumJob` - Deferred server-side checksum verification for large-file uploads that skipped client-side MD5
 
 ### File Storage
 
@@ -512,12 +513,16 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 
 - Stimulus controller: `app/javascript/controllers/direct_upload_controller.js`
 - Attached to `<form>` element (not a wrapper div) — Active Storage events bubble from file input to form
-- Shows Bootstrap progress bar during upload, disables submit, displays status/error text
+- Two-phase progress: "Preparing... X%" during checksum hashing, then "Uploading... X%" during transfer
+- Progress bar HTML extracted to `app/views/shared/_direct_upload_progress.html.erb` (used by all 3 forms)
 - Used on: `hash_lists/_form`, `mask_lists/_form`, `shared/attack_resource/_form`
 - Checksum override: `app/javascript/utils/direct_upload_override.js` patches `FileChecksum.create` (imported from internal path `@rails/activestorage/src/file_checksum`, NOT the package root which doesn't export it) to skip client-side MD5 for files exceeding the threshold (default 1 GB) — `blobs.checksum` is NULL for skipped files
+- For files under threshold, the override emits `direct-upload:checksum-progress` events on `document` during hashing (FileChecksum has no reference to the input element)
 - Override threshold is scoped per-file via a WeakMap (not a mutable global), set from the Stimulus controller's `checksumThresholdValue` during `direct-upload:initialize`
-- Server-side nil-checksum support: `config/initializers/active_storage_large_upload.rb` relaxes Blob checksum validation (allows nil when `metadata.checksum_skipped == true`), and patches S3 service to omit nil `Content-MD5` header
+- Server-side nil-checksum support: `config/initializers/active_storage_large_upload.rb` relaxes Blob checksum validation (allows nil when `metadata.checksum_skipped == true`), and patches S3 service to omit nil `Content-MD5` header — uses targeted validator removal (NOT `clear_validators!`)
 - Custom `app/controllers/active_storage/direct_uploads_controller.rb` overrides the base controller to accept nil checksum and set `checksum_skipped` metadata
+- Deferred verification: `VerifyChecksumJob` computes server-side MD5 post-upload, backfills `blobs.checksum`, and sets `checksum_verified: true` on the attack resource — uses `blob.service.open(verify: false)` to skip the Downloader's integrity check
+- `checksum_verified` boolean column on `word_lists`, `rule_lists`, `mask_lists` (default `true`) — set to `false` on upload of large files, `true` after `VerifyChecksumJob` completes
 - Override threshold tunable per-form via `data-direct-upload-checksum-threshold-value` attribute (bytes)
 - `app/javascript/utils/` is the directory for shared JS utility modules (not controllers)
 
