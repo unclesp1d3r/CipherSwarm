@@ -37,7 +37,10 @@ class RuleListsController < ApplicationController
 
     @rule_list.sensitive = @rule_list.project_ids.any?
 
-    @rule_list.file_name ||= params.dig(:rule_list, :file)&.original_filename
+    if params[:tus_upload_url].present?
+      @rule_list.tus_upload_pending = true
+      @rule_list.file_name ||= params.dig(:rule_list, :file)&.original_filename
+    end
 
     respond_to do |format|
       if @rule_list.save

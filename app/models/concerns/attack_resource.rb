@@ -27,7 +27,13 @@ module AttackResource
     has_and_belongs_to_many :projects
     belongs_to :creator, class_name: "User", optional: true
     validates :name, presence: true, uniqueness: { case_sensitive: false }, length: { maximum: 255 }
-    validates :file, attached: true, content_type: %i[text/plain application/octet-stream]
+    # File attachment is required unless using tus upload (file_path set after save by TusUploadHandler).
+    # During tus uploads, the file isn't attached via Active Storage — it's moved to
+    # permanent storage by the controller after the record is saved.
+    attr_accessor :tus_upload_pending
+
+    validates :file, attached: true, content_type: %i[text/plain application/octet-stream],
+                     unless: -> { tus_upload_pending || file_path.present? }
     validates :line_count, numericality: { only_integer: true, greater_than_or_equal_to: 0 }, allow_nil: true
     has_many :attacks, dependent: :destroy
     validates :projects, presence: { message: "must be selected for sensitive lists" }, if: -> { sensitive? }

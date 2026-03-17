@@ -50,7 +50,10 @@ class MaskListsController < ApplicationController
 
     @mask_list.sensitive = @mask_list.project_ids.any?
 
-    @mask_list.file_name ||= params.dig(:mask_list, :file)&.original_filename
+    if params[:tus_upload_url].present?
+      @mask_list.tus_upload_pending = true
+      @mask_list.file_name ||= params.dig(:mask_list, :file)&.original_filename
+    end
 
     respond_to do |format|
       if @mask_list.save

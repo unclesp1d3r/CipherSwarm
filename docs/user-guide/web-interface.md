@@ -288,47 +288,34 @@ Simplified brute force interface:
 
 ### Upload Progress Feedback
 
-When uploading files through the web interface, a progress bar provides visual feedback during the upload process:
+When uploading files through the web interface, a progress bar provides visual feedback during the upload process. Uploads use the **tus resumable upload protocol**, which supports files of any size (including 100+ GB) with automatic resume on network failure.
 
-#### Progress Phases
+#### Upload Progress
 
-File uploads display a two-phase progress bar with percentage indicators:
+File uploads display a progress bar with percentage indicator:
 
-1. **"Preparing... X%"**
+- **"Uploading... X%"** — displays during file transfer with real-time progress
+- **"Upload complete. Ready to submit."** — file uploaded, form ready for submission
+- Files are uploaded in 50 MB chunks for reliable transfer of large files
+- If the connection drops, the upload resumes automatically where it left off
 
-   - Displays while the browser calculates the file's MD5 checksum for integrity verification
-   - Shown for files under 1 GB
-   - Progress updates in real-time as chunks are hashed
+#### Background Verification
 
-2. **"Uploading... X%"**
-
-   - Displays during the actual file transfer to the server
-   - Shows upload progress based on bytes transferred
-   - Progress bar updates smoothly with striped animation
-
-#### Large File Handling
-
-For files larger than 1 GB:
-
-- The "Preparing" phase is automatically skipped to prevent browser performance issues
-- Files proceed directly to the "Uploading" phase
-- The server performs checksum verification in the background after the upload completes
-- A background job (`VerifyChecksumJob`) computes the checksum post-upload and updates the resource
+After upload completes, a background job (`VerifyChecksumJob`) computes a server-side checksum for integrity verification. Resources show as `checksum_verified: false` until this completes.
 
 #### Error Handling
 
 If an upload error occurs:
 
 - The progress bar is hidden
-- An inline error message appears above the submit button
+- An inline error message appears with actionable guidance
 - The submit button is re-enabled to allow retry
-- Error messages describe the specific failure
+- Tus protocol automatically retries transient network errors before surfacing the failure
 
 #### Affected Upload Forms
 
 This progress feedback appears when uploading:
 
-- **Hash Lists**: File uploads in hash list creation/editing
 - **Mask Lists**: Mask pattern file uploads
 - **Attack Resources**: Word lists and rule lists
 

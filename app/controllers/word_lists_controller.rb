@@ -71,8 +71,11 @@ class WordListsController < ApplicationController
 
     @word_list.sensitive = @word_list.project_ids.any?
 
-    # Capture filename from the file input before tus replaces it
-    @word_list.file_name ||= params.dig(:word_list, :file)&.original_filename
+    # Mark as tus upload pending to skip Active Storage file validation
+    if params[:tus_upload_url].present?
+      @word_list.tus_upload_pending = true
+      @word_list.file_name ||= params.dig(:word_list, :file)&.original_filename
+    end
 
     respond_to do |format|
       if @word_list.save

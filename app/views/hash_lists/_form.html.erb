@@ -1,5 +1,5 @@
 <%# locals: @hash_list, @projects %>
-<%= simple_form_for(@hash_list, html: { data: { controller: "direct-upload" } }) do |f| %>
+<%= simple_form_for(@hash_list) do |f| %>
   <% if @hash_list.errors.any? %>
     <div class="alert alert-danger" role="alert">
       <h4 class="alert-heading"><%= pluralize(@hash_list.errors.count, "error") %> prevent this from saving.</h4>
@@ -14,10 +14,7 @@
     <%= f.input :name %>
     <%= f.input :description %>
     <%= f.input :file,
-                as: :file,
-                input_html: { data: { direct_upload_target: "input" } } %>
-    <%= hidden_field_tag :tus_upload_url, nil, data: { direct_upload_target: "tusUploadUrl" } %>
-    <%= render "shared/direct_upload_progress" %>
+                input_html: { direct_upload: true } %>
     <%= f.input :sensitive %>
     <%= f.association :project, collection: @projects, include_blank: false %>
     <%= f.association :hash_type,
@@ -26,7 +23,7 @@
         input_html: { data: { controller: "select" } } %>
   </div>
   <div class="form-actions">
-    <%= f.button :submit, "Submit", class: "btn btn-primary", data: { direct_upload_target: "submit" } %>
+    <%= f.button :submit, "Submit", class: "btn btn-primary" %>
     <%= link_to "Cancel", hash_lists_path, class: "btn btn-secondary" %>
   </div>
 <% end %>

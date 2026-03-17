@@ -95,7 +95,6 @@ class HashListsController < ApplicationController
 
     respond_to do |format|
       if @hash_list.save
-        process_tus_upload_for_hash_list(@hash_list, params[:tus_upload_url])
         format.html { redirect_to hash_list_url(@hash_list), notice: "Hash list was successfully created." }
         format.json { render :show, status: :created, location: @hash_list }
       else
