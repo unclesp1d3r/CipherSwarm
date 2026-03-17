@@ -98,7 +98,10 @@ gem "sidekiq-cron", "~> 2.3.1"
 gem "simple_form", "~> 5.4.1"
 gem "state_machines-activerecord", "~> 0.100.0"
 gem "store_model", "~> 4.5"
-gem "thruster", "~> 0.1.19"
+gem "sys-filesystem", "~> 1.5"
+# Thruster removed — nginx handles HTTP/2, compression, and asset caching
+# in production. Thruster's default 30s HTTP_READ_TIMEOUT silently killed
+# large Active Storage direct uploads (multi-GB word lists). See #675.
 gem "view_component", "~> 4.5.0"
 
 gem "openssl", "~> 4.0.1"

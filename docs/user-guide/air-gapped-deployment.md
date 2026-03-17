@@ -37,6 +37,7 @@ CipherSwarm V2 is designed to function fully offline. All assets, fonts, icons, 
 - Docker and Docker Compose installed on all nodes
 - Sufficient disk space for container images (~2 GB for images, plus space for data volumes)
 - Sufficient disk space for wordlists, rules, and hash data
+- Sufficient RAM for Sidekiq tmpfs mounts — tmpfs can grow up to the configured limit (default: 512 MB for `/tmp` + 256 MB for `/rails/tmp`) and counts against the container memory limit. Set container memory to cover worst-case tmpfs usage plus Ruby/Sidekiq process needs. See [Docker Storage and /tmp Management](../deployment/docker-storage-and-tmp.md) for sizing details.
 - Network connectivity between CipherSwarm server components (internal only)
 - Network connectivity between agents and the CipherSwarm server (internal only)
 
@@ -101,7 +102,7 @@ Transfer all required container images to the air-gapped environment using one o
 
 ### Step 2: Configure Docker Compose
 
-Ensure the `docker-compose.yml` file does not reference any external registries or services:
+Ensure the `docker-compose.yml` file does not reference any external registries or services. The docker-compose configuration includes tmpfs mounts at `/tmp` and `/rails/tmp` for both web and sidekiq services. These are memory-backed filesystems required to prevent overlay filesystem exhaustion during Active Storage blob downloads (hash lists, wordlists, rule files). The `/tmp` mount stores Active Storage temporary files during ingest jobs, while `/rails/tmp` holds Rails framework temp files and Bootsnap cache. Tmpfs allocation counts against container memory limits—see the [tmpfs sizing section](#tmpfs-sizing-for-large-files) below for guidance on adjusting sizes based on your largest attack files.
 
 ```yaml
 services:
@@ -115,6 +116,9 @@ services:
     depends_on:
       - postgres-db
       - redis
+    tmpfs:
+      - /tmp:size=512m,mode=1777
+      - /rails/tmp:size=256m,mode=1777
     volumes:
       - storage:/rails/storage
 
@@ -142,6 +146,9 @@ services:
     depends_on:
       - postgres-db
       - redis
+    tmpfs:
+      - /tmp:size=512m,mode=1777
+      - /rails/tmp:size=256m,mode=1777
     volumes:
       - storage:/rails/storage
 
@@ -150,6 +157,16 @@ volumes:
   postgres_data:
   redis_data:
 ```
+
+#### tmpfs Sizing for Large Files
+
+The default tmpfs configuration allocates 512MB for `/tmp` and 256MB for `/rails/tmp` on each service. This works for most deployments but may need adjustment based on the size of attack files you process.
+
+**Minimum requirement:** The `/tmp` tmpfs must be at least as large as your single largest attack file (wordlist, hash list, rule file, or mask list). Active Storage downloads the entire file to `/tmp` before processing, so a file larger than the tmpfs will always fail with `Errno::ENOSPC`.
+
+**Recommended sizing:** Multiply your largest file size by the Sidekiq concurrency setting (default 10) to handle concurrent downloads. For example, if your largest wordlist is 200MB, a 2GB `/tmp` tmpfs allows up to 10 concurrent ingest jobs without space pressure.
+
+**Memory constraint:** tmpfs memory is subtracted from the container's total memory limit. If you increase tmpfs sizes, increase the container memory limit proportionally. For detailed sizing guidance, tmpfs vs disk trade-offs, and pre-download space check behavior, see [Docker Storage and tmpfs Management](../deployment/docker-storage-and-tmp.md).
 
 ### Step 3: Configure Environment Variables
 
@@ -492,6 +509,49 @@ curl -s http://localhost:3000/docs/README.md
    ```bash
    docker compose exec web nslookup postgres-db
    ```
+
+### Temporary Storage Exhaustion
+
+**Symptoms**: Sidekiq jobs fail with `Errno::ENOSPC` or `InsufficientTempStorageError` in logs. Jobs processing hash lists, wordlists, or rule files are discarded after retries.
+
+**Cause**: The tmpfs mount at `/tmp` is too small for the attack files being processed. Active Storage downloads the entire blob to `/tmp` before the ingest job can process it. If the tmpfs is smaller than the file, or multiple concurrent jobs fill the available space, downloads fail with "No space left on device."
+
+**Solutions**:
+
+1. **Increase tmpfs size** in `docker-compose.yml` for sidekiq and web services. The size must be at least as large as your single largest attack file. For concurrent processing, multiply the largest file size by the Sidekiq concurrency setting (default 10).
+
+   ```yaml
+   sidekiq:
+     tmpfs:
+       - /tmp:size=2g,mode=1777  # Increase from default 512m
+       - /rails/tmp:size=256m,mode=1777
+   ```
+
+2. **Increase container memory limit** proportionally—tmpfs memory is subtracted from the container's total memory allocation.
+
+3. **Reduce Sidekiq concurrency** to limit the number of concurrent blob downloads:
+
+   ```yaml
+   sidekiq:
+     environment:
+       - SIDEKIQ_CONCURRENCY=5  # Default is 10
+   ```
+
+4. **Use disk-backed temp storage** instead of tmpfs by setting the `TMPDIR` environment variable and mounting a persistent volume. This trades memory pressure for disk I/O but removes the size constraint:
+
+   ```yaml
+   sidekiq:
+     environment:
+       - TMPDIR=/rails/tmp
+     volumes:
+       - sidekiq-tmp:/rails/tmp
+       - storage:/rails/storage
+
+   volumes:
+     sidekiq-tmp:
+   ```
+
+For detailed tmpfs sizing guidance, monitoring, and recovery procedures, see [Docker Storage and tmpfs Management](../deployment/docker-storage-and-tmp.md).
 
 ---
 

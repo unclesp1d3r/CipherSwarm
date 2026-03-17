@@ -54,6 +54,30 @@ RSpec.describe CalculateMaskComplexityJob do
       end
     end
 
+    context "when temp storage is insufficient" do
+      let(:mask_list) do
+        ml = create(:mask_list, complexity_value: 999)
+        ml.update_column(:complexity_value, 0) # rubocop:disable Rails/SkipsModelValidations
+        ml.reload
+      end
+
+      before do
+        fs_stat = instance_double(Sys::Filesystem::Stat, bytes_available: 1.byte)
+        allow(Sys::Filesystem).to receive(:stat).with(Dir.tmpdir).and_return(fs_stat)
+      end
+
+      it "raises InsufficientTempStorageError from the concern" do
+        job = described_class.new
+        expect { job.perform(mask_list.id) }
+          .to raise_error(InsufficientTempStorageError)
+      end
+
+      it "does not update the complexity value" do
+        described_class.perform_now(mask_list.id)
+        expect(mask_list.reload.complexity_value).to eq(0)
+      end
+    end
+
     context "when the mask list has no file attached" do
       let(:mask_list) do
         # Create normally, then detach the file using update_column to bypass callbacks

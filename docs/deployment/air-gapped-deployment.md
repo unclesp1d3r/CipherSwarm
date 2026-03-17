@@ -6,6 +6,7 @@ This guide covers deploying CipherSwarm in air-gapped (isolated) environments wi
 
 - Docker and Docker Compose installed on the air-gapped system
 - Sufficient disk space for Docker images (~2 GB) and data volumes
+- Sufficient RAM for Sidekiq tmpfs mounts — the tmpfs must be at least as large as your largest attack file (wordlist, hash list, etc.) and ideally several times larger for concurrent processing (see [Docker Storage and /tmp Management](docker-storage-and-tmp.md) for sizing details)
 - Access to an Internet-connected system for initial image export
 
 ## Step 1: Export Docker Images (Internet-Connected System)
@@ -316,14 +317,15 @@ After successful migration:
 
 ## Troubleshooting
 
-| Symptom                    | Cause                  | Solution                                                            |
-| -------------------------- | ---------------------- | ------------------------------------------------------------------- |
-| Assets fail to load (404s) | Precompilation not run | Run `bin/rails assets:precompile` inside the web container          |
-| Storage connection refused | Wrong AWS_ENDPOINT     | Verify `AWS_ENDPOINT` points to the correct S3-compatible host      |
-| Agents cannot connect      | Network/firewall       | Verify port 80 is open between agent hosts and the CipherSwarm host |
-| Database connection error  | PostgreSQL not ready   | Wait for `postgres-db` health check to pass before starting web     |
-| Redis connection error     | Redis not started      | Check `redis-db` container status and logs                          |
-| Sidekiq not processing     | Redis unreachable      | Verify `REDIS_URL` points to `redis://redis-db:6379`                |
+| Symptom                                | Cause                                                                         | Solution                                                                                                                                                                                                                                                                                                                        |
+| -------------------------------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Assets fail to load (404s)             | Precompilation not run                                                        | Run `bin/rails assets:precompile` inside the web container                                                                                                                                                                                                                                                                      |
+| Storage connection refused             | Wrong AWS_ENDPOINT                                                            | Verify `AWS_ENDPOINT` points to the correct S3-compatible host                                                                                                                                                                                                                                                                  |
+| Agents cannot connect                  | Network/firewall                                                              | Verify port 80 is open between agent hosts and the CipherSwarm host                                                                                                                                                                                                                                                             |
+| Database connection error              | PostgreSQL not ready                                                          | Wait for `postgres-db` health check to pass before starting web                                                                                                                                                                                                                                                                 |
+| Redis connection error                 | Redis not started                                                             | Check `redis-db` container status and logs                                                                                                                                                                                                                                                                                      |
+| Sidekiq not processing                 | Redis unreachable                                                             | Verify `REDIS_URL` points to `redis://redis-db:6379`                                                                                                                                                                                                                                                                            |
+| Sidekiq jobs fail with `Errno::ENOSPC` | `/tmp` on overlay filesystem exhausted by large Active Storage blob downloads | Add `tmpfs: - /tmp:size=512m,mode=1777` to the sidekiq service (production default). If processing very large files, increase both tmpfs size and the container memory limit proportionally (e.g., `size=1g` with a 2 GB memory limit). See [Docker Storage and /tmp Management](docker-storage-and-tmp.md) for sizing details. |
 
 ## Rollback Procedure
 

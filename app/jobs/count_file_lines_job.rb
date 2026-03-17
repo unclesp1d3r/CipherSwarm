@@ -21,6 +21,8 @@
 # @param id [Integer] the ID of the record to process
 # @param type [String] the class name of the record to process
 class CountFileLinesJob < ApplicationJob
+  include TempStorageValidation
+
   # Raised when the type argument is not in ALLOWED_TYPES.
   class InvalidTypeError < ArgumentError; end
 
@@ -47,7 +49,9 @@ class CountFileLinesJob < ApplicationJob
     klass = type.constantize
     record = klass.find_by(id: id)
     return if record.nil?
-    return if record.processed? || record.file.nil?
+    return if record.processed? || !record.file.attached?
+
+    ensure_temp_storage_available!(record.file)
 
     record.file.open do |file|
       count = file.each_line.count

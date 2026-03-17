@@ -2,36 +2,31 @@
 
 ## Introduction
 
-When many cracking agents are active simultaneously, a single CipherSwarm web instance can become a bottleneck. Each agent sends periodic status updates, crack submissions, and task requests — all of which compete for the same Puma thread pool. This guide describes how to horizontally scale the web tier using nginx as a reverse proxy load balancer in front of multiple Thruster/Puma replicas.
+When many cracking agents are active simultaneously, a single CipherSwarm web instance can become a bottleneck. Each agent sends periodic status updates, crack submissions, and task requests — all of which compete for the same Puma thread pool. This guide describes how to horizontally scale the web tier using nginx as a reverse proxy load balancer in front of multiple Puma replicas.
 
 ## Architecture Overview
 
-```
-                         ┌──────────────────┐
-    Cracking Agents ────>│  Nginx (port 80)  │
-                         │  Load Balancer    │
-                         └────────┬─────────┘
-                                  │
-              ┌───────────────────┼───────────────────┐
-              │                   │                   │
-     ┌────────▼──────┐  ┌────────▼──────┐  ┌────────▼──────┐
-     │  Web Replica 1 │  │  Web Replica 2 │  │  Web Replica N │
-     │  Thruster/Puma │  │  Thruster/Puma │  │  Thruster/Puma │
-     └───────┬────────┘  └───────┬────────┘  └───────┬────────┘
-             │                   │                   │
-             └───────────────────┼───────────────────┘
-                                 │
-                    ┌────────────┼────────────┐
-                    │            │            │
-              ┌─────▼───┐ ┌─────▼───┐ ┌──────▼─────┐
-              │PostgreSQL│ │  Redis  │ │  Sidekiq   │
-              └─────────┘ └─────────┘ └────────────┘
+```mermaid
+graph TD
+    Agents[Cracking Agents] --> Nginx["Nginx (port 80)<br/>Load Balancer"]
+    Nginx --> Web1["Web Replica 1<br/>Puma"]
+    Nginx --> Web2["Web Replica 2<br/>Puma"]
+    Nginx --> WebN["Web Replica N<br/>Puma"]
+    Web1 --> PG[(PostgreSQL)]
+    Web1 --> Redis[(Redis)]
+    Web1 --> Sidekiq[Sidekiq]
+    Web2 --> PG
+    Web2 --> Redis
+    Web2 --> Sidekiq
+    WebN --> PG
+    WebN --> Redis
+    WebN --> Sidekiq
 ```
 
 **Component roles:**
 
 - **Nginx** — Accepts all incoming HTTP traffic on port 80 and distributes requests across web replicas using the `least_conn` algorithm. Uses Docker's embedded DNS (`127.0.0.11`) to discover replicas automatically. Includes a dedicated `/cable` location for Action Cable WebSocket connections (Turbo Streams).
-- **Web replicas (Thruster/Puma)** — Each replica is an independent container running the full Rails stack. Thruster handles HTTP/2 and asset serving per instance. Puma serves Rails requests with its own thread pool.
+- **Web replicas (Puma)** — Each replica is an independent container running the full Rails stack. Puma serves Rails requests with its own thread pool. Nginx handles HTTP/2, compression, and asset caching at the load balancer level.
 - **Backend services** — PostgreSQL, Redis, and Sidekiq are shared by all replicas. Rails cookie-based sessions are stateless, so no sticky sessions are required.
 
 ## Scaling Guidelines
@@ -56,11 +51,11 @@ For typical deployments with 30-second heartbeat intervals, fewer replicas may s
 Each web replica is constrained to:
 
 - **CPU**: 1 core (limit), 0.5 core (reservation)
-- **Memory**: 512 MB (limit), 256 MB (reservation)
+- **Memory**: 2 GB (limit), 1 GB (reservation)
 
-PostgreSQL and Sidekiq have higher resource limits (2 GB and 1 GB respectively) to handle connection pooling from multiple web replicas and background job processing.
+Both web and Sidekiq services need memory headroom for tmpfs mounts (up to 768 MB combined for `/tmp` and `/rails/tmp`) alongside the Ruby process. PostgreSQL also has higher limits (2 GB) to handle connection pooling from multiple web replicas.
 
-Plan your host resources accordingly. For example, 9 web replicas require at minimum 4.5 CPU cores and 2.25 GB RAM reserved, with burst capacity up to 9 cores and 4.5 GB.
+Plan your host resources accordingly. For example, 9 web replicas require at minimum 4.5 CPU cores and 9 GB RAM reserved, with burst capacity up to 9 cores and 18 GB. See `docker-compose-production.yml` for the canonical resource definitions.
 
 ## Configuration
 
@@ -77,17 +72,20 @@ Key settings and their purpose:
 | `max_fails=3`                     | Passive health  | Marks a replica as down after 3 consecutive failures                  |
 | `fail_timeout=30s`                | Recovery window | Waits 30 s before retrying a failed replica                           |
 | `keepalive 32`                    | Connection pool | Reuses TCP connections to backends for efficiency                     |
-| `proxy_read_timeout 300s`         | Long reads      | Allows slow API responses (e.g., large hash list downloads)           |
+| `proxy_read_timeout 300s`         | Long reads      | Allows slow API responses in the general `/` location                 |
 | `proxy_next_upstream`             | Retry policy    | Retries GET/HEAD on error, timeout, 502, 503, 504                     |
 | `proxy_next_upstream_timeout 30s` | Retry budget    | Bounds total retry duration to prevent cascading delays               |
-| `client_max_body_size 100M`       | Upload limit    | Accommodates large hash list and word list uploads                    |
+| `client_max_body_size 100M`       | Default limit   | Server-level default for non-storage endpoints                        |
+| `client_max_body_size 0`          | Unlimited       | Active Storage location only — allows arbitrarily large uploads       |
+| `proxy_buffering off`             | Streaming       | Active Storage location — streams downloads directly to clients       |
 | `/cable` location                 | WebSocket       | Upgrades connections for Action Cable (Turbo Streams)                 |
+| `/rails/active_storage/` location | File transfers  | Unbuffered uploads/downloads with 1-hour timeouts                     |
 
 **Nginx version requirement:** The `resolve` parameter in upstream blocks requires nginx >= 1.27.3 (open-sourced from nginx Plus). The default `nginx:alpine` image (currently 1.29.x) supports this. Do not pin to an older version.
 
 ### Adjusting Timeouts
 
-If agents experience timeouts during large file uploads or downloads, increase `proxy_read_timeout` and `proxy_send_timeout` in the nginx configuration. The default 300 s read timeout is generous but may need to be raised for very large payloads.
+The general `/` location uses `proxy_read_timeout 300s` and `proxy_send_timeout 60s`, which are sufficient for API requests and normal web traffic. The `/rails/active_storage/` location uses 1-hour timeouts (`3600s`) for large file uploads and downloads. If agents experience timeouts during file transfers, check that they are using the Active Storage endpoints (which have the longer timeouts). See `docker/nginx/nginx.conf` for the canonical timeout values.
 
 ## Deployment Instructions
 

@@ -20,6 +20,9 @@ services:
       - redis-db
       - postgres-db
       - sidekiq
+    tmpfs:
+      - /tmp:size=${TMPFS_TMP_SIZE:-1g},mode=1777
+      - /rails/tmp:size=${TMPFS_RAILS_TMP_SIZE:-256m},mode=1777
     volumes:
       - storage:/rails/storage
     networks:
@@ -94,6 +97,9 @@ services:
     depends_on:
       - redis-db
       - postgres-db
+    tmpfs:
+      - /tmp:size=${TMPFS_TMP_SIZE:-1g},mode=1777
+      - /rails/tmp:size=${TMPFS_RAILS_TMP_SIZE:-256m},mode=1777
     volumes:
       - storage:/rails/storage
     networks:

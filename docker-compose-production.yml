@@ -23,10 +23,10 @@ x-common-env-vars: &common-env-vars
 x-web-resources: &web-resources
   limits:
     cpus: '1'
-    memory: 512M
+    memory: 1G
   reservations:
     cpus: '0.5'
-    memory: 256M
+    memory: 512M
 
 x-nginx-resources: &nginx-resources
   limits:
@@ -47,10 +47,10 @@ x-db-resources: &db-resources
 x-worker-resources: &worker-resources
   limits:
     cpus: '1'
-    memory: 1G
+    memory: 2G
   reservations:
     cpus: '0.5'
-    memory: 512M
+    memory: 1G
 
 x-default-resources: &default-resources
   limits:
@@ -108,6 +108,9 @@ services:
         condition: service_healthy
       postgres-db:
         condition: service_healthy
+    tmpfs:
+      - /tmp:size=${TMPFS_TMP_SIZE:-512m},mode=1777
+      - /rails/tmp:size=${TMPFS_RAILS_TMP_SIZE:-256m},mode=1777
     volumes:
       - storage:/rails/storage
     networks:
@@ -169,6 +172,9 @@ services:
         condition: service_healthy
       postgres-db:
         condition: service_healthy
+    tmpfs:
+      - /tmp:size=${TMPFS_TMP_SIZE:-512m},mode=1777
+      - /rails/tmp:size=${TMPFS_RAILS_TMP_SIZE:-256m},mode=1777
     volumes:
       - storage:/rails/storage
     networks:

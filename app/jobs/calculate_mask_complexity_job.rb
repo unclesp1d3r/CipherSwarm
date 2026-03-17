@@ -4,6 +4,8 @@
 # SPDX-License-Identifier: MPL-2.0
 
 class CalculateMaskComplexityJob < ApplicationJob
+  include TempStorageValidation
+
   queue_as :ingest
   discard_on ActiveRecord::RecordNotFound
 
@@ -18,6 +20,8 @@ class CalculateMaskComplexityJob < ApplicationJob
   def perform(mask_list_id)
     mask_list = MaskList.find(mask_list_id)
     return if mask_list.nil? || !mask_list.file.attached? || mask_list.complexity_value != 0
+
+    ensure_temp_storage_available!(mask_list.file)
 
     total_combinations = 0
     mask_list.file.open do |file|
