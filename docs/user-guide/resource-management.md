@@ -144,7 +144,16 @@ For more details, see [Previewing Resource Files](#previewing-resource-files).
    Project Scope: Current Project  # or Global
    ```
 
-3. **Upload Validation**
+3. **Upload Progress**
+
+   The upload form displays a progress bar with two distinct phases:
+
+   - **"Preparing... X%"**: The browser calculates an MD5 checksum of the file for integrity verification. This phase is displayed for files under 1 GB.
+   - **"Uploading... X%"**: The actual file transfer to the server. This phase is always shown during upload.
+
+   For files larger than 1 GB, the "Preparing" phase is automatically skipped to prevent browser performance issues. The server performs checksum verification as a background job after the upload completes.
+
+4. **Upload Validation**
 
    - File format validation
    - Size limit checking
@@ -152,6 +161,8 @@ For more details, see [Previewing Resource Files](#previewing-resource-files).
    - Duplicate detection
 
 ### 2. Supported Formats
+
+The improved upload experience with progress feedback applies to all resource types:
 
 #### Wordlists
 
@@ -188,6 +199,42 @@ Resources can be scoped to projects:
 - **Project-Specific**: Only accessible within assigned projects
 - **Global**: Available to all projects (admin only)
 - **Automatic Assignment**: Based on user's current project context
+
+### 4. Large File Handling
+
+CipherSwarm handles large file uploads with specific optimizations to ensure browser stability and data integrity:
+
+#### Threshold Behavior
+
+- **Files under 1 GB**: Full client-side MD5 checksum is calculated during the "Preparing" phase before upload begins. This verifies integrity during transfer.
+- **Files over 1 GB**: Client-side checksum calculation is automatically skipped to prevent browser performance issues and potential stalls. Upload proceeds directly to the "Uploading" phase.
+
+#### Server-Side Verification
+
+When client-side checksums are skipped for large files:
+
+- The file uploads directly to storage without an initial checksum
+- A background job (`VerifyChecksumJob`) automatically computes the MD5 checksum after upload completes
+- The `checksum_verified` status is set to `false` during upload and updated to `true` once verification completes
+- Verification typically completes within minutes, depending on file size and server load
+
+#### Integrity Verification
+
+- **Regular files (\<1 GB)**: Integrity verified during upload via client-side MD5 checksum
+- **Large files (>1 GB)**: Integrity verified after upload via server-side background job
+- The system tracks verification status via the `checksum_verified` attribute on each resource
+
+### 5. Upload Error Handling
+
+If an upload fails, the interface provides clear feedback:
+
+- An inline error message appears below the progress bar
+- The submit button is automatically re-enabled so you can retry
+- Common errors include:
+  - Network timeouts or connection failures
+  - File size exceeding configured limits
+  - Invalid file formats
+  - Storage quota exceeded
 
 ## Previewing Resource Files
 
@@ -482,6 +529,7 @@ resource_metadata:
   line_count: 14344391
   encoding: utf-8
   checksum: sha256:abc123...
+  checksum_verified: true    # integrity verification status
 
     # Usage tracking
   used_in_attacks: 15
@@ -501,6 +549,18 @@ resource_metadata:
 - **Performance Metrics**: Average time to first crack
 - **Popularity**: Usage frequency across campaigns
 - **Effectiveness**: Crack rate per resource type
+
+### 3. Checksum Verification Status
+
+Each uploaded resource includes a `checksum_verified` attribute that indicates the integrity verification status:
+
+- **Verified (true)**: The resource's checksum has been computed and validated
+  - Regular files (\<1 GB): Verified during upload via client-side MD5 checksum
+  - Large files (>1 GB): Verified after upload via server-side background job
+- **Pending (false)**: Verification is in progress (typical for large files immediately after upload)
+- **Failed**: Checksum mismatch detected — re-upload recommended
+
+The `checksum_verified` status can be viewed in the resource browser or via the resource metadata API. Verification typically completes within minutes for large files, depending on file size and server load.
 
 ## Security and Access Control
 
@@ -576,6 +636,19 @@ curl -I https://CipherSwarm.example.com/api/v1/web/resources/
 - Check network connectivity
 - Try uploading smaller chunks
 - Contact administrator for limit increases
+
+**Problem**: Upload shows "Preparing..." for a long time
+
+- **Cause**: The browser is calculating an MD5 checksum for integrity verification
+- **Solution**: For files under 1 GB, this is expected and ensures data integrity. For files over 1 GB, this step is automatically skipped to prevent browser stalls.
+- **If issues persist**: Contact your administrator if you experience problems with large file uploads
+
+**Problem**: Resource shows `checksum_verified: false`
+
+- **Cause**: Normal for large files (>1 GB) immediately after upload — verification runs as a background job
+- **Expected Duration**: Typically completes within minutes, depending on file size and server load
+- **When to be concerned**: If status remains false for more than an hour, or if it changes to failed
+- **Solution**: Check server logs or contact administrator if verification fails or takes unusually long
 
 ### 2. Edit Restrictions
 

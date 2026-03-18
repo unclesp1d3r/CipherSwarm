@@ -86,6 +86,8 @@ services:
     depends_on:
       web:
         condition: service_healthy
+      tusd:
+        condition: service_healthy
     networks:
       - frontend
       - backend
@@ -113,6 +115,8 @@ services:
       - /rails/tmp:size=${TMPFS_RAILS_TMP_SIZE:-256m},mode=1777
     volumes:
       - storage:/rails/storage
+      - tus_uploads:/srv/tusd-data
+      - attack_resources:/data/attack_resources
     networks:
       - frontend
       - backend
@@ -162,6 +166,45 @@ services:
       timeout: 3s
       retries: 5
 
+  tusd:
+    image: tusproject/tusd:v2
+    command:
+      - -upload-dir=/srv/tusd-data
+      - -hooks-http=http://web:80/api/v1/hooks/tus
+      - -hooks-enabled-events=post-finish
+      - -hooks-http-retry=5
+      - -hooks-http-backoff=2
+      - -behind-proxy
+      - -base-path=/uploads/
+      - -max-size=0
+    volumes:
+      - tus_uploads:/srv/tusd-data
+      - attack_resources:/data/attack_resources
+    networks:
+      - backend
+    deploy:
+      resources:
+        <<: *default-resources
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/metrics"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+
+  tusd-cleanup:
+    image: alpine:3
+    volumes:
+      - tus_uploads:/srv/tusd-data
+    entrypoint: /bin/sh
+    command: >
+      -c "while true; do
+        find /srv/tusd-data -name '*.info' -mmin +1440 -exec sh -c 'rm -f \"$$1\" \"$${1%.info}\"' _ {} \\;;
+        sleep 3600;
+      done"
+    restart: unless-stopped
+
   sidekiq:
     image: ghcr.io/unclesp1d3r/cipherswarm:latest
     command: bundle exec sidekiq
@@ -177,6 +220,8 @@ services:
       - /rails/tmp:size=${TMPFS_RAILS_TMP_SIZE:-256m},mode=1777
     volumes:
       - storage:/rails/storage
+      - tus_uploads:/srv/tusd-data
+      - attack_resources:/data/attack_resources
     networks:
       - backend
     deploy:
@@ -198,3 +243,5 @@ volumes:
   storage:
   postgres:
   redis:
+  tus_uploads:
+  attack_resources:

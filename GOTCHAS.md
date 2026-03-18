@@ -282,7 +282,22 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 - Active Storage computes an MD5 checksum of the entire file client-side (SparkMD5, 2 MB chunks via `FileReader`) before the upload starts
 - For files >10-20 GB, this silently stalls in the browser — no CPU spike, no error, no network requests, just a frozen submit button
 - The `POST /rails/active_storage/direct_uploads` request (which gets the signed upload URL) only fires AFTER the hash completes — if it never fires, the hash is stuck
-- No upload progress UI exists (#746); no workaround for the stall (#747)
+- **Solution (#747):** Attack resources (word lists, rule lists, mask lists) now upload via tusd (Go sidecar) with tus-js-client, bypassing Active Storage entirely. Hash lists still use Active Storage direct upload.
+- Upload progress UI (#746): `direct_upload_controller.js` shows progress via tus-js-client `onProgress` callback
+
+**tusd (Resumable Upload Server):**
+
+- **tusd does NOT auto-clean incomplete uploads** — a `tusd-cleanup` Alpine sidecar runs hourly to delete uploads older than 24 hours
+- **nginx `proxy_buffering off` is required** in addition to `proxy_request_buffering off` — without both, nginx buffers upload data defeating tus resumability
+- **Preventing double upload**: tus-js-client uploads the file, then the Stimulus controller removes the file input's `name` attribute so the browser excludes it from the multipart form POST
+- **tusd port is 8080** (not 1080) — the Alpine image uses `wget` for health checks (not `curl`)
+- **Upload ID validation**: `TusUploadHandler#extract_upload_id` validates hex format to prevent path traversal
+- **tusd hook retries**: configure `-hooks-http-retry=5 -hooks-http-backoff=2` in production for resilience
+
+**Active Storage Blob Validator Patching:**
+
+- **Never use `clear_validators!` on `ActiveStorage::Blob`** — it removes ALL validators (including `service_name` presence), not just the one you want. Use targeted removal: `_validators.delete(:checksum)` + iterate `_validate_callbacks` to remove specific callbacks.
+- **`blob.open` does NOT accept `verify:` kwarg** — that param is on `ActiveStorage::Downloader#open`, not `Blob#open`. To skip integrity verification (e.g., when computing your own checksum), call `blob.service.open(blob.key, checksum: blob.checksum, verify: false)` directly.
 
 **Jobs & Callbacks:**
 

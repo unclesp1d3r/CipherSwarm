@@ -8,7 +8,11 @@
 # Table name: word_lists
 #
 #  id                                           :bigint           not null, primary key
+#  checksum_verified                            :boolean          default(TRUE), not null
 #  description(Description of the word list)    :text
+#  file_name                                    :string
+#  file_path                                    :string
+#  file_size                                    :bigint
 #  line_count(Number of lines in the word list) :bigint
 #  name(Name of the word list)                  :string           not null, uniquely indexed
 #  processed                                    :boolean          default(FALSE), not null, indexed

@@ -44,4 +44,5 @@ namespace :client do
   post "tasks/:id/exhausted", to: "tasks#exhausted", as: "task_exhausted"
   post "tasks/:id/abandon", to: "tasks#abandon", as: "task_abandon"
   get "tasks/:id/get_zaps", to: "tasks#get_zaps", as: "task_get_zaps"
+  get "files/:type/:id", to: "files#show", as: "file_download"
 end

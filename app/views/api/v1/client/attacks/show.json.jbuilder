@@ -32,9 +32,16 @@ json.hash_list_id @attack.campaign.hash_list.id
   json.set! resource_name do
     if resource
       json.id resource.id
-      json.download_url rails_blob_url(resource.file)
-      json.checksum resource.file.checksum
-      json.file_name resource.file.filename
+      if resource.file_path.present?
+        json.download_url api_v1_client_file_download_url(type: resource_name, id: resource.id)
+        json.checksum resource.checksum
+        json.file_name resource.file_name
+      elsif resource.file.attached?
+        # Fallback for resources not yet migrated from Active Storage
+        json.download_url rails_blob_url(resource.file)
+        json.checksum resource.file.checksum
+        json.file_name resource.file.filename
+      end
     else
       json.nil!
     end

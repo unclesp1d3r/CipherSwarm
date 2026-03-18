@@ -26,7 +26,7 @@
           <% end %>
           <% if can? :destroy, attack %>
             <%= link_to [campaign, attack], class: "btn btn-danger", aria: { label: "Delete attack" },
-                        data: { turbo_method: :delete, turbo_confirm: "Are you sure?" } do %>
+                                            data: { turbo_method: :delete, turbo_confirm: "Are you sure?" } do %>
               <%= icon("trash-fill") %>
             <% end %>
           <% end %>

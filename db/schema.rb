@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_16_042410) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_17_061917) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -233,6 +233,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_16_042410) do
     t.bigint "project_id", null: false, comment: "Project that the hash list belongs to"
     t.boolean "sensitive", default: false, null: false, comment: "Is the hash list sensitive?"
     t.string "separator", limit: 1, default: ":", null: false, comment: "Separator used in the hash list file to separate the hash from the password or other metadata. Default is \":\"."
+    t.string "temp_file_path"
     t.datetime "updated_at", null: false
     t.index ["creator_id"], name: "index_hash_lists_on_creator_id"
     t.index ["hash_type_id"], name: "index_hash_lists_on_hash_type_id"
@@ -303,10 +304,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_16_042410) do
   end
 
   create_table "mask_lists", force: :cascade do |t|
+    t.string "checksum"
+    t.boolean "checksum_verified", default: true, null: false
     t.decimal "complexity_value", default: "0.0", comment: "Total attemptable password values"
     t.datetime "created_at", null: false
     t.bigint "creator_id", comment: "The user who created this list"
     t.text "description", comment: "Description of the mask list"
+    t.string "file_name"
+    t.string "file_path"
+    t.bigint "file_size"
     t.bigint "line_count", comment: "Number of lines in the mask list"
     t.string "name", limit: 255, null: false, comment: "Name of the mask list"
     t.boolean "processed", default: false, null: false, comment: "Has the mask list been processed?"
@@ -367,9 +373,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_16_042410) do
   end
 
   create_table "rule_lists", force: :cascade do |t|
+    t.string "checksum"
+    t.boolean "checksum_verified", default: true, null: false
     t.datetime "created_at", null: false
     t.bigint "creator_id", comment: "The user who created this list"
     t.text "description", comment: "Description of the rule list"
+    t.string "file_name"
+    t.string "file_path"
+    t.bigint "file_size"
     t.bigint "line_count", default: 0, comment: "Number of lines in the rule list"
     t.string "name", null: false, comment: "Name of the rule list"
     t.boolean "processed", default: false, null: false
@@ -556,9 +567,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_16_042410) do
   end
 
   create_table "word_lists", force: :cascade do |t|
+    t.string "checksum"
+    t.boolean "checksum_verified", default: true, null: false
     t.datetime "created_at", null: false
     t.bigint "creator_id", comment: "The user who created this list"
     t.text "description", comment: "Description of the word list"
+    t.string "file_name"
+    t.string "file_path"
+    t.bigint "file_size"
     t.bigint "line_count", comment: "Number of lines in the word list"
     t.string "name", null: false, comment: "Name of the word list"
     t.boolean "processed", default: false, null: false

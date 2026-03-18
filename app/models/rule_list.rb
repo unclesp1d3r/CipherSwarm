@@ -46,7 +46,11 @@
 # Table name: rule_lists
 #
 #  id                                           :bigint           not null, primary key
+#  checksum_verified                            :boolean          default(TRUE), not null
 #  description(Description of the rule list)    :text
+#  file_name                                    :string
+#  file_path                                    :string
+#  file_size                                    :bigint
 #  line_count(Number of lines in the rule list) :bigint           default(0)
 #  name(Name of the rule list)                  :string           not null, uniquely indexed
 #  processed                                    :boolean          default(FALSE), not null

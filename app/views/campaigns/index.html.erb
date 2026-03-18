@@ -14,7 +14,7 @@
           <% end %>
         <% end %>
         <%= link_to toggle_hide_completed_activities_path, class: "btn btn-secondary btn-sm",
-                    title: "Toggle completed item visibility", data: { turbo: false } do %>
+                                                           title: "Toggle completed item visibility", data: { turbo: false } do %>
           <%= current_user.hide_completed_activities? ? icon("eye-slash-fill") : icon("eye-fill") %>
         <% end %>
       </div>

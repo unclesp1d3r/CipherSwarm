@@ -4,6 +4,9 @@
 
 import { application } from "./application"
 
+import DirectUploadController from "./direct_upload_controller"
+application.register("direct-upload", DirectUploadController)
+
 import HealthRefreshController from "./health_refresh_controller"
 application.register("health-refresh", HealthRefreshController)
 
@@ -15,3 +18,6 @@ application.register("select", SelectController)
 
 import TabsController from "./tabs_controller"
 application.register("tabs", TabsController)
+
+import ToastController from "./toast_controller"
+application.register("toast", ToastController)

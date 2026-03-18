@@ -37,6 +37,7 @@
 #  processed(Is the hash list processed into hash items?)                                                                    :boolean          default(FALSE), not null
 #  sensitive(Is the hash list sensitive?)                                                                                    :boolean          default(FALSE), not null
 #  separator(Separator used in the hash list file to separate the hash from the password or other metadata. Default is ":".) :string(1)        default(":"), not null
+#  temp_file_path                                                                                                            :string
 #  created_at                                                                                                                :datetime         not null
 #  updated_at                                                                                                                :datetime         not null
 #  creator_id(The user who created this hash list)                                                                           :bigint           indexed
