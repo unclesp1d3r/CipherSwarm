@@ -21,7 +21,6 @@ gem "propshaft", "~> 1.3.1"
 gem "puma", "~> 7.2"
 gem "stimulus-rails", "~> 1.3.4"
 gem "turbo-rails", "~> 2.0.23"
-gem "tus-server", "~> 2.3"
 gem "tzinfo-data", platforms: %i[windows jruby]
 
 group :development, :test do

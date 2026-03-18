@@ -36,7 +36,7 @@ describe("DirectUploadController", () => {
 
     // Note: This is a static test fixture, not user-controlled input
     document.body.innerHTML = `
-      <form data-controller="direct-upload" data-direct-upload-endpoint-value="/uploads" data-direct-upload-chunk-size-value="52428800">
+      <form data-controller="direct-upload" data-direct-upload-endpoint-value="/uploads/" data-direct-upload-chunk-size-value="52428800">
         <input type="file" data-direct-upload-target="input" />
         <input type="hidden" data-direct-upload-target="tusUploadUrl" />
         <div class="d-none mt-2" data-direct-upload-target="progress">
@@ -89,7 +89,7 @@ describe("DirectUploadController", () => {
 
       expect(tus.Upload).toHaveBeenCalledTimes(1);
       const options = getTusOptions();
-      expect(options.endpoint).toBe("/uploads");
+      expect(options.endpoint).toBe("/uploads/");
       expect(options.chunkSize).toBe(52428800);
     });
 
@@ -133,6 +133,20 @@ describe("DirectUploadController", () => {
 
       expect(mockFindPreviousUploads).toHaveBeenCalled();
       expect(mockStart).toHaveBeenCalled();
+    });
+
+    it("sets removeFingerprintOnSuccess to true", () => {
+      simulateFileSelect();
+      const options = getTusOptions();
+      expect(options.removeFingerprintOnSuccess).toBe(true);
+    });
+
+    it("aborts existing upload when re-selecting a file", () => {
+      simulateFileSelect("first.txt");
+      simulateFileSelect("second.txt");
+
+      expect(mockAbort).toHaveBeenCalledWith(true);
+      expect(tus.Upload).toHaveBeenCalledTimes(2);
     });
   });
 
@@ -192,6 +206,19 @@ describe("DirectUploadController", () => {
       );
       expect(status.textContent).toContain("Upload complete");
       expect(status.querySelector(".bi-check-circle-fill")).toBeTruthy();
+    });
+
+    it("removes file input name attribute to prevent double upload", () => {
+      const input = document.querySelector(
+        '[data-direct-upload-target="input"]',
+      );
+      input.setAttribute("name", "word_list[file]");
+
+      simulateFileSelect();
+      const options = getTusOptions();
+      options.onSuccess();
+
+      expect(input.hasAttribute("name")).toBe(false);
     });
   });
 

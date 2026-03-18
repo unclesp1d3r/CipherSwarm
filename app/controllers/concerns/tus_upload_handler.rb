@@ -1,10 +1,11 @@
 # frozen_string_literal: true
 
 # REASONING:
-# - Why: tus-ruby-server stores completed uploads in a temp directory. This concern
-#   moves them to permanent storage and sets file_path on the record.
-# - Alternatives: tus after_finish hook (runs outside request context, no access to
-#   model), Active Storage attach (defeats the purpose of removing AS)
+# - Why: tusd (Go sidecar) handles chunked uploads. After upload completes,
+#   tusd sends a post-finish hook to Rails which caches upload metadata.
+#   This concern moves the completed file to permanent storage and sets file_path.
+# - Alternatives: move file in the hook controller (couples hook to model logic),
+#   Active Storage attach (defeats the purpose of removing AS)
 # - Decision: controller concern called during create/update actions
 # - Performance: FileUtils.mv is O(1) on same filesystem, no data copying
 # - Future: could add virus scanning hook before move
@@ -12,16 +13,28 @@
 module TusUploadHandler
   extend ActiveSupport::Concern
 
+  # Raised when tus upload processing fails
+  class TusUploadError < StandardError; end
+
   private
 
   def process_tus_upload(record, tus_upload_url)
     return if tus_upload_url.blank?
 
-    source_path = tus_file_path(tus_upload_url)
-    unless source_path && File.exist?(source_path)
-      Rails.logger.error("[TusUpload] File not found for #{record.class.name}##{record.id}")
-      return false
+    upload_id = extract_upload_id(tus_upload_url)
+
+    # Try cached hook data first (set by TusController post-finish hook),
+    # fall back to constructing path from upload ID
+    cached = Rails.cache.read("tus_upload:#{upload_id}")
+    source_path = cached&.dig(:file_path) || File.join(tus_uploads_dir, upload_id)
+
+    unless File.exist?(source_path)
+      record.destroy! if record.persisted?
+      raise TusUploadError, "Upload file not found: #{upload_id}"
     end
+
+    # Use cached filename if available (from tus metadata)
+    record.file_name ||= cached&.dig(:filename)
 
     storage_dir = attack_resource_storage_dir(record)
     FileUtils.mkdir_p(storage_dir)
@@ -29,36 +42,33 @@ module TusUploadHandler
     dest_path = File.join(storage_dir, dest_filename)
 
     FileUtils.mv(source_path, dest_path)
-    record.update!(file_path: dest_path, file_size: File.size(dest_path), checksum_verified: false)
+    # Also clean up the .info metadata file left by tusd
+    info_path = "#{source_path}.info"
+    File.delete(info_path) if File.exist?(info_path)
 
-    # Enqueue deferred checksum verification
+    record.update!(file_path: dest_path, file_size: File.size(dest_path), checksum_verified: false)
     VerifyChecksumJob.perform_later(record.id, record.class.name)
+    Rails.cache.delete("tus_upload:#{upload_id}")
 
     true
+  rescue TusUploadError
+    raise
   rescue StandardError => e
-    Rails.logger.error("[TusUpload] Failed to process upload for #{record.class.name}##{record.id}: #{e.message}")
+    Rails.logger.error("[TusUpload] Failed for #{record.class.name}##{record.id}: #{e.message}")
+    record.destroy! if record.persisted? && record.file_path.blank?
     false
   end
 
-  def process_tus_upload_for_hash_list(hash_list, tus_upload_url)
-    return if tus_upload_url.blank?
-
-    source_path = tus_file_path(tus_upload_url)
-    unless source_path && File.exist?(source_path)
-      Rails.logger.error("[TusUpload] File not found for HashList##{hash_list.id}")
-      return false
+  def extract_upload_id(url)
+    id = url.to_s.split("/").last.to_s.split("?").first
+    unless id.present? && id.match?(/\A[a-f0-9]+\z/i)
+      raise TusUploadError, "Invalid upload ID format: #{id}"
     end
-
-    hash_list.update!(temp_file_path: source_path)
-    true
+    id
   end
 
-  def tus_file_path(tus_upload_url)
-    return nil if tus_upload_url.blank?
-
-    upload_id = tus_upload_url.split("/").last
-    tus_data_dir = Rails.root.join(ENV.fetch("TUS_DATA_DIR", "tmp/tus_data")).to_s
-    File.join(tus_data_dir, upload_id)
+  def tus_uploads_dir
+    ENV.fetch("TUS_UPLOADS_DIR", "/srv/tusd-data")
   end
 
   def attack_resource_storage_dir(record)

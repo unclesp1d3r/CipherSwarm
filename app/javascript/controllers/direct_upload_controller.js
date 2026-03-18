@@ -7,8 +7,9 @@ import { Controller } from "@hotwired/stimulus";
 import * as tus from "tus-js-client";
 
 // Connects to data-controller="direct-upload"
-// Handles resumable file uploads via tus protocol for files of any size.
-// Supports auto-resume after network failure via localStorage fingerprinting.
+// Handles resumable file uploads via tus protocol (tusd Go sidecar) for files
+// of any size (100+ GB). Supports auto-resume after network failure via
+// localStorage fingerprinting.
 export default class extends Controller {
   static targets = [
     "input",
@@ -16,17 +17,17 @@ export default class extends Controller {
     "progressBar",
     "status",
     "submit",
-    "phase",
     "filename",
     "tusUploadUrl",
   ];
   static values = {
-    endpoint: { type: String, default: "/uploads" },
+    endpoint: { type: String, default: "/uploads/" },
     chunkSize: { type: Number, default: 52428800 }, // 50 MB
   };
 
   connect() {
     this.upload = null;
+    this._lastProgressUpdate = 0;
     this.boundHandleFileSelect = this.handleFileSelect.bind(this);
     this.inputTarget.addEventListener("change", this.boundHandleFileSelect);
   }
@@ -43,6 +44,12 @@ export default class extends Controller {
     const file = this.inputTarget.files[0];
     if (!file) return;
 
+    // Abort any in-progress upload and clean up server-side partial
+    if (this.upload) {
+      this.upload.abort(true);
+      this.upload = null;
+    }
+
     this.showFilename(file);
     this.startUpload(file);
   }
@@ -55,13 +62,19 @@ export default class extends Controller {
     this.upload = new tus.Upload(file, {
       endpoint: this.endpointValue,
       chunkSize: this.chunkSizeValue,
-      retryDelays: [0, 1000, 3000, 5000, 10000],
+      retryDelays: [0, 1000, 3000, 5000, 10000, 20000, 30000, 60000],
+      removeFingerprintOnSuccess: true,
       metadata: {
         filename: file.name,
         filetype: file.type || "application/octet-stream",
       },
 
       onProgress: (bytesUploaded, bytesTotal) => {
+        // Throttle DOM updates to every 100ms for large files
+        const now = Date.now();
+        if (now - this._lastProgressUpdate < 100) return;
+        this._lastProgressUpdate = now;
+
         const progress = (bytesUploaded / bytesTotal) * 100;
         this.updateProgressBar(progress);
         this.showStatus(`Uploading\u2026 ${Math.round(progress)}%`);
@@ -78,6 +91,11 @@ export default class extends Controller {
         if (this.hasTusUploadUrlTarget && this.upload.url) {
           this.tusUploadUrlTarget.value = this.upload.url;
         }
+
+        // Prevent double upload: remove name attribute so browser excludes
+        // file from the multipart form POST. The file was already uploaded
+        // via tus — the form only needs to send the tus URL.
+        this.inputTarget.removeAttribute("name");
 
         this.showReadyStatus();
         this.submitTarget.disabled = false;
@@ -96,7 +114,7 @@ export default class extends Controller {
     });
 
     this.upload.findPreviousUploads().then((previousUploads) => {
-      if (!this.upload) return; // Upload was aborted or errored during findPreviousUploads
+      if (!this.upload) return;
       if (previousUploads.length > 0) {
         this.upload.resumeFromPreviousUpload(previousUploads[0]);
         this.showStatus("Resuming upload\u2026");

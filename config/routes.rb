@@ -297,9 +297,6 @@ Rails.application.routes.draw do
   mount Rswag::Ui::Engine => "/api-docs"
   mount Rswag::Api::Engine => "/api-docs"
 
-  # tus resumable upload server — handles chunked file uploads for attack resources.
-  mount Tus::Server, at: "/uploads"
-
   concern :downloadable do
     member do
       get :view_file
@@ -336,6 +333,11 @@ Rails.application.routes.draw do
   namespace :api, defaults: { format: :json } do
     namespace :v1 do
       draw(:client_api)
+      # tusd hook endpoint — called by tusd container, not by external clients.
+      # Outside client_api to bypass agent authentication.
+      namespace :hooks do
+        post "tus", to: "tus#create"
+      end
     end
   end
 
