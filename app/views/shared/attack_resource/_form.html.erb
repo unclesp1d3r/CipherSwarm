@@ -1,5 +1,5 @@
 <%# locals: (resource:,projects:) -%>
-<%= simple_form_for(resource) do |f| %>
+<%= simple_form_for(resource, html: { data: { controller: "direct-upload" } }) do |f| %>
   <% if resource.errors.any? %>
     <div class="alert alert-danger" role="alert">
       <h4 class="alert-heading"><%= pluralize(resource.errors.count, "error") %> prevent this from saving.</h4>
@@ -14,13 +14,16 @@
     <%= f.input :name %>
     <%= f.input :description %>
     <%= f.input :file,
-                input_html: { direct_upload: true } %>
+                as: :file,
+                input_html: { data: { direct_upload_target: "input" } } %>
+    <%= hidden_field_tag :tus_upload_url, nil, data: { direct_upload_target: "tusUploadUrl" } %>
+    <%= render "shared/direct_upload_progress" %>
     <%= f.association :projects, as: :check_boxes, include_blank: false,
                                  collection: projects,
                                  hint: "Select the project(s) to associate this list with. If none are selected, the list will be available to all projects." %>
   </div>
   <div class="form-actions">
-    <%= f.button :submit, class: "btn btn-primary" %>
+    <%= f.button :submit, class: "btn btn-primary", data: { direct_upload_target: "submit" } %>
     <%= link_to "Cancel", url_for(controller: controller_name), class: "btn btn-secondary" %>
   </div>
 <% end %>

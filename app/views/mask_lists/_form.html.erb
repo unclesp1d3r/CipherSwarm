@@ -1,17 +1,20 @@
-<%= simple_form_for(@mask_list) do |f| %>
+<%= simple_form_for(@mask_list, html: { data: { controller: "direct-upload" } }) do |f| %>
   <%= f.error_notification %>
 
   <div class="form-inputs">
     <%= f.input :name %>
     <%= f.input :description %>
     <%= f.input :file,
-                input_html: { direct_upload: true } %>
+                as: :file,
+                input_html: { data: { direct_upload_target: "input" } } %>
+    <%= hidden_field_tag :tus_upload_url, nil, data: { direct_upload_target: "tusUploadUrl" } %>
+    <%= render "shared/direct_upload_progress" %>
     <%= f.input :sensitive %>
     <%= f.association :projects, as: :check_boxes, include_blank: false,
                                  collection: Project.accessible_by(current_ability) %>
   </div>
 
   <div class="form-actions btn-group">
-    <%= f.button :submit, class: "btn btn-primary" %>
+    <%= f.button :submit, class: "btn btn-primary", data: { direct_upload_target: "submit" } %>
   </div>
 <% end %>

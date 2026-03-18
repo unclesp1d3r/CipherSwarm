@@ -49,14 +49,31 @@ class CountFileLinesJob < ApplicationJob
     klass = type.constantize
     record = klass.find_by(id: id)
     return if record.nil?
-    return if record.processed? || !record.file.attached?
+    return if record.processed?
 
-    ensure_temp_storage_available!(record.file)
-
-    record.file.open do |file|
-      count = file.each_line.count
+    count_lines(record) do |count|
       record.update!(line_count: count, processed: true)
-      Rails.logger.info "Counted #{count} lines in #{record.file.filename}"
+      Rails.logger.info "[CountFileLines] Counted #{count} lines for #{record.class.name}##{record.id}"
+    end
+  end
+
+  private
+
+  def count_lines(record)
+    open_record_file(record) do |file|
+      count = file.each_line.count
+      yield count
+    end
+  end
+
+  def open_record_file(record, &)
+    if record.file_path.present? && File.exist?(record.file_path)
+      File.open(record.file_path, &)
+    elsif record.file.attached?
+      ensure_temp_storage_available!(record.file)
+      record.file.open(&)
+    else
+      raise StandardError, "[CountFileLines] No file found for #{record.class.name}##{record.id}"
     end
   end
 end

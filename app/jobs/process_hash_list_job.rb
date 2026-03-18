@@ -75,16 +75,13 @@ class ProcessHashListJob < ApplicationJob
   private
 
   def ingest_hash_items(list)
-    ensure_temp_storage_available!(list.file)
-
     # Clean up any partial results from a prior failed attempt to ensure idempotent ingestion.
-    # Runs AFTER the temp storage check so existing items are preserved if space is insufficient.
     list.hash_items.delete_all
 
     hash_items = []
     processed_count = 0
 
-    list.file.open do |file|
+    open_hash_list_file(list) do |file|
       file.each_line do |line|
         next if line.blank?
 
@@ -197,5 +194,25 @@ class ProcessHashListJob < ApplicationJob
   rescue ActiveRecord::StatementInvalid => e
     Rails.logger.error("Failed to process batch for list #{list.id}: #{e.message}")
     raise
+  end
+
+  # Opens the hash list file from temp_file_path (tus) or Active Storage (fallback).
+  # Deletes the temp file after processing when using tus upload path.
+  def open_hash_list_file(list, &)
+    if list.temp_file_path.present? && File.exist?(list.temp_file_path)
+      File.open(list.temp_file_path, &)
+      # Clean up temp file after successful processing — failure must not abort ingestion
+      begin
+        File.delete(list.temp_file_path) if File.exist?(list.temp_file_path)
+        list.update_column(:temp_file_path, nil) # rubocop:disable Rails/SkipsModelValidations -- intentional: avoid callbacks after processing
+      rescue StandardError => e
+        Rails.logger.warn("[ProcessHashList] Temp file cleanup failed for HashList##{list.id}: #{e.message}")
+      end
+    elsif list.file.attached?
+      ensure_temp_storage_available!(list.file)
+      list.file.open(&)
+    else
+      raise StandardError, "[ProcessHashList] No file found for HashList##{list.id}"
+    end
   end
 end

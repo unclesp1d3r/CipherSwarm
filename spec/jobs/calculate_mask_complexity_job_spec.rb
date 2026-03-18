@@ -87,9 +87,9 @@ RSpec.describe CalculateMaskComplexityJob do
         ml.reload
       end
 
-      it "does not change the complexity value" do
+      it "raises an error for missing file" do
         expect { described_class.perform_now(mask_list.id) }
-          .not_to change { mask_list.reload.complexity_value }
+          .to raise_error(StandardError, /No file found/)
       end
     end
 

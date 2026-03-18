@@ -286,9 +286,56 @@ Simplified brute force interface:
 - **Export Options**: TSV and CSV export formats
 - **Status Tracking**: Cracked vs uncracked hash counts
 
+### Upload Progress Feedback
+
+When uploading files through the web interface, a progress bar provides visual feedback during the upload process. Uploads use the **tus resumable upload protocol**, which supports files of any size (including 100+ GB) with automatic resume on network failure.
+
+#### Upload Progress
+
+File uploads display a progress bar with percentage indicator:
+
+- **"Uploading... X%"** — displays during file transfer with real-time progress
+- **"Upload complete. Ready to submit."** — file uploaded, form ready for submission
+- Files are uploaded in 50 MB chunks for reliable transfer of large files
+- If the connection drops, the upload resumes automatically where it left off
+
+#### Background Verification
+
+After upload completes, a background job (`VerifyChecksumJob`) computes a server-side checksum for integrity verification:
+
+- Resources show `checksum_verified: false` until verification completes
+- On success, `checksum_verified` is set to `true` and the checksum is stored
+- On failure (checksum mismatch), the resource remains `checksum_verified: false` and an error is logged — the resource can still be used but re-uploading is recommended
+- Verification status is visible in the resource detail view
+
+#### Error Handling
+
+If an upload error occurs:
+
+- The progress bar is hidden
+- An inline error message appears with actionable guidance
+- The submit button is re-enabled to allow retry
+- Tus protocol automatically retries transient network errors before surfacing the failure
+
+#### Affected Upload Forms
+
+This progress feedback appears when uploading:
+
+- **Mask Lists**: Mask pattern file uploads
+- **Attack Resources**: Word lists and rule lists
+
+```html
+<div class="progress mt-2 d-none" data-direct-upload-target="progress">
+ <div aria-valuemax="100" aria-valuemin="0" aria-valuenow="0" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%">
+ </div>
+</div>
+<p class="form-text mt-1" data-direct-upload-target="status">
+</p>
+```
+
 ### Crackable Uploads
 
-New streamlined workflow for non-technical users:
+Streamlined workflow for non-technical users:
 
 #### Supported Formats
 
@@ -627,6 +674,7 @@ Accessibility features are verified through:
    - Check upload status endpoint
    - Review error logs for failed lines
    - Verify file format compatibility
+   - If the progress bar appears stuck during the "Preparing" phase for very large files, this may indicate a browser timeout. Contact your administrator about the large file threshold setting (default 1 GB)
 
 4. **Agent Not Appearing**
 

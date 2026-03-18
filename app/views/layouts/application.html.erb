@@ -30,7 +30,7 @@
       </div>
     </div>
   <% end %>
-  <main id="main-content" class="<%= user_signed_in? ? 'col-md-10' : 'col-12' %>">
+  <main id="main-content" class="<%= user_signed_in? ? "col-md-10" : "col-12" %>">
     <div class="container-fluid">
       <% flash.each do |type, message| %>
         <% next if message.blank? %>

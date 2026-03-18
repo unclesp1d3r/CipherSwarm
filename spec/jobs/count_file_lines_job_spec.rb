@@ -122,13 +122,8 @@ RSpec.describe CountFileLinesJob do
         rl.reload
       end
 
-      it "does not raise an error" do
-        expect { described_class.perform_now(rule_list.id, "RuleList") }.not_to raise_error
-      end
-
-      it "does not mark as processed" do
-        described_class.perform_now(rule_list.id, "RuleList")
-        expect(rule_list.reload.processed).to be false
+      it "raises an error for missing file" do
+        expect { described_class.perform_now(rule_list.id, "RuleList") }.to raise_error(StandardError, /No file found/)
       end
     end
   end

@@ -333,6 +333,11 @@ Rails.application.routes.draw do
   namespace :api, defaults: { format: :json } do
     namespace :v1 do
       draw(:client_api)
+      # tusd hook endpoint — called by tusd container, not by external clients.
+      # Outside client_api to bypass agent authentication.
+      namespace :hooks do
+        post "tus", to: "tus#create"
+      end
     end
   end
 

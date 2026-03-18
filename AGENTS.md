@@ -285,6 +285,7 @@ Business logic is extracted into service objects and models:
   - `UpdateStatusJob` - Update task status
   - `CampaignPriorityRebalanceJob` - Trigger task preemption when campaign priority is raised
   - `DataCleanupJob` - Data retention enforcement (old errors, audits, hashcat statuses)
+  - `VerifyChecksumJob` - Deferred server-side checksum verification for large-file uploads that skipped client-side MD5
 
 ### File Storage
 
@@ -357,6 +358,7 @@ Vitest for JS unit tests:
 4. Run: `just test-js` or `npx vitest run`
 
 - Pagy JS is distributed via the gem's `javascripts/` directory, not npm — `config/initializers/pagy.rb` adds it to asset paths and esbuild resolves via `NODE_PATH`
+- Run `bin/rails stimulus:manifest:update` after adding/removing Stimulus controllers — the manifest can drift if controllers are added manually
 
 > **Vitest mock patterns** — see [GOTCHAS.md § API & rswag](GOTCHAS.md#api--rswag)
 
@@ -506,6 +508,40 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 - CSS: `tom-select/dist/css/tom-select.bootstrap5` imported in application.bootstrap.scss
 - System test helper: `BasePage#tom_select_fill_and_choose(select_id, text)` — requires `dropdown_input` plugin
 - SimpleForm: use `label_method: :to_s` explicitly rather than adding `to_label` to models
+
+### Direct Upload Progress (Active Storage)
+
+- Stimulus controller: `app/javascript/controllers/direct_upload_controller.js`
+- Attached to `<form>` element (not a wrapper div) — Active Storage events bubble from file input to form
+- Shows Bootstrap progress bar during upload, disables submit, displays status/error text
+- Used on: `hash_lists/_form`, `mask_lists/_form`, `shared/attack_resource/_form`
+- Checksum override: `app/javascript/utils/direct_upload_override.js` patches `FileChecksum.create` (imported from internal path `@rails/activestorage/src/file_checksum`, NOT the package root which doesn't export it) to skip client-side MD5 for files exceeding the threshold (default 1 GB) — `blobs.checksum` is NULL for skipped files
+- For files under threshold, the override emits `direct-upload:checksum-progress` events on `document` during hashing (FileChecksum has no reference to the input element)
+- Override threshold is scoped per-file via a WeakMap (not a mutable global), set from the Stimulus controller's `checksumThresholdValue` during `direct-upload:initialize`
+- Server-side nil-checksum support: `config/initializers/active_storage_large_upload.rb` relaxes Blob checksum validation (allows nil when `metadata.checksum_skipped == true`), and patches S3 service to omit nil `Content-MD5` header — uses targeted validator removal (NOT `clear_validators!`)
+- Custom `app/controllers/active_storage/direct_uploads_controller.rb` overrides the base controller to accept nil checksum and set `checksum_skipped` metadata
+- Deferred verification: `VerifyChecksumJob` computes server-side MD5 post-upload, backfills `blobs.checksum`, and sets `checksum_verified: true` on the attack resource — uses `blob.service.open(blob.key, ..., verify: false)` to skip the Downloader's integrity check
+- `checksum_verified` boolean column on `word_lists`, `rule_lists`, `mask_lists` (default `true`) — set to `false` on upload of large files, `true` after `VerifyChecksumJob` completes
+- Override threshold tunable per-form via `data-direct-upload-checksum-threshold-value` attribute (bytes); defaults to 1 GB if not specified
+- `app/javascript/utils/` is the directory for shared JS utility modules (not controllers)
+
+### Resumable File Uploads (tusd)
+
+- **tusd** (Go binary) runs as a Docker sidecar container for chunked, resumable file uploads supporting 100+ GB files
+- Stimulus controller: `app/javascript/controllers/direct_upload_controller.js` uses `tus-js-client` for browser-side uploads
+- tusd listens on port 8080, nginx proxies `/uploads/` to it — Rails is NOT in the upload data path
+- Upload flow: Browser → tus-js-client (50 MB chunks) → nginx → tusd → `/srv/tusd-data` volume
+- On completion: tusd sends HTTP POST hook to `POST /api/v1/hooks/tus` (`Api::V1::Hooks::TusController`)
+- Hook caches upload metadata in Rails.cache, form controllers use `TusUploadHandler` concern to move file to permanent storage
+- Agent downloads: `Api::V1::Client::FilesController` with nginx `X-Accel-Redirect` — Puma freed immediately after auth check
+- `checksum_verified` boolean column on `word_lists`, `rule_lists`, `mask_lists` — `VerifyChecksumJob` computes MD5 from `file_path` directly
+- Incomplete upload cleanup: `tusd-cleanup` Alpine sidecar deletes uploads older than 24 hours
+- tusd does NOT auto-clean expired uploads — the cleanup sidecar is mandatory
+- `TUS_UPLOADS_DIR` env var configures tusd data directory (default: `/srv/tusd-data`)
+- `ATTACK_RESOURCE_STORAGE_PATH` env var configures permanent storage (default: `storage/attack_resources` in dev, `/data/attack_resources` in production)
+- Preventing double upload: Stimulus controller removes file input `name` attribute on success so browser excludes file from multipart POST
+- Resume: tus-js-client stores fingerprint in localStorage, resumes automatically on page reload
+- `removeFingerprintOnSuccess: true` cleans localStorage after successful upload
 
 ### Common Patterns
 
