@@ -14,7 +14,6 @@
 # - `set_projects`: Sets the list of accessible projects for specific actions.
 # - `load_and_authorize_resource`: Handles resource loading and checks authorization.
 class HashListsController < ApplicationController
-  include TusUploadHandler
   before_action :authenticate_user!
   before_action :set_projects, only: %i[new edit create update]
   load_and_authorize_resource

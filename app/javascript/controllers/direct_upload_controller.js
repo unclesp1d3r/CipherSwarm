@@ -113,14 +113,24 @@ export default class extends Controller {
       },
     });
 
-    this.upload.findPreviousUploads().then((previousUploads) => {
-      if (!this.upload) return;
-      if (previousUploads.length > 0) {
-        this.upload.resumeFromPreviousUpload(previousUploads[0]);
-        this.showStatus("Resuming upload\u2026");
-      }
-      this.upload.start();
-    });
+    this.upload
+      .findPreviousUploads()
+      .then((previousUploads) => {
+        if (!this.upload) return;
+        if (previousUploads.length > 0) {
+          this.upload.resumeFromPreviousUpload(previousUploads[0]);
+          this.showStatus("Resuming upload\u2026");
+        }
+        this.upload.start();
+      })
+      .catch((error) => {
+        this.hideProgressBar();
+        const message = error?.message || "Failed to check for resumable uploads";
+        this.showStatus(`Upload failed: ${message}. Select the file again to retry.`);
+        this.statusTarget.classList.add("text-danger");
+        this.submitTarget.disabled = false;
+        this.upload = null;
+      });
   }
 
   // -- Private helpers --

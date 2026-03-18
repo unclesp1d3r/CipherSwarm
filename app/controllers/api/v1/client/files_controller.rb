@@ -22,6 +22,13 @@ class Api::V1::Client::FilesController < Api::V1::BaseController
       return
     end
 
+    storage_base = ENV.fetch("ATTACK_RESOURCE_STORAGE_PATH", "/data/attack_resources")
+    unless resource.file_path.start_with?(storage_base)
+      Rails.logger.error("[FilesController] Path traversal attempt: #{resource.file_path}")
+      render json: { error: "File not found" }, status: :not_found
+      return
+    end
+
     if nginx_accel_enabled?
       serve_via_nginx(resource)
     else
@@ -50,7 +57,8 @@ class Api::V1::Client::FilesController < Api::V1::BaseController
 
     response.headers["X-Accel-Redirect"] = internal_path
     response.headers["Content-Type"] = "application/octet-stream"
-    response.headers["Content-Disposition"] = "attachment; filename=\"#{resource.file_name}\""
+    sanitized_name = resource.file_name.to_s.gsub(/["\\\r\n]/, "_")
+    response.headers["Content-Disposition"] = "attachment; filename=\"#{sanitized_name}\""
     head :ok
   end
 

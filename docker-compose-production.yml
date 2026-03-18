@@ -115,7 +115,7 @@ services:
       - /rails/tmp:size=${TMPFS_RAILS_TMP_SIZE:-256m},mode=1777
     volumes:
       - storage:/rails/storage
-      - tus_uploads:/srv/tusd-data:ro
+      - tus_uploads:/srv/tusd-data
       - attack_resources:/data/attack_resources
     networks:
       - frontend
@@ -220,7 +220,7 @@ services:
       - /rails/tmp:size=${TMPFS_RAILS_TMP_SIZE:-256m},mode=1777
     volumes:
       - storage:/rails/storage
-      - tus_uploads:/srv/tusd-data:ro
+      - tus_uploads:/srv/tusd-data
       - attack_resources:/data/attack_resources
     networks:
       - backend

@@ -44,7 +44,11 @@ class RuleListsController < ApplicationController
 
     respond_to do |format|
       if @rule_list.save
-        process_tus_upload(@rule_list, params[:tus_upload_url])
+        if params[:tus_upload_url].present? && !process_tus_upload(@rule_list, params[:tus_upload_url])
+          format.html { redirect_to rule_lists_url, alert: "Rule list was created but the file upload failed. Please try again." }
+          format.json { render json: { error: "File upload processing failed" }, status: :unprocessable_content }
+          next
+        end
         format.html { redirect_to rule_list_url(@rule_list), notice: "Rule list was successfully created." }
         format.json { render :show, status: :created, location: @rule_list }
       else

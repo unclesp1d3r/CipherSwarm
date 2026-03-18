@@ -201,9 +201,13 @@ class ProcessHashListJob < ApplicationJob
   def open_hash_list_file(list, &)
     if list.temp_file_path.present? && File.exist?(list.temp_file_path)
       File.open(list.temp_file_path, &)
-      # Clean up temp file after successful processing
-      File.delete(list.temp_file_path) if File.exist?(list.temp_file_path)
-      list.update_column(:temp_file_path, nil) # rubocop:disable Rails/SkipsModelValidations -- intentional: avoid callbacks after processing
+      # Clean up temp file after successful processing — failure must not abort ingestion
+      begin
+        File.delete(list.temp_file_path) if File.exist?(list.temp_file_path)
+        list.update_column(:temp_file_path, nil) # rubocop:disable Rails/SkipsModelValidations -- intentional: avoid callbacks after processing
+      rescue StandardError => e
+        Rails.logger.warn("[ProcessHashList] Temp file cleanup failed for HashList##{list.id}: #{e.message}")
+      end
     elsif list.file.attached?
       ensure_temp_storage_available!(list.file)
       list.file.open(&)

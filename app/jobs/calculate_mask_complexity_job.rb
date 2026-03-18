@@ -46,6 +46,8 @@ class CalculateMaskComplexityJob < ApplicationJob
     elsif record.respond_to?(:file) && record.file.attached?
       ensure_temp_storage_available!(record.file)
       record.file.open(&)
+    else
+      raise StandardError, "[CalculateMaskComplexity] No file found for #{record.class.name}##{record.id}"
     end
   end
 end

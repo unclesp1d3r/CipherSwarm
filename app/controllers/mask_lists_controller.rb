@@ -57,7 +57,11 @@ class MaskListsController < ApplicationController
 
     respond_to do |format|
       if @mask_list.save
-        process_tus_upload(@mask_list, params[:tus_upload_url])
+        if params[:tus_upload_url].present? && !process_tus_upload(@mask_list, params[:tus_upload_url])
+          format.html { redirect_to mask_lists_url, alert: "Mask list was created but the file upload failed. Please try again." }
+          format.json { render json: { error: "File upload processing failed" }, status: :unprocessable_content }
+          next
+        end
         format.html { redirect_to mask_list_url(@mask_list), notice: "Mask list was successfully created." }
         format.json { render :show, status: :created, location: @mask_list }
       else

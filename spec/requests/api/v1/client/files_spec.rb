@@ -16,6 +16,9 @@ RSpec.describe "Api::V1::Client::Files" do
     FileUtils.mkdir_p(temp_dir)
     File.write(test_file_path, "password123\nadmin\n")
     word_list.update_columns(file_path: test_file_path, file_name: "test-wordlist.txt") # rubocop:disable Rails/SkipsModelValidations
+    # Set storage base to match test temp dir for path traversal validation
+    allow(ENV).to receive(:fetch).and_call_original
+    allow(ENV).to receive(:fetch).with("ATTACK_RESOURCE_STORAGE_PATH", anything).and_return(temp_dir.to_s)
   end
 
   after do

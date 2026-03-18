@@ -72,6 +72,8 @@ class CountFileLinesJob < ApplicationJob
     elsif record.file.attached?
       ensure_temp_storage_available!(record.file)
       record.file.open(&)
+    else
+      raise StandardError, "[CountFileLines] No file found for #{record.class.name}##{record.id}"
     end
   end
 end

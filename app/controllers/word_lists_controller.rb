@@ -79,7 +79,11 @@ class WordListsController < ApplicationController
 
     respond_to do |format|
       if @word_list.save
-        process_tus_upload(@word_list, params[:tus_upload_url])
+        if params[:tus_upload_url].present? && !process_tus_upload(@word_list, params[:tus_upload_url])
+          format.html { redirect_to word_lists_url, alert: "Word list was created but the file upload failed. Please try again." }
+          format.json { render json: { error: "File upload processing failed" }, status: :unprocessable_content }
+          next
+        end
         format.html { redirect_to word_list_url(@word_list), notice: "Word list was successfully created." }
         format.json { render :show, status: :created, location: @word_list }
       else
