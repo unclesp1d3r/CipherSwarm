@@ -352,6 +352,7 @@ Recent Improvements (Last 3 Months):
 ✅ Automatic task preemption on campaign priority increases
 ✅ action_text-trix upgraded to 2.1.17 (security patch for XSS vulnerability)
 ✅ json upgraded to 2.19.2 (security patch for CVE-2026-33210 format string injection vulnerability)
+✅ bcrypt upgraded to 3.1.22 (security patch for CVE-2026-33306 integer overflow)
 
 Debt Reduction: ~17% in last quarter
 Projection: If current pace continues, debt score will reach 5.0 (Good) in 5 months
@@ -950,7 +951,7 @@ Next week focus:
 
 **Strengths** 🟢:
 
-- Proactive security maintenance (action_text-trix XSS vulnerability patched promptly, json gem CVE-2026-33210 format string injection vulnerability patched 2026-03-19)
+- Proactive security maintenance (action_text-trix XSS vulnerability patched promptly, json gem CVE-2026-33210 format string injection vulnerability patched 2026-03-19, bcrypt upgraded to 3.1.22 to address CVE-2026-33306 integer overflow)
 - Recent refactoring shows commitment to quality
 - Good documentation foundation
 - Strong service layer emerging
