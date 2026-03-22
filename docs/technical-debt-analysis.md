@@ -222,7 +222,7 @@ Uncovered code paths = increased bug risk
 
 #### 🟢 Low: Minor Version Updates
 
-14 minor version updates available - low risk, low priority
+13 minor version updates available - low risk, low priority
 
 ---
 
@@ -319,7 +319,7 @@ Code_Quality_Metrics:
 
 Dependency_Health:
   outdated_major: 4
-  outdated_minor: 14
+  outdated_minor: 13
   security_vulnerabilities: 0  # ✅ Excellent - action_text-trix patched (2.1.17)
   deprecated_apis: 0           # ✅ Good
 
@@ -353,6 +353,7 @@ Recent Improvements (Last 3 Months):
 ✅ action_text-trix upgraded to 2.1.17 (security patch for XSS vulnerability)
 ✅ json upgraded to 2.19.2 (security patch for CVE-2026-33210 format string injection vulnerability)
 ✅ bcrypt upgraded to 3.1.22 (security patch for CVE-2026-33306 integer overflow)
+✅ meta-tags upgraded to 2.23.0 (performance optimizations)
 
 Debt Reduction: ~17% in last quarter
 Projection: If current pace continues, debt score will reach 5.0 (Good) in 5 months
@@ -1075,4 +1076,4 @@ end
 
 ---
 
-**Document Version**: 1.0 **Last Updated**: 2026-03-19 **Next Review**: 2026-02-13 (monthly) **Owner**: Tech Lead
+**Document Version**: 1.0 **Last Updated**: 2026-03-22 **Next Review**: 2026-02-13 (monthly) **Owner**: Tech Lead
