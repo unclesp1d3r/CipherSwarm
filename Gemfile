@@ -81,7 +81,7 @@ gem "dry-initializer", "~> 3.2.0"
 gem "inline_svg", "~> 1.10.0"
 
 gem "lograge", "~> 0.14"
-gem "meta-tags", "~> 2.22.3"
+gem "meta-tags", "~> 2.23.0"
 gem "oj", "~> 3.16.16"
 gem "pagy", "~> 43.3.3"
 gem "paranoia", "~> 3.1.0"
