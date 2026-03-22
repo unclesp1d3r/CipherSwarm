@@ -66,7 +66,7 @@ group :development do
   gem "web-console", "~> 4.3.0"
 end
 
-gem "active_storage_validations", "~> 3.0.3"
+gem "active_storage_validations", "~> 3.0.4"
 gem "administrate", "~> 1.0"
 gem "administrate-field-active_storage", "~> 1.0.6"
 gem "administrate-field-jsonb", "~> 0.4.8"
