@@ -320,7 +320,7 @@ Code_Quality_Metrics:
 Dependency_Health:
   outdated_major: 4
   outdated_minor: 13
-  security_vulnerabilities: 0  # ✅ Excellent - action_text-trix patched (2.1.17)
+  security_vulnerabilities: 0  # ✅ Excellent - Rails 8.1.2.1 patched (2026-03-23), action_text-trix patched (2.1.17)
   deprecated_apis: 0           # ✅ Good
 
 Test_Health:
@@ -350,6 +350,7 @@ Recent Improvements (Last 3 Months):
 ✅ view_component upgraded to 4.5.0 (bug fixes)
 ✅ PR #692: CampaignPriorityRebalanceJob implemented with comprehensive tests
 ✅ Automatic task preemption on campaign priority increases
+✅ Rails upgraded to 8.1.2.1 (security patches for CVE-2026-33176, CVE-2026-33170, CVE-2026-33169, CVE-2026-33168, CVE-2026-33167)
 ✅ action_text-trix upgraded to 2.1.17 (security patch for XSS vulnerability)
 ✅ json upgraded to 2.19.2 (security patch for CVE-2026-33210 format string injection vulnerability)
 ✅ bcrypt upgraded to 3.1.22 (security patch for CVE-2026-33306 integer overflow)
@@ -952,7 +953,7 @@ Next week focus:
 
 **Strengths** 🟢:
 
-- Proactive security maintenance (action_text-trix XSS vulnerability patched promptly, json gem CVE-2026-33210 format string injection vulnerability patched 2026-03-19, bcrypt upgraded to 3.1.22 to address CVE-2026-33306 integer overflow)
+- Proactive security maintenance (Rails 8.1.2.1 security patch applied 2026-03-23 addressing CVE-2026-33176, CVE-2026-33170, CVE-2026-33169, CVE-2026-33168, CVE-2026-33167; action_text-trix XSS vulnerability patched promptly; json gem CVE-2026-33210 format string injection vulnerability patched 2026-03-19; bcrypt upgraded to 3.1.22 to address CVE-2026-33306 integer overflow)
 - Recent refactoring shows commitment to quality
 - Good documentation foundation
 - Strong service layer emerging
