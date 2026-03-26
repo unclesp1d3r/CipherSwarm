@@ -173,6 +173,7 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 - rswag 3.0.0.pre is the only version with proper OpenAPI 3.0 `requestBody` generation; 2.17.0 (latest stable, Nov 2025) only added Rails 8.1 gemspec support and still has the `in: body` limitation
 - `request_body_json` must be called **inside** the HTTP method block (`post`, `put`, etc.), not at the path level
 - When an endpoint `produces "text/plain"`, error responses returning JSON inherit `text/plain` in the generated OpenAPI spec. Override by setting `metadata[:response][:content]` directly inside the response block with the correct schema under `"application/json"` — the `content_type:` parameter on `response` does not work reliably for this purpose
+- rswag 3.0.0.pre passes `request.body` as `StringIO` (not `String`) in `after(:each)` hooks — `JSON.parse(request.body)` raises `TypeError: no implicit conversion of StringIO into String`. Use `body = request.body.respond_to?(:read) ? request.body.tap(&:rewind).read : request.body` before parsing. See `swagger_helper.rb` request example capture hook.
 
 **Vitest Mock Patterns:**
 
@@ -197,6 +198,12 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 - `errors.add` in a custom attribute setter (e.g., `def foo=(val)`) is useless — Rails clears `errors` before running validations on `save`/`valid?`
 - Use an instance variable flag in the setter + a `validate` method to surface the error: `@invalid_foo = true` in rescue, then `validate :foo_is_valid` checks the flag
 - See `Agent#advanced_configuration=` and `advanced_configuration_is_valid_json` for the pattern
+
+**Strong Parameters Key Types:**
+
+- `ActionController::Parameters#to_h` returns a plain `Hash` with **string keys** — `merged_params[:symbol_key]` returns `nil`
+- Use `.to_h.with_indifferent_access` when you need symbol access on the result
+- This bit `word_lists_controller`, `rule_lists_controller`, `mask_lists_controller` — `sensitive` flag was always `false` due to `merged_params[:project_ids]` returning nil
 
 **JSONB Key Access:**
 
@@ -302,6 +309,7 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 - **Upload ID validation**: `TusUploadHandler#extract_upload_id` validates hex format to prevent path traversal
 - **tusd hook retries**: configure `-hooks-http-retry=5 -hooks-http-backoff=2` in production for resilience
 - **tusd hook auth in production**: `verify_tusd_origin` rejects all requests when `TUSD_HOOK_SECRET` is unset in production — dev/test environments skip verification. If adding new unauthenticated bypass conditions, ensure they cannot activate in production.
+- **TUSD_HOOK_SECRET must be set in BOTH web and tusd services** — tusd forwards it as `X-Tusd-Hook-Secret` header via `-hooks-http-forward-headers`, web reads it in `verify_tusd_origin` to authenticate. Missing from either side silently disables auth.
 
 **Inline `rescue` in Security Code:**
 
