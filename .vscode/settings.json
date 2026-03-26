@@ -21,5 +21,6 @@
   "git.rebaseWhenSync": true,
   "git.replaceTagsWhenPull": true,
   "githubPullRequests.codingAgent.uiIntegration": true,
-  "python.defaultInterpreterPath": "${workspaceFolder}/.vscode/mise-tools/python"
+  "python.defaultInterpreterPath": "${workspaceFolder}/.vscode/mise-tools/python",
+  "bun.runtime": "${workspaceFolder}/.vscode/mise-tools/bun"
 }
