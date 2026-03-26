@@ -66,7 +66,8 @@ RUN chmod +x bin/* && \
     sed -i "s/\r$//g" bin/* && \
     grep -l '#!/usr/bin/env ruby' /rails/bin/* | xargs sed -i '/^#!/aDir.chdir File.expand_path("..", __dir__)'
 
-# Precompiling assets for production without requiring secret RAILS_MASTER_KEY
+# Build minified JS for production, then precompile assets (CSS + fingerprinting)
+RUN bun run build:production
 RUN SECRET_KEY_BASE_DUMMY=1 APPLICATION_HOST=localhost ./bin/rails assets:precompile
 
 
