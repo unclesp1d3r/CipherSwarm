@@ -62,7 +62,12 @@ require "date"
 # metrics and format data for display or serialization.
 class HashcatStatus < ApplicationRecord
   include ActiveSupport::NumberHelper
-  belongs_to :task, touch: true
+  # PERFORMANCE: Removed `touch: true` to eliminate cascading UPDATE storms.
+  # HashcatStatus records are created every 5-30 seconds per active agent. With touch: true,
+  # each creation triggered: Task.touch → Attack.touch (via Task belongs_to) → multiple
+  # after_commit callbacks. This generated 6-10 extra UPDATEs per status submission.
+  # Task/Attack freshness is tracked via explicit state machine transitions instead.
+  belongs_to :task
   has_many :device_statuses, dependent: :destroy, autosave: true
   has_one :hashcat_guess, dependent: :destroy, autosave: true
   validates_associated :device_statuses
