@@ -215,6 +215,7 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 
 - Rails 8.1+ `upsert_all` auto-manages `updated_at` via `CURRENT_TIMESTAMP` on conflict — do NOT list `updated_at` in `update_only` (causes PG `multiple assignments to same column` error)
 - `upsert_all` bypasses AR callbacks, so `touch: true` associations and `broadcasts_refreshes` will not fire — ensure the owning model is saved separately if cache invalidation is needed
+- `upsert_all` with `unique_by: :id` requires ALL NOT NULL columns in every payload hash — PostgreSQL evaluates the INSERT side (enforcing NOT NULL constraints) before the ON CONFLICT clause activates, even when the row already exists and `update_only` limits which columns are written
 
 **Foreign Key Cascade Strategy:**
 
