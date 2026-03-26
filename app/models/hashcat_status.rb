@@ -158,7 +158,8 @@ class HashcatStatus < ApplicationRecord
       format("%s for iteration %d of %d", progress_percentage_text, current_iteration, guess_base_count) : progress_percentage_text
 
     formatted_speed_text = number_to_human(device_speed, units: { unit: "H/s", thousand: "KH/s", million: "MH/s", billion: "GH/s" })
-    formatted_hashes_text = format("%d of %d", recovered_hashes[0], recovered_hashes[1])
+    hashes = recovered_hashes.presence || [0, 0]
+    formatted_hashes_text = format("%d of %d", hashes[0].to_i, hashes[1].to_i)
 
     "#{formatted_progress_text} at #{formatted_speed_text} (#{formatted_hashes_text})"
   end
