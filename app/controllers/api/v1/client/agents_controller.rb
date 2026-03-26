@@ -177,16 +177,13 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
       return
     end
 
-    # If the severity is low, we'll just set it to info.
-    # This is because of an api change where low severity is now info.
-    if params[:severity].present? && params[:severity] == "low"
-      params[:severity] = "info"
-    end
+    # Map legacy "low" severity to "info" (API change: low → info).
+    severity = params[:severity] == "low" ? "info" : params[:severity]
 
-    # Here we're just removing any null bytes from the message. This is to prevent any weirdness.
-    params[:message] = params[:message].to_s.delete("\u0000") if params[:message].present?
+    # Remove null bytes from the message to prevent encoding issues.
+    message = params[:message].present? ? params[:message].to_s.delete("\u0000") : params[:message]
 
-    unless params[:message].present? && params[:severity].present?
+    unless message.present? && severity.present?
       render json: { error: "No error submitted" }, status: :bad_request
       return
     end
@@ -197,7 +194,7 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
     end
 
     error_record = @agent.agent_errors.new
-    error_record.message = params[:message]
+    error_record.message = message
 
     # At some point we will standardize the metadata format. For now, we'll allow anything, but if it's not JSON, we'll
     # just add the error date.
@@ -210,7 +207,7 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
       error_record.metadata[:error_date] = Time.zone.now if error_record.metadata[:error_date].blank?
     end
 
-    error_record.severity = params[:severity]
+    error_record.severity = severity
 
     if params[:task_id].present?
       if @agent.tasks.exists?(id: params[:task_id])
