@@ -122,6 +122,7 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 - `DatabaseCleaner.clean_with(:truncation)` can deadlock if concurrent PG connections exist — retry the test command (transient)
 - **Never run two `just ci-check` or `bundle exec rspec` instances simultaneously** — they share the same test database and will cause mass `PG::TRDeadlockDetected` failures and `tmp/storage` file conflicts
 - Some tests fail intermittently in full suite but pass in isolation — use `git stash` to verify if failures are pre-existing vs introduced
+- **`just ci-check` output buffering**: `just` recipes run via background mode produce empty output files. Run individual steps (`just check`, `bundle exec rspec`, `just undercover`) directly when you need real-time output.
 
 **Cache Key Testing:**
 
@@ -171,6 +172,7 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 - Known limitation: rswag 3.0.0.pre places `description` inside `requestBody.content.schema` rather than at the `requestBody` level — this is less conventional in OpenAPI 3.0 but does not affect functionality
 - rswag 3.0.0.pre is the only version with proper OpenAPI 3.0 `requestBody` generation; 2.17.0 (latest stable, Nov 2025) only added Rails 8.1 gemspec support and still has the `in: body` limitation
 - `request_body_json` must be called **inside** the HTTP method block (`post`, `put`, etc.), not at the path level
+- When an endpoint `produces "text/plain"`, error responses returning JSON inherit `text/plain` in the generated OpenAPI spec. Override by setting `metadata[:response][:content]` directly inside the response block with the correct schema under `"application/json"` — the `content_type:` parameter on `response` does not work reliably for this purpose
 
 **Vitest Mock Patterns:**
 
@@ -189,6 +191,12 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 - Use a generic stable error string for clients (e.g., `"Internal health check failure"`), log full exception details server-side with `Rails.logger.error`
 
 ## Database & ActiveRecord
+
+**ActiveRecord Setter Error Trap:**
+
+- `errors.add` in a custom attribute setter (e.g., `def foo=(val)`) is useless — Rails clears `errors` before running validations on `save`/`valid?`
+- Use an instance variable flag in the setter + a `validate` method to surface the error: `@invalid_foo = true` in rescue, then `validate :foo_is_valid` checks the flag
+- See `Agent#advanced_configuration=` and `advanced_configuration_is_valid_json` for the pattern
 
 **JSONB Key Access:**
 
@@ -293,6 +301,14 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 - **tusd port is 8080** (not 1080) — the Alpine image uses `wget` for health checks (not `curl`)
 - **Upload ID validation**: `TusUploadHandler#extract_upload_id` validates hex format to prevent path traversal
 - **tusd hook retries**: configure `-hooks-http-retry=5 -hooks-http-backoff=2` in production for resilience
+- **tusd hook auth in production**: `verify_tusd_origin` rejects all requests when `TUSD_HOOK_SECRET` is unset in production — dev/test environments skip verification. If adding new unauthenticated bypass conditions, ensure they cannot activate in production.
+
+**Inline `rescue` in Security Code:**
+
+- Ruby's inline `rescue` (`foo rescue bar`) catches ALL exceptions including `Errno::EACCES`, `SystemCallError`, `SecurityError` — not just `StandardError`
+- Never use inline `rescue` in security-critical validation code — use explicit `begin/rescue` with specific error classes
+- Fail closed: if path validation can't resolve a directory, reject the request rather than falling back to string comparison
+- See `TusUploadHandler#validate_source_path!` for the correct pattern
 
 **Active Storage Blob Validator Patching:**
 

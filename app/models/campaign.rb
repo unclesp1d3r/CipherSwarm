@@ -141,7 +141,7 @@ class Campaign < ApplicationRecord
 
   # Callbacks
   after_commit :mark_attacks_complete, on: [:update]
-  after_commit :broadcast_eta_update, on: [:update]
+  after_commit :broadcast_eta_update, on: [:update], if: :should_broadcast_eta?
   after_commit :trigger_priority_rebalance_if_needed, on: [:update]
 
   # Provides a label indicating the number of incomplete attacks out of the total number of attacks.
@@ -317,7 +317,21 @@ class Campaign < ApplicationRecord
   #
   # @return [void]
   def mark_attacks_complete
-    attacks.without_state(:completed).each(&:complete) if completed?
+    return unless completed?
+
+    attacks.without_state(:completed).find_each do |attack|
+      attack.complete if attack.can_complete?
+    rescue StateMachines::InvalidTransition => e
+      Rails.logger.warn("[Campaign #{id}] Failed to complete attack #{attack.id}: #{e.message}")
+    end
+  end
+
+  # Only broadcast ETA when meaningful data changes — not on every cascading touch.
+  # Priority changes, attack count changes, and quarantine state changes affect ETA display.
+  def should_broadcast_eta?
+    saved_change_to_priority? ||
+      saved_change_to_attacks_count? ||
+      saved_change_to_quarantined?
   end
 
   # Enqueues a task preemption rebalance when the campaign's priority is raised.

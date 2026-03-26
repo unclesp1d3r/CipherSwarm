@@ -28,6 +28,9 @@ module TusUploadHandler
     cached = Rails.cache.read("tus_upload:#{upload_id}")
     source_path = cached&.dig(:file_path) || File.join(tus_uploads_dir, upload_id)
 
+    # Validate source_path is within the expected tusd uploads directory to prevent path traversal
+    validate_source_path!(source_path)
+
     unless File.exist?(source_path)
       record.destroy! if record.persisted?
       raise TusUploadError, "Upload file not found: #{upload_id}"
@@ -53,8 +56,9 @@ module TusUploadHandler
     true
   rescue TusUploadError
     raise
-  rescue StandardError => e
-    Rails.logger.error("[TusUpload] Failed for #{record.class.name}##{record.id}: #{e.message}")
+  rescue Errno::ENOENT, Errno::EACCES, Errno::ENOSPC, IOError => e
+    Rails.logger.error("[TusUpload] File system error for #{record.class.name}##{record.id}: " \
+                       "#{e.class} - #{e.message}\n#{e.backtrace&.first(5)&.join("\n")}")
     record.destroy! if record.persisted? && record.file_path.blank?
     false
   end
@@ -76,6 +80,32 @@ module TusUploadHandler
                      Rails.root.join("storage/attack_resources").to_s)
     type_dir = record.class.name.underscore.pluralize
     File.join(base, type_dir)
+  end
+
+  def validate_source_path!(path)
+    canonical_source = resolve_path(path)
+    return if path_within_dir?(canonical_source, tus_uploads_dir)
+
+    raise TusUploadError, "Path traversal attempt blocked: source path is outside tusd uploads directory"
+  rescue Errno::ENOENT
+    # File doesn't exist yet — validate the directory component.
+    # Fail closed: if we can't resolve directories, reject the path.
+    canonical_parent = resolve_path(File.dirname(path))
+    return if path_within_dir?(canonical_parent, tus_uploads_dir)
+
+    raise TusUploadError, "Path traversal attempt blocked: source path is outside tusd uploads directory"
+  end
+
+  # Returns the canonical absolute path, raising Errno::ENOENT if it does not exist.
+  def resolve_path(path)
+    File.realpath(File.expand_path(path))
+  end
+
+  # Returns true when +child+ is strictly inside +directory+ (not equal to it).
+  # Both arguments must already be canonical (use resolve_path first).
+  def path_within_dir?(child, directory)
+    canonical_dir = resolve_path(directory)
+    child.start_with?("#{canonical_dir}/")
   end
 
   def sanitize_filename(name)

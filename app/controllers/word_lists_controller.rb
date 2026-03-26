@@ -102,8 +102,9 @@ class WordListsController < ApplicationController
     return unless validate_project_authorization(new_project_ids) if new_project_ids.present?
 
     respond_to do |format|
-      if @word_list.update(word_list_params)
-        @word_list.update(sensitive: @word_list.project_ids.any?)
+      merged_params = word_list_params.to_h.with_indifferent_access
+      merged_params[:sensitive] = Array(merged_params[:project_ids]).compact_blank.any?
+      if @word_list.update(merged_params)
 
         format.html { redirect_to word_list_url(@word_list), notice: "Word list was successfully updated." }
         format.json { render :show, status: :ok, location: @word_list }

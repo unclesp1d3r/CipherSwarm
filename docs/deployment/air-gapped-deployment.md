@@ -58,10 +58,11 @@ nano .env
 **Required Variables for Air-Gapped Deployment:**
 
 ```bash
-# Required
+# Required (production will fail to start if these are not set)
 RAILS_MASTER_KEY=<your-master-key>
 POSTGRES_PASSWORD=<strong-password>
 APPLICATION_HOST=<your-hostname>
+TUSD_HOOK_SECRET=<shared-secret>
 
 # Important for air-gapped environments
 DISABLE_SSL=true  # Unless you have internal SSL certificates
@@ -69,7 +70,12 @@ ACTIVE_STORAGE_SERVICE=local
 REDIS_URL=redis://redis-db:6379/0
 ```
 
-The `RAILS_MASTER_KEY` is found in `config/master.key` on the system where the app was originally configured. Transfer this file securely.
+**Variable Details:**
+
+- **RAILS_MASTER_KEY**: Found in `config/master.key` on the system where the app was originally configured. Transfer this file securely.
+- **POSTGRES_PASSWORD**: Database password. Strictly enforced as required — Docker Compose will fail validation if not set.
+- **APPLICATION_HOST**: Hostname used to access the application (e.g., `cipherswarm.lab.local`). Provides DNS rebinding protection in production environments.
+- **TUSD_HOOK_SECRET**: Shared secret for authenticating tusd webhook requests. Generate with `openssl rand -hex 32`. Prevents unauthorized cache poisoning attacks.
 
 For complete documentation of all environment variables, see [Environment Variables Reference](environment-variables.md).
 
@@ -176,17 +182,31 @@ All services should show a healthy status: `web`, `postgres-db`, `redis-db`, `si
 
 ## Step 5: Run Database Setup
 
-On first deployment, create and migrate the database:
+On first deployment, create and migrate the database using the `RUN_DB_PREPARE` flag:
 
 ```bash
-docker compose -f docker-compose-production.yml run --rm web bin/rails db:create db:migrate db:seed
+docker compose -f docker-compose-production.yml run --rm -e RUN_DB_PREPARE=true web bin/rails db:create db:migrate db:seed
 ```
+
+**Why `RUN_DB_PREPARE=true`?**
+
+The `RUN_DB_PREPARE` environment variable prevents database migration races in scaled deployments. Without this flag, multiple web replicas could attempt to run migrations simultaneously, causing deadlocks and corruption. By requiring an explicit flag, migrations run exactly once during initial setup or upgrades, not on every container start.
 
 On subsequent deployments (upgrades), run migrations only:
 
 ```bash
-docker compose -f docker-compose-production.yml run --rm web bin/rails db:migrate
+docker compose -f docker-compose-production.yml run --rm -e RUN_DB_PREPARE=true web bin/rails db:migrate
 ```
+
+**Scaling Guidance:**
+
+If running multiple web replicas (e.g., for high availability):
+
+1. Run database migrations once with `RUN_DB_PREPARE=true` before scaling.
+2. Do not set `RUN_DB_PREPARE=true` on the regular web service containers.
+3. Scale web replicas after migrations complete.
+
+This ensures migrations run exactly once, avoiding race conditions.
 
 ## Step 6: Verify Deployment
 
@@ -301,10 +321,10 @@ After successful migration:
    docker compose -f docker-compose-production.yml stop web sidekiq
    ```
 
-6. Run migrations:
+6. Run migrations with the `RUN_DB_PREPARE` flag:
 
    ```bash
-   docker compose -f docker-compose-production.yml run --rm web bin/rails db:migrate
+   docker compose -f docker-compose-production.yml run --rm -e RUN_DB_PREPARE=true web bin/rails db:migrate
    ```
 
 7. Restart all services:

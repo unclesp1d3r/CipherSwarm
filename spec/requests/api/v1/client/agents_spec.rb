@@ -117,7 +117,7 @@ RSpec.describe "api/v1/client/agents" do
         run_test!
       end
 
-      response 401, "Not authorized" do
+      response 401, "Unauthorized" do
         let(:agent) { create(:agent) }
         let(:Authorization) { "Bearer Invalid" } # rubocop:disable RSpec/VariableName
 
@@ -148,17 +148,8 @@ RSpec.describe "api/v1/client/agents" do
       produces "application/json"
       operationId "updateAgent"
 
-      request_body_json schema: {
-        type: :object,
-        properties: {
-          id: { type: :integer, format: :int64, description: "The id of the agent" },
-          host_name: { type: :string, description: "The hostname of the agent" },
-          client_signature: { type: :string, description: "The signature of the client" },
-          operating_system: { type: :string, description: "The operating system of the agent" },
-          devices: { type: :array, maxItems: 64, items: { type: :string, description: "The descriptive name of a GPU or CPU device." } }
-        },
-        required: %i[id host_name client_signature operating_system devices]
-      }, description: "Agent system information", examples: :agent
+      request_body_json schema: { "$ref" => "#/components/schemas/UpdateAgentRequest" },
+                        description: "Agent system information", examples: :agent
 
       let(:agent) { create(:agent) }
       let(:id) { agent.id }
@@ -185,7 +176,7 @@ RSpec.describe "api/v1/client/agents" do
         run_test!
       end
 
-      response 401, "Not authorized" do
+      response 401, "Unauthorized" do
         let(:Authorization) { "Bearer Invalid" } # rubocop:disable RSpec/VariableName
 
         schema "$ref" => "#/components/schemas/ErrorObject"
@@ -221,19 +212,8 @@ RSpec.describe "api/v1/client/agents" do
       produces "application/json"
       operationId "sendHeartbeat"
 
-      request_body_json schema: {
-        type: :object,
-        properties: {
-          activity: {
-            type: :string,
-            description: "Current agent activity state. Known values: starting, benchmarking, " \
-                         "updating, downloading, waiting, cracking, stopping. " \
-                         "Future versions may support additional values.",
-            example: "cracking",
-            nullable: true
-          }
-        }
-      }, required: false, description: "Optional activity state update", examples: :heartbeat_body
+      request_body_json schema: { "$ref" => "#/components/schemas/AgentHeartbeatRequest" },
+                        required: false, description: "Optional activity state update", examples: :heartbeat_body
 
       let(:agent) { create(:agent) }
       let(:id) { agent.id }
@@ -242,19 +222,7 @@ RSpec.describe "api/v1/client/agents" do
         let(:agent) { create(:agent, state: "pending") }
         let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
 
-        schema description: "The response to an agent heartbeat",
-               type: :object,
-               properties: {
-                 state: { type: :string,
-                          description: "The state of the agent:
-                       * `pending` - The agent needs to perform the setup process again.
-                       * `active` - The agent is ready to accept tasks, all is good.
-                       * `error` - The agent has encountered an error and needs to be checked.
-                       * `stopped` - The agent has been stopped by the user.
-                       * `offline` - The agent has not checked in recently and is considered offline.",
-                          enum: Agent.state_machine.states.map { |s| s.name.to_s }.sort }
-               },
-               required: %i[state]
+        schema "$ref" => "#/components/schemas/HeartbeatResponse"
 
         after do |example|
           content = example.metadata[:response][:content] || {}
@@ -273,7 +241,7 @@ RSpec.describe "api/v1/client/agents" do
         run_test!
       end
 
-      response 401, "Not authorized" do
+      response 401, "Unauthorized" do
         let(:Authorization) { "Bearer Invalid" } # rubocop:disable RSpec/VariableName
 
         schema "$ref" => "#/components/schemas/ErrorObject"
@@ -379,15 +347,8 @@ RSpec.describe "api/v1/client/agents" do
       produces "application/json"
       operationId "submitBenchmark"
 
-      request_body_json schema: {
-        type: :object,
-        properties: {
-          hashcat_benchmarks: {
-            type: :array,
-            items: { "$ref" => "#/components/schemas/HashcatBenchmark" }
-          }
-        }, required: %i[hashcat_benchmarks]
-      }, required: true, description: "Hashcat benchmark results for the agent", examples: :hashcat_benchmarks
+      request_body_json schema: { "$ref" => "#/components/schemas/SubmitBenchmarkRequest" },
+                        required: true, description: "Hashcat benchmark results for the agent", examples: :hashcat_benchmarks
 
       let(:agent) { create(:agent) }
 
@@ -935,7 +896,7 @@ RSpec.describe "api/v1/client/agents" do
         run_test!
       end
 
-      response 401, "Not authorized" do
+      response 401, "Unauthorized" do
         let(:Authorization) { "Bearer Invalid" } # rubocop:disable RSpec/VariableName
         let(:id) { agent.id }
         let(:hashcat_benchmarks) do
@@ -981,27 +942,8 @@ RSpec.describe "api/v1/client/agents" do
       produces "application/json"
       operationId "submitErrorAgent"
 
-      request_body_json schema: {
-        type: :object,
-        properties: {
-          message: { type: :string, description: "The error message" },
-          metadata: { "$ref" => "#/components/schemas/ErrorMetadata" },
-          severity: {
-            type: :string,
-            description: "The severity of the error:
-                       * `info` - Informational message, no action required.
-                       * `warning` - Non-critical error, no action required. Anticipated, but not necessarily problematic.
-                       * `minor` - Minor error, no action required. Should be investigated, but the task can continue.
-                       * `major` - Major error, action required. The task should be investigated and possibly restarted.
-                       * `critical` - Critical error, action required. The task should be stopped and investigated.
-                        * `fatal` - Fatal error, action required. The agent cannot continue with the task and should not be reattempted.",
-            enum: %i[info warning minor major critical fatal]
-          },
-          agent_id: { type: :integer, format: :int64, description: "The agent that caused the error" },
-          task_id: { type: :integer, nullable: true, format: :int64, description: "The task that caused the error, if any" }
-        },
-        required: %i[message severity agent_id]
-      }, required: true, description: "Error details reported by the agent", examples: :agent_error
+      request_body_json schema: { "$ref" => "#/components/schemas/SubmitErrorRequest" },
+                        required: true, description: "Error details reported by the agent", examples: :agent_error
 
       let(:agent) { create(:agent) }
       let(:id) { agent.id }
@@ -1030,7 +972,7 @@ RSpec.describe "api/v1/client/agents" do
         run_test!
       end
 
-      response 401, "Not authorized" do
+      response 401, "Unauthorized" do
         let(:Authorization) { "Bearer Invalid" } # rubocop:disable RSpec/VariableName
         let(:agent_error) { build(:agent_error) }
 
@@ -1075,7 +1017,7 @@ RSpec.describe "api/v1/client/agents" do
         run_test!
       end
 
-      response 401, "Not authorized" do
+      response 401, "Unauthorized" do
         let(:Authorization) { "Bearer Invalid" } # rubocop:disable RSpec/VariableName
         let(:id) { agent.id }
 

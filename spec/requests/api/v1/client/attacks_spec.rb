@@ -65,7 +65,7 @@ RSpec.describe "api/v1/client/attacks" do
         run_test!
       end
 
-      response 401, "unauthorized" do
+      response 401, "Unauthorized" do
         let(:Authorization) { "Bearer invalid" } # rubocop:disable RSpec/VariableName
 
         schema "$ref" => "#/components/schemas/ErrorObject"
@@ -129,7 +129,41 @@ RSpec.describe "api/v1/client/attacks" do
       response 404, "not found" do
         let(:id) { 655_555 }
 
-        schema "$ref" => "#/components/schemas/ErrorObject"
+        # Set content directly to emit application/json in OpenAPI instead of
+        # inheriting the operation-level text/plain from `produces`.
+        metadata[:response][:content] = {
+          "application/json" => {
+            schema: { "$ref" => "#/components/schemas/ErrorObject" }
+          }
+        }
+
+        after do |example|
+          content = example.metadata[:response][:content] || {}
+          example_spec = {
+            "application/json" => {
+              examples: {
+                test_example: {
+                  value: JSON.parse(response.body, symbolize_names: true)
+                }
+              }
+            }
+          }
+          example.metadata[:response][:content] = content.deep_merge(example_spec)
+        end
+
+        run_test!
+      end
+
+      response 401, "Unauthorized" do
+        let(:Authorization) { "Bearer invalid" } # rubocop:disable RSpec/VariableName
+
+        # Set content directly to emit application/json in OpenAPI instead of
+        # inheriting the operation-level text/plain from `produces`.
+        metadata[:response][:content] = {
+          "application/json" => {
+            schema: { "$ref" => "#/components/schemas/ErrorObject" }
+          }
+        }
 
         after do |example|
           content = example.metadata[:response][:content] || {}

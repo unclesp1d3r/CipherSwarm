@@ -115,6 +115,12 @@
 #  fk_rails_...  (claimed_by_agent_id => agents.id) ON DELETE => nullify
 #
 class Task < ApplicationRecord
+  include SafeBroadcasting
+  include TaskStateMachine
+
+  PREEMPTION_PROGRESS_THRESHOLD = 90.0
+  MAX_PREEMPTION_COUNT = 2
+
   belongs_to :attack, touch: true
   belongs_to :agent
   has_many :hashcat_statuses, dependent: :destroy # We're going to want to clean these up when the task is finished.
@@ -128,9 +134,6 @@ class Task < ApplicationRecord
   scope :successful, -> { with_states(:completed, :exhausted) }
   scope :finished, -> { with_states(:completed, :exhausted, :failed) }
   scope :running, -> { with_state(:running) }
-
-  include SafeBroadcasting
-  include TaskStateMachine
 
   # Calculates the estimated finish time for the task.
   #
@@ -186,21 +189,19 @@ class Task < ApplicationRecord
   # progress, the method assumes the task is not preemptable.
   # @return [Boolean] `true` if the task can be preempted, `false` otherwise.
   def preemptable?
-    begin
-      return false if progress_percentage > 90.0
-    rescue StandardError => e
-      Rails.logger.error(
-        "[Task #{id}] Error calculating progress percentage in preemptable? check - " \
-        "Error: #{e.class} - #{e.message} - Assuming not preemptable - #{Time.current}"
-      )
-      return false
-    end
-
+    return false if progress_percentage > PREEMPTION_PROGRESS_THRESHOLD
+  rescue StandardError => e
+    Rails.logger.error(
+      "[Task #{id}] Error calculating progress percentage in preemptable? check - " \
+      "Error: #{e.class} - #{e.message} - Assuming not preemptable - #{Time.current}"
+    )
+    false
+  else
     if preemption_count.nil?
       Rails.logger.warn("[Task #{id}] preemption_count is nil - assuming 0")
     end
 
-    return false if preemption_count.to_i >= 2
+    return false if preemption_count.to_i >= MAX_PREEMPTION_COUNT
 
     true
   end

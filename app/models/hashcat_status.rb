@@ -62,7 +62,12 @@ require "date"
 # metrics and format data for display or serialization.
 class HashcatStatus < ApplicationRecord
   include ActiveSupport::NumberHelper
-  belongs_to :task, touch: true
+  # PERFORMANCE: Removed `touch: true` to eliminate cascading UPDATE storms.
+  # HashcatStatus records are created every 5-30 seconds per active agent. With touch: true,
+  # each creation triggered: Task.touch → Attack.touch (via Task belongs_to) → multiple
+  # after_commit callbacks. This generated 6-10 extra UPDATEs per status submission.
+  # Task/Attack freshness is tracked via explicit state machine transitions instead.
+  belongs_to :task
   has_many :device_statuses, dependent: :destroy, autosave: true
   has_one :hashcat_guess, dependent: :destroy, autosave: true
   validates_associated :device_statuses
@@ -153,7 +158,8 @@ class HashcatStatus < ApplicationRecord
       format("%s for iteration %d of %d", progress_percentage_text, current_iteration, guess_base_count) : progress_percentage_text
 
     formatted_speed_text = number_to_human(device_speed, units: { unit: "H/s", thousand: "KH/s", million: "MH/s", billion: "GH/s" })
-    formatted_hashes_text = format("%d of %d", recovered_hashes[0], recovered_hashes[1])
+    hashes = recovered_hashes.presence || [0, 0]
+    formatted_hashes_text = format("%d of %d", hashes[0].to_i, hashes[1].to_i)
 
     "#{formatted_progress_text} at #{formatted_speed_text} (#{formatted_hashes_text})"
   end

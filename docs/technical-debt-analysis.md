@@ -320,7 +320,7 @@ Code_Quality_Metrics:
 Dependency_Health:
   outdated_major: 4
   outdated_minor: 13
-  security_vulnerabilities: 0  # ✅ Excellent - action_text-trix patched (2.1.17)
+  security_vulnerabilities: 0  # ✅ Excellent - Rails 8.1.2.1 patched (2026-03-23), action_text-trix patched (2.1.17)
   deprecated_apis: 0           # ✅ Good
 
 Test_Health:
