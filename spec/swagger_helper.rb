@@ -610,10 +610,11 @@ RSpec.configure do |config|
   config.after(:each, operation: true, use_as_request_example: true) do |spec|
     spec.metadata[:operation][:request_examples] ||= []
 
-    next if request.body.blank?
+    body_content = request.body.respond_to?(:read) ? request.body.tap(&:rewind).read : request.body
+    next if body_content.blank?
 
     example = {
-      value: JSON.parse(request.body, symbolize_names: true),
+      value: JSON.parse(body_content, symbolize_names: true),
       name: "request_example_1",
       summary: "A request example"
     }
