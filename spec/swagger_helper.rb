@@ -153,6 +153,150 @@ RSpec.configure do |config|
             required: %i[agent_update_interval use_native_hashcat backend_device enable_additional_hash_types]
           },
 
+          UpdateAgentRequest: {
+            type: :object,
+            description: "Agent system information submitted on registration or update",
+            properties: {
+              id: { type: :integer, format: :int64, description: "The id of the agent" },
+              host_name: { type: :string, description: "The hostname of the agent" },
+              client_signature: { type: :string, description: "The signature of the client" },
+              operating_system: { type: :string, description: "The operating system of the agent" },
+              devices: { type: :array, maxItems: 64, items: { type: :string, description: "The descriptive name of a GPU or CPU device." } }
+            },
+            required: %i[id host_name client_signature operating_system devices]
+          },
+          AgentHeartbeatRequest: {
+            type: :object,
+            description: "Optional activity state update sent with an agent heartbeat",
+            properties: {
+              activity: {
+                type: :string,
+                description: "Current agent activity state. Known values: starting, benchmarking, " \
+                             "updating, downloading, waiting, cracking, stopping. " \
+                             "Future versions may support additional values.",
+                example: "cracking",
+                nullable: true
+              }
+            }
+          },
+          SubmitBenchmarkRequest: {
+            type: :object,
+            description: "Hashcat benchmark results submitted by an agent",
+            properties: {
+              hashcat_benchmarks: {
+                type: :array,
+                items: { "$ref" => "#/components/schemas/HashcatBenchmark" }
+              }
+            },
+            required: %i[hashcat_benchmarks]
+          },
+          SubmitErrorRequest: {
+            type: :object,
+            description: "Error details reported by the agent",
+            properties: {
+              message: { type: :string, description: "The error message" },
+              metadata: { "$ref" => "#/components/schemas/ErrorMetadata" },
+              severity: {
+                type: :string,
+                description: "The severity of the error:
+                       * `info` - Informational message, no action required.
+                       * `warning` - Non-critical error, no action required. Anticipated, but not necessarily problematic.
+                       * `minor` - Minor error, no action required. Should be investigated, but the task can continue.
+                       * `major` - Major error, action required. The task should be investigated and possibly restarted.
+                       * `critical` - Critical error, action required. The task should be stopped and investigated.
+                        * `fatal` - Fatal error, action required. The agent cannot continue with the task and should not be reattempted.",
+                enum: %i[info warning minor major critical fatal]
+              },
+              agent_id: { type: :integer, format: :int64, description: "The agent that caused the error" },
+              task_id: { type: :integer, nullable: true, format: :int64, description: "The task that caused the error, if any" }
+            },
+            required: %i[message severity agent_id]
+          },
+          HeartbeatResponse: {
+            type: :object,
+            description: "The response to an agent heartbeat",
+            properties: {
+              state: { type: :string,
+                       description: "The state of the agent:
+                       * `pending` - The agent needs to perform the setup process again.
+                       * `active` - The agent is ready to accept tasks, all is good.
+                       * `error` - The agent has encountered an error and needs to be checked.
+                       * `stopped` - The agent has been stopped by the user.
+                       * `offline` - The agent has not checked in recently and is considered offline.",
+                       enum: Agent.state_machine.states.map { |s| s.name.to_s }.sort }
+            },
+            required: %i[state]
+          },
+          AuthenticationResponse: {
+            type: :object,
+            description: "The response to a successful agent authentication",
+            properties: {
+              authenticated: { type: :boolean },
+              agent_id: { type: :integer, format: :int64 }
+            },
+            required: %i[authenticated agent_id]
+          },
+          ConfigurationResponse: {
+            type: :object,
+            description: "Agent configuration including advanced settings and resilience parameters",
+            properties: {
+              config: {
+                "$ref" => "#/components/schemas/AdvancedAgentConfiguration"
+              },
+              api_version: { type: :integer, description: "The minimum accepted version of the API" },
+              benchmarks_needed: { type: :boolean, description: "Whether the agent needs to run benchmarks" },
+              recommended_timeouts: {
+                type: :object,
+                description: "Recommended timeout settings for agent HTTP connections",
+                additionalProperties: false,
+                properties: {
+                  connect_timeout: { type: :integer, description: "TCP connect timeout in seconds" },
+                  read_timeout: { type: :integer, description: "Read timeout in seconds" },
+                  write_timeout: { type: :integer, description: "Write timeout in seconds" },
+                  request_timeout: { type: :integer, description: "Overall request timeout in seconds" }
+                },
+                required: %i[connect_timeout read_timeout write_timeout request_timeout]
+              },
+              recommended_retry: {
+                type: :object,
+                description: "Recommended retry settings for agent HTTP requests",
+                additionalProperties: false,
+                properties: {
+                  max_attempts: { type: :integer, description: "Maximum number of retry attempts" },
+                  initial_delay: { type: :integer, description: "Initial retry delay in seconds" },
+                  max_delay: { type: :integer, description: "Maximum retry delay in seconds" }
+                },
+                required: %i[max_attempts initial_delay max_delay]
+              },
+              recommended_circuit_breaker: {
+                type: :object,
+                description: "Recommended circuit breaker settings for agent connections",
+                additionalProperties: false,
+                properties: {
+                  failure_threshold: { type: :integer, description: "Number of failures before circuit opens" },
+                  timeout: { type: :integer, description: "Seconds before circuit half-opens for retry" }
+                },
+                required: %i[failure_threshold timeout]
+              }
+            },
+            required: %i[config api_version benchmarks_needed recommended_timeouts recommended_retry recommended_circuit_breaker]
+          },
+          TaskAbandonResponse: {
+            type: :object,
+            description: "The response to a successful task abandon request",
+            properties: {
+              success: { type: :boolean },
+              state: { type: :string }
+            }
+          },
+          TaskAbandonError: {
+            type: :object,
+            description: "Error response when a task cannot be abandoned",
+            properties: {
+              error: { type: :string },
+              details: { type: :array, items: { type: :string } }
+            }
+          },
           HashcatBenchmark: {
             type: :object,
             description: "A single hashcat benchmark result for a specific hash type and device",
@@ -364,7 +508,8 @@ RSpec.configure do |config|
               id: { type: :integer, format: :int64, description: "The id of the task" },
               attack_id: { type: :integer, format: :int64, description: "The id of the attack" },
               start_date: { type: :string, format: "date-time", description: "The time the task was started" },
-              status: { type: :string, description: "The status of the task" },
+              status: { type: :string, description: "The status of the task",
+                        enum: %w[pending running completed exhausted abandoned failed paused] },
               skip: { type: :integer, format: :int64, nullable: true, description: "The offset of the keyspace" },
               limit: { type: :integer, format: :int64, nullable: true, description: "The limit of the keyspace" }
             },

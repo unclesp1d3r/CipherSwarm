@@ -104,8 +104,40 @@
           "other": {
             "type": "object",
             "nullable": true,
-            "description": "Other metadata",
-            "additionalProperties": true
+            "description": "Structured error context from the agent",
+            "additionalProperties": true,
+            "properties": {
+              "category": {
+                "type": "string",
+                "nullable": true,
+                "description": "Error category (e.g. hash_format, device, network)"
+              },
+              "retryable": {
+                "type": "boolean",
+                "nullable": true,
+                "description": "Whether the operation can be retried"
+              },
+              "error_type": {
+                "type": "string",
+                "nullable": true,
+                "description": "Machine-readable error type slug"
+              },
+              "terminal": {
+                "type": "boolean",
+                "nullable": true,
+                "description": "Whether the error is definitively unrecoverable"
+              },
+              "affected_count": {
+                "type": "integer",
+                "nullable": true,
+                "description": "Number of hashes affected by the error"
+              },
+              "total_count": {
+                "type": "integer",
+                "nullable": true,
+                "description": "Total number of hashes in the hash list"
+              }
+            }
           }
         },
         "required": [
@@ -206,6 +238,273 @@
           "backend_device",
           "enable_additional_hash_types"
         ]
+      },
+      "UpdateAgentRequest": {
+        "type": "object",
+        "description": "Agent system information submitted on registration or update",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The id of the agent"
+          },
+          "host_name": {
+            "type": "string",
+            "description": "The hostname of the agent"
+          },
+          "client_signature": {
+            "type": "string",
+            "description": "The signature of the client"
+          },
+          "operating_system": {
+            "type": "string",
+            "description": "The operating system of the agent"
+          },
+          "devices": {
+            "type": "array",
+            "maxItems": 64,
+            "items": {
+              "type": "string",
+              "description": "The descriptive name of a GPU or CPU device."
+            }
+          }
+        },
+        "required": [
+          "id",
+          "host_name",
+          "client_signature",
+          "operating_system",
+          "devices"
+        ]
+      },
+      "AgentHeartbeatRequest": {
+        "type": "object",
+        "description": "Optional activity state update sent with an agent heartbeat",
+        "properties": {
+          "activity": {
+            "type": "string",
+            "description": "Current agent activity state. Known values: starting, benchmarking, updating, downloading, waiting, cracking, stopping. Future versions may support additional values.",
+            "example": "cracking",
+            "nullable": true
+          }
+        }
+      },
+      "SubmitBenchmarkRequest": {
+        "type": "object",
+        "description": "Hashcat benchmark results submitted by an agent",
+        "properties": {
+          "hashcat_benchmarks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HashcatBenchmark"
+            }
+          }
+        },
+        "required": [
+          "hashcat_benchmarks"
+        ]
+      },
+      "SubmitErrorRequest": {
+        "type": "object",
+        "description": "Error details reported by the agent",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "The error message"
+          },
+          "metadata": {
+            "$ref": "#/components/schemas/ErrorMetadata"
+          },
+          "severity": {
+            "type": "string",
+            "description": "The severity of the error:\n                       * `info` - Informational message, no action required.\n                       * `warning` - Non-critical error, no action required. Anticipated, but not necessarily problematic.\n                       * `minor` - Minor error, no action required. Should be investigated, but the task can continue.\n                       * `major` - Major error, action required. The task should be investigated and possibly restarted.\n                       * `critical` - Critical error, action required. The task should be stopped and investigated.\n                        * `fatal` - Fatal error, action required. The agent cannot continue with the task and should not be reattempted.",
+            "enum": [
+              "info",
+              "warning",
+              "minor",
+              "major",
+              "critical",
+              "fatal"
+            ]
+          },
+          "agent_id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The agent that caused the error"
+          },
+          "task_id": {
+            "type": "integer",
+            "nullable": true,
+            "format": "int64",
+            "description": "The task that caused the error, if any"
+          }
+        },
+        "required": [
+          "message",
+          "severity",
+          "agent_id"
+        ]
+      },
+      "HeartbeatResponse": {
+        "type": "object",
+        "description": "The response to an agent heartbeat",
+        "properties": {
+          "state": {
+            "type": "string",
+            "description": "The state of the agent:\n                       * `pending` - The agent needs to perform the setup process again.\n                       * `active` - The agent is ready to accept tasks, all is good.\n                       * `error` - The agent has encountered an error and needs to be checked.\n                       * `stopped` - The agent has been stopped by the user.\n                       * `offline` - The agent has not checked in recently and is considered offline.",
+            "enum": [
+              "active",
+              "error",
+              "offline",
+              "pending",
+              "stopped"
+            ]
+          }
+        },
+        "required": [
+          "state"
+        ]
+      },
+      "AuthenticationResponse": {
+        "type": "object",
+        "description": "The response to a successful agent authentication",
+        "properties": {
+          "authenticated": {
+            "type": "boolean"
+          },
+          "agent_id": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "required": [
+          "authenticated",
+          "agent_id"
+        ]
+      },
+      "ConfigurationResponse": {
+        "type": "object",
+        "description": "Agent configuration including advanced settings and resilience parameters",
+        "properties": {
+          "config": {
+            "$ref": "#/components/schemas/AdvancedAgentConfiguration"
+          },
+          "api_version": {
+            "type": "integer",
+            "description": "The minimum accepted version of the API"
+          },
+          "benchmarks_needed": {
+            "type": "boolean",
+            "description": "Whether the agent needs to run benchmarks"
+          },
+          "recommended_timeouts": {
+            "type": "object",
+            "description": "Recommended timeout settings for agent HTTP connections",
+            "additionalProperties": false,
+            "properties": {
+              "connect_timeout": {
+                "type": "integer",
+                "description": "TCP connect timeout in seconds"
+              },
+              "read_timeout": {
+                "type": "integer",
+                "description": "Read timeout in seconds"
+              },
+              "write_timeout": {
+                "type": "integer",
+                "description": "Write timeout in seconds"
+              },
+              "request_timeout": {
+                "type": "integer",
+                "description": "Overall request timeout in seconds"
+              }
+            },
+            "required": [
+              "connect_timeout",
+              "read_timeout",
+              "write_timeout",
+              "request_timeout"
+            ]
+          },
+          "recommended_retry": {
+            "type": "object",
+            "description": "Recommended retry settings for agent HTTP requests",
+            "additionalProperties": false,
+            "properties": {
+              "max_attempts": {
+                "type": "integer",
+                "description": "Maximum number of retry attempts"
+              },
+              "initial_delay": {
+                "type": "integer",
+                "description": "Initial retry delay in seconds"
+              },
+              "max_delay": {
+                "type": "integer",
+                "description": "Maximum retry delay in seconds"
+              }
+            },
+            "required": [
+              "max_attempts",
+              "initial_delay",
+              "max_delay"
+            ]
+          },
+          "recommended_circuit_breaker": {
+            "type": "object",
+            "description": "Recommended circuit breaker settings for agent connections",
+            "additionalProperties": false,
+            "properties": {
+              "failure_threshold": {
+                "type": "integer",
+                "description": "Number of failures before circuit opens"
+              },
+              "timeout": {
+                "type": "integer",
+                "description": "Seconds before circuit half-opens for retry"
+              }
+            },
+            "required": [
+              "failure_threshold",
+              "timeout"
+            ]
+          }
+        },
+        "required": [
+          "config",
+          "api_version",
+          "benchmarks_needed",
+          "recommended_timeouts",
+          "recommended_retry",
+          "recommended_circuit_breaker"
+        ]
+      },
+      "TaskAbandonResponse": {
+        "type": "object",
+        "description": "The response to a successful task abandon request",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "state": {
+            "type": "string"
+          }
+        }
+      },
+      "TaskAbandonError": {
+        "type": "object",
+        "description": "Error response when a task cannot be abandoned",
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "details": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
       },
       "HashcatBenchmark": {
         "type": "object",
@@ -469,7 +768,16 @@
           },
           "status": {
             "type": "string",
-            "description": "The status of the task"
+            "description": "The status of the task",
+            "enum": [
+              "pending",
+              "running",
+              "completed",
+              "exhausted",
+              "abandoned",
+              "failed",
+              "paused"
+            ]
           },
           "skip": {
             "type": "integer",
@@ -760,6 +1068,29 @@
             "description": "successful",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "id": 89,
+                      "host_name": "reilly-rau",
+                      "client_signature": "TempleOS, TempleOS 5.03",
+                      "operating_system": "linux",
+                      "state": "active",
+                      "devices": [
+                        "cpu",
+                        "GPU"
+                      ],
+                      "current_activity": null,
+                      "advanced_configuration": {
+                        "agent_update_interval": 28,
+                        "use_native_hashcat": false,
+                        "backend_device": null,
+                        "opencl_devices": null,
+                        "enable_additional_hash_types": false
+                      }
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/Agent"
                 }
@@ -767,9 +1098,16 @@
             }
           },
           "401": {
-            "description": "Not authorized",
+            "description": "Unauthorized",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -796,6 +1134,29 @@
             "description": "successful",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "id": 91,
+                      "host_name": "rau",
+                      "client_signature": "TempleOS, TempleOS 5.03",
+                      "operating_system": "linux",
+                      "state": "active",
+                      "devices": [
+                        "cpu",
+                        "GPU"
+                      ],
+                      "current_activity": null,
+                      "advanced_configuration": {
+                        "agent_update_interval": 43,
+                        "use_native_hashcat": false,
+                        "backend_device": null,
+                        "opencl_devices": null,
+                        "enable_additional_hash_types": false
+                      }
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/Agent"
                 }
@@ -803,9 +1164,16 @@
             }
           },
           "401": {
-            "description": "Not authorized",
+            "description": "Unauthorized",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -817,42 +1185,44 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "id": {
-                    "type": "integer",
-                    "format": "int64",
-                    "description": "The id of the agent"
-                  },
-                  "host_name": {
-                    "type": "string",
-                    "description": "The hostname of the agent"
-                  },
-                  "client_signature": {
-                    "type": "string",
-                    "description": "The signature of the client"
-                  },
-                  "operating_system": {
-                    "type": "string",
-                    "description": "The operating system of the agent"
-                  },
-                  "devices": {
-                    "type": "array",
-                    "maxItems": 64,
-                    "items": {
-                      "type": "string",
-                      "description": "The descriptive name of a GPU or CPU device."
-                    }
-                  }
-                },
-                "required": [
-                  "id",
-                  "host_name",
-                  "client_signature",
-                  "operating_system",
-                  "devices"
-                ],
+                "$ref": "#/components/schemas/UpdateAgentRequest",
                 "description": "Agent system information"
+              },
+              "examples": {
+                "request_example_1": {
+                  "summary": "A request example",
+                  "value": {
+                    "id": 91,
+                    "advanced_configuration": {
+                      "agent_update_interval": 43,
+                      "use_native_hashcat": false,
+                      "backend_device": null,
+                      "opencl_devices": null,
+                      "enable_additional_hash_types": false
+                    },
+                    "client_signature": "TempleOS, TempleOS 5.03",
+                    "created_at": "2026-03-25T21:28:36.136-04:00",
+                    "current_activity": null,
+                    "current_hash_rate": "0.0",
+                    "current_temperature": 0,
+                    "current_utilization": 0,
+                    "custom_label": null,
+                    "devices": [
+                      "cpu",
+                      "GPU"
+                    ],
+                    "enabled": true,
+                    "host_name": "rau",
+                    "last_ipaddress": "",
+                    "last_seen_at": null,
+                    "metrics_updated_at": null,
+                    "operating_system": "linux",
+                    "state": "active",
+                    "token": "AoGj9NmFyShDTVgH5EdV6tYj",
+                    "updated_at": "2026-03-25T21:28:36.136-04:00",
+                    "user_id": 261
+                  }
+                }
               }
             }
           },
@@ -891,33 +1261,30 @@
             "description": "successful, but with server feedback",
             "content": {
               "application/json": {
-                "schema": {
-                  "description": "The response to an agent heartbeat",
-                  "type": "object",
-                  "properties": {
-                    "state": {
-                      "type": "string",
-                      "description": "The state of the agent:\n                       * `pending` - The agent needs to perform the setup process again.\n                       * `active` - The agent is ready to accept tasks, all is good.\n                       * `error` - The agent has encountered an error and needs to be checked.\n                       * `stopped` - The agent has been stopped by the user.\n                       * `offline` - The agent has not checked in recently and is considered offline.",
-                      "enum": [
-                        "active",
-                        "error",
-                        "offline",
-                        "pending",
-                        "stopped"
-                      ]
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "state": "pending"
                     }
-                  },
-                  "required": [
-                    "state"
-                  ]
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/HeartbeatResponse"
                 }
               }
             }
           },
           "401": {
-            "description": "Not authorized",
+            "description": "Unauthorized",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -932,15 +1299,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "activity": {
-                    "type": "string",
-                    "description": "Current agent activity state. Known values: starting, benchmarking, updating, downloading, waiting, cracking, stopping. Future versions may support additional values.",
-                    "example": "cracking",
-                    "nullable": true
-                  }
-                },
+                "$ref": "#/components/schemas/AgentHeartbeatRequest",
                 "description": "Optional activity state update"
               }
             }
@@ -992,6 +1351,13 @@
             "description": "Bad request",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "No benchmarks submitted"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -999,9 +1365,16 @@
             }
           },
           "401": {
-            "description": "Not authorized",
+            "description": "Unauthorized",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -1013,18 +1386,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "hashcat_benchmarks": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/HashcatBenchmark"
-                    }
-                  }
-                },
-                "required": [
-                  "hashcat_benchmarks"
-                ],
+                "$ref": "#/components/schemas/SubmitBenchmarkRequest",
                 "description": "Hashcat benchmark results for the agent"
               }
             }
@@ -1064,9 +1426,16 @@
             "description": "successful, with metadata"
           },
           "401": {
-            "description": "Not authorized",
+            "description": "Unauthorized",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -1078,44 +1447,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "message": {
-                    "type": "string",
-                    "description": "The error message"
-                  },
-                  "metadata": {
-                    "$ref": "#/components/schemas/ErrorMetadata"
-                  },
-                  "severity": {
-                    "type": "string",
-                    "description": "The severity of the error:\n                       * `info` - Informational message, no action required.\n                       * `warning` - Non-critical error, no action required. Anticipated, but not necessarily problematic.\n                       * `minor` - Minor error, no action required. Should be investigated, but the task can continue.\n                       * `major` - Major error, action required. The task should be investigated and possibly restarted.\n                       * `critical` - Critical error, action required. The task should be stopped and investigated.\n                        * `fatal` - Fatal error, action required. The agent cannot continue with the task and should not be reattempted.",
-                    "enum": [
-                      "info",
-                      "warning",
-                      "minor",
-                      "major",
-                      "critical",
-                      "fatal"
-                    ]
-                  },
-                  "agent_id": {
-                    "type": "integer",
-                    "format": "int64",
-                    "description": "The agent that caused the error"
-                  },
-                  "task_id": {
-                    "type": "integer",
-                    "nullable": true,
-                    "format": "int64",
-                    "description": "The task that caused the error, if any"
-                  }
-                },
-                "required": [
-                  "message",
-                  "severity",
-                  "agent_id"
-                ],
+                "$ref": "#/components/schemas/SubmitErrorRequest",
                 "description": "Error details reported by the agent"
               }
             }
@@ -1154,9 +1486,16 @@
             "description": "successful"
           },
           "401": {
-            "description": "Not authorized",
+            "description": "Unauthorized",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -1196,6 +1535,44 @@
             "description": "successful",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "id": 16,
+                      "attack_mode": "dictionary",
+                      "mask": null,
+                      "increment_mode": false,
+                      "increment_minimum": 0,
+                      "increment_maximum": 0,
+                      "optimized": true,
+                      "slow_candidate_generators": false,
+                      "workload_profile": 3,
+                      "disable_markov": false,
+                      "classic_markov": false,
+                      "markov_threshold": 0,
+                      "left_rule": "",
+                      "right_rule": "",
+                      "custom_charset_1": "",
+                      "custom_charset_2": "",
+                      "custom_charset_3": "",
+                      "custom_charset_4": "",
+                      "attack_mode_hashcat": 0,
+                      "hash_list_id": 49,
+                      "word_list": {
+                        "id": 16,
+                        "download_url": "http://www.example.com/rails/active_storage/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6NzAsInB1ciI6ImJsb2JfaWQifX0=--81f556ceb347aed683cc5749f7a3452c8538b0d7/top-passwords.txt",
+                        "checksum": "YEfo3hAIY/XEBFgJl7j4ng==",
+                        "file_name": "top-passwords.txt"
+                      },
+                      "rule_list": null,
+                      "mask_list": null,
+                      "hash_mode": 0,
+                      "hash_list_url": "http://www.example.com/api/v1/client/attacks/16/hash_list",
+                      "hash_list_checksum": "kgE+0zSkhaBs1gx+Ll2Akw==",
+                      "url": "http://www.example.com/campaigns/16/attacks/16.json"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/Attack"
                 }
@@ -1206,6 +1583,13 @@
             "description": "not found",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Attack not found."
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -1213,9 +1597,16 @@
             }
           },
           "401": {
-            "description": "unauthorized",
+            "description": "Unauthorized",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -1255,6 +1646,11 @@
             "description": "successful",
             "content": {
               "text/plain": {
+                "examples": {
+                  "test_example": {
+                    "value": "0e462097431906509019562988736854\n0e405967825401955372549139051580\n0e830400451993494058024219903391\n0e291529052894702774557631701704\n0e763082070976038347657360817689\n0e818888003657176127862245791911\n0e701732711630150438129209816536\n0e478478466848439040434801845361\n0e256160682445802696926137988570\n0e537612333747236407713628225676\n0e362766013028313274586933780773\n0e248776895502908863709684713578\n0e782601363539291779881938479162\n0e424759758842488633464374063001\n0e742373665639232907775599582643\n00e57640477961333848717747276704\n0e755264355178451322893275696586\n0e540853622400160407992788832284\n0e087386482136013740957780965295\n0e041022518165728065344349536299\n0e873986795817250807369213941548\n0e390310578034127565575710199239\n0e522608713252938409614536178159\n0e476487496670573057723083165712\n0e552943749576940357419042912841\n00e82203671254360601934759406438\n0e880812032272171076911479094143\n0e676399623216539720736975162129\n0e176345976414440291009492284364\n0e564472166873750526572156675923\n0e461721121374870411609769578212\n0e060125509800398574391675067075\n0e366928091944678781059722345471\n00e93967150195561843942349513469\n0e296679956971343764470376014802\n0e247293857347608753400314349379\n0e027927343820705863215577441770\n0e252975277424098750450405547604\n0e987529109273801660943537750499\n0e536008331452600778000468162358\n0e883694193916844326948973611295\n0e424294048497888001893529971403\n0e096469501119857795175476384647\n0e070302641246420537823173917716\n0e107651412534430122444310727335\n0e849446873586376930140138357778\n0e381567347928220347073343854712\n0e905060392130117790735726467859\n0e914949007364385803648138798605\n0e448778299130864449509797129898\n0e525419864591945406262998227563\n0e545428394516071575146741684795\n0e767295899498195380697332834436\n0e576163277785256730155739473379\n0e935872100939536813194636270943\n0eb93088111953185174046674351486\n0e971379756057125072238845041250\n0e183864284211506298675869366648\n0eb21820378827332451464430798697\n0e038598152105620891422974861596\n0e894353687104732687786635214136\n0ed28945221302591847978449153264\n0ea90264385679456791019887225991\n0e439849245165078778802700229873\n0e731449381626093091793513404050\n0e126635149374886577950106830662\n0e756073880949659567751252231576\n0ef65491276193866976262495578569\n0ea53603712327886946538710356586\n0e249086601945526783602356278673\n0e024555713478934332659658118180\n0ed83429501266915038692525714483\n0e019285890012675326970853669352\n0ef91664263600485432881263069170\n0eb96344658110042953525224062897\n00e49650706719659997081024412456\n0e090929726083772016603384876954\n0e931397641908567179613657463230\n0eb41746678067233356940544958830\n0e964760122122507558510301894707\n0e663260936156214376380910821202\n0ea96476364525234814003638575853\n0e853966415201907882218435953878\n0e942355771645636795619261311622\n0ea70327014428107205836228338816\n0ee95969805366297925576732214029\n0e052566796022527677703658434604\n0e600123384457131209132592175638\n0e810763761302115893884702703844\n0e731166959245640967022771564684\n0e463249761046685126659935619668\n0ed33059556258086974875447876416\n0ef50854419179481189879935461045\n0e969150246784517533191246408521\n0eb39549850075118461895635919058\n0e328551463697730337691527967652\n0e126217242363062792274495713166\n0e527915370591664597242693926727\n0e025551054370458644586403691610\n0ee37127518715729207824340169151\n0e502364472144982857192590869744\n0e732117148004958779182858536990\n0e457496054833900987889666775116\n0e699815913563873875266079686664\n00e76406687914702217897625303372\n0e078797531434036768367559385297\n0e697369971494869826413604586581\n0eb64175721325153230401232293315\n0ed71930195460522478633772575290\n0e074760013367177502192270815625\n0e074190594274270431349335477921\n0e764949368069072045196388521865\n0ec67338059701463792777215772734\n0e601959717847074232869477323026\n0e021177200447735015356971031921\n00e88998412786603066488766572631\n0e453499463434434754387288377524\n0e634506090174107853159384135687\n0ea15673050850040596297554136904\n0e070078800181583050892160625194\n0ef84418091629785329034046180298\n0ef61674257494387742486696449693\n0e096932402637733060146852211580\n0ea15298596110949330590213153621\n0eb11422135237478771912924355863\n0ea93220458387084292797896338339\n0ea24305267217862954133256679599\n00e11893775978043981869465759606\n0e710274968408547509637852155342\n0e903190981462662531625558386605\n0ed79166800676590411693158196899\n0ed20108381450617146587076403374\n0ef72621370226266918540716895907\n0e008198203488965284265444165616\n0ef78945997469804846763158288124\n0ec90497773189564921974134421492\n0e629484198526644284541157337823\n0ef54513011862173157038880179669\n00e97587549148132332584993856101\n0e294157022803076449661086491633\n0eb53493166742192510438503774348\n0ef28594657620374960617662584943\n00e41735841504397670224983312865\n0e192387500119144940543589871051\n0e697741935429285291249437201427\n0e713554192892592207918637368778\n0ef82274437943154664919965739010\n0ed48932947782431585928958543499\n0e180273134459787920679105396890\n0ee60908266239921612442277028478\n00e35712421886644709539392249393\n0e169197575097809523854569778352\n0eb80103486333320853663220547702\n0e875405291819069232049945618037\n00e09882601873365218948520930847\n0e571046416076977261801376038048\n0e788527789870181469533381742838\n0e144579778150395607081073445146\n0e408087357085099162195921667528\n0ef32371130975581793158356886748\n0e029814416706774536200181074292\n0ee15757025693367795639306521491\n0ee51416933327621708076527927275\n0ef02473426562641560440412761722\n0e885817045808513848992271430281\n0e346711282270627882083667182735\n0eb26656906880720687862361611253\n0e247981224210103389675703836804\n0e184676765284891947674829626951\n0eb29360374680505575803746854932\n0e072743999878721561251634052447\n0e959921591712455769708084958456\n0e580448986130114663523089167516\n0e627167386046552708286348016475\n0e036402558842525229204199477050\n0e101666357206112681081748455320\n0e117796363501697027222953452674\n0e518259621249173316480085853775\n0ed69719102850251217953475327085\n0e761657316022180429758325384657\n0e355970557372440216920998975222\n0ef20180960250338718429233550861\n0eb27520620314458450279649491956\n0e436314378402734111611712654026\n0e946119446142642672858262832757\n0ee20311665022977945172870623927\n0ea34183380125537235698152703631\n0e484369305169417649070905006315\n0ed22604657931750807530689526355\n0e653326767131355956161110469880\n0e631431734866553918413248642686\n0ef27592244074741276205927202324\n0ee73358262213033449654829838621\n0e333130585586305213577039927427\n0ee11440449892563603908564275693\n0e901351436865764070859051398466\n0e242700999142460696437005736231\n0e239074099038376915511163014383\n00e78170913509171886364696947933\n0ec00053106946393237318089678345\n0e544759073985063895056720000601\n0e891676190649193842031508414124\n0e551613790717508526393660811028\n0e957569938257781069678186971676\n0e778781420740711204571028212537\n00e78652260218430366515810097082\n0ed18617980884920471439353879013\n0e107806662474608626243242623178\n0ec38017339220834055407867659893\n0ea54041584253883176394189001413\n0e164879675821490800383352471267\n0eb40162176777666089546818513308\n0ed11235495038495675309094002675\n0ee18660142227578830299076471060\n0ef94806912787942506104369088120\n0e879034299586173661436974677516\n0e535955911746832994456280697563\n0e402537864182105121764499750206\n0e154499221314249635525178651457\n0ec30474031066987435737602946383\n0e249732113617303873999818367704\n0e851827184221990365882765762026\n0e760659789811566699476240165608\n0e868690772629271014442727686201\n0eb89528718762908134410955812049\n0e544071674105476245212118785762\n00e21165511946133652979395746247\n0e845856619305429905294795223862\n0e481083164060168518602691315134\n0e788248204976275056321855467193\n0ea06412255480296796669846331760\n00e76915435845087660262486971544\n0e486802182204901515938066198224\n0e967214930623954488921841383017\n0e522399875920163409892231895481\n0e844185588819980251553352078116\n0ed70294867221053172594698800809\n0e043552498983315659673380698314\n0e221326925297238319205562403775\n0ea35230842676265549075202368418\n0ed64473741254375792597617298320\n0e937094300163513903046235959376\n0e078951774517171775068618837762\n0e950597873615517725342655425676\n0e687068666718182383557043953615\n0e065833805870206104769091610143\n0e022232332677582357629641454394\n0ec22796471841009514558301553023\n0eb75234122593032202383451028536\n0ef88228580762975171457711268681\n0ea91354418927530903763416843291\n00e33928319980525556260699609455\n0e060623422950460103744994537275\n0e566330500563397747235750234034\n0ee13325826707023263360923234976\n0ee42471186025357978644620703909\n0e167336967249208668983353612551\n0e679536762501723662842305349946\n0e655099752955237071924454045565\n0ea86023202885175720452845581289\n0e595165694879612479699744301452\n0e136280995332446050419927097446\n0ee82516688966692184934311381550\n0e404354171460149880658255644172\n0e327816715263020551157994642262\n0e266635146281201862140250013547\n0e246045807419548494953409205770\n0e382514914454869222086887708252\n0ed55522879873085011349168357626\n0eb61675251110054878167276702435\n0e201680358094517687116416862211\n0e851016901835339471421134744975\n0e303693135179081369436042343152\n0ec20585657053397619530215202491\n0e159355143480978773319290574673\n0e780230490671528824082797611528\n0e988901793080979725482127310981\n0e698941911873178020764396451394\n0ea94814013347962080571286533377\n0e782617342338981946949215700453\n0e225954682674701865093997632794\n0ed88663538611463606793395958231\n0e845294177040449107929325347217\n0e388018143362098325736722862007\n0e143831420583693880410360244095\n0e502531011951351199856979789669\n0e231249552099511290035202639677\n0e779492206807446206587041280994\n0e092714162248701627420936647293\n0ed12137109383219505409966141389\n0e674473628888334961274799092940\n0e375028120331856284970482466281\n0ee53141249730380710998871198253\n0e759549138673772424920544629180\n0ed22255971426454783711877447657\n0e205985582557613221903241492011\n0e955027723194091892501346387521\n0ed68392808058140781756758780626\n0e901604353287709534446331674531\n0e258483488531397681824616366109\n0eb62111644230936795058661270722\n0ea12650160986551639200815067984\n0e282418944932992681335345024199\n0eb42133552933644906054620002148\n0e031246576022555463948064271079\n0ee23945033780919292656782361353\n0e241414596515959326169663249620\n0e887513435583726029415354657328\n00e97567352332036778893575095100\n0ef40558043678942678540609398277\n00e01019827519222036065984234151\n0e054022120302530233319321186953\n0e844587058861955318344253198266\n00e17659033928370024824249533293\n0eb70056647889630536931315764399\n0e937542651226775035719001451190\n0e760187464228781676109867521116\n0e266063893952901864193610970143\n0e807933395867245185871023013548\n0e388794081078690261059196426709\n0ee63325885559970580972045531729\n0e016116460861295741205884340664\n0ef85126592610057124451082843381\n0e775781379875375077516457565945\n0ee76468068080342136181454163345\n0ed75884286971215365437957834074\n0ea49638074065902363782993554689\n0e748413228067967993548604059113\n0ee27341201146515481533443599211\n0eb76841431577914691380845365507\n0e300289233366943273554537239693\n0ee09972239128093017302916655925\n0e495532206676849217596564676760\n0ef21544017202086404347513132019\n0ec44203125966605968551343291850\n0ed38717637142025133390691071043\n0ee68042466377628948785337657469\n0e800259481444998986692038202429\n0e243601382303568196061924271208\n0ef69572871403570460246727491278\n0ed19666356276514228255468244335\n0e685755120581698649362306097838\n0ea77600497707785136121330578144\n0e817918331134137323631992911962\n0ed82640807762699315801644733111\n0e185348073727439365333761046098\n0ed98129985996607273213986024960\n0ec73700222322343431655082663372\n0e713987154830874238138279327808\n0e415888246684184750443844793132\n0e560271184837537747051070427799\n0e912618018433866899539537579129\n0ed70754898557082084480953314618\n0e438850351107865417946844154208\n0ee47351147686079677852158107860\n0e888716370306615548171482114828\n0ea83569136554111698899064298456\n0e777604989704277167922369159767\n00e53382869322430719579279092015\n0ec24164766496970637455181191601\n0eb79196459941194828128046810207\n0ea83703377362539933366038839843\n0ea09082933112333201804127615298\n0ea64417550773557899231026400255\n0e273002667913678716748315387834\n0eb22739852015526072140672658003\n0ec95544518346185946033749369199\n0e273410821531579600535935517371\n0e386621109701730051415838097168\n0ec72900248315696636038857570626\n0ea24503094407654351149700802245\n0e355360814328263468392732105397\n0e653789367518439993109807326866\n00e52796185454640810041139906610\n0e014319431367688404169781839026\n0e091482799021394722061173677644\n00e22822960581750183750303218724\n0e468981304529490417967696208209\n0ea90523634052476781421925868466\n0e706721299860673414991899097010\n00e06038130280740524856085607869\n0e172855289197596616327189502549\n0e046767257151951488075068898208\n0ee81118450868799965865441465707\n0e900854523839940315629070924170\n0ee64438041854740457155517714487\n0e305278172985670775962822472499\n0ee10118610366436301310756606932\n0eb33947843361550306995197393950\n0e573794711987386459526325443323\n0e318599495041770813361179089207\n0ea91147506068860772100463049090\n00e03789101033630648467878515573\n0e730977793649162415827250714823\n0e305309994564214358404252530834\n0e559529379658318456957029484631\n0e485103873854065577921508340074\n0e667879447675393308142250681154\n0eb97580266773023944246736052349\n0e734484428207200995693146101888\n0e314514791603727898531543911164\n0e166897632792130862394352514193\n0e160826322958573722208882082182\n0e511704724801089852062543562585\n0e100584909587256939082984155094\n0e441648116586010471810320607191\n0e262910282637347006014043020126\n0eb71510685877728407552561618551\n0e258932010038344947770476449734\n0eb91709428182362266335550528237\n0e720392406500752382412102944560\n0e932362810908829486255181326624\n0e958832861792399565903244316379\n0e047370718806375300931408867931\n0e483353164922505225551649442262\n0e404369887381637939599411249610\n0eb57192898811944323832724404225\n0eb04032412845546746907276656790\n0e984443593473245938618603829085\n0e754313447197502380182941505899\n0ec72612163756301868554138806923\n0eb81466632526298574135201476822\n0e549210972114765511194892243949\n0ef58617375360670342972353923169\n00e61511983177762994316403508373\n0ec46033570004310562635401279279\n0e113809520933484304697738373819\n0ee14173877818893005038496123922\n0ec84144942058595551929680540934\n0ec42154709300515583409734840699\n0e644712652854216653210649019966\n0ea58458381320925504215769691502\n0eb83426034637810551630901072218\n0e545164150667088447957343575697\n00e27815530413747851470089909200\n0e431728043680412425931200669560\n0e842830734288661948684007981021\n0e397704243679743620267535719383\n0e902622922704373625462006591084\n0e012942409057542020981383248082\n0eb87006337053506094213319611523\n0e037799625419873955830852813653\n0ea56811321107017762417652612881\n0e713509052003864199988336870712\n0e096563009177733317125961726648\n0ef29811509351797552264521322511\n0ea44151531419465129882575101988\n0ef75376657907099561472568382857\n0ee55435318178210319891668116687\n0ec80798186111633574791389058956\n0e065196279405838050523470289445\n0ea32783087431623175057052593697\n0e148902311546701240194761557681\n0ed89060614035937073911499320149\n0e358379830096957123832000465492\n00e23921615024417905972279860127\n0ea29699394513979399281786583387\n0e648312676073315753686782434251\n0ef57466112854436481571102638193\n0e549122357245810735417426731529\n00e71106873513486386020638513253\n0eb69646765158972453824893117661\n0e798262190719244642120406241037\n0ef80192089480402392528077866594\n0e393063451113520623260883180370\n0ee96615435496349159823339551231\n0e547618050413596671736764162278\n0e927046279499001653730064212316\n0ea78956015090101871250746950800\n0e713327370227563478859107579016\n0e129687674524874682216836227729\n0ec71693738251482072865436434410\n0ee29861466034587670322968800199\n0e769621405874205975081405369220\n0ed17833969152752639408004882293\n0e645268213701136739851883775787\n0e273425521964189054573942996476\n0e360581727854283017937813383700\n0e601285101878878662990909509462\n0e711517325531233007617864779135\n0eb45180032583543315724470131419\n0ed70237375617000663128600151212\n0e261181667495690637334948052131\n0e898390707386014860029943707671\n0e498845730231345742163116324571\n0ee27520974738180138660779550757\n0e350221130318374996361609007007\n0e332522052041680297987999287874\n0eb03943250209508910624676972438\n0e571922878615293124985545571278\n0e110920165167738495586572246492\n0e452441252333108355062684174414\n0e144194516543770732795176766798\n0e180683742815794241773611247433\n0e594916404570158017705011294283\n0ec40363075564276905867045201608\n00e02799278283881138931712860238\n0e243649086020299765539643957482\n0eb86465492236896461577632006062\n0e624971635547993313711867871646\n0e997970895538822639588928108376\n0e458104215991307643920017914660\n0ea19744265103045010055390282215\n0e818465364995012450160645503327\n0e186988543371148583868090628757\n0e560020969989064619038976414043\n0e443422076694146802360513332568\n0e305137237314174269404155016688\n0e478298083613316107459305907098\n0e359187161304157539287509886370\n00e42536511573327958837976762330\n0e476654702450299632468777628354\n0e484554157094397182863571767172\n00e58461571023902835312409167773\n0e803473473049474745461468508663\n0e198979323667213428501216296281\n0e852788235864983815562559528091\n0e195403329629357635131280129190\n0e173098816894413857288672198362\n0e506708520150717331405863398954\n00e59768136635402005534872511270\n0e800840643855010037448881984204\n0e069966635722217754458175456433\n0e114567529312736809898655684693\n0e077574071545040399080277481258\n0e487980017935959146955103358106\n0e312689870610735311595882253536\n0e488409725759048219123793610673\n0e819140131532955467068164761808\n0e115397152828094255399175796659\n0e453460869789584366816848139486\n0e933875473827131465822233669180\n0e534079230239544746143741629773\n0e140990768077153268467404324379\n0e915357242539743090226437664036\n0e484887635913963065228367725792\n0e048020066397263986081879034441\n0e096571847500387036158576110981\n0e001545189745179000556196073262\n00e97132148382355738347146842033\n0e111217423736819813153471728528\n0e401671111555918816845394123278\n0e384442561191367756099756925488\n0e044501587820538634551334355770\n0e173225800623477077170655519507\n0e792989266098596293450394438569\n0e394353348609913295717307173370\n0e919690854618060666601691659658\n0e063403212310483769690805065825\n0e935253073778106426297490832707\n0e101753759710895202182204836980\n0e274891953092733006767445802251\n0e383803234852401427400835007784\n0e705000597672583491346120009196\n0e164272952871900958448783617716\n0e973500807967144455964515923799\n0e047779354437823150759237832317\n0e217965744631372178070549749674\n0e373084776503166798762446544090\n0e573176346147001650108196601344\n0e406815567764602409869672507526\n0e237996220679150359357968225898\n0e878603839868072014919271987393\n0e199927703462742018806026867248\n0e606401498153860106097466821485\n0e865077392762807912557810462636\n0e325195345077649192366881816781\n0e695217336543611377675056158313\n0e063440635641896597100134021682\n0e442146497422063693240361029407\n0e143411518928264546709493531576\n00e39291179711828302315716212311\n0e210630296866497280290153764076\n0e578202423592283777541400439888\n0e382837914145424584893818619299\n0e180143324788061662560119258181\n0e637315644847226799941804916202\n0e174413629803472241594737171840\n0e341499420453300952680698630584\n0e994249981939772421753088649472\n00e64574777120986712170641764973\n0e907730870499950745937818218354\n0e952100030203135626766403645831\n0e312653519279611815433993148500\n00e32503139227040467351924322965\n0e790923800292454338835856268313\n0e783946138664317185555102512715\n0e757234114669118020779740236931\n00e73598578914775814443247204323\n00e40930545550624055611637512128\n0e836825228923217598615097810945\n0e388597762908012199905358381080\n00e97669033292422039515578589244\n0e785472232372057432595300925115\n0e543327146834766330479762636361\n0e737053257198387832139845832107\n0e189656022638320797038370318080\n0e502227416694497770293038177364\n0e741295853435965863207597011970\n00e70153057673217277726511013604\n0e496211813875839888884424527615\n0e422968855943552648298065071887\n0e198025597575623710806613358516\n0e817727734884247252571224878771\n0e348492516167418545313808687992\n0e036659406784394461138665096966\n0e184853692391088898314763670081\n0e122350164991741065745632471658\n0e556485729818849153460746667456\n0e595382716541638596212874739421\n0e356074966114130738099348064155\n0e080088278595668260174306546072\n0e081502383796886474079688943427\n0e852655073237061438725313443714\n0e821539860384670888592561134442\n0e047009536035947520979498297621\n0e477456514055784273981142480212\n0e272553697868389031173260451524\n0e323432093396194207457636088334\n0e798918330378786680491812688426\n0e626867880425541428354150784898\n0e115475995924665679441376301245\n0e326696458510992713543072556629\n0e434738511829436466871993325003\n00e10103172115901558787012182662\n000e1640738746380107023370801785\n0e493707286061122838672478136151\n0e711669290456777213730076069115\n0e481000106858415583915855214612\n0e090834278490300511041854943846\n0e595115040769651736672578149738\n00e69710009207015091983322333367\n0e583861828759999375710762386181\n0e124859781897479406471310274665\n0e750143108151497517512981976595\n0e015482782086224678711348946999\n0e790926817762745935129581933853\n0e386135102212088676991630350591\n0e532111367303721385759341171639\n0e625034147214212151061454475933\n0e239700241879125442633260696870\n0e010472279905434033680116137130\n0e377026978787592814469455675053\n0e100231159347513269636201494646\n0e917413018607119188690959522613\n0e246158368694453664411916183790\n0e637664803834471932721979939621\n0e243290500679059135881845663163\n0e500224269544123175766985355431\n0e177211772494730590339712709975\n0e438737781298657871500284163488\n0e859245628205631785434879617996\n00e95071710439957711401540424572\n0e922464428506711335483475014517\n0e341461330988275329454281437426\n0e515036189105890288123873478095\n0e010526382013967594190209865063\n0e255129593297009930789193140071\n0e464936732132913684369711837743\n0e794171474557170256534703156406\n0e085518389086878134845564489741\n0e483349222849501401479573947729\n0e293700057145223332148823634539\n0e773867529498181462358489286152\n0e129393501994211217408976885339\n0e863279948237803864005992417634\n0e111920379913940272046936631348\n0e782794441322544756268380726651\n0e150502868747909945772373520877\n0e660660945958452603316386908123\n0e256360390695420880362675136584\n0e105556476792017677021745158651\n0e118384241771571176356368427884\n00e51572240181368011633518322412\n0e466682363807826912169538795680\n0e689047178306969035064392896674\n0e367041900543441029563124937228\n0e841063432530790836849441220265\n0e825110131238975934097747438094\n00e67972772076279757422607754851\n0e442794795707185857719335366936\n0e741385010207011839626710019143\n0e326317707028499177830478236923\n0e126165465744024844602201925305\n0e102856367633866248822822538173\n0e773939104686777110859301993365\n0e400599098878084994964989437950\n0e171135099557940497066539413538\n0e341458689020068004009380684426\n0e315567585179673605046363175016\n0e617227714709657599517443612891\n00e72032532215436671549609646555\n0e597546911230096796627092116287\n0e721850619801609110843776277193\n0e873615697730595069141037038322\n0e324316378866338915127082973545\n0e854301621315436115803412220883\n0e406440220827534030793589817604\n0e854871064450301583802284574846\n0e475735962696558914856140331137\n0e539867938634472786162363004017\n0e593673401700428688569077614998\n0e297286500374769026178954144027\n0e141015911386205195500441535077\n00e82096161841492866588321968925\n0e388749757863557269908950425287\n0e345454812379965963500744131755\n0e432209500614354902575946950322\n0e604068520122076280668967858366\n0e192448656819689579663402632707\n00e29248180925060615658190794077\n0e274197734240132194727708634185\n0e307167574261776673343869112344\n00e88956891734436705233439493533\n0e749867623348378807452842903266\n0e528897339634309832329446871491\n0e168206357901180846780308585276\n0e031729089305784425967546239820\n0e620972654966689357367428978261\n00e52107084201969352753385017214\n0e702565155023090652395402995100\n00e39786989574093743872279278460\n0e142081229903926924291387418884\n0e238872362391842421990692186350\n0e874769109757180442990836153073\n00e82010272588913494874075404308\n0e264387635231842725575211994983\n0e964562580826716411775523600875\n0e121736315773876437379216153500\n0e664068263703106696555209425934\n0e319957400442773298145222442028\n00e01450501445988824413679992553\n00e12483932838133705829240070744\n0e479453688109595852600389146733\n0e753920993198240461046868701706\n0e653698208105792869029369585968\n0e052539892259114859640052326948\n0e299867669496704859280595221290\n0e402980272536959961812064024028\n0e975856862727475742584132986413\n0e965085347228157259112180379575\n0e896373459033447788368107978553\n00e76763674700997023615024879315\n0e118275813739795161784520429617\n0e352565914574512443937170933788\n0e679105871843092848109265753035\n0e580448060181188043731880856446\n00e10968728013776640746800840027\n0e268518755764338261571769908809\n0e526486202088319141488400778427\n0e436093185083812127040988867475\n0e554813064909321828168289872681\n0e191967979148142784996325267262\n0e297466430087253241368454655530\n0e717192987842357999753403214061\n0e026983578289751346449857742272\n0e223022993580417076841375850831\n0e032971758778418406046710861610\n0e949797348142529148887313794172\n0e490789392110768776457566243917\n0e558712719905214121428535658378\n0e678871401406640475038587528731\n0e748553266280500105897104531211\n0e828802065793295860193266417698\n0e613998338890675336630148293630\n0e072409899066486174131879789375\n0e936557256102168927751466170611\n0e024084237222475104399134779541\n0e332147125486889608048401650413\n0e710095326463708330672374397326\n0e243400796157423113837283456259\n0e305228459314263578047228594216\n0e344947368902513318408474762864\n0e813254788477647633410452292882\n0e716441424049958126278352256805\n0e547122947481666997769759318604\n0e996508862987600198783055599419\n0e036326027321699501765392445095\n0e380955964361784173465938928024\n0e653721635812112812812943623172\n00e78898863364769859211405104852\n0e367008298083134506419670376044\n0e319109816075038370127689322166\n0e822765396463167654528278341080\n0e783012424459667950083283305224\n0e602791960841971081465365543947\n0e926479031443037930816674394927\n0e801531486059204958654274572109\n0e866267011289417336160709880563\n0e270247480077585773093806255125\n0e251010699814609150059298651594\n0e416048116282294014364090478654\n0e594560521824817396348847883910\n0e173598035202747038169248653523\n0e335687398786074028235756402225\n00e35645438288769028980653614371\n0e139929756865576003496761656047\n0e335940897938838066367666920873\n0e984416266680031628239129598447\n0e624809536100340000649884841662\n00e48483801626536886347891518295\n0e142057241090737466770311436274\n0e819328685132355422690115557937\n0e872776281290784237889512792394\n0e812224828968442284187448348970\n00e03480391551416341892874480253\n00e01946411671129357374659098822\n0e250657216501310985890434036026\n0e748063611935621125290495444799\n0e467342769655470642006025754832\n0e968735484193757088984128223538\n0e800949314210590494919317196064\n0e146187037451850830854514821767\n0e405037745415128364073979856919\n0e362100417416497135530402824062\n0e501008269688937896791823094306\n0e362942997354612711163833810165\n0e309859395651912513750295045593\n0e712601847221119538423559709183\n0e862144521087604521816107302382\n0e671699021444073100367671932950\n0e826555004251931137227058696270\n00e51326069452846241211055882721\n0e177337912171954059272958030021\n0e743085805252927775565385290397\n0e868489106034723523559320341834\n0e668883720723418111245548953214\n0e206240563971050550116633301219\n0e257204273001610237815292534804\n0e500122072987105499558769309919\n0e641531560203654077289258748768\n0e762171063695462807358759123750\n0e112021453091938008179926214432\n0e539034975375694709628091119285\n00e84318121438045061107416117877\n0e151552396662602699790731012016\n0e931363893282159188068848944511\n0e967077438787013328807625996622\n0e825371282614850860463388078467\n0e558707314409339998121484069293\n0e504446921245543672741298606269\n0e212362508980563187307380624574\n0e233977016726735249825850112191\n0e979094825139201743271623118497\n0e320113725965349531245264287508\n00e24990249063715603043847588412\n0e427088803668170868968681882372\n0e798422082256872983511618278639\n0e632129769104845720449638434365\n0e277822600679140301163408072337\n000e8035366967428111420789887452\n0e145836254131914671762702802248\n0e794296267645314378837157280716\n0e797660940305640059960923840530\n0e919749841593600480396602490551\n0e386534009257600539447714376960\n0e299007796530052469172589577557\n0e874413536934946580761991223533\n00e55480549742593479712918207437\n0e745300758703252891987480809406\n0e608352080747646815330536960302\n0e847259933883272237056784406542\n0e026724414718028157133240637643\n0e695502374759494568304076914962\n0e397431486738711936984824494127\n0e355754319526429296453963428621\n0e723640171579308600048103169197\n0e724243036529668902792507562841\n0e699828270766224167379051893230\n0e991314659725335977252965500812\n0e351869381366502712134558862779\n0e339703243496858659637178841304\n0e379962815375430180676055487647\n0e069131503592996704083669449098\n0e491115376538379914583803505526\n0e944498014881245171922637714771\n0e238954473242774066673182260621\n0e352301353053764000765589033360\n0e125787292128680471912637832157\n0e013747045260524485184037794915\n0e481204005586521649559409679900\n0e472189797727655093199339150672\n0e324620312086945257345832085592\n00e27029941820603345228601454319\n0e449824447122481665122660747248\n0e176089859050714805502433397456\n0e648874773746431631520736757720\n0e549064947501414644573642844626\n0e098815389405733553036135137403\n0e652150710039140728339196199010\n0e459343631065651364048523771633\n0e941242457321132837764267348274\n0e995949026043127195120779393623\n0e076622792501044716258916967463\n00e72957216100821023191573342510\n0e904310212375757042757551233487\n0e560411388484291716353637426222\n0e428258301000971183683390506375\n0e623435437885705149665265323886\n0e751087553632951666954105945855\n0e412825784296994813673923046768\n0e033986194768180713959602159890\n0e086480164341626882924899142907\n0e331845474827674218000636146681\n0e743542551632021350623273288309\n0e107303994101791601610489605716\n0e871241942888840744154041163279\n00e90897696814423421503111013874\n0e057642476503058773682559259910\n0e434889771613853625195052101267\n0e360899786644122892711479288030\n0e068388224779546143336426711904\n0e821993049235653827748561923700\n0e363752286934748004267478332720\n0e710917156631142531976917685938\n0e218582682560037679432658764131\n0e197655911012583910606537789411\n0e791913724986920161109490945425\n0e901414916553612529150636179347\n00e36239940494820624886917103633\n0e708685749493051383997168720064\n0e286684064973701562754646189930\n0e911457360322005766446588406231\n0e021895121757290175000580073925\n0e247446874683380579709339779277\n0e353485834487835012843802093795\n0e440955275288620608351823343427\n0e776768690649094123168185279570\n0e503408782980464689452899992245\n00e99600087846922253588391363999\n0e704677955924781057083566761155\n0e755309175686000342207575969583\n0e067163562252210316413100043115\n0e373876668454513642191223584240\n0e480801274702183837296236500883\n0e303732628701743861345481400946\n0e010133950146407417801169748688\n0e520891067050733616611692220497\n0e725420191847615995846416099824\n00e73400130860032588503590621328\n0e140024319784642702848046984729\n0e771599882535532352154962129065\n0e474441707290900694930228433006\n0e859173238273273455651853557908\n0e175370484277394504384587260411\n0e732793752744629114494286417663\n0e617304905381053105798903298240\n0e742627851258428405240773858206\n0e892585293178019132096606038104\n0e597110581935218364198446515779\n0e668603196060723079925408295422\n0e839011002232277416984005143745\n0e914119447124053184837596602810\n0e558977309300052364660200559690\n0e316254807757583857349425586730\n0e288796248230952258217585561073\n0e049244235820395072512978352110\n0e392752400759036121301780363977\n0e993811297795641783927086214820\n0e228469762885608934453271169645\n0e809229513191992773750209262421\n0e015890930978824184417033457171\n0e918361104734546542049362421574\n0e466819090700704408768809355877\n0e488468752018350982728547761723\n0e703717133545667739210903323083\n0e049115676628046268387027519760\n0e748863568511001009100615283009\n0e316384599798704817278060496674\n0e118295099101694190498400868465\n0e922451586661705450371971984450\n00e95246441910436569610504494429\n0e704187673611855154964811990062\n00e58378298714355054522900730468\n0e698031537843159768162020780735\n0e685754512634902310450933716189\n0e732403697443088745177978608703\n0e911992123744915158360782778515\n0e642276872339101894040672638043\n0e674601908431368289110857474953\n0e811903033662824759764930345353\n0e977690635887290867676681639188\n0e547772458960324697116900050578\n0e670417101053731652248174312214\n0e088186168631173581624876059389\n0e803278139459070019409565297938\n0e494496613662122765707618390572\n00e89083858553525267218694193703\n00e66954822291536238327643342602\n0e688065097905052131160818049682\n0e150021313229535479448960192497\n0e427165560473709541262115879322\n0e212089178649039431933729688866\n0e875225739151635763781768168050\n0e151847567205329626226186994212\n0e554834940334311467473897130531\n0e220987314997743625442964283314\n0e070680132080871095604490841909\n0e505306610086634417027764698286\n0e781189643377847208451601226827\n0e914022345307317030885198241992\n00e98964689272988335938577613800\n0e656721453248642852483628066363\n0e394953505745405474013722050568\n00e97704981801156036802648235478\n0e389404952944040555093072566533\n0e744254988746519482021441207857\n0e584534642350465243534981705206\n00e75643634650030148510424537209\n0e735266984036051110930327520427\n0e646281365937497392704373659016\n0e361812035730460151531645473846\n0e111862011654913151517331666493\n0e613355377549634251553032324836\n00e66018400048726119673849053795\n00e13091337053035690315301170677\n00e26430923330343164204018649849\n0e588371083636394650517986368324\n0e632684922796334502827808200584\n00e45653718969294213009554265803\n00e99757454497342716194968339146\n00e73414578113850089230341919829\n00e48890746054592674909531744787\n0e291242476940776845150308577824"
+                  }
+                },
                 "schema": {
                   "type": "string",
                   "format": "binary"
@@ -1265,9 +1661,33 @@
           "404": {
             "description": "not found",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
+                },
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Attack not found."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                },
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
                 }
               }
             }
@@ -1289,6 +1709,16 @@
             "description": "healthy",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "status": "ok",
+                      "api_version": 1,
+                      "timestamp": "2026-03-25T21:28:45-04:00",
+                      "database": "healthy"
+                    }
+                  }
+                },
                 "schema": {
                   "type": "object",
                   "properties": {
@@ -1379,6 +1809,18 @@
             "description": "new task available",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "id": 42,
+                      "attack_id": 47,
+                      "start_date": "2026-03-25T21:28:48.378-04:00",
+                      "status": "pending",
+                      "skip": 0,
+                      "limit": 0
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/Task"
                 }
@@ -1389,6 +1831,13 @@
             "description": "Unauthorized",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -1428,6 +1877,18 @@
             "description": "successful",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "id": 43,
+                      "attack_id": 48,
+                      "start_date": "2026-03-25T10:46:18.098-04:00",
+                      "status": "pending",
+                      "skip": 0,
+                      "limit": 0
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/Task"
                 }
@@ -1438,6 +1899,15 @@
             "description": "Task not found",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Record not found",
+                      "reason": "task_not_found",
+                      "details": "Task does not exist or was removed"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -1448,6 +1918,13 @@
             "description": "Unauthorized",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -1485,7 +1962,20 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "successful"
+            "description": "successful",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "message": "Hash cracked successfully",
+                      "uncracked_count": 1025,
+                      "task_state": "running"
+                    }
+                  }
+                }
+              }
+            }
           },
           "204": {
             "description": "No more uncracked hashes"
@@ -1494,6 +1984,30 @@
             "description": "Hash value not found",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Hash not found"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -1507,6 +2021,16 @@
               "schema": {
                 "$ref": "#/components/schemas/HashcatResult",
                 "description": "Cracked hash result from hashcat"
+              },
+              "examples": {
+                "request_example_1": {
+                  "summary": "A request example",
+                  "value": {
+                    "timestamp": "2026-03-25T21:28:49.741-04:00",
+                    "hash": "dummy_hash_2",
+                    "plain_text": "dummy_plain"
+                  }
+                }
               }
             }
           },
@@ -1554,6 +2078,13 @@
             "description": "malformed status data",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Guess not found"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -1561,12 +2092,32 @@
             }
           },
           "404": {
-            "description": "Task not found"
+            "description": "Task not found",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Record not found",
+                      "reason": "task_not_found",
+                      "details": "Task does not exist or was removed"
+                    }
+                  }
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -1620,6 +2171,13 @@
             "description": "task already completed",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Task already completed"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -1630,6 +2188,32 @@
             "description": "task not found for agent",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Record not found",
+                      "reason": "task_not_found",
+                      "details": "Task does not exist or was removed"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorObject"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -1672,6 +2256,15 @@
             "description": "Task not found",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Record not found",
+                      "reason": "task_not_found",
+                      "details": "Task does not exist or was removed"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -1682,6 +2275,13 @@
             "description": "Unauthorized",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -1722,15 +2322,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean"
-                    },
-                    "state": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/TaskAbandonResponse"
                 }
               }
             }
@@ -1739,19 +2331,18 @@
             "description": "already completed",
             "content": {
               "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "details": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Failed to abandon task",
+                      "details": [
+                        "State cannot transition via \"abandon\""
+                      ]
                     }
                   }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/TaskAbandonError"
                 }
               }
             }
@@ -1760,6 +2351,15 @@
             "description": "Task not found",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Record not found",
+                      "reason": "task_not_found",
+                      "details": "Task does not exist or was removed"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -1770,6 +2370,13 @@
             "description": "Unauthorized",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -1809,6 +2416,11 @@
             "description": "successful",
             "content": {
               "text/plain": {
+                "examples": {
+                  "test_example": {
+                    "value": ""
+                  }
+                },
                 "schema": {
                   "type": "string",
                   "format": "binary"
@@ -1819,9 +2431,16 @@
           "422": {
             "description": "already completed",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
+                },
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Task already completed"
+                    }
+                  }
                 }
               }
             }
@@ -1829,9 +2448,18 @@
           "404": {
             "description": "Task not found",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
+                },
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Record not found",
+                      "reason": "task_not_found",
+                      "details": "Task does not exist or was removed"
+                    }
+                  }
                 }
               }
             }
@@ -1839,9 +2467,16 @@
           "401": {
             "description": "Unauthorized",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
+                },
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
                 }
               }
             }
@@ -1867,109 +2502,53 @@
             "description": "successful",
             "content": {
               "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "config": {
-                      "$ref": "#/components/schemas/AdvancedAgentConfiguration"
-                    },
-                    "api_version": {
-                      "type": "integer",
-                      "description": "The minimum accepted version of the API"
-                    },
-                    "benchmarks_needed": {
-                      "type": "boolean",
-                      "description": "Whether the agent needs to run benchmarks"
-                    },
-                    "recommended_timeouts": {
-                      "type": "object",
-                      "description": "Recommended timeout settings for agent HTTP connections",
-                      "additionalProperties": false,
-                      "properties": {
-                        "connect_timeout": {
-                          "type": "integer",
-                          "description": "TCP connect timeout in seconds"
-                        },
-                        "read_timeout": {
-                          "type": "integer",
-                          "description": "Read timeout in seconds"
-                        },
-                        "write_timeout": {
-                          "type": "integer",
-                          "description": "Write timeout in seconds"
-                        },
-                        "request_timeout": {
-                          "type": "integer",
-                          "description": "Overall request timeout in seconds"
-                        }
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "config": {
+                        "agent_update_interval": 57,
+                        "use_native_hashcat": false,
+                        "backend_device": null,
+                        "opencl_devices": null,
+                        "enable_additional_hash_types": false
                       },
-                      "required": [
-                        "connect_timeout",
-                        "read_timeout",
-                        "write_timeout",
-                        "request_timeout"
-                      ]
-                    },
-                    "recommended_retry": {
-                      "type": "object",
-                      "description": "Recommended retry settings for agent HTTP requests",
-                      "additionalProperties": false,
-                      "properties": {
-                        "max_attempts": {
-                          "type": "integer",
-                          "description": "Maximum number of retry attempts"
-                        },
-                        "initial_delay": {
-                          "type": "integer",
-                          "description": "Initial retry delay in seconds"
-                        },
-                        "max_delay": {
-                          "type": "integer",
-                          "description": "Maximum retry delay in seconds"
-                        }
+                      "api_version": 1,
+                      "benchmarks_needed": true,
+                      "recommended_timeouts": {
+                        "connect_timeout": 10,
+                        "read_timeout": 30,
+                        "write_timeout": 30,
+                        "request_timeout": 60
                       },
-                      "required": [
-                        "max_attempts",
-                        "initial_delay",
-                        "max_delay"
-                      ]
-                    },
-                    "recommended_circuit_breaker": {
-                      "type": "object",
-                      "description": "Recommended circuit breaker settings for agent connections",
-                      "additionalProperties": false,
-                      "properties": {
-                        "failure_threshold": {
-                          "type": "integer",
-                          "description": "Number of failures before circuit opens"
-                        },
-                        "timeout": {
-                          "type": "integer",
-                          "description": "Seconds before circuit half-opens for retry"
-                        }
+                      "recommended_retry": {
+                        "max_attempts": 10,
+                        "initial_delay": 1,
+                        "max_delay": 300
                       },
-                      "required": [
-                        "failure_threshold",
-                        "timeout"
-                      ]
+                      "recommended_circuit_breaker": {
+                        "failure_threshold": 5,
+                        "timeout": 30
+                      }
                     }
-                  },
-                  "required": [
-                    "config",
-                    "api_version",
-                    "benchmarks_needed",
-                    "recommended_timeouts",
-                    "recommended_retry",
-                    "recommended_circuit_breaker"
-                  ]
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ConfigurationResponse"
                 }
               }
             }
           },
           "401": {
-            "description": "unauthorized",
+            "description": "Unauthorized",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
@@ -1997,29 +2576,31 @@
             "description": "successful",
             "content": {
               "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "authenticated": {
-                      "type": "boolean"
-                    },
-                    "agent_id": {
-                      "type": "integer",
-                      "format": "int64"
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "authenticated": true,
+                      "agent_id": 201
                     }
-                  },
-                  "required": [
-                    "authenticated",
-                    "agent_id"
-                  ]
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/AuthenticationResponse"
                 }
               }
             }
           },
           "401": {
-            "description": "unauthorized",
+            "description": "Unauthorized",
             "content": {
               "application/json": {
+                "examples": {
+                  "test_example": {
+                    "value": {
+                      "error": "Bad credentials"
+                    }
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ErrorObject"
                 }
