@@ -669,12 +669,12 @@ CipherSwarm uses environment variables for configuration, with different require
 
 ### Security-Critical Variables
 
-| Variable             | Required In | Purpose                                                                                   |
-| -------------------- | ----------- | ----------------------------------------------------------------------------------------- |
-| `TUSD_HOOK_SECRET`   | Production  | Shared secret for authenticating tusd webhook requests. Prevents cache poisoning attacks. |
-| `POSTGRES_PASSWORD`  | Always      | Database password. Fails fast if unset to prevent insecure defaults.                      |
-| `APPLICATION_HOST`   | Optional    | DNS rebinding protection. Set to the hostname used to access the application (e.g., "cipherswarm.lab.local"). When not set, host checking is disabled for backward compatibility. |
-| `RUN_DB_PREPARE`     | Optional    | When `true`, runs `db:prepare` on container startup. Use only in single-instance mode or one-shot migration jobs to avoid migration races across replicas. |
+| Variable            | Required In | Purpose                                                                                                                                                                           |
+| ------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `TUSD_HOOK_SECRET`  | Production  | Shared secret for authenticating tusd webhook requests. Prevents cache poisoning attacks.                                                                                         |
+| `POSTGRES_PASSWORD` | Always      | Database password. Fails fast if unset to prevent insecure defaults.                                                                                                              |
+| `APPLICATION_HOST`  | Optional    | DNS rebinding protection. Set to the hostname used to access the application (e.g., "cipherswarm.lab.local"). When not set, host checking is disabled for backward compatibility. |
+| `RUN_DB_PREPARE`    | Optional    | When `true`, runs `db:prepare` on container startup. Use only in single-instance mode or one-shot migration jobs to avoid migration races across replicas.                        |
 
 ### tusd Webhook Authentication
 
@@ -703,7 +703,7 @@ Set `APPLICATION_HOST` to enable DNS rebinding attack protection in production:
 ```yaml
 # docker-compose-production.yml
 environment:
-  APPLICATION_HOST: "cipherswarm.lab.local"
+  APPLICATION_HOST: cipherswarm.lab.local
 ```
 
 When set, Rails validates the `Host` header against the configured hostname. Health check endpoints (`/up`, `/api/v1/client/health`) are excluded from this check.
