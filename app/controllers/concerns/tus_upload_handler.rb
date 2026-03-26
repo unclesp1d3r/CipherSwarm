@@ -28,6 +28,9 @@ module TusUploadHandler
     cached = Rails.cache.read("tus_upload:#{upload_id}")
     source_path = cached&.dig(:file_path) || File.join(tus_uploads_dir, upload_id)
 
+    # Validate source_path is within the expected tusd uploads directory to prevent path traversal
+    validate_source_path!(source_path)
+
     unless File.exist?(source_path)
       record.destroy! if record.persisted?
       raise TusUploadError, "Upload file not found: #{upload_id}"
@@ -76,6 +79,22 @@ module TusUploadHandler
                      Rails.root.join("storage/attack_resources").to_s)
     type_dir = record.class.name.underscore.pluralize
     File.join(base, type_dir)
+  end
+
+  def validate_source_path!(path)
+    canonical_source = File.realpath(path)
+    canonical_tus_dir = File.realpath(tus_uploads_dir)
+    return if canonical_source.start_with?(canonical_tus_dir + "/")
+
+    raise TusUploadError, "Path traversal attempt blocked: source path is outside tusd uploads directory"
+  rescue Errno::ENOENT
+    # File doesn't exist yet — validate the directory component
+    parent = File.dirname(path)
+    canonical_parent = File.realpath(parent) rescue parent
+    canonical_tus_dir = File.realpath(tus_uploads_dir) rescue tus_uploads_dir
+    return if canonical_parent.start_with?(canonical_tus_dir)
+
+    raise TusUploadError, "Path traversal attempt blocked: source path is outside tusd uploads directory"
   end
 
   def sanitize_filename(name)
