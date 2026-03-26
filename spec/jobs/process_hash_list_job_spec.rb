@@ -346,6 +346,76 @@ RSpec.describe ProcessHashListJob do
       end
     end
 
+    context "when cracked hashes exist in a list with a different hash type" do
+      let(:known_hash) { Rails.root.join("spec/fixtures/hash_lists/example_hashes.txt").each_line.first.strip }
+      let(:md5_type) { HashType.find_by(hashcat_mode: 0) || create(:md5) }
+      let(:other_type) { create(:hash_type, hashcat_mode: 9999, name: "OtherType") }
+      let(:source_attack) { create(:attack) }
+
+      let(:source_list) do
+        create(:hash_list, hash_type: other_type, processed: true)
+      end
+
+      let(:hash_list) do
+        hl = create(:hash_list, hash_type: md5_type, processed: true)
+        hl.update_column(:processed, false) # rubocop:disable Rails/SkipsModelValidations
+        HashItem.where(hash_list_id: hl.id).delete_all
+        hl.reload
+      end
+
+      before do
+        create(:hash_item, :cracked_recently,
+               hash_list: source_list,
+               hash_value: known_hash,
+               attack: source_attack)
+      end
+
+      it "does not mark the hash as cracked" do
+        described_class.perform_now(hash_list.id)
+
+        item = HashItem.find_by(hash_list_id: hash_list.id, hash_value: known_hash)
+        expect(item).to be_present
+        expect(item.cracked).to be false
+        expect(item.plain_text).to be_nil
+      end
+    end
+
+    context "when batch_size is configured to zero" do
+      let(:hash_list) do
+        hl = create(:hash_list, processed: true)
+        hl.update_column(:processed, false) # rubocop:disable Rails/SkipsModelValidations
+        HashItem.where(hash_list_id: hl.id).delete_all
+        hl.reload
+      end
+
+      it "raises ArgumentError" do
+        allow(ApplicationConfig).to receive(:hash_list_batch_size).and_return(0)
+
+        expect { described_class.perform_now(hash_list.id) }
+          .to raise_error(ArgumentError, /Invalid batch_size/)
+      end
+    end
+
+    context "when ApplicationConfig does not define hash_list_batch_size" do
+      let(:hash_list) do
+        hl = create(:hash_list, processed: true)
+        hl.update_column(:processed, false) # rubocop:disable Rails/SkipsModelValidations
+        HashItem.where(hash_list_id: hl.id).delete_all
+        hl.reload
+      end
+
+      it "falls back to ENV variable" do
+        allow(ApplicationConfig).to receive(:respond_to?).and_call_original
+        allow(ApplicationConfig).to receive(:respond_to?).with(:hash_list_batch_size).and_return(false)
+        allow(ENV).to receive(:fetch).and_call_original
+        allow(ENV).to receive(:fetch).with("HASH_LIST_PROCESS_BATCH_SIZE", "1000").and_return("500")
+
+        described_class.perform_now(hash_list.id)
+
+        expect(hash_list.reload.hash_items_count).to eq(1024)
+      end
+    end
+
     context "when the file contains only blank lines" do
       let(:hash_list) do
         hl = create(:hash_list, processed: true)

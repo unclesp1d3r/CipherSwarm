@@ -714,6 +714,10 @@ docker compose up -d postgres-db
 TEST_DATABASE_URL=postgres://root:password@localhost:5432/cipher_swarm_test bundle exec rspec
 ```
 
+**Docker Build Configuration:**
+
+- `JSBUNDLING_BUILD_COMMAND` env var overrides the JS build script used by `rails assets:precompile` — set to `bun run build:production` in Dockerfile for minified bundles. Do NOT run a separate `bun run build:production` before `assets:precompile` (precompile overwrites it with the default non-minified build).
+
 **Docker Temp Storage and Uploads:**
 
 - Both `docker-compose.yml` and `docker-compose-production.yml` mount `tmpfs` at `/tmp` and `/rails/tmp` on web and sidekiq services — these prevent overlay filesystem exhaustion
@@ -726,7 +730,6 @@ TEST_DATABASE_URL=postgres://root:password@localhost:5432/cipher_swarm_test bund
 - `InsufficientTempStorageError` retries 5 times with polynomial backoff, then discards with structured `[TempStorage]` log message
 - See `docs/deployment/docker-storage-and-tmp.md` for tmpfs sizing guidance
 - See GOTCHAS.md § Infrastructure for the full set of temp storage and upload gotchas
-- `JSBUNDLING_BUILD_COMMAND` env var overrides the JS build script used by `rails assets:precompile` — set to `bun run build:production` in Dockerfile for minified bundles. Do NOT run a separate `bun run build:production` before `assets:precompile` (precompile overwrites it with the default non-minified build).
 
 **Environment Files:**
 

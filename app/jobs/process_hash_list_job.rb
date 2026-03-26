@@ -95,7 +95,6 @@ class ProcessHashListJob < ApplicationJob
           cracked: false
         }
 
-        # Process in batches to avoid memory issues
         if hash_items.size >= batch_size
           process_batch(list, hash_items)
           processed_count += hash_items.size
@@ -104,7 +103,6 @@ class ProcessHashListJob < ApplicationJob
       end
     end
 
-    # Process remaining items
     if hash_items.any?
       process_batch(list, hash_items)
       processed_count += hash_items.size
@@ -140,24 +138,28 @@ class ProcessHashListJob < ApplicationJob
   # 2) ENV["HASH_LIST_PROCESS_BATCH_SIZE"]
   # 3) Default: 1000
   def batch_size
-    if defined?(ApplicationConfig) && ApplicationConfig.respond_to?(:hash_list_batch_size)
-      return ApplicationConfig.hash_list_batch_size.to_i
+    size = if defined?(ApplicationConfig) && ApplicationConfig.respond_to?(:hash_list_batch_size)
+             ApplicationConfig.hash_list_batch_size.to_i
+    else
+             ENV.fetch("HASH_LIST_PROCESS_BATCH_SIZE", "1000").to_i
     end
 
-    ENV.fetch("HASH_LIST_PROCESS_BATCH_SIZE", "1000").to_i
+    if size <= 0
+      raise ArgumentError,
+        "[ProcessHashList] Invalid batch_size #{size.inspect} — must be a positive integer. " \
+        "Check ApplicationConfig.hash_list_batch_size or HASH_LIST_PROCESS_BATCH_SIZE env var."
+    end
+
+    size
   end
 
-  # Process a batch of hash items efficiently
   def process_batch(list, hash_items)
     HashItem.transaction do
-      # Bulk insert the hash items
       # rubocop:disable Rails/SkipsModelValidations
-      # Intentionally skipping validations for performance during bulk insert.
+      # Intentionally skipping validations for performance during bulk insert/upsert.
       # Data integrity is enforced by database-level constraints.
       inserted_items = HashItem.insert_all(hash_items, returning: %w[id hash_value])
-      # rubocop:enable Rails/SkipsModelValidations
 
-      # Check for already cracked hashes in batch
       hash_values = hash_items.map { |item| item[:hash_value] }
 
       # REASONING:
@@ -171,40 +173,44 @@ class ProcessHashListJob < ApplicationJob
       #   rather than O(matched rows × full AR object graph).
       # Performance Implications:
       #   Eliminates AR object instantiation and association eager-loading per batch;
-      #   constant memory overhead regardless of file size.
+      #   memory bounded by batch_size rather than total file size.
       # Future Considerations:
-      #   If plain_text ever exceeds 255 chars, the pluck approach still works
-      #   without schema changes.
+      #   If the cracked-hash lookup needs additional columns, add them to the
+      #   pluck list and destructure accordingly.
       cracked_hashes = HashItem.joins(:hash_list)
                                .where(hash_value: hash_values, cracked: true, hash_lists: { hash_type_id: list.hash_type_id })
                                .pluck(:hash_value, :plain_text, :attack_id)
                                .each_with_object({}) { |(hv, pt, aid), acc| acc[hv] = [pt, aid] }
 
-      # Update any items that should be marked as cracked
       if cracked_hashes.any?
+        now = Time.current
         updates = []
         inserted_items.each do |inserted|
           if (cracked = cracked_hashes[inserted["hash_value"]])
             plain_text, attack_id = cracked
+            # All NOT NULL columns required in payload — PG evaluates the INSERT side
+            # before ON CONFLICT activates (see GOTCHAS.md § upsert_all).
             updates << {
               id: inserted["id"],
               hash_list_id: list.id,
               hash_value: inserted["hash_value"],
+              metadata: {},
+              created_at: now,
+              updated_at: now,
               plain_text: plain_text,
               cracked: true,
-              cracked_time: Time.zone.now,
+              cracked_time: now,
               attack_id: attack_id
             }
           end
         end
 
-        # rubocop:disable Rails/SkipsModelValidations
         # Intentionally skipping validations for performance during bulk update of cracked items.
-        # Uses upsert_all to batch all cracked hash updates into a single SQL statement
-        # instead of individual UPDATE queries per item.
+        # Note: Do NOT add :updated_at to update_only — Rails 8.1+ auto-manages it
+        # via CURRENT_TIMESTAMP on conflict (see GOTCHAS.md).
         if updates.any?
           HashItem.upsert_all(
-            updates.map { |attrs| attrs.merge(updated_at: Time.current) },
+            updates,
             unique_by: :id,
             update_only: %i[plain_text cracked cracked_time attack_id]
           )
