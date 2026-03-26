@@ -24,7 +24,7 @@ CipherSwarm MUST operate in **air-gapped, non-Internet-connected lab environment
 - **Attack resources exceeding 100 GB** — individual word lists, rule lists, and mask lists can be 100+ GB. File upload, storage, download, and processing pipelines must handle these sizes without timeouts, memory exhaustion, or filesystem limits. This is why tusd (resumable chunked uploads) replaced Active Storage direct uploads.
 - **Self-hosted fonts and assets** — all fonts are vendored via `@fontsource` packages; Bootstrap Icons are self-hosted. No Google Fonts, no CDN links.
 - **Local disk or S3-compatible storage** — production uses local disk by default (`ACTIVE_STORAGE_SERVICE=local`). S3-compatible backends (MinIO, SeaweedFS) are opt-in. No assumption of cloud storage availability.
-- **Docker Compose deployment** — production runs via `docker-compose-production.yml` on bare metal or VMs, not Kubernetes or cloud PaaS. Scaling is horizontal via `--scale web=N`.
+- **Docker Compose is the ONLY supported deployment method** — production runs via `docker-compose-production.yml` on bare metal or VMs. All services (Rails, Sidekiq, PostgreSQL, Redis, nginx, tusd) are containerized. Scaling is horizontal via `--scale web=N`. Never introduce dependencies that require non-Docker deployment (systemd services, native packages, cloud-managed services).
 
 **When making decisions, always ask:** "Does this work on an isolated LAN with no Internet, 10+ agents, and 100 GB files?"
 
