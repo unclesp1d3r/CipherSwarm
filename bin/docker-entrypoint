@@ -8,9 +8,10 @@ fi
 
 # Run database migrations only when explicitly requested via RUN_DB_PREPARE=true.
 # In scaled deployments (multiple web replicas), running db:prepare from every
-# container causes migration races and deadlocks. Instead, run migrations as a
-# one-shot command before starting replicas:
-#   docker compose run --rm -e RUN_DB_PREPARE=true web ./bin/rails db:prepare
+# container causes migration races and deadlocks. Instead, run a one-shot
+# container with the flag set — the entrypoint runs db:prepare, then the
+# default CMD starts the server:
+#   docker compose run --rm -e RUN_DB_PREPARE=true web
 if [ "${RUN_DB_PREPARE:-false}" = "true" ]; then
   ./bin/rails db:prepare
 fi

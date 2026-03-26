@@ -16,6 +16,7 @@ services:
       - "80:80"
     environment:
       <<: *common-env-vars
+      TUSD_HOOK_SECRET: ${TUSD_HOOK_SECRET:-}
     depends_on:
       - redis-db
       - postgres-db

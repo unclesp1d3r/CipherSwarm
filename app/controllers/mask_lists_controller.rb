@@ -80,7 +80,7 @@ class MaskListsController < ApplicationController
     return unless validate_project_authorization(new_project_ids) if new_project_ids.present?
 
     respond_to do |format|
-      merged_params = mask_list_params.to_h
+      merged_params = mask_list_params.to_h.with_indifferent_access
       merged_params[:sensitive] = Array(merged_params[:project_ids]).compact_blank.any?
       if @mask_list.update(merged_params)
 

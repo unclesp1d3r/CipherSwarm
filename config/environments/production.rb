@@ -96,8 +96,7 @@ Rails.application.configure do
   # backward compatibility with existing deployments.
   if ENV["APPLICATION_HOST"].present?
     config.hosts = [
-      ENV["APPLICATION_HOST"],
-      /\A#{Regexp.escape(ENV["APPLICATION_HOST"])}\z/
+      ENV["APPLICATION_HOST"]
     ]
     # Skip DNS rebinding protection for health check endpoints.
     config.host_authorization = { exclude: ->(request) { request.path.start_with?("/up", "/api/v1/client/health") } }

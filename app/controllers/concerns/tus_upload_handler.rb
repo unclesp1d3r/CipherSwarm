@@ -83,24 +83,29 @@ module TusUploadHandler
   end
 
   def validate_source_path!(path)
-    canonical_source = File.realpath(path)
-    canonical_tus_dir = File.realpath(tus_uploads_dir)
-    return if canonical_source.start_with?(canonical_tus_dir + "/")
+    canonical_source = resolve_path(path)
+    return if path_within_dir?(canonical_source, tus_uploads_dir)
 
     raise TusUploadError, "Path traversal attempt blocked: source path is outside tusd uploads directory"
   rescue Errno::ENOENT
     # File doesn't exist yet — validate the directory component.
     # Fail closed: if we can't resolve directories, reject the path.
-    parent = File.dirname(path)
-    begin
-      canonical_parent = File.realpath(parent)
-      canonical_tus_dir = File.realpath(tus_uploads_dir)
-    rescue Errno::ENOENT
-      raise TusUploadError, "Path traversal attempt blocked: parent directory does not exist"
-    end
-    return if canonical_parent.start_with?(canonical_tus_dir)
+    canonical_parent = resolve_path(File.dirname(path))
+    return if path_within_dir?(canonical_parent, tus_uploads_dir)
 
     raise TusUploadError, "Path traversal attempt blocked: source path is outside tusd uploads directory"
+  end
+
+  # Returns the canonical absolute path, raising Errno::ENOENT if it does not exist.
+  def resolve_path(path)
+    File.realpath(File.expand_path(path))
+  end
+
+  # Returns true when +child+ is strictly inside +directory+ (not equal to it).
+  # Both arguments must already be canonical (use resolve_path first).
+  def path_within_dir?(child, directory)
+    canonical_dir = resolve_path(directory)
+    child.start_with?("#{canonical_dir}/")
   end
 
   def sanitize_filename(name)

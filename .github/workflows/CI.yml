@@ -13,6 +13,13 @@ on:
   push:
     branches: [main, develop]
   workflow_call:
+    secrets:
+      RAILS_MASTER_KEY:
+        required: true
+      CC_TEST_REPORTER_ID:
+        required: false
+      MERGIFY_TOKEN:
+        required: false
 
 jobs:
   scan_ruby:

@@ -105,6 +105,7 @@ services:
     image: ghcr.io/unclesp1d3r/cipherswarm:latest
     environment:
       <<: *common-env-vars
+      TUSD_HOOK_SECRET: ${TUSD_HOOK_SECRET:?TUSD_HOOK_SECRET must be set for production}
     depends_on:
       redis-db:
         condition: service_healthy
