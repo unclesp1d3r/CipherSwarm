@@ -211,15 +211,14 @@ app/
 ├── components/      # ViewComponent components
 ├── controllers/
 │   ├── api/v1/      # Agent API controllers
-│   │   └── client/  # Client-specific endpoints
+│   │   │   └── client/  # Client-specific endpoints
 │   └── concerns/    # Controller concerns
 ├── dashboards/      # Administrate dashboards
+├── errors/          # Custom operational errors (InsufficientTempStorageError, etc.)
 ├── helpers/         # View helpers
 ├── inputs/          # SimpleForm inputs
-├── javascript/
-│   ├── controllers/ # Stimulus controllers
-│   └── utils/       # JavaScript utility modules
 ├── jobs/            # Sidekiq background jobs
+│   └── concerns/    # Job concerns (TempStorageValidation, AttackPreemptionLoop)
 ├── mailers/         # Email templates
 ├── models/
 │   └── concerns/    # Model concerns
@@ -227,18 +226,14 @@ app/
 ├── validators/      # Custom validators
 └── views/
     ├── components/  # ViewComponent templates
-    ├── layouts/     # Layout templates
-    └── shared/      # Shared partials
+    └── layouts/     # Layout templates
 
 config/
-├── initializers/    # Rails initializers (Active Storage patches, etc.)
 ├── routes/          # Route partials (admin, client_api, devise, errors)
 └── locales/         # I18n translations
 
 spec/
 ├── factories/       # FactoryBot factories
-├── javascript/      # Vitest tests (controllers, utils)
-├── jobs/            # Job specs
 ├── models/          # Model specs
 ├── requests/        # API request specs (RSwag)
 ├── support/
@@ -403,12 +398,7 @@ module SafeBroadcasting
 end
 ```
 
-**AttackResource Concern**: Shared behavior for file-based attack resources (WordList, RuleList, MaskList):
-
-- `checksum_verified` boolean attribute tracks server-side checksum verification status
-- Default `true` for normal uploads; set to `false` when client-side checksum is skipped (large files)
-- `verify_checksum_if_skipped` callback enqueues `VerifyChecksumJob` for files with `checksum_skipped` metadata
-- Applied to WordList, MaskList, and RuleList models
+**Job Concerns**: Use concerns for reusable job behavior. Example: `TempStorageValidation` (see [Background Jobs](#background-jobs) section) provides pre-download space validation for jobs that process uploaded files.
 
 ### Controller Patterns
 
@@ -450,41 +440,6 @@ class CampaignsController < ApplicationController
 end
 ```
 
-### Direct Upload Progress Pattern
-
-CipherSwarm implements a custom progress UI for Active Storage direct uploads with two-phase feedback:
-
-**Two-Phase Progress**:
-
-1. **"Preparing... X%"** — Client-side MD5 checksum calculation (skipped for files >1 GB)
-2. **"Uploading... X%"** — File transfer to storage backend
-
-**Implementation**:
-
-- **Stimulus Controller** (`app/javascript/controllers/direct_upload_controller.js`): Connects via `data-controller="direct-upload"`, manages progress bar visibility, updates progress text/percentage, handles errors by re-enabling submit button with inline error messages
-- **JavaScript Utility** (`app/javascript/utils/direct_upload_override.js`): Patches Active Storage's `FileChecksum.create` to skip client-side MD5 for files >1 GB (configurable via `checksumThreshold` data attribute), preventing browser stalls
-- **Shared Partial** (`app/views/shared/_direct_upload_progress.html.erb`): Bootstrap progress bar component with Stimulus targets, included in upload forms
-
-**Large File Handling**:
-
-- Files >1 GB skip client-side MD5 checksum to prevent browser stalls (GitHub issue #747)
-- `VerifyChecksumJob` performs deferred server-side checksum verification after upload completes
-- `checksum_verified` boolean column tracks verification status on WordList, RuleList, MaskList models
-
-**Replicating This Pattern**:
-
-When creating new upload forms:
-
-```erb
-<%= form_with model: @resource, data: { controller: "direct-upload" } do |f| %>
-  <%= f.file_field :file, direct_upload: true, data: { direct_upload_target: "input" } %>
-  <%= render "shared/direct_upload_progress" %>
-  <%= f.submit "Upload", data: { direct_upload_target: "submit" } %>
-<% end %>
-```
-
-The controller automatically handles progress and error display. See AGENTS.md for comprehensive documentation.
-
 ### Logging Conventions
 
 Use structured logging with consistent prefixes:
@@ -515,8 +470,6 @@ Rails.logger.info("Task preempted")
 - `[JobDiscarded]` - Background job failures
 - `[TaskPreemption]` - Task preemption events
 - `[TaskRebalance]` - Campaign priority rebalancing events
-- `[ChecksumVerify]` - Server-side checksum verification
-- `[ChecksumMismatch]` - File integrity failures
 
 ---
 
@@ -707,6 +660,8 @@ Regenerate docs: `RAILS_ENV=test rails rswag`
 # frozen_string_literal: true
 
 class ProcessHashListJob < ApplicationJob
+  include TempStorageValidation  # Pre-download space check for blobs
+
   queue_as :default
   retry_on StandardError, wait: :polynomially_longer, attempts: 3
 
@@ -718,22 +673,22 @@ class ProcessHashListJob < ApplicationJob
   end
 
   def perform(hash_list)
+    ensure_temp_storage_available!(hash_list.file)  # Check before download
     HashListProcessor.new(hash_list).process
   end
 end
 ```
 
-### File Upload Verification Jobs
+**Error Handling for Resource Constraints:**
 
-**VerifyChecksumJob**: Performs deferred server-side MD5 checksum verification for large files where client-side checksum was skipped (files >1 GB):
+Use custom operational errors when jobs depend on external resources. `InsufficientTempStorageError` is raised by `TempStorageValidation` when `/tmp` lacks space for a blob download. `ApplicationJob` configures 5 retries with polynomial backoff, then discards with a structured log message pointing operators to sizing documentation. This prevents jobs from repeatedly failing when infrastructure is undersized for the workload.
 
-- Runs after upload completes to maintain file integrity
-- Computes checksum via `blob.service.open(verify: false)` to avoid IntegrityError on nil checksum
-- Updates `checksum_verified` column on attack resources (WordList, RuleList, MaskList)
-- Backfills `blobs.checksum` when missing or when `checksum_skipped` metadata is present
-- Logs mismatches as `[ChecksumMismatch]` for investigation
+When implementing similar resource-constrained operations:
 
-Applied to: WordList, MaskList, RuleList models via `AttackResource` concern's `verify_checksum_if_skipped` after_commit callback.
+1. Define a custom error class in `app/errors/` (e.g., `InsufficientTempStorageError`)
+2. Configure retry strategy in `ApplicationJob` with `retry_on` and a discard block
+3. Include clear remediation guidance in discard logs (reference deployment documentation)
+4. Use concerns to encapsulate validation logic (e.g., `TempStorageValidation`)
 
 ### Queue Priorities
 
@@ -781,6 +736,44 @@ Sidekiq::Cron::Job.create(
   class: "CleanStaleTasksJob"
 )
 ```
+
+### Temporary Storage Validation for Blob Downloads
+
+Jobs that download Active Storage blobs (hash lists, wordlists, rule files) should include the `TempStorageValidation` concern and call `ensure_temp_storage_available!(blob)` before processing. This prevents jobs from exhausting tmpfs space mid-download.
+
+**Pattern:**
+
+```ruby
+class ProcessHashListJob < ApplicationJob
+  include TempStorageValidation
+  
+  def perform(hash_list)
+    ensure_temp_storage_available!(hash_list.file)
+    hash_list.file.blob.open { |file| process(file) }
+  end
+end
+```
+
+**How it works:**
+
+- The concern checks available space in `/tmp` against the blob's `byte_size` before calling `blob.open`
+- Raises `InsufficientTempStorageError` if insufficient space available
+- `ApplicationJob` automatically retries with polynomial backoff (5 attempts)
+- After exhausting retries, job is discarded with structured log pointing to sizing documentation
+
+**Jobs currently using this pattern:**
+
+- `ProcessHashListJob` - validates before downloading hash lists
+- `CountFileLinesJob` - validates before downloading wordlists, rule files, mask lists
+- `CalculateMaskComplexityJob` - validates before downloading mask lists
+
+**When creating new jobs** that process uploaded files:
+
+1. Include `TempStorageValidation` concern
+2. Call `ensure_temp_storage_available!(attachment)` before `blob.open`
+3. The retry/discard behavior is handled automatically by `ApplicationJob`
+
+This prevents jobs from repeatedly failing when tmpfs is undersized for the workload. Operators encountering discard logs should reference `docs/deployment/docker-storage-and-tmp.md` for tmpfs sizing guidance.
 
 ---
 
@@ -992,6 +985,19 @@ bin/rails generate component AgentStatus agent
 ---
 
 ## Common Gotchas
+
+### Infrastructure Dependencies
+
+**Temp Storage for Background Jobs**: Jobs that process uploaded files depend on properly sized tmpfs mounts at `/tmp`. When testing locally or in CI/CD, ensure tmpfs is configured (see `docker-compose.yml` for reference). Without adequate tmpfs, jobs will fail with `InsufficientTempStorageError`.
+
+See `docs/deployment/docker-storage-and-tmp.md` for infrastructure setup guidance:
+
+- Sizing tmpfs for concurrent blob downloads
+- Monitoring tmpfs usage in production
+- Recovery procedures for space exhaustion
+- Alternative TMPDIR redirect approach
+
+**Relevant GOTCHAS.md topics**: Review the "Temp Storage and File Uploads" section in `GOTCHAS.md` for additional context on Active Storage temp file behavior and upload constraints.
 
 ### Turbo Stream Broadcast Partials
 
