@@ -159,21 +159,41 @@ class ProcessHashListJob < ApplicationJob
 
       # Check for already cracked hashes in batch
       hash_values = hash_items.map { |item| item[:hash_value] }
-      cracked_hashes = HashItem.includes(:hash_list)
-                               .where(hash_value: hash_values, cracked: true, hash_list: { hash_type_id: list.hash_type_id })
-                               .index_by(&:hash_value)
+
+      # REASONING:
+      #   Use joins/pluck instead of includes/index_by to avoid allocating full
+      #   HashItem and HashList ActiveRecord objects for every matching row.
+      # Alternatives Considered:
+      #   1) select + index_by — still instantiates AR objects with reduced columns.
+      #   2) find_each — sequential iteration, no batch benefit here.
+      # Decision:
+      #   pluck returns raw arrays; memory usage is O(matched rows × 3 scalars)
+      #   rather than O(matched rows × full AR object graph).
+      # Performance Implications:
+      #   Eliminates AR object instantiation and association eager-loading per batch;
+      #   constant memory overhead regardless of file size.
+      # Future Considerations:
+      #   If plain_text ever exceeds 255 chars, the pluck approach still works
+      #   without schema changes.
+      cracked_hashes = HashItem.joins(:hash_list)
+                               .where(hash_value: hash_values, cracked: true, hash_lists: { hash_type_id: list.hash_type_id })
+                               .pluck(:hash_value, :plain_text, :attack_id)
+                               .each_with_object({}) { |(hv, pt, aid), acc| acc[hv] = [pt, aid] }
 
       # Update any items that should be marked as cracked
       if cracked_hashes.any?
         updates = []
         inserted_items.each do |inserted|
           if (cracked = cracked_hashes[inserted["hash_value"]])
+            plain_text, attack_id = cracked
             updates << {
               id: inserted["id"],
-              plain_text: cracked.plain_text,
+              hash_list_id: list.id,
+              hash_value: inserted["hash_value"],
+              plain_text: plain_text,
               cracked: true,
               cracked_time: Time.zone.now,
-              attack_id: cracked.attack_id
+              attack_id: attack_id
             }
           end
         end

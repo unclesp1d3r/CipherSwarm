@@ -283,6 +283,69 @@ RSpec.describe ProcessHashListJob do
       end
     end
 
+    context "when hashes in the new list were already cracked in another list of the same hash type" do
+      let(:known_hash) { Rails.root.join("spec/fixtures/hash_lists/example_hashes.txt").each_line.first.strip }
+      let(:hash_type) { HashType.find_by(hashcat_mode: 0) || create(:md5) }
+      let(:source_campaign) { create(:campaign) }
+      let(:source_attack) { create(:attack, campaign: source_campaign) }
+
+      let(:source_list) do
+        create(:hash_list, hash_type: hash_type, processed: true)
+      end
+
+      let!(:cracked_source_item) do
+        create(:hash_item, :cracked_recently,
+               hash_list: source_list,
+               hash_value: known_hash,
+               attack: source_attack)
+      end
+
+      let(:hash_list) do
+        hl = create(:hash_list, hash_type: hash_type, processed: true)
+        hl.update_column(:processed, false) # rubocop:disable Rails/SkipsModelValidations
+        HashItem.where(hash_list_id: hl.id).delete_all
+        hl.reload
+      end
+
+      it "marks the matching hash item as cracked with the source plain_text and attack_id" do
+        described_class.perform_now(hash_list.id)
+
+        cracked_item = HashItem.find_by(hash_list_id: hash_list.id, hash_value: known_hash)
+        expect(cracked_item).to be_present
+        expect(cracked_item.cracked).to be true
+        expect(cracked_item.plain_text).to eq(cracked_source_item.plain_text)
+        expect(cracked_item.attack_id).to eq(source_attack.id)
+      end
+
+      it "leaves non-matching items uncracked" do
+        described_class.perform_now(hash_list.id)
+
+        uncracked_count = HashItem.where(hash_list_id: hash_list.id, cracked: false).count
+        total_count = HashItem.where(hash_list_id: hash_list.id).count
+        expect(uncracked_count).to eq(total_count - 1)
+      end
+
+      it "does not instantiate HashItem AR objects for the cracked-hash lookup" do
+        # Guard against regression to includes/index_by which would instantiate
+        # full HashItem objects and reintroduce memory pressure on large lists.
+        # The job should use pluck (returning raw arrays) not SELECT "hash_items".*
+        select_star_queries = []
+        callback = lambda { |_name, _start, _finish, _id, payload|
+          sql = payload[:sql].to_s
+          if sql.include?('"hash_items".*') || sql.match?(/SELECT\s+hash_items\.\*/i)
+            select_star_queries << sql
+          end
+        }
+
+        ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
+          described_class.perform_now(hash_list.id)
+        end
+
+        expect(select_star_queries).to be_empty,
+          "Expected no SELECT hash_items.* queries (would instantiate AR objects), but found:\n#{select_star_queries.join("\n")}"
+      end
+    end
+
     context "when the file contains only blank lines" do
       let(:hash_list) do
         hl = create(:hash_list, processed: true)
