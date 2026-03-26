@@ -46,8 +46,11 @@
 #  fk_rails_...  (task_id => tasks.id) ON DELETE => nullify
 #
 class AgentError < ApplicationRecord
-  belongs_to :agent, touch: true
-  belongs_to :task, optional: true, touch: true
+  # PERFORMANCE: Removed `touch: true` from both associations to prevent cascading UPDATEs.
+  # Agent errors are telemetry records — they should not cascade timestamp updates
+  # to agents (which would cascade to users/projects) or tasks (which would cascade to attacks).
+  belongs_to :agent
+  belongs_to :task, optional: true
 
   enum :severity, { info: 0, warning: 1, minor: 2, major: 3, critical: 4, fatal: 5 }
 
@@ -55,7 +58,7 @@ class AgentError < ApplicationRecord
   validates :severity, presence: true
   validates :metadata, presence: true
 
-  default_scope { order(created_at: :desc) }
+  scope :recent_first, -> { order(created_at: :desc) }
 
   include SafeBroadcasting
 
@@ -109,11 +112,7 @@ class AgentError < ApplicationRecord
   #
   # @return [Integer, nil] the attack ID of the task, or `nil` if the `task_id` is blank or the task is not found.
   def attack_id
-    return if task_id.blank?
-
-    task = Task.find(task_id)
-    return if task.blank?
-    task.attack_id
+    task&.attack_id
   end
 
   # Returns a string representation of the agent error.
