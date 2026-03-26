@@ -73,14 +73,13 @@ RSpec.describe "Caching Behavior" do
       calculator = CampaignEtaCalculator.new(campaign, cache: false)
 
       calculator.current_eta
-      expect(memory_cache.read("#{campaign.cache_key_with_version}/eta/current_eta")).to be_nil
+      expect(memory_cache.read("campaign/#{campaign.id}/eta/current_eta")).to be_nil
     end
 
-    it "cache key includes attack and task freshness" do
+    it "cache key uses campaign ID and suffix" do
       calculator = CampaignEtaCalculator.new(campaign, cache: true)
       key = calculator.send(:cache_key, "current_eta")
-      expect(key).to include(campaign.cache_key_with_version)
-      expect(key).to include("/eta/current_eta/")
+      expect(key).to eq("campaign/#{campaign.id}/eta/current_eta")
     end
   end
 
@@ -134,18 +133,13 @@ RSpec.describe "Caching Behavior" do
       expect(SystemHealthCheckService::CACHE_TTL).to eq(1.minute)
     end
 
-    it "campaign ETA cache key format includes freshness timestamps" do
-      campaign = create(:campaign, project: project)
-      attack = create(:dictionary_attack, campaign: campaign)
-      agent = create(:agent, projects: [project])
-      create(:task, attack: attack, agent: agent)
+    it "campaign ETA cache key uses campaign ID with TTL-based expiry" do
+      ttl_campaign = create(:campaign, project: project)
 
-      calculator = CampaignEtaCalculator.new(campaign, cache: true)
+      calculator = CampaignEtaCalculator.new(ttl_campaign, cache: true)
       key = calculator.send(:cache_key, "current_eta")
 
-      # Key should contain cache_key_with_version which changes when campaign updates
-      expect(key).to include("eta")
-      expect(key).to include("current_eta")
+      expect(key).to eq("campaign/#{ttl_campaign.id}/eta/current_eta")
     end
 
     it "recent cracks cache returns consistent results within TTL" do
@@ -182,20 +176,11 @@ RSpec.describe "Caching Behavior" do
       expect(second_checked_at).to be_present
     end
 
-    it "CampaignEtaCalculator cache busts when tasks update" do
-      campaign = create(:campaign, project: project)
-      attack = create(:dictionary_attack, campaign: campaign)
-      agent = create(:agent, projects: [project])
-      task = create(:task, attack: attack, agent: agent)
-
-      calculator = CampaignEtaCalculator.new(campaign, cache: true)
-      key_before = calculator.send(:cache_key, "current_eta")
-
-      # Force a future timestamp to ensure the key changes
-      task.update_column(:updated_at, 1.minute.from_now) # rubocop:disable Rails/SkipsModelValidations
-
-      key_after = calculator.send(:cache_key, "current_eta")
-      expect(key_after).not_to eq(key_before)
+    it "CampaignEtaCalculator uses time-based TTL for cache expiry" do
+      eta_campaign = create(:campaign, project: project)
+      calculator = CampaignEtaCalculator.new(eta_campaign, cache: true)
+      options = calculator.send(:cache_options)
+      expect(options[:expires_in]).to eq(30.seconds)
     end
   end
 

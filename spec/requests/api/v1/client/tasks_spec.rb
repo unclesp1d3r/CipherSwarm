@@ -486,6 +486,36 @@ RSpec.describe "api/v1/client/tasks" do
 
         run_test!
       end
+
+      response 401, "Unauthorized" do
+        let(:Authorization) { nil } # rubocop:disable RSpec/VariableName
+        let(:id) { 1 }
+        let(:hashcat_result) do
+          {
+            timestamp: Time.zone.now,
+            hash: "test_hash",
+            plain_text: "test_plain"
+          }
+        end
+
+        schema "$ref" => "#/components/schemas/ErrorObject"
+
+        after do |example|
+          content = example.metadata[:response][:content] || {}
+          example_spec = {
+            "application/json" => {
+              examples: {
+                test_example: {
+                  value: JSON.parse(response.body, symbolize_names: true)
+                }
+              }
+            }
+          }
+          example.metadata[:response][:content] = content.deep_merge(example_spec)
+        end
+
+        run_test!
+      end
     end
   end
 
@@ -690,6 +720,29 @@ RSpec.describe "api/v1/client/tasks" do
 
         run_test!
       end
+
+      response 401, "Unauthorized" do
+        let(:Authorization) { nil } # rubocop:disable RSpec/VariableName
+        let(:id) { 1 }
+
+        schema "$ref" => "#/components/schemas/ErrorObject"
+
+        after do |example|
+          content = example.metadata[:response][:content] || {}
+          example_spec = {
+            "application/json" => {
+              examples: {
+                test_example: {
+                  value: JSON.parse(response.body, symbolize_names: true)
+                }
+              }
+            }
+          }
+          example.metadata[:response][:content] = content.deep_merge(example_spec)
+        end
+
+        run_test!
+      end
     end
   end
 
@@ -778,11 +831,7 @@ RSpec.describe "api/v1/client/tasks" do
       response(200, "successful") do
         let(:id) { task.id }
 
-        schema type: :object,
-               properties: {
-                 success: { type: :boolean },
-                 state: { type: :string }
-               }
+        schema "$ref" => "#/components/schemas/TaskAbandonResponse"
 
         run_test!
       end
@@ -791,11 +840,7 @@ RSpec.describe "api/v1/client/tasks" do
         let(:id) { task.id }
         let(:task) { create(:task, agent: agent, state: "completed", attack: create(:dictionary_attack)) }
 
-        schema type: :object,
-               properties: {
-                 error: { type: :string },
-                 details: { type: :array, items: { type: :string } }
-               }
+        schema "$ref" => "#/components/schemas/TaskAbandonError"
 
         after do |example|
           content = example.metadata[:response][:content] || {}
@@ -909,7 +954,13 @@ RSpec.describe "api/v1/client/tasks" do
         let(:id) { task.id }
         let(:task) { create(:task, agent: agent, state: "completed", attack: create(:dictionary_attack)) }
 
-        schema "$ref" => "#/components/schemas/ErrorObject"
+        # Set content directly to emit application/json in OpenAPI instead of
+        # inheriting the operation-level text/plain from `produces`.
+        metadata[:response][:content] = {
+          "application/json" => {
+            schema: { "$ref" => "#/components/schemas/ErrorObject" }
+          }
+        }
 
         after do |example|
           content = example.metadata[:response][:content] || {}
@@ -932,7 +983,13 @@ RSpec.describe "api/v1/client/tasks" do
         let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
         let(:id) { -1 }
 
-        schema "$ref" => "#/components/schemas/ErrorObject"
+        # Set content directly to emit application/json in OpenAPI instead of
+        # inheriting the operation-level text/plain from `produces`.
+        metadata[:response][:content] = {
+          "application/json" => {
+            schema: { "$ref" => "#/components/schemas/ErrorObject" }
+          }
+        }
 
         after do |example|
           content = example.metadata[:response][:content] || {}
@@ -955,7 +1012,13 @@ RSpec.describe "api/v1/client/tasks" do
         let(:Authorization) { nil } # rubocop:disable RSpec/VariableName
         let(:id) { task.id }
 
-        schema "$ref" => "#/components/schemas/ErrorObject"
+        # Set content directly to emit application/json in OpenAPI instead of
+        # inheriting the operation-level text/plain from `produces`.
+        metadata[:response][:content] = {
+          "application/json" => {
+            schema: { "$ref" => "#/components/schemas/ErrorObject" }
+          }
+        }
 
         after do |example|
           content = example.metadata[:response][:content] || {}

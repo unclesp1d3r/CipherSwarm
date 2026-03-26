@@ -77,7 +77,14 @@ class Api::V1::BaseController < ApplicationController
   #   The agent associated with the token, or nil if no agent is found.
   def authenticate_agent_with_token
     authenticate_with_http_token do |token, _options|
-      @agent = Agent.find_by(token: token)
+      next if token.blank?
+
+      candidate = Agent.find_by(token: token)
+      # Constant-time comparison to prevent timing attacks on token enumeration.
+      # Even when no candidate is found, compare against a dummy to equalize timing.
+      dummy_token = SecureRandom.base58(24)
+      compare_token = candidate&.token || dummy_token
+      @agent = candidate if ActiveSupport::SecurityUtils.secure_compare(compare_token, token)
     end
   end
 
@@ -185,10 +192,8 @@ class Api::V1::BaseController < ApplicationController
     last_seen = @agent.last_seen_at
     ip_changed = @agent.last_ipaddress != request.remote_ip
 
-    if last_seen.nil? || ip_changed || last_seen < 30.seconds.ago
-      @agent.update(last_seen_at: Time.current, last_ipaddress: request.remote_ip)
-    end
-
+    return unless last_seen.nil? || ip_changed || last_seen < 30.seconds.ago
+    @agent.update(last_seen_at: Time.current, last_ipaddress: request.remote_ip)
     @agent.heartbeat unless @agent.active? # Only fire heartbeat when agent needs state change
   end
 end
