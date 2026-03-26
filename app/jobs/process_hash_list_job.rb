@@ -178,17 +178,18 @@ class ProcessHashListJob < ApplicationJob
           end
         end
 
-        updates.each do |attrs|
-          # rubocop:disable Rails/SkipsModelValidations
-          # Intentionally skipping validations for performance during bulk update of cracked items
-          HashItem.where(id: attrs[:id]).update_all(
-            plain_text: attrs[:plain_text],
-            cracked: attrs[:cracked],
-            cracked_time: attrs[:cracked_time],
-            attack_id: attrs[:attack_id]
+        # rubocop:disable Rails/SkipsModelValidations
+        # Intentionally skipping validations for performance during bulk update of cracked items.
+        # Uses upsert_all to batch all cracked hash updates into a single SQL statement
+        # instead of individual UPDATE queries per item.
+        if updates.any?
+          HashItem.upsert_all(
+            updates.map { |attrs| attrs.merge(updated_at: Time.current) },
+            unique_by: :id,
+            update_only: %i[plain_text cracked cracked_time attack_id]
           )
-          # rubocop:enable Rails/SkipsModelValidations
-        end if updates.any?
+        end
+        # rubocop:enable Rails/SkipsModelValidations
       end
     end
   rescue ActiveRecord::StatementInvalid => e

@@ -14,6 +14,20 @@ CipherSwarm is a distributed hash cracking system built on Rails 8.1+ inspired b
 
 **Current Status**: Undergoing V2 upgrade (see docs/v2-upgrade-overview.md)
 
+## Target Deployment Environment
+
+CipherSwarm **production** runs in **air-gapped, non-Internet-connected lab environments**. Development and testing happen on Internet-connected machines — the air-gap constraint applies only to the deployed production system. Every architectural, dependency, and infrastructure decision must be evaluated against these production constraints:
+
+- **No Internet access in production** — no CDN assets, no external API calls, no package fetching at runtime, no cloud-hosted services. All dependencies must be vendored or bundled into the Docker image at build time. Docker images are built on connected machines and transferred to the lab.
+- **Minimum 10 cracking nodes** — each running an agent process, all submitting status updates, cracks, and heartbeats concurrently. The API, job queues, and database must handle sustained concurrent load from 10+ agents without degradation.
+- **~25 RTX 4090 GPU capacity** — agents run hashcat across high-end GPUs. Crack submission rates can spike to thousands per second during fast attacks. Status updates arrive every 5-30 seconds per agent.
+- **Attack resources exceeding 100 GB** — individual word lists, rule lists, and mask lists can be 100+ GB. File upload, storage, download, and processing pipelines must handle these sizes without timeouts, memory exhaustion, or filesystem limits. This is why tusd (resumable chunked uploads) replaced Active Storage direct uploads.
+- **Self-hosted fonts and assets** — all fonts are vendored via `@fontsource` packages; Bootstrap Icons are self-hosted. No Google Fonts, no CDN links.
+- **Local disk or S3-compatible storage** — production uses local disk by default (`ACTIVE_STORAGE_SERVICE=local`). S3-compatible backends (MinIO, SeaweedFS) are opt-in. No assumption of cloud storage availability.
+- **Docker Compose is the ONLY supported deployment method** — production runs via `docker-compose-production.yml` on bare metal or VMs. All services (Rails, Sidekiq, PostgreSQL, Redis, nginx, tusd) are containerized. Scaling is horizontal via `--scale web=N`. Never introduce dependencies that require non-Docker deployment (systemd services, native packages, cloud-managed services).
+
+**When making decisions, always ask:** "Will this work in production on an isolated LAN with no Internet, 10+ agents, and 100 GB files?"
+
 ## Code Quality Policy
 
 - **Zero tolerance for tech debt.** Never dismiss warnings, lint failures, or CI errors as "pre-existing" or "not from our changes." If CI fails, investigate and fix it — regardless of when the issue was introduced. Every session should leave the codebase better than it found it.

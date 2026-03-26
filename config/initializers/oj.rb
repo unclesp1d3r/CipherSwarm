@@ -5,4 +5,5 @@
 
 require "oj"
 
-Oj.optimize_rails
+# Use compat mode for Rails integration. `optimize_rails` was deprecated in Oj 3.16+.
+Oj.default_options = { mode: :compat }

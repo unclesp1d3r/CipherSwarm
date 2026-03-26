@@ -56,6 +56,12 @@ Authorization: Bearer <agent_token>
 - Stored in `agents.token` column
 - Revokable by admin
 
+### Security
+
+The server validates agent tokens using constant-time comparison (`ActiveSupport::SecurityUtils.secure_compare`) to prevent timing attacks. This security measure protects against attackers attempting to enumerate valid agent tokens by measuring authentication response times. All authentication operations take constant time regardless of token validity, ensuring that timing information cannot leak whether a token is valid or not.
+
+This protection operates server-side and is transparent to API clients. Agents continue to use Bearer token authentication as documented, with no changes required to client implementations.
+
 ### Authentication Errors
 
 | Status | Meaning                            |

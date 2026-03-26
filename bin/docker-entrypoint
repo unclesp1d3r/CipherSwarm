@@ -6,15 +6,13 @@ if [ -z "${LD_PRELOAD+x}" ]; then
     export LD_PRELOAD
 fi
 
-# If running the rails server then create or migrate existing database
-prev_arg=""
-last_arg=""
-for arg in "$@"; do
-  prev_arg="$last_arg"
-  last_arg="$arg"
-done
-
-if [ "$prev_arg" = "./bin/rails" ] && [ "$last_arg" = "server" ]; then
+# Run database migrations only when explicitly requested via RUN_DB_PREPARE=true.
+# In scaled deployments (multiple web replicas), running db:prepare from every
+# container causes migration races and deadlocks. Instead, run a one-shot
+# container with the flag set — the entrypoint runs db:prepare, then the
+# default CMD starts the server:
+#   docker compose run --rm -e RUN_DB_PREPARE=true web
+if [ "${RUN_DB_PREPARE:-false}" = "true" ]; then
   ./bin/rails db:prepare
 fi
 

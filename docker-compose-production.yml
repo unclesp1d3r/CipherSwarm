@@ -16,7 +16,7 @@
 x-common-env-vars: &common-env-vars
   RAILS_MASTER_KEY: ${RAILS_MASTER_KEY}
   REDIS_URL: redis://:${REDIS_PASSWORD:?REDIS_PASSWORD must be set}@redis-db:6379
-  DATABASE_URL: postgres://root:${POSTGRES_PASSWORD:-password}@postgres-db/
+  DATABASE_URL: postgres://root:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}@postgres-db/
   # Disable Rails force_ssl since TLS is terminated upstream (or not used in lab environments).
   DISABLE_SSL: ${DISABLE_SSL:-true}
 
@@ -105,6 +105,7 @@ services:
     image: ghcr.io/unclesp1d3r/cipherswarm:latest
     environment:
       <<: *common-env-vars
+      TUSD_HOOK_SECRET: ${TUSD_HOOK_SECRET:?TUSD_HOOK_SECRET must be set for production}
     depends_on:
       redis-db:
         condition: service_healthy
@@ -174,9 +175,12 @@ services:
       - -hooks-enabled-events=post-finish
       - -hooks-http-retry=5
       - -hooks-http-backoff=2
+      - -hooks-http-forward-headers=X-Tusd-Hook-Secret
       - -behind-proxy
       - -base-path=/uploads/
       - -max-size=0
+    environment:
+      - TUSD_HOOK_SECRET=${TUSD_HOOK_SECRET:?TUSD_HOOK_SECRET must be set for production}
     volumes:
       - tus_uploads:/srv/tusd-data
       - attack_resources:/data/attack_resources

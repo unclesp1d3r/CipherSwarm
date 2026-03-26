@@ -11,7 +11,17 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
+  # Run the CI workflow checks before building the Docker image.
+  # This prevents deploying a container that hasn't passed tests.
+  ci:
+    uses: ./.github/workflows/CI.yml
+    secrets:
+      RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
+      CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+      MERGIFY_TOKEN: ${{ secrets.MERGIFY_TOKEN }}
+
   build:
+    needs: [ci]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
