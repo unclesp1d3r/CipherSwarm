@@ -2,7 +2,7 @@
 
 ## Users
 
-CipherSwarm serves red team operators, blue team analysts, infrastructure administrators, and project managers working in trusted LAN environments. They manage distributed hash-cracking campaigns across multiple agents. The primary job: orchestrate attacks, monitor progress in real time, and review results — often across long-running operations where checking in periodically matters more than constant attention.
+CipherSwarm serves red team operators, blue team analysts, infrastructure administrators, and project managers working in **air-gapped, non-Internet-connected lab environments**. They manage distributed hash-cracking campaigns across 10+ agents with ~25 RTX 4090 GPUs, using attack resources (word lists, rule lists, mask lists) that routinely exceed 100 GB. The primary job: orchestrate attacks, monitor progress in real time, and review results — often across long-running operations where checking in periodically matters more than constant attention. The UI must never depend on external resources (CDNs, web fonts, external APIs).
 
 ### Brand Personality
 
