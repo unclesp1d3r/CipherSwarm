@@ -67,8 +67,9 @@ class RuleListsController < ApplicationController
     return unless validate_project_authorization(new_project_ids) if new_project_ids.present?
 
     respond_to do |format|
-      if @rule_list.update(rule_list_params)
-        @rule_list.update(sensitive: @rule_list.project_ids.any?)
+      merged_params = rule_list_params.to_h
+      merged_params[:sensitive] = Array(merged_params[:project_ids]).compact_blank.any?
+      if @rule_list.update(merged_params)
 
         format.html { redirect_to rule_list_url(@rule_list), notice: "Rule list was successfully updated." }
         format.json { render :show, status: :ok, location: @rule_list }

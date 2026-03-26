@@ -80,8 +80,9 @@ class MaskListsController < ApplicationController
     return unless validate_project_authorization(new_project_ids) if new_project_ids.present?
 
     respond_to do |format|
-      if @mask_list.update(mask_list_params)
-        @mask_list.update(sensitive: @mask_list.project_ids.any?)
+      merged_params = mask_list_params.to_h
+      merged_params[:sensitive] = Array(merged_params[:project_ids]).compact_blank.any?
+      if @mask_list.update(merged_params)
 
         format.html { redirect_to mask_list_url(@mask_list), notice: "Mask list was successfully updated." }
         format.json { render :show, status: :ok, location: @mask_list }
