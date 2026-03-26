@@ -171,6 +171,7 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 - Known limitation: rswag 3.0.0.pre places `description` inside `requestBody.content.schema` rather than at the `requestBody` level — this is less conventional in OpenAPI 3.0 but does not affect functionality
 - rswag 3.0.0.pre is the only version with proper OpenAPI 3.0 `requestBody` generation; 2.17.0 (latest stable, Nov 2025) only added Rails 8.1 gemspec support and still has the `in: body` limitation
 - `request_body_json` must be called **inside** the HTTP method block (`post`, `put`, etc.), not at the path level
+- When an endpoint `produces "text/plain"`, error responses returning JSON inherit `text/plain` in the generated OpenAPI spec. Override by setting `metadata[:response][:content]` directly inside the response block with the correct schema under `"application/json"` — the `content_type:` parameter on `response` does not work reliably for this purpose
 
 **Vitest Mock Patterns:**
 
