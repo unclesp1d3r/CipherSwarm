@@ -56,8 +56,9 @@ module TusUploadHandler
     true
   rescue TusUploadError
     raise
-  rescue StandardError => e
-    Rails.logger.error("[TusUpload] Failed for #{record.class.name}##{record.id}: #{e.message}")
+  rescue Errno::ENOENT, Errno::EACCES, Errno::ENOSPC, IOError => e
+    Rails.logger.error("[TusUpload] File system error for #{record.class.name}##{record.id}: " \
+                       "#{e.class} - #{e.message}\n#{e.backtrace&.first(5)&.join("\n")}")
     record.destroy! if record.persisted? && record.file_path.blank?
     false
   end
@@ -88,10 +89,15 @@ module TusUploadHandler
 
     raise TusUploadError, "Path traversal attempt blocked: source path is outside tusd uploads directory"
   rescue Errno::ENOENT
-    # File doesn't exist yet — validate the directory component
+    # File doesn't exist yet — validate the directory component.
+    # Fail closed: if we can't resolve directories, reject the path.
     parent = File.dirname(path)
-    canonical_parent = File.realpath(parent) rescue parent
-    canonical_tus_dir = File.realpath(tus_uploads_dir) rescue tus_uploads_dir
+    begin
+      canonical_parent = File.realpath(parent)
+      canonical_tus_dir = File.realpath(tus_uploads_dir)
+    rescue Errno::ENOENT
+      raise TusUploadError, "Path traversal attempt blocked: parent directory does not exist"
+    end
     return if canonical_parent.start_with?(canonical_tus_dir)
 
     raise TusUploadError, "Path traversal attempt blocked: source path is outside tusd uploads directory"

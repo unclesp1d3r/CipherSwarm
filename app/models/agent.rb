@@ -110,6 +110,7 @@ class Agent < ApplicationRecord
   validates :custom_label, length: { maximum: 255 }, uniqueness: true, allow_nil: true
   validates :current_activity, length: { maximum: 50 }, allow_nil: true
   validate :devices_length_within_limit
+  validate :advanced_configuration_is_valid_json
 
   scope :active, -> { where(state: :active) }
   scope :inactive_for, ->(time) { where(last_seen_at: ...time.ago) }
@@ -344,8 +345,10 @@ class Agent < ApplicationRecord
       value
     end
     self[:advanced_configuration] = parsed
-  rescue JSON::ParserError
-    errors.add(:advanced_configuration, "contains invalid JSON")
+    @invalid_advanced_configuration_json = false
+  rescue JSON::ParserError => e
+    @invalid_advanced_configuration_json = true
+    Rails.logger.warn("[Agent] Invalid JSON for advanced_configuration: #{e.message}")
   end
 
   def current_running_attack
@@ -394,6 +397,10 @@ class Agent < ApplicationRecord
 
   def devices_length_within_limit
     errors.add(:devices, "must have at most 64 entries") if devices.present? && devices.length > 64
+  end
+
+  def advanced_configuration_is_valid_json
+    errors.add(:advanced_configuration, "contains invalid JSON") if @invalid_advanced_configuration_json
   end
 
   # Sets the update interval for the agent.

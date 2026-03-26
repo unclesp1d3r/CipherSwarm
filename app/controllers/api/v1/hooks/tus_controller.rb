@@ -48,10 +48,17 @@ class Api::V1::Hooks::TusController < ActionController::API
 
   def verify_tusd_origin
     expected = ENV.fetch("TUSD_HOOK_SECRET", nil)
-    return if expected.blank? # Skip verification in dev if not configured
+    if expected.blank?
+      if Rails.env.production?
+        Rails.logger.error("[TusHook] TUSD_HOOK_SECRET is not configured — rejecting all hook requests in production")
+        head :unauthorized
+      end
+      return
+    end
 
     provided = request.headers["X-Tusd-Hook-Secret"].to_s
     return if ActiveSupport::SecurityUtils.secure_compare(expected, provided)
+
     Rails.logger.warn("[TusHook] Unauthorized hook request from #{request.remote_ip}")
     head :unauthorized
   end
