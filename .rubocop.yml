@@ -15,7 +15,7 @@ plugins:
 AllCops:
   SuggestExtensions: true
   NewCops: enable
-  TargetRubyVersion: 3.2
+  TargetRubyVersion: 3.4
   ExtraDetails: true
   Exclude:
     - "db/schema.rb"

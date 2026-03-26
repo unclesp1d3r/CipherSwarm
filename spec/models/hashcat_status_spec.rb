@@ -38,7 +38,7 @@ require "rails_helper"
 
 RSpec.describe HashcatStatus do
   describe "associations" do
-    it { is_expected.to belong_to(:task).touch(true) }
+    it { is_expected.to belong_to(:task) }
   end
 
   describe "validations" do

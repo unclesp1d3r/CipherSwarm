@@ -19,48 +19,7 @@ RSpec.describe "api/v1/client" do
           let!(:agent) { create(:agent) }
           let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
 
-          schema type: :object,
-                 properties: {
-                   config: {
-                     "$ref" => "#/components/schemas/AdvancedAgentConfiguration"
-                   },
-                   api_version: { type: :integer, description: "The minimum accepted version of the API" },
-                   benchmarks_needed: { type: :boolean, description: "Whether the agent needs to run benchmarks" },
-                   recommended_timeouts: {
-                     type: :object,
-                     description: "Recommended timeout settings for agent HTTP connections",
-                     additionalProperties: false,
-                     properties: {
-                       connect_timeout: { type: :integer, description: "TCP connect timeout in seconds" },
-                       read_timeout: { type: :integer, description: "Read timeout in seconds" },
-                       write_timeout: { type: :integer, description: "Write timeout in seconds" },
-                       request_timeout: { type: :integer, description: "Overall request timeout in seconds" }
-                     },
-                     required: %i[connect_timeout read_timeout write_timeout request_timeout]
-                   },
-                   recommended_retry: {
-                     type: :object,
-                     description: "Recommended retry settings for agent HTTP requests",
-                     additionalProperties: false,
-                     properties: {
-                       max_attempts: { type: :integer, description: "Maximum number of retry attempts" },
-                       initial_delay: { type: :integer, description: "Initial retry delay in seconds" },
-                       max_delay: { type: :integer, description: "Maximum retry delay in seconds" }
-                     },
-                     required: %i[max_attempts initial_delay max_delay]
-                   },
-                   recommended_circuit_breaker: {
-                     type: :object,
-                     description: "Recommended circuit breaker settings for agent connections",
-                     additionalProperties: false,
-                     properties: {
-                       failure_threshold: { type: :integer, description: "Number of failures before circuit opens" },
-                       timeout: { type: :integer, description: "Seconds before circuit half-opens for retry" }
-                     },
-                     required: %i[failure_threshold timeout]
-                   }
-                 },
-                 required: %i[config api_version benchmarks_needed recommended_timeouts recommended_retry recommended_circuit_breaker]
+          schema "$ref" => "#/components/schemas/ConfigurationResponse"
 
           after do |example|
             content = example.metadata[:response][:content] || {}
@@ -94,7 +53,7 @@ RSpec.describe "api/v1/client" do
           end
         end
 
-        response(401, "unauthorized") do
+        response(401, "Unauthorized") do
           let(:Authorization) { nil } # rubocop:disable RSpec/VariableName
 
           schema "$ref" => "#/components/schemas/ErrorObject"
@@ -130,12 +89,7 @@ RSpec.describe "api/v1/client" do
           let!(:agent) { create(:agent) }
           let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
 
-          schema type: :object,
-                 properties: {
-                   authenticated: { type: :boolean },
-                   agent_id: { type: :integer, format: :int64 }
-                 },
-                 required: %i[authenticated agent_id]
+          schema "$ref" => "#/components/schemas/AuthenticationResponse"
 
           after do |example|
             content = example.metadata[:response][:content] || {}
@@ -154,7 +108,7 @@ RSpec.describe "api/v1/client" do
           run_test!
         end
 
-        response(401, "unauthorized") do
+        response(401, "Unauthorized") do
           let(:Authorization) { nil } # rubocop:disable RSpec/VariableName
 
           schema "$ref" => "#/components/schemas/ErrorObject"

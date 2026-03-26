@@ -26,7 +26,7 @@ graph TD
 **Component roles:**
 
 - **Nginx** — Accepts all incoming HTTP traffic on port 80 and distributes requests across web replicas using the `least_conn` algorithm. Uses Docker's embedded DNS (`127.0.0.11`) to discover replicas automatically. Includes a dedicated `/cable` location for Action Cable WebSocket connections (Turbo Streams).
-- **Web replicas (Puma)** — Each replica is an independent container running the full Rails stack. Puma serves Rails requests with its own thread pool. Nginx handles HTTP/2, compression, and asset caching at the load balancer level.
+- **Web replicas (Puma)** — Each replica is an independent container running the full Rails stack. Puma serves Rails requests using a clustered mode with multiple worker processes (configurable via `WEB_CONCURRENCY`, default 2) and a thread pool per worker. Nginx handles HTTP/2, compression, and asset caching at the load balancer level.
 - **Backend services** — PostgreSQL, Redis, and Sidekiq are shared by all replicas. Rails cookie-based sessions are stateless, so no sticky sessions are required.
 
 ## Scaling Guidelines
@@ -45,6 +45,8 @@ Set the number of web replicas to **n + 1**, where **n** is the number of fully 
 The **+1 buffer** ensures that even if one replica is temporarily unhealthy or handling a slow request, the remaining replicas can absorb the load without queuing.
 
 For typical deployments with 30-second heartbeat intervals, fewer replicas may suffice. Monitor nginx access logs (check `upstream_response_time`) and Puma queue depth to right-size your deployment.
+
+> **Important for horizontal scaling:** Before scaling to multiple web replicas, run database migrations **once** using `RUN_DB_PREPARE=true` (see Step-by-Step Deployment). This prevents migration races where multiple containers might try to run migrations simultaneously.
 
 ### Resource Considerations
 
@@ -95,8 +97,9 @@ The general `/` location uses `proxy_read_timeout 300s` and `proxy_send_timeout 
 - Docker Compose V2
 - Required environment variables:
   - `RAILS_MASTER_KEY` — Rails credentials encryption key
-  - `POSTGRES_PASSWORD` — PostgreSQL root password
-  - `APPLICATION_HOST` — Application host for mailers and redirects
+  - `POSTGRES_PASSWORD` — PostgreSQL root password (required; fail-fast if not set)
+  - `TUSD_HOOK_SECRET` — Shared secret for authenticating tusd webhook requests (required; prevents cache poisoning attacks). Generate with `openssl rand -hex 32`
+  - `APPLICATION_HOST` — Application hostname for mailers, redirects, and DNS rebinding protection
   - `MINIO_PUBLIC_IP` — Public IP for MinIO (if using MinIO storage)
 
 > **Note:** See [Environment Variables Reference](environment-variables.md) for comprehensive documentation of all configuration options, including `DISABLE_SSL` for reverse proxy setups, production validation requirements, common configuration scenarios, and troubleshooting guidance.
@@ -108,9 +111,19 @@ The general `/` location uses `proxy_read_timeout 300s` and `proxy_send_timeout 
    ```bash
    export RAILS_MASTER_KEY=your_master_key
    export POSTGRES_PASSWORD=your_secure_password
+   export TUSD_HOOK_SECRET=$(openssl rand -hex 32)
    ```
 
-2. **Adjust the replica count** (optional — edit `docker-compose-production.yml`):
+2. **Run database migrations** (first-time setup or after updates):
+
+   ```bash
+   # Run migrations once before scaling to multiple replicas to avoid migration races
+   docker compose -f docker-compose-production.yml run --rm -e RUN_DB_PREPARE=true web
+   ```
+
+   > **Important:** Database migrations must be run **once** before starting multiple web replicas. The `RUN_DB_PREPARE=true` flag prevents migration races where multiple containers might try to run migrations simultaneously. Regular web service containers should not have this flag set.
+
+3. **Adjust the replica count** (optional — edit `docker-compose-production.yml`):
 
    ```yaml
    web:
@@ -118,9 +131,9 @@ The general `/` location uses `proxy_read_timeout 300s` and `proxy_send_timeout 
        replicas: 9  # n+1 where n = active cracking nodes
    ```
 
-   Or pass it at the command line (see step 3).
+   Or pass it at the command line (see step 4).
 
-3. **Deploy the stack:**
+4. **Deploy the stack:**
 
    ```bash
    docker compose -f docker-compose-production.yml up -d
@@ -129,7 +142,7 @@ The general `/` location uses `proxy_read_timeout 300s` and `proxy_send_timeout 
    docker compose -f docker-compose-production.yml up -d --scale web=9
    ```
 
-4. **Verify all replicas are healthy:**
+5. **Verify all replicas are healthy:**
 
    ```bash
    docker compose -f docker-compose-production.yml ps
@@ -137,7 +150,7 @@ The general `/` location uses `proxy_read_timeout 300s` and `proxy_send_timeout 
 
    All web replicas and the nginx service should show `healthy` status. Note that web replicas take 10-45 seconds to boot Rails, and nginx waits for at least one healthy web replica before starting.
 
-5. **Test load distribution** (optional):
+6. **Test load distribution** (optional):
 
    ```bash
    # Send several requests and observe different upstream addresses in nginx logs
@@ -252,6 +265,9 @@ To update the web application image without downtime:
 ```bash
 # Pull the latest image
 docker compose -f docker-compose-production.yml pull web
+
+# Run migrations once before restarting replicas (if schema changed)
+docker compose -f docker-compose-production.yml run --rm -e RUN_DB_PREPARE=true web
 
 # Recreate web replicas (nginx continues serving via remaining replicas)
 docker compose -f docker-compose-production.yml up -d --no-deps web
