@@ -13,11 +13,13 @@ Welcome to the CipherSwarm development team! This guide will help you understand
 05. [Development Patterns](#development-patterns)
 06. [Testing Strategy](#testing-strategy)
 07. [API Development](#api-development)
-08. [Background Jobs](#background-jobs)
-09. [Real-Time Features](#real-time-features)
-10. [Database Conventions](#database-conventions)
-11. [Common Tasks](#common-tasks)
-12. [Common Gotchas](#common-gotchas)
+08. [Environment Variables](#environment-variables)
+09. [Security Best Practices](#security-best-practices)
+10. [Background Jobs](#background-jobs)
+11. [Real-Time Features](#real-time-features)
+12. [Database Conventions](#database-conventions)
+13. [Common Tasks](#common-tasks)
+14. [Common Gotchas](#common-gotchas)
 
 ---
 
@@ -635,7 +637,7 @@ app/controllers/api/v1/
 
 ### Authentication
 
-All API endpoints require bearer token authentication:
+All API endpoints require bearer token authentication using constant-time token comparison to prevent timing attacks:
 
 ```ruby
 # app/controllers/api/v1/base_controller.rb
@@ -645,9 +647,17 @@ class Api::V1::BaseController < ApplicationController
   private
 
   def authenticate_agent
-    token = request.headers["Authorization"]&.split(" ")&.last
-    @agent = Agent.find_by(token: token)
+    authenticate_with_http_token do |token, _options|
+      next if token.blank?
 
+      candidate = Agent.find_by(token: token)
+      # Constant-time comparison to prevent timing attacks on token enumeration.
+      # Even when no candidate is found, compare against a dummy to equalize timing.
+      dummy_token = SecureRandom.base58(24)
+      compare_token = candidate&.token || dummy_token
+      @agent = candidate if ActiveSupport::SecurityUtils.secure_compare(compare_token, token)
+    end
+    
     render_unauthorized unless @agent
   end
 
@@ -656,6 +666,8 @@ class Api::V1::BaseController < ApplicationController
   end
 end
 ```
+
+**Security Note**: Using `ActiveSupport::SecurityUtils.secure_compare` prevents timing attacks where attackers could enumerate valid tokens by measuring response times. The dummy token ensures consistent comparison timing even when no agent is found.
 
 ### Request Specs with RSwag
 
@@ -695,6 +707,117 @@ end
 ```
 
 Regenerate docs: `RAILS_ENV=test rails rswag`
+
+---
+
+## Environment Variables
+
+CipherSwarm uses environment variables for configuration, with different requirements for development and production environments.
+
+### Security-Critical Variables
+
+| Variable             | Required In | Purpose                                                                                   |
+| -------------------- | ----------- | ----------------------------------------------------------------------------------------- |
+| `TUSD_HOOK_SECRET`   | Production  | Shared secret for authenticating tusd webhook requests. Prevents cache poisoning attacks. |
+| `POSTGRES_PASSWORD`  | Always      | Database password. Fails fast if unset to prevent insecure defaults.                      |
+| `APPLICATION_HOST`   | Optional    | DNS rebinding protection. Set to the hostname used to access the application (e.g., "cipherswarm.lab.local"). When not set, host checking is disabled for backward compatibility. |
+| `RUN_DB_PREPARE`     | Optional    | When `true`, runs `db:prepare` on container startup. Use only in single-instance mode or one-shot migration jobs to avoid migration races across replicas. |
+
+### tusd Webhook Authentication
+
+The tusd upload service calls back to `/api/v1/hooks/tus` when uploads complete. This endpoint requires authentication via the `X-Tusd-Hook-Secret` header to prevent unauthorized cache poisoning:
+
+```ruby
+# app/controllers/api/v1/hooks/tus_controller.rb
+def verify_tusd_origin
+  expected = ENV.fetch("TUSD_HOOK_SECRET", nil)
+  return if expected.blank? # Skip verification in dev if not configured
+
+  provided = request.headers["X-Tusd-Hook-Secret"].to_s
+  return if ActiveSupport::SecurityUtils.secure_compare(expected, provided)
+  
+  Rails.logger.warn("[TusHook] Unauthorized hook request from #{request.remote_ip}")
+  head :unauthorized
+end
+```
+
+**Production Deployment**: Ensure `TUSD_HOOK_SECRET` is set to a random value in both the Rails application and tusd configuration. In Docker deployments, this is configured via environment variables.
+
+### DNS Rebinding Protection
+
+Set `APPLICATION_HOST` to enable DNS rebinding attack protection in production:
+
+```yaml
+# docker-compose-production.yml
+environment:
+  APPLICATION_HOST: "cipherswarm.lab.local"
+```
+
+When set, Rails validates the `Host` header against the configured hostname. Health check endpoints (`/up`, `/api/v1/client/health`) are excluded from this check.
+
+### Database Migration Control
+
+In scaled deployments (multiple web replicas), run migrations as a one-shot command before starting replicas to avoid migration races:
+
+```bash
+# Run migrations once
+docker compose run --rm -e RUN_DB_PREPARE=true web ./bin/rails db:prepare
+
+# Then start replicas
+docker compose up -d
+```
+
+In development or single-instance deployments, `RUN_DB_PREPARE` is not needed as migrations run automatically.
+
+---
+
+## Security Best Practices
+
+### Path Traversal Protection
+
+The `TusUploadHandler` concern includes path traversal protection to prevent file access outside allowed directories:
+
+```ruby
+def validate_source_path!(path)
+  canonical_source = File.realpath(path)
+  canonical_tus_dir = File.realpath(tus_uploads_dir)
+  return if canonical_source.start_with?(canonical_tus_dir + "/")
+
+  raise TusUploadError, "Path traversal attempt blocked"
+end
+```
+
+This validation runs before any file operations on tusd-uploaded files.
+
+### Webhook Authentication
+
+All external webhook endpoints must validate requests using shared secrets:
+
+- **tusd webhooks**: Authenticated via `TUSD_HOOK_SECRET` header
+- Constant-time comparison prevents timing attacks
+
+### Production Secret Guards
+
+Critical secrets are enforced at startup in production:
+
+- `TUSD_HOOK_SECRET`: Required in production (fails fast if unset)
+- `POSTGRES_PASSWORD`: Required in all environments
+- `APPLICATION_HOST`: Optional but recommended for DNS rebinding protection
+
+Development environments allow running without `TUSD_HOOK_SECRET` for easier local setup.
+
+### Nginx Security Headers
+
+The production nginx configuration includes security headers at the reverse proxy layer:
+
+```nginx
+add_header X-Content-Type-Options "nosniff" always;
+add_header X-Frame-Options "SAMEORIGIN" always;
+add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+add_header Permissions-Policy "camera=(), microphone=(), geolocation=(), usb=()" always;
+```
+
+**Note**: `Strict-Transport-Security` (HSTS) should only be enabled when TLS terminates at the nginx instance. When TLS terminates upstream (e.g., cloud load balancer), the upstream proxy should set HSTS instead.
 
 ---
 
