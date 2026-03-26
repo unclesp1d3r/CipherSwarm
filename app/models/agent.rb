@@ -338,7 +338,14 @@ class Agent < ApplicationRecord
   #
   # @return [void]
   def advanced_configuration=(value)
-    self[:advanced_configuration] = value.is_a?(String) ? JSON.parse(value) : value
+    parsed = if value.is_a?(String)
+      JSON.parse(value)
+    else
+      value
+    end
+    self[:advanced_configuration] = parsed
+  rescue JSON::ParserError
+    errors.add(:advanced_configuration, "contains invalid JSON")
   end
 
   def current_running_attack
