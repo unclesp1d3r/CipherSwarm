@@ -61,7 +61,7 @@ module TaskErrorHandling
 
     Rails.logger.error(
       "[APIError] #{code} - Agent #{agent.id} - Task #{task.id} - " \
-      "Errors: #{messages} - #{Time.zone.now}"
+      "Attack #{task.attack_id} - Errors: #{messages} - #{Time.zone.now}"
     )
   end
 
