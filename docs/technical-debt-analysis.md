@@ -26,11 +26,11 @@
 
 #### 🔴 Critical: God Classes (High Priority)
 
-| File                   | Lines | Issue                                                                                            | Impact                                             | Effort |
-| ---------------------- | ----- | ------------------------------------------------------------------------------------------------ | -------------------------------------------------- | ------ |
-| `app/models/attack.rb` | 678   | God class - handles attack logic, complexity calculation, parameter generation, state management | Hard to test, high coupling, change ripple effects | 60h    |
+| File                   | Lines | Issue                                                                                                                                                  | Impact                                             | Effort |
+| ---------------------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------- | ------ |
+| `app/models/attack.rb` | 678   | God class - handles attack logic, complexity calculation, parameter generation, state management                                                       | Hard to test, high coupling, change ripple effects | 60h    |
 | `app/models/agent.rb`  | 348   | God class - manages agent state, capabilities, benchmarks, errors, task assignment (Agent::Broadcasting concern extracted, reducing model by 69 lines) | Testing complexity, maintenance burden             | 30h    |
-| `app/models/task.rb`   | 363   | Growing complexity - state machine, progress tracking, preemption logic                          | Becoming harder to maintain                        | 30h    |
+| `app/models/task.rb`   | 363   | Growing complexity - state machine, progress tracking, preemption logic                                                                                | Becoming harder to maintain                        | 30h    |
 
 **Impact**:
 
