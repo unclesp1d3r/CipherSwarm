@@ -547,6 +547,9 @@ From .cursor/rules/core-principals.mdc and rails.mdc:
 - Upload flow: Browser → tus-js-client (50 MB chunks) → nginx → tusd → `/srv/tusd-data` volume
 - On completion: tusd sends HTTP POST hook to `POST /api/v1/hooks/tus` (`Api::V1::Hooks::TusController`)
 - Hook caches upload metadata in Rails.cache, form controllers use `TusUploadHandler` concern to move file to permanent storage
+- `TusUploadHandler` has two methods: `process_tus_upload` (attack resources → `file_path`, enqueues `CountFileLinesJob` + `VerifyChecksumJob`) and `process_tus_hash_list_upload` (hash lists → `temp_file_path`, enqueues `ProcessHashListJob`)
+- **Job enqueuing for tusd uploads happens in `TusUploadHandler`, NOT model callbacks** — `AttackResource#file_attached?` checks Active Storage (always false for tusd), so `after_commit` callbacks gated by it won't fire for tusd-uploaded records
+- All three file-processing jobs (`ProcessHashListJob`, `CountFileLinesJob`, `CalculateMaskComplexityJob`) log `Rails.logger.warn` when falling back to Active Storage `blob.open` — monitor for `"Falling back to Active Storage blob.open"` to detect unexpected `/tmp` usage
 - Agent downloads: `Api::V1::Client::FilesController` with nginx `X-Accel-Redirect` — Puma freed immediately after auth check
 - `checksum_verified` boolean column on `word_lists`, `rule_lists`, `mask_lists` — `VerifyChecksumJob` computes MD5 from `file_path` directly
 - Incomplete upload cleanup: `tusd-cleanup` Alpine sidecar deletes uploads older than 24 hours
