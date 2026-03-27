@@ -73,7 +73,7 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
       )
       render json: { success: true, state: @task.state }, status: :ok
     else
-      log_task_api_error("TASK_ABANDON_FAILED", agent_id: @agent.id, task_id: @task.id, error_messages: @task.errors.full_messages)
+      log_task_api_error("TASK_ABANDON_FAILED", @agent, @task, @task.errors.full_messages)
       render json: { error: "Failed to abandon task", details: @task.errors.full_messages },
              status: :unprocessable_content
     end
@@ -97,7 +97,7 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
     end
 
     unless @task.accept
-      log_task_api_error("TASK_ACCEPT_FAILED", agent_id: @agent.id, task_id: @task.id, error_messages: @task.errors.full_messages)
+      log_task_api_error("TASK_ACCEPT_FAILED", @agent, @task, @task.errors.full_messages)
       render json: { error: "Failed to accept task", details: @task.errors.full_messages },
              status: :unprocessable_content
       return
@@ -113,7 +113,7 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
     )
 
     unless @task.attack.accept
-      log_task_api_error("ATTACK_ACCEPT_FAILED", agent_id: @agent.id, task_id: @task.id, error_messages: @task.attack.errors.full_messages, attack_id: @task.attack.id)
+      log_task_api_error("ATTACK_ACCEPT_FAILED", @agent, @task, @task.attack.errors.full_messages)
       render json: { error: "Failed to start attack", details: @task.attack.errors.full_messages },
              status: :unprocessable_content
       return
@@ -135,7 +135,7 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
     Rails.logger.info("[Agent #{@agent.id}] Task #{@task.id} - Marking task as exhausted")
 
     unless @task.exhaust
-      log_task_api_error("TASK_EXHAUST_FAILED", agent_id: @agent.id, task_id: @task.id, error_messages: @task.errors.full_messages)
+      log_task_api_error("TASK_EXHAUST_FAILED", @agent, @task, @task.errors.full_messages)
       render json: { error: "Failed to exhaust task", details: @task.errors.full_messages }, status: :unprocessable_content
       return
     end
