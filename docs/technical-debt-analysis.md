@@ -350,7 +350,7 @@ Recent Improvements (Last 3 Months):
 ✅ view_component upgraded to 4.5.0 (bug fixes)
 ✅ PR #692: CampaignPriorityRebalanceJob implemented with comprehensive tests
 ✅ Automatic task preemption on campaign priority increases
-✅ Rails upgraded to 8.1.2.1 (security patches for CVE-2026-33176, CVE-2026-33170, CVE-2026-33169, CVE-2026-33168, CVE-2026-33167)
+✅ Rails upgraded to 8.1.2.1 (security patches for CVE-2026-33176, CVE-2026-33170, CVE-2026-33169, CVE-2026-33168, CVE-2026-33167, CVE-2026-33173, CVE-2026-33174, CVE-2026-33658, CVE-2026-33195, CVE-2026-33202)
 ✅ action_text-trix upgraded to 2.1.17 (security patch for XSS vulnerability)
 ✅ json upgraded to 2.19.2 (security patch for CVE-2026-33210 format string injection vulnerability)
 ✅ bcrypt upgraded to 3.1.22 (security patch for CVE-2026-33306 integer overflow)
