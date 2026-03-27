@@ -404,14 +404,19 @@ RSpec.describe ProcessHashListJob do
         hl.reload
       end
 
-      it "falls back to ENV variable" do
+      it "falls back to ENV variable and uses that batch size" do
         allow(ApplicationConfig).to receive(:respond_to?).and_call_original
         allow(ApplicationConfig).to receive(:respond_to?).with(:hash_list_batch_size).and_return(false)
         allow(ENV).to receive(:fetch).and_call_original
         allow(ENV).to receive(:fetch).with("HASH_LIST_PROCESS_BATCH_SIZE", "1000").and_return("500")
 
-        described_class.perform_now(hash_list.id)
+        # 1024 lines / 500 batch_size = 3 calls (500, 500, 24)
+        job = described_class.new
+        allow(job).to receive(:process_batch).and_call_original
 
+        job.perform(hash_list.id)
+
+        expect(job).to have_received(:process_batch).exactly(3).times
         expect(hash_list.reload.hash_items_count).to eq(1024)
       end
     end

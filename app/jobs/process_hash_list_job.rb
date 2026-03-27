@@ -138,19 +138,22 @@ class ProcessHashListJob < ApplicationJob
   # 2) ENV["HASH_LIST_PROCESS_BATCH_SIZE"]
   # 3) Default: 1000
   def batch_size
-    size = if defined?(ApplicationConfig) && ApplicationConfig.respond_to?(:hash_list_batch_size)
-             ApplicationConfig.hash_list_batch_size.to_i
-    else
-             ENV.fetch("HASH_LIST_PROCESS_BATCH_SIZE", "1000").to_i
-    end
+    @batch_size ||= begin
+      raw = if defined?(ApplicationConfig) && ApplicationConfig.respond_to?(:hash_list_batch_size)
+              ApplicationConfig.hash_list_batch_size
+      else
+              ENV.fetch("HASH_LIST_PROCESS_BATCH_SIZE", "1000")
+      end
 
-    if size <= 0
-      raise ArgumentError,
-        "[ProcessHashList] Invalid batch_size #{size.inspect} — must be a positive integer. " \
-        "Check ApplicationConfig.hash_list_batch_size or HASH_LIST_PROCESS_BATCH_SIZE env var."
-    end
+      size = Integer(raw, exception: false)
+      unless size&.positive?
+        raise ArgumentError,
+          "[ProcessHashList] Invalid batch_size #{raw.inspect} — must be a positive integer. " \
+          "Check ApplicationConfig.hash_list_batch_size or HASH_LIST_PROCESS_BATCH_SIZE env var."
+      end
 
-    size
+      size
+    end
   end
 
   def process_batch(list, hash_items)
