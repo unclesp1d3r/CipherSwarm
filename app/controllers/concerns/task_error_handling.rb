@@ -71,11 +71,13 @@ module TaskErrorHandling
   # Centralizes the [APIError] log pattern used across task state transition failures.
   #
   # @param code [String] The error code (e.g., "TASK_ABANDON_FAILED", "ATTACK_ACCEPT_FAILED")
+  # @param agent_id [Integer] The ID of the agent involved
+  # @param task_id [Integer] The ID of the task involved
   # @param error_messages [Array<String>, String] Error message(s) to include
   # @param context [Hash] Optional additional context fields (e.g., { attack_id: 123 })
-  def log_task_api_error(code, error_messages, context = {})
+  def log_task_api_error(code, agent_id:, task_id:, error_messages:, **context)
     messages = Array(error_messages).join(", ")
-    parts = ["[APIError] #{code}", "Agent #{@agent.id}", "Task #{@task.id}"]
+    parts = ["[APIError] #{code}", "Agent #{agent_id}", "Task #{task_id}"]
     context.each { |k, v| parts << "#{k}: #{v}" }
     parts << "Errors: #{messages}"
     parts << Time.current.to_s

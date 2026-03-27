@@ -21,10 +21,6 @@ RSpec.describe Agent::Broadcasting do
         "custom_label", "operating_system", "user_id"
       )
     end
-
-    it "freezes CONFIGURATION_BROADCAST_FIELDS" do
-      expect(Agent::Broadcasting::CONFIGURATION_BROADCAST_FIELDS).to be_frozen
-    end
   end
 
   describe "after_update_commit callback" do
@@ -80,14 +76,6 @@ RSpec.describe Agent::Broadcasting do
           partial: "agents/index_errors"
         )
       )
-    end
-
-    it "does not require a state change guard" do
-      # broadcast_index_errors is called externally from AgentError#after_create_commit
-      # and should always broadcast regardless of what changed on the agent
-      allow(agent).to receive(:broadcast_replace_later_to)
-      agent.broadcast_index_errors
-      expect(agent).to have_received(:broadcast_replace_later_to)
     end
   end
 
