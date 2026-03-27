@@ -55,7 +55,6 @@ module TusUploadHandler
     end
 
     record.update!(temp_file_path: result[:dest_path], processed: false)
-
     ProcessHashListJob.perform_later(record.id)
     Rails.logger.info("[TusUpload] Enqueued ProcessHashListJob for HashList##{record.id}")
 
@@ -115,20 +114,19 @@ module TusUploadHandler
   end
 
   def hash_list_staging_dir
-    base = ENV.fetch("ATTACK_RESOURCE_STORAGE_PATH",
-                     Rails.root.join("storage/attack_resources").to_s)
+    base = ENV.fetch("ATTACK_RESOURCE_STORAGE_PATH", Rails.root.join("storage/attack_resources").to_s)
     File.join(base, "hash_lists_staging")
   end
 
   def validate_source_path!(path)
+    uploads_prefix = "#{File.realpath(tus_uploads_dir)}/"
     resolved = File.realpath(File.expand_path(path))
-    return if resolved.start_with?("#{File.realpath(tus_uploads_dir)}/")
+    return if resolved.start_with?(uploads_prefix)
 
     raise TusUploadError, "Path traversal attempt blocked: source path is outside tusd uploads directory"
-  rescue Errno::ENOENT
-    # File doesn't exist yet — validate the directory component. Fail closed.
-    parent = File.realpath(File.expand_path(File.dirname(path)))
-    return if parent.start_with?("#{File.realpath(tus_uploads_dir)}/")
+  rescue Errno::ENOENT, Errno::EACCES
+    parent = File.realpath(File.expand_path(File.dirname(path))) rescue nil
+    return if parent&.start_with?("#{File.realpath(tus_uploads_dir)}/")
 
     raise TusUploadError, "Path traversal attempt blocked: source path is outside tusd uploads directory"
   end
@@ -136,7 +134,11 @@ module TusUploadHandler
   def sanitize_filename(name) = name.gsub(/[^0-9A-Za-z.\-_]/, "_")
 
   def cleanup_tus_metadata(source_path, upload_id)
-    File.delete("#{source_path}.info") if File.exist?("#{source_path}.info")
+    info_path = "#{source_path}.info"
+    File.delete(info_path) if File.exist?(info_path)
+  rescue Errno::ENOENT, Errno::EACCES, IOError => e
+    Rails.logger.warn("[TusUpload] Could not clean up metadata file #{info_path}: #{e.message}")
+  ensure
     Rails.cache.delete("tus_upload:#{upload_id}")
   end
 
