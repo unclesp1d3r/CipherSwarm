@@ -388,8 +388,15 @@ RSpec.describe ProcessHashListJob do
         hl.reload
       end
 
-      it "raises ArgumentError" do
+      it "raises ArgumentError for zero" do
         allow(ApplicationConfig).to receive(:hash_list_batch_size).and_return(0)
+
+        expect { described_class.perform_now(hash_list.id) }
+          .to raise_error(ArgumentError, /Invalid batch_size/)
+      end
+
+      it "raises ArgumentError for non-numeric strings" do
+        allow(ApplicationConfig).to receive(:hash_list_batch_size).and_return("1oops")
 
         expect { described_class.perform_now(hash_list.id) }
           .to raise_error(ArgumentError, /Invalid batch_size/)
