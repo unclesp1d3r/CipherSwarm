@@ -135,7 +135,7 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
     Rails.logger.info("[Agent #{@agent.id}] Task #{@task.id} - Marking task as exhausted")
 
     unless @task.exhaust
-      log_task_api_error("TASK_EXHAUST_FAILED", @agent.id, @task.id, @task.errors.full_messages)
+      log_task_api_error("TASK_EXHAUST_FAILED", agent_id: @agent.id, task_id: @task.id, error_messages: @task.errors.full_messages)
       render json: { error: "Failed to exhaust task", details: @task.errors.full_messages }, status: :unprocessable_content
       return
     end
