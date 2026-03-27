@@ -77,9 +77,9 @@ test-js:
 test-all: test-js
     COVERAGE=true {{mise_exec}} bundle exec rspec
 
-# Run RSpec tests with coverage
+# Run RSpec tests with coverage (excludes system tests, matching CI)
 test:
-    COVERAGE=true {{mise_exec}} bundle exec rspec
+    COVERAGE=true {{mise_exec}} bundle exec rspec --exclude-pattern "spec/system/**/*_spec.rb"
 
 # Run specific test file
 test-file FILE:
