@@ -16,7 +16,7 @@
 - Change hotspots indicate fragile areas (Task & Agent models)
 - Overall code quality is **good** (0 active security warnings, 0 TODO markers)
 
-**Recommended Investment**: 218 hours over 6 months (reduced from 256h) **Expected ROI**: 178% over 12 months **Priority**: Address skipped tests and God classes first
+**Recommended Investment**: 208 hours over 6 months (reduced from 256h) **Expected ROI**: 186% over 12 months **Priority**: Address skipped tests and God classes first
 
 ---
 
@@ -29,7 +29,7 @@
 | File                   | Lines | Issue                                                                                            | Impact                                             | Effort |
 | ---------------------- | ----- | ------------------------------------------------------------------------------------------------ | -------------------------------------------------- | ------ |
 | `app/models/attack.rb` | 678   | God class - handles attack logic, complexity calculation, parameter generation, state management | Hard to test, high coupling, change ripple effects | 60h    |
-| `app/models/agent.rb`  | 428   | God class - manages agent state, capabilities, benchmarks, errors, task assignment               | Testing complexity, maintenance burden             | 40h    |
+| `app/models/agent.rb`  | 348   | God class - manages agent state, capabilities, benchmarks, errors, task assignment (Agent::Broadcasting concern extracted, reducing model by 69 lines) | Testing complexity, maintenance burden             | 30h    |
 | `app/models/task.rb`   | 363   | Growing complexity - state machine, progress tracking, preemption logic                          | Becoming harder to maintain                        | 30h    |
 
 **Impact**:
@@ -46,9 +46,9 @@
 
 **Remediation ROI**:
 
-- Effort: 130 hours ($19,500)
+- Effort: 120 hours ($18,000)
 - Savings: 30% reduction in maintenance (198 hours/year = $29,700)
-- **Net Benefit**: $10,200/year (52% ROI)
+- **Net Benefit**: $11,700/year (65% ROI)
 
 #### 🟡 Medium: Controller Complexity
 
@@ -350,6 +350,7 @@ Recent Improvements (Last 3 Months):
 ✅ view_component upgraded to 4.5.0 (bug fixes)
 ✅ PR #692: CampaignPriorityRebalanceJob implemented with comprehensive tests
 ✅ Automatic task preemption on campaign priority increases
+✅ PR #804: Agent::Broadcasting concern extracted (417→348 lines, 13 test examples)
 ✅ Rails upgraded to 8.1.2.1 (security patches for CVE-2026-33176, CVE-2026-33170, CVE-2026-33169, CVE-2026-33168, CVE-2026-33167, CVE-2026-33173, CVE-2026-33174, CVE-2026-33658, CVE-2026-33195, CVE-2026-33202)
 ✅ action_text-trix upgraded to 2.1.17 (security patch for XSS vulnerability)
 ✅ json upgraded to 2.19.2 (security patch for CVE-2026-33210 format string injection vulnerability)
@@ -504,19 +505,27 @@ ROI:
 #### Task 3.1: Refactor Agent Model
 
 ```
-Effort: 40 hours
+Effort: 30 hours (reduced from 40h)
 Impact: -35% Agent class complexity
 
 Target Structure:
-- Agent (core): ~250 lines
+- Agent (core): ~250 lines (48 lines remaining to target from current 348)
+- Agent::Broadcasting (concern): ~70 lines - ✅ Completed via PR #804
 - AgentCapabilityMatcher (service): ~80 lines
-- AgentBenchmarkManager (service): ~60 lines
+- AgentBenchmarkManager (service): ~60 lines (already extracted as Agent::Benchmarking)
 - AgentErrorHandler (concern): ~40 lines
+
+Recent Progress:
+✅ PR #804: Agent::Broadcasting concern extracted (417→348 lines)
+  - 5 broadcast methods + constant + callback moved to concern
+  - 13 test examples added for broadcasting behavior
+  - Follows established Agent::Benchmarking pattern
 
 Benefits:
 - Easier agent onboarding logic
 - Better testability
 - Clearer responsibilities
+- Broadcasting logic now isolated and well-tested
 ```
 
 #### Task 3.2: Extract Campaign Scheduling Service
@@ -576,7 +585,7 @@ Benefits:
 Note: view_component upgrade completed (4.5.0)
 ```
 
-**Phase 3 Total**: 73 hours (reduced from 108h due to completed campaign scheduling) **Phase 3 Savings**: $2,100/month (long-term stability)
+**Phase 3 Total**: 63 hours (reduced from 108h due to completed campaign scheduling and broadcasting extraction) **Phase 3 Savings**: $2,100/month (long-term stability)
 
 ---
 
@@ -586,10 +595,10 @@ Note: view_component upgrade completed (4.5.0)
 | --------------------- | ------------ | ------------------ | --------------- | -------------------- |
 | Phase 1 (Quick Wins)  | 2 weeks      | 40h ($6,000)       | $3,000          | 100% (2 months)      |
 | Phase 2 (Medium-term) | 2 months     | 105h ($15,750)     | $3,000          | 120% (3-4 months)    |
-| Phase 3 (Long-term)   | 4 months     | 73h ($10,950)      | $2,100          | 115% (5-6 months)    |
-| **Total**             | **6 months** | **218h ($32,700)** | **$8,100**      | **178% (12 months)** |
+| Phase 3 (Long-term)   | 4 months     | 63h ($9,450)       | $2,100          | 120% (5-6 months)    |
+| **Total**             | **6 months** | **208h ($31,200)** | **$8,100**      | **186% (12 months)** |
 
-**Annual Savings**: $97,200 **Net Benefit (Year 1)**: $64,500
+**Annual Savings**: $97,200 **Net Benefit (Year 1)**: $66,000
 
 ---
 
@@ -838,6 +847,7 @@ Track These Metrics:
 **Recent Accomplishments**:
 
 - ✅ CampaignPriorityRebalanceJob implemented with comprehensive tests (PR #692)
+- ✅ Agent::Broadcasting concern extracted (PR #804)
 
 **Q2 2026 Goals**:
 
@@ -1015,7 +1025,7 @@ Next week focus:
 
 ```
 1. attack.rb (678 lines) - Complex attack logic
-2. agent.rb (428 lines) - Agent lifecycle management
+2. agent.rb (348 lines) - Agent lifecycle management (reduced from 428 via Broadcasting extraction)
 3. task.rb (363 lines) - Task state and progress
 4. client/tasks_controller.rb (339 lines) - API endpoints
 5. campaign.rb (328 lines) - Campaign management

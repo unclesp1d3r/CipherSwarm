@@ -6,7 +6,7 @@
 
 ## Executive Summary
 
-CipherSwarm demonstrates a **solid Rails foundation** with clear domain modeling and modern conventions. The architecture successfully handles distributed task processing with real-time updates. However, several **God classes** (Attack: 678 lines, Agent: 428 lines, Task: 374 lines) and an **emerging service layer** indicate architectural growing pains typical of evolving systems.
+CipherSwarm demonstrates a **solid Rails foundation** with clear domain modeling and modern conventions. The architecture successfully handles distributed task processing with real-time updates. However, several **God classes** (Attack: 678 lines, Agent: 348 lines, Task: 374 lines) and an **emerging service layer** indicate architectural growing pains typical of evolving systems.
 
 **Architecture Score**: 7.2/10 (Good with room for improvement)
 
@@ -125,7 +125,9 @@ app/controllers/api/v1/
 ```
 app/models/concerns/
 ├── safe_broadcasting.rb (85 lines) - Broadcast error handling
-└── attack_resource.rb (78 lines) - Shared attack logic
+├── attack_resource.rb (78 lines) - Shared attack logic
+├── agent/benchmarking.rb - Benchmark management
+└── agent/broadcasting.rb - Turbo Stream broadcasting
 ```
 
 **View Components** (Modern ✅):
@@ -140,7 +142,7 @@ app/models/concerns/
 - Clean job boundaries
 - `CampaignPriorityRebalanceJob`: Event-driven task preemption triggered when campaign priority increases (after_commit callback pattern)
 
-**Analysis**: Component organization follows Rails conventions. SafeBroadcasting concern is excellent for resilience. The new CampaignPriorityRebalanceJob demonstrates an emerging event-driven pattern for task rebalancing, complementing the periodic UpdateStatusJob. Need more concerns to extract shared model behavior.
+**Analysis**: Component organization follows Rails conventions. SafeBroadcasting concern is excellent for resilience. The new CampaignPriorityRebalanceJob demonstrates an emerging event-driven pattern for task rebalancing, complementing the periodic UpdateStatusJob. Agent::Broadcasting and Agent::Benchmarking concerns demonstrate the extraction pattern for reducing model size while maintaining cohesive behavioral units.
 
 ---
 
@@ -174,19 +176,20 @@ app/models/concerns/
 - `HashcatParameterBuilder` - Parameter generation
 - `AttackProgressTracker` - Progress calculations
 
-**Agent Model** (428 lines):
+**Agent Model** (348 lines, reduced from 428):
 
 ```ruby
-# Responsibilities (too many):
+# Responsibilities (still multiple):
 - Configuration management (advanced_configuration JSONB)
 - Task assignment logic
-- Benchmark management
 - Performance threshold checks
 - State machine transitions
 - Validation logic
 ```
 
-**Recommendation**: Extract to:
+**Progress**: Broadcasting logic extracted to `Agent::Broadcasting` concern (5 methods, 1 constant, 1 callback). This follows the established `Agent::Benchmarking` pattern and demonstrates the recommended concern extraction approach.
+
+**Remaining Recommendation**: Extract to:
 
 - `AgentConfigurationService` - Config validation/updates
 - `AgentCapabilityMatcher` - Hash type compatibility
@@ -890,6 +893,8 @@ end
 | Service Objects    | 2         | 10+         | ⚠️ Needs extraction  |
 | God Classes        | 3         | 0           | ⚠️ Needs refactoring |
 
+**Note**: Agent model reduced from 428 to 348 lines via `Agent::Broadcasting` concern extraction (PR #804).
+
 ### 9.2 Developer Experience
 
 **Strengths**:
@@ -977,7 +982,7 @@ end
 **Short-Term** (3 months):
 
 - Attack model < 400 lines
-- Agent model < 300 lines
+- Agent model < 300 lines (currently 348 lines, making progress ✅)
 - Task model < 250 lines
 - Test coverage > 70%
 - All 70 pending tests completed

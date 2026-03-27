@@ -49,6 +49,22 @@ module TaskErrorHandling
     )
   end
 
+  # Logs an API error for a task-related operation in a consistent structured format.
+  # Centralizes the [APIError] log pattern used across task state transition failures.
+  #
+  # @param code [String] The error code (e.g., "TASK_ABANDON_FAILED", "ATTACK_ACCEPT_FAILED")
+  # @param agent [Agent] The agent involved in the operation
+  # @param task [Task] The task involved in the operation
+  # @param error_messages [Array<String>, String] Error message(s) to include
+  def log_task_api_error(code, agent, task, error_messages)
+    messages = Array(error_messages).join(", ")
+
+    Rails.logger.error(
+      "[APIError] #{code} - Agent #{agent.id} - Task #{task.id} - " \
+      "Attack #{task.attack_id} - Errors: #{messages} - #{Time.zone.now}"
+    )
+  end
+
   # Logs task state transitions with context.
   #
   # @param options [Hash] Options hash containing state change information
