@@ -156,7 +156,7 @@ RSpec.describe Agent::Broadcasting do
             target: ActionView::RecordIdentifier.dom_id(agent, :capabilities),
             partial: "agents/capabilities_tab"
           )
-        ).at_least(:once)
+        ).once
       end
     end
 
