@@ -75,6 +75,7 @@ class Agent < ApplicationRecord
   include ActiveSupport::NumberHelper
   include Agent::Benchmarking
   include SafeBroadcasting
+  include Agent::Broadcasting
   include StoreModel::NestedAttributes
 
   # Hash rate units map for formatting display values.
@@ -87,12 +88,6 @@ class Agent < ApplicationRecord
     trillion: "TH/s",
     quadrillion: "PH/s"
   }.freeze
-
-  # Fields whose changes should trigger a configuration tab broadcast.
-  CONFIGURATION_BROADCAST_FIELDS = %w[
-    enabled client_signature last_ipaddress advanced_configuration
-    custom_label operating_system user_id
-  ].freeze
 
   belongs_to :user, touch: true
   has_and_belongs_to_many :projects, touch: true
@@ -116,70 +111,6 @@ class Agent < ApplicationRecord
   scope :inactive_for, ->(time) { where(last_seen_at: ...time.ago) }
 
   self.implicit_order_column = :created_at
-
-  # Broadcast tab-specific updates instead of full page refresh
-  # This prevents resetting the active tab state when agent data changes
-  after_update_commit :broadcast_tab_updates, :broadcast_index_state, :broadcast_index_last_seen
-
-  # Replaces just the state pill on index cards when the agent's state transitions.
-  # Index cards subscribe to the bare agent stream via turbo_stream_from(agent).
-  # Only fires on state transitions to avoid excessive updates from heartbeats.
-  def broadcast_index_state
-    return unless saved_change_to_state?
-
-    broadcast_replace_later_to self,
-      target: ActionView::RecordIdentifier.dom_id(self, :index_state),
-      partial: "agents/index_state",
-      locals: { agent: self }
-  end
-
-  # Replaces just the error count on index cards when a new AgentError is created.
-  # Called from AgentError#after_create_commit to keep the broadcast contract on Agent,
-  # matching the pattern of broadcast_index_state and broadcast_index_last_seen.
-  def broadcast_index_errors
-    broadcast_replace_later_to self,
-      target: ActionView::RecordIdentifier.dom_id(self, :index_errors),
-      partial: "agents/index_errors",
-      locals: { agent: self }
-  end
-
-  # Replaces just the "Last Seen" value on index cards when last_seen_at changes.
-  def broadcast_index_last_seen
-    return unless saved_change_to_last_seen_at?
-
-    broadcast_replace_later_to self,
-      target: ActionView::RecordIdentifier.dom_id(self, :index_last_seen),
-      partial: "agents/index_last_seen",
-      locals: { agent: self }
-  end
-
-
-  # Broadcasts updates to individual tab streams instead of the root agent stream.
-  # This allows each tab panel to update independently without affecting the active tab state.
-  #
-  # Overview: always broadcast (last_seen, state, metrics change frequently).
-  # Configuration: only when config-relevant fields change.
-  # Capabilities: only when state changes (benchmark data arrives via state transitions).
-  def broadcast_tab_updates
-    broadcast_replace_later_to [self, :overview],
-      target: ActionView::RecordIdentifier.dom_id(self, :overview),
-      partial: "agents/overview_tab",
-      locals: { agent: self }
-
-    if saved_changes.keys.intersect?(CONFIGURATION_BROADCAST_FIELDS)
-      broadcast_replace_later_to [self, :configuration],
-        target: ActionView::RecordIdentifier.dom_id(self, :configuration),
-        partial: "agents/configuration_tab",
-        locals: { agent: self }
-    end
-
-    return unless saved_change_to_state?
-
-    broadcast_replace_later_to [self, :capabilities],
-      target: ActionView::RecordIdentifier.dom_id(self, :capabilities),
-      partial: "agents/capabilities_tab",
-      locals: { agent: self }
-  end
 
   # The operating system of the agent.
   enum :operating_system, { unknown: 0, linux: 1, windows: 2, darwin: 3, other: 4 }
