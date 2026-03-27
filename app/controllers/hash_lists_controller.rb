@@ -14,6 +14,7 @@
 # - `set_projects`: Sets the list of accessible projects for specific actions.
 # - `load_and_authorize_resource`: Handles resource loading and checks authorization.
 class HashListsController < ApplicationController
+  include TusUploadHandler
   before_action :authenticate_user!
   before_action :set_projects, only: %i[new edit create update]
   load_and_authorize_resource
@@ -92,8 +93,18 @@ class HashListsController < ApplicationController
     @hash_list = HashList.new(hash_list_params)
     @hash_list.creator = current_user
 
+    # Mark as tus upload pending to skip Active Storage file validation
+    if params[:tus_upload_url].present?
+      @hash_list.tus_upload_pending = true
+    end
+
     respond_to do |format|
       if @hash_list.save
+        if params[:tus_upload_url].present? && !process_tus_hash_list_upload(@hash_list, params[:tus_upload_url])
+          format.html { redirect_to hash_lists_url, alert: "Hash list was created but the file upload failed. Please try again." }
+          format.json { render json: { error: "File upload processing failed" }, status: :unprocessable_content }
+          next
+        end
         format.html { redirect_to hash_list_url(@hash_list), notice: "Hash list was successfully created." }
         format.json { render :show, status: :created, location: @hash_list }
       else

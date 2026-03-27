@@ -65,8 +65,13 @@ class HashList < ApplicationRecord
   belongs_to :hash_type
   belongs_to :creator, class_name: "User", optional: true
 
+  # File attachment is required unless using tus upload (temp_file_path set after save by TusUploadHandler).
+  # During tus uploads, the file isn't attached via Active Storage — it's moved to
+  # temp storage by the controller after the record is saved.
+  attr_accessor :tus_upload_pending
+
   validates :name, presence: true, uniqueness: { case_sensitive: false }
-  validates :file, presence: { on: :create }
+  validates :file, presence: { on: :create }, unless: -> { tus_upload_pending || temp_file_path.present? }
   validates :name, length: { maximum: 255 }
   validates :separator, length: { is: 1, allow_blank: true }
   validate :file_must_be_attached
@@ -272,7 +277,7 @@ class HashList < ApplicationRecord
   end
 
   def file_must_be_attached
-    errors.add(:file, "must be attached") unless processed? || file.attached?
+    errors.add(:file, "must be attached") unless processed? || file.attached? || tus_upload_pending || temp_file_path.present?
   end
 
   # Processes the hash list.

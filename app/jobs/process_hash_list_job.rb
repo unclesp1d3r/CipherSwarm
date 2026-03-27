@@ -239,6 +239,8 @@ class ProcessHashListJob < ApplicationJob
         Rails.logger.warn("[ProcessHashList] Temp file cleanup failed for HashList##{list.id}: #{e.message}")
       end
     elsif list.file.attached?
+      Rails.logger.warn("[ProcessHashList] Falling back to Active Storage blob.open for HashList##{list.id} " \
+                        "— file will be downloaded to /tmp. Ensure temp_file_path is set for tusd uploads.")
       ensure_temp_storage_available!(list.file)
       list.file.open(&)
     else
