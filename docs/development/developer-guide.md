@@ -57,6 +57,8 @@ just dev
 
 The application will be available at `http://localhost:3000`.
 
+**Note:** File upload system tests automatically start tusd via testcontainers — no manual setup required.
+
 ### Development Services
 
 | Service    | URL                            | Description                            |
@@ -65,6 +67,15 @@ The application will be available at `http://localhost:3000`.
 | Sidekiq UI | http://localhost:3000/sidekiq  | Background job monitoring (admin only) |
 | API Docs   | http://localhost:3000/api-docs | Swagger/OpenAPI documentation          |
 | Admin      | http://localhost:3000/admin    | Administrate dashboard                 |
+
+#### Testcontainers-based tusd for System Tests
+
+System tests requiring file uploads use testcontainers to automatically start a tusd Docker container. This eliminates the need for manual Docker container management during development and testing.
+
+- `TusdHelper.ensure_tusd_running` starts the container on a random port
+- Tests that use tus uploads should include `before(:all) { TusdHelper.ensure_tusd_running }` in their setup
+- The container is shared across the test suite and automatically cleaned up on process exit
+- No manual configuration needed — testcontainers handles container lifecycle management
 
 ### Essential Commands
 
@@ -690,12 +701,32 @@ CipherSwarm uses environment variables for configuration, with different require
 
 ### Security-Critical Variables
 
-| Variable            | Required In | Purpose                                                                                                                                                                           |
-| ------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `TUSD_HOOK_SECRET`  | Production  | Shared secret for authenticating tusd webhook requests. Prevents cache poisoning attacks.                                                                                         |
-| `POSTGRES_PASSWORD` | Always      | Database password. Fails fast if unset to prevent insecure defaults.                                                                                                              |
-| `APPLICATION_HOST`  | Optional    | DNS rebinding protection. Set to the hostname used to access the application (e.g., "cipherswarm.lab.local"). When not set, host checking is disabled for backward compatibility. |
-| `RUN_DB_PREPARE`    | Optional    | When `true`, runs `db:prepare` on container startup. Use only in single-instance mode or one-shot migration jobs to avoid migration races across replicas.                        |
+| Variable                | Required In | Purpose                                                                                                                                                                                     |
+| ----------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `TUSD_HOOK_SECRET`      | Production  | Shared secret for authenticating tusd webhook requests. Prevents cache poisoning attacks.                                                                                                   |
+| `POSTGRES_PASSWORD`     | Always      | Database password. Fails fast if unset to prevent insecure defaults.                                                                                                                        |
+| `APPLICATION_HOST`      | Optional    | DNS rebinding protection. Set to the hostname used to access the application (e.g., "cipherswarm.lab.local"). When not set, host checking is disabled for backward compatibility.           |
+| `RUN_DB_PREPARE`        | Optional    | When `true`, runs `db:prepare` on container startup. Use only in single-instance mode or one-shot migration jobs to avoid migration races across replicas.                                  |
+| `TMPFS_TMP_SIZE`        | Optional    | Controls tmpfs mount size at `/tmp` for Active Storage blob downloads. Default: `512m` (production), `1g` (development). See [docker-storage-and-tmp.md](docker-storage-and-tmp.md).       |
+| `TMPFS_RAILS_TMP_SIZE`  | Optional    | Controls tmpfs mount size at `/rails/tmp` for Bootsnap cache and Rails temp files. Default: `256m`. Rarely needs tuning.                                                                    |
+
+#### tmpfs Configuration for Large Files
+
+For deployments processing large attack resources (100 GB+ wordlists, rule files), tmpfs sizing is critical:
+
+- **Formula**: `TMPFS_TMP_SIZE >= 1.5 × largest_attack_resource_file`
+- **Memory Impact**: tmpfs counts against container memory limits. Increase `deploy.resources.limits.memory` proportionally when raising this value.
+- **Alternative**: For disk-backed temp storage instead of RAM-backed tmpfs, see the TMPDIR volume approach in [docker-storage-and-tmp.md](docker-storage-and-tmp.md).
+
+**Example:**
+
+```bash
+# Medium deployment (largest file ~1 GB)
+TMPFS_TMP_SIZE=2g
+
+# Large deployment (100 GB wordlists)
+TMPFS_TMP_SIZE=150g
+```
 
 ### tusd Webhook Authentication
 
