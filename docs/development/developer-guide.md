@@ -214,7 +214,7 @@ app/
 ├── controllers/
 │   ├── api/v1/      # Agent API controllers
 │   │   │   └── client/  # Client-specific endpoints
-│   └── concerns/    # Controller concerns
+│   └── concerns/    # Controller concerns (TaskErrorHandling)
 ├── dashboards/      # Administrate dashboards
 ├── errors/          # Custom operational errors (InsufficientTempStorageError, etc.)
 ├── helpers/         # View helpers
@@ -224,6 +224,7 @@ app/
 ├── mailers/         # Email templates
 ├── models/
 │   └── concerns/    # Model concerns
+│       └── agent/   # Agent-specific concerns (Broadcasting, Benchmarking)
 ├── services/        # Service objects
 ├── validators/      # Custom validators
 └── views/
@@ -400,7 +401,16 @@ module SafeBroadcasting
 end
 ```
 
+**Agent-Specific Concerns**: The Agent model uses namespaced concerns for focused behavioral units:
+
+- `Agent::Broadcasting` - Turbo Stream broadcast methods for real-time UI updates (index cards, detail tabs)
+- `Agent::Benchmarking` - Benchmark calculation and hashcat performance metrics
+
+Both concerns follow the same pattern: REASONING blocks explaining extraction rationale, YARD documentation, and isolation of cohesive method groups to reduce model size.
+
 **Job Concerns**: Use concerns for reusable job behavior. Example: `TempStorageValidation` (see [Background Jobs](#background-jobs) section) provides pre-download space validation for jobs that process uploaded files.
+
+**Controller Concerns**: Use concerns for cross-cutting controller behavior. Example: `TaskErrorHandling` (see [Logging Conventions](#logging-conventions) section) provides structured logging helpers for API error handling.
 
 ### Controller Patterns
 
@@ -472,6 +482,17 @@ Rails.logger.info("Task preempted")
 - `[JobDiscarded]` - Background job failures
 - `[TaskPreemption]` - Task preemption events
 - `[TaskRebalance]` - Campaign priority rebalancing events
+
+**Structured Logging Helpers**: The `TaskErrorHandling` concern (`app/controllers/concerns/task_error_handling.rb`) provides `log_task_api_error(code, agent, task, error_messages)` for consistent `[APIError]` formatting across task state transition failures:
+
+```ruby
+# app/controllers/api/v1/client/tasks_controller.rb
+unless @task.accept
+  log_task_api_error("TASK_ACCEPT_FAILED", @agent, @task, @task.errors.full_messages)
+  render json: { error: "Failed to accept task" }, status: :unprocessable_content
+  return
+end
+```
 
 ---
 
@@ -918,10 +939,11 @@ end
 
 ### Targeted Partial Updates with Turbo Streams
 
-For more efficient real-time updates, broadcast specific partial updates instead of full pages:
+For more efficient real-time updates, broadcast specific partial updates instead of full pages. The `Agent::Broadcasting` concern (`app/models/concerns/agent/broadcasting.rb`) encapsulates all agent broadcast methods:
 
 ```ruby
-class Agent < ApplicationRecord
+# Agent broadcast methods are now in Agent::Broadcasting concern
+module Agent::Broadcasting
   # Broadcast only when specific fields change
   after_update_commit :broadcast_index_state, if: -> { saved_change_to_state? }
   
@@ -948,7 +970,7 @@ class Agent < ApplicationRecord
 end
 ```
 
-**Agent broadcast methods** follow a consistent pattern for targeted partial updates:
+**Agent broadcast methods** (from `Agent::Broadcasting` concern) follow a consistent pattern for targeted partial updates:
 
 - `broadcast_index_state` - Updates agent state badge (triggered by state changes)
 - `broadcast_index_errors` - Updates error count (triggered when AgentError created)

@@ -272,6 +272,52 @@ Tracks errors that occur during API request processing.
 
 Errors are caught and logged in [app/controllers/api/v1/base_controller.rb](../../app/controllers/api/v1/base_controller.rb) and individual controller actions.
 
+##### Task Error Logging Helper
+
+For task-related API errors, the `TaskErrorHandling` concern provides a centralized logging helper method:
+
+**Location:** [app/controllers/concerns/task_error_handling.rb](../../app/controllers/concerns/task_error_handling.rb)
+
+```ruby
+# Logs an API error for a task-related operation in a consistent structured format.
+# Centralizes the [APIError] log pattern used across task state transition failures.
+#
+# @param code [String] The error code (e.g., "TASK_ABANDON_FAILED", "ATTACK_ACCEPT_FAILED")
+# @param agent [Agent] The agent involved in the operation
+# @param task [Task] The task involved in the operation
+# @param error_messages [Array<String>, String] Error message(s) to include
+def log_task_api_error(code, agent, task, error_messages)
+  messages = Array(error_messages).join(", ")
+
+  Rails.logger.error(
+    "[APIError] #{code} - Agent #{agent.id} - Task #{task.id} - " \
+    "Errors: #{messages} - #{Time.current}"
+  )
+end
+```
+
+**Usage Example:**
+
+Instead of inline logging:
+
+```ruby
+# ❌ Avoid: Inline logging (duplicates format string)
+Rails.logger.error("[APIError] TASK_ABANDON_FAILED - Agent #{@agent.id} - Task #{@task.id} - Errors: #{@task.errors.full_messages.join(', ')} - #{Time.current}")
+```
+
+Use the helper method:
+
+```ruby
+# ✅ Preferred: Use the helper method
+log_task_api_error("TASK_ABANDON_FAILED", @agent, @task, @task.errors.full_messages)
+```
+
+This helper is used in `TasksController` for all task-related error logging:
+- `TASK_ABANDON_FAILED`
+- `TASK_ACCEPT_FAILED`
+- `ATTACK_ACCEPT_FAILED`
+- `TASK_EXHAUST_FAILED`
+
 ### [AgentLifecycle] Logs
 
 Tracks important agent state transitions and lifecycle events.
@@ -766,6 +812,29 @@ Not:
 ```ruby
 Rails.logger.info("Agent #{agent.id} connected")  # ❌ Unstructured, hard to parse
 ```
+
+### Centralizing Log Patterns
+
+When the same log format is used in multiple places, extract it to a helper method:
+
+```ruby
+# ✅ Good: Centralized in a concern
+def log_task_api_error(code, agent, task, error_messages)
+  messages = Array(error_messages).join(", ")
+  Rails.logger.error("[APIError] #{code} - Agent #{agent.id} - Task #{task.id} - Errors: #{messages} - #{Time.current}")
+end
+
+# Usage
+log_task_api_error("TASK_ABANDON_FAILED", @agent, @task, @task.errors.full_messages)
+```
+
+Benefits:
+- **Consistency**: Ensures all logs of the same type use identical formatting
+- **Maintainability**: Single place to update format if needed
+- **Testability**: Easier to test log patterns in isolation
+- **DRY**: Reduces code duplication across controllers
+
+See `TaskErrorHandling#log_task_api_error` in the [APIError Implementation](#implementation-1) section for a real example.
 
 ### Including Context
 
