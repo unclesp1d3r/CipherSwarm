@@ -4,12 +4,13 @@ This document provides a comprehensive reference for all environment variables u
 
 ## Quick Reference
 
-| Category       | Variables                                                          | Required in Production? |
-| -------------- | ------------------------------------------------------------------ | ----------------------- |
-| **Critical**   | `RAILS_MASTER_KEY`, `POSTGRES_PASSWORD`, `APPLICATION_HOST`        | ✅ Yes                  |
-| **Important**  | `DISABLE_SSL`, `ACTIVE_STORAGE_SERVICE`, `REDIS_URL`               | Recommended             |
-| **Optional**   | `RAILS_LOG_LEVEL`, `RAILS_MAX_THREADS`, `WEB_CONCURRENCY`, `PORT`  | No                      |
-| **S3 Storage** | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_ENDPOINT`, etc. | Only when using S3      |
+| Category         | Variables                                                          | Required in Production? |
+| ---------------- | ------------------------------------------------------------------ | ----------------------- |
+| **Critical**     | `RAILS_MASTER_KEY`, `POSTGRES_PASSWORD`, `APPLICATION_HOST`        | ✅ Yes                  |
+| **Important**    | `DISABLE_SSL`, `ACTIVE_STORAGE_SERVICE`, `REDIS_URL`               | Recommended             |
+| **Optional**     | `RAILS_LOG_LEVEL`, `RAILS_MAX_THREADS`, `WEB_CONCURRENCY`, `PORT`  | No                      |
+| **Docker tmpfs** | `TMPFS_TMP_SIZE`, `TMPFS_RAILS_TMP_SIZE`                           | No (have defaults)      |
+| **S3 Storage**   | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_ENDPOINT`, etc. | Only when using S3      |
 
 ## Critical Variables - Required for Production
 
@@ -393,6 +394,53 @@ PIDFILE=/var/run/puma.pid
 - Process monitoring tools require specific PID file location
 - Running multiple Puma instances on same host
 - System service management (systemd, init.d)
+
+---
+
+### Docker tmpfs Configuration
+
+#### TMPFS_TMP_SIZE
+
+**Purpose:** Controls the size of the tmpfs mount at `/tmp` used by Active Storage `blob.open` for temporary blob downloads during ingest jobs (`ProcessHashListJob`, `CountFileLinesJob`, `CalculateMaskComplexityJob`)
+
+**Impact if Not Set:** Defaults to `512m` in production, `1g` in development
+
+**Default Value:** `512m` (production), `1g` (development)
+
+**Production Requirement:** No — but must be tuned for large attack resources
+
+**Sizing Formula:** `TMPFS_TMP_SIZE >= 1.5 × largest_attack_resource_file`
+
+**Example:**
+
+```bash
+TMPFS_TMP_SIZE=2g      # Medium production (largest file ~1 GB)
+TMPFS_TMP_SIZE=150g    # Large production (100 GB wordlists)
+```
+
+**Memory Note:** tmpfs counts against the container's memory limit (`deploy.resources.limits.memory`). Increase the memory limit proportionally when raising this value, or use the TMPDIR volume approach for disk-backed temp storage.
+
+**See Also:** [Docker Storage and /tmp Management](docker-storage-and-tmp.md) for full sizing guidance and the TMPDIR volume alternative.
+
+---
+
+#### TMPFS_RAILS_TMP_SIZE
+
+**Purpose:** Controls the size of the tmpfs mount at `/rails/tmp` used for Bootsnap cache, Puma PID files, and other Rails framework temp files
+
+**Impact if Not Set:** Defaults to `256m`
+
+**Default Value:** `256m`
+
+**Production Requirement:** No — 256 MB is sufficient for all typical deployments
+
+**Note:** This mount is small and rarely needs tuning. Only increase if Bootsnap or other framework temp files exhaust it.
+
+**Example:**
+
+```bash
+TMPFS_RAILS_TMP_SIZE=512m  # If framework temp files exceed 256 MB
+```
 
 ---
 
@@ -837,15 +885,16 @@ docker compose exec minio mc ls local/
 
 Environment variables are referenced in the following files:
 
-| File                                          | Purpose                       | Variables Used                                                                                                   |
-| --------------------------------------------- | ----------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `config/environments/production.rb`           | Production environment config | `ACTIVE_STORAGE_SERVICE`, `DISABLE_SSL`, `RAILS_LOG_LEVEL`, `APPLICATION_HOST`, `REDIS_URL`                      |
-| `config/storage.yml`                          | Storage backend configuration | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_BUCKET`, `AWS_REGION`, `AWS_ENDPOINT`, `AWS_FORCE_PATH_STYLE` |
-| `config/puma.rb`                              | Puma web server configuration | `RAILS_MAX_THREADS`, `PORT`, `SOLID_QUEUE_IN_PUMA`, `PIDFILE`                                                    |
-| `app/mailers/application_mailer.rb`           | Mailer base class             | `APPLICATION_HOST`                                                                                               |
-| `config/initializers/devise.rb`               | Devise authentication         | `APPLICATION_HOST`                                                                                               |
-| `config/initializers/storage_config_check.rb` | S3 credentials validation     | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`                                                                     |
-| `docker-compose.yml`                          | Docker Compose orchestration  | `RAILS_MASTER_KEY`, `POSTGRES_PASSWORD`, `APPLICATION_HOST`, `DISABLE_SSL`, `ACTIVE_STORAGE_SERVICE`             |
+| File                                          | Purpose                       | Variables Used                                                                                                                                 |
+| --------------------------------------------- | ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `config/environments/production.rb`           | Production environment config | `ACTIVE_STORAGE_SERVICE`, `DISABLE_SSL`, `RAILS_LOG_LEVEL`, `APPLICATION_HOST`, `REDIS_URL`                                                    |
+| `config/storage.yml`                          | Storage backend configuration | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_BUCKET`, `AWS_REGION`, `AWS_ENDPOINT`, `AWS_FORCE_PATH_STYLE`                               |
+| `config/puma.rb`                              | Puma web server configuration | `RAILS_MAX_THREADS`, `PORT`, `SOLID_QUEUE_IN_PUMA`, `PIDFILE`                                                                                  |
+| `app/mailers/application_mailer.rb`           | Mailer base class             | `APPLICATION_HOST`                                                                                                                             |
+| `config/initializers/devise.rb`               | Devise authentication         | `APPLICATION_HOST`                                                                                                                             |
+| `config/initializers/storage_config_check.rb` | S3 credentials validation     | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`                                                                                                   |
+| `docker-compose.yml`                          | Docker Compose orchestration  | `RAILS_MASTER_KEY`, `POSTGRES_PASSWORD`, `APPLICATION_HOST`, `DISABLE_SSL`, `ACTIVE_STORAGE_SERVICE`, `TMPFS_TMP_SIZE`, `TMPFS_RAILS_TMP_SIZE` |
+| `docker-compose-production.yml`               | Production Docker Compose     | `TMPFS_TMP_SIZE`, `TMPFS_RAILS_TMP_SIZE`, `TUSD_HOOK_SECRET`, `REDIS_PASSWORD`                                                                 |
 
 ---
 
