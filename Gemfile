@@ -43,6 +43,7 @@ group :development, :test do
   gem "shoulda-matchers", "~> 7.0.1"
   gem "simplecov", "~> 0.22", require: false
   gem "simplecov-lcov", "~> 0.9.0", require: false
+  gem "testcontainers", "~> 0.2.0", require: false
   gem "undercover", "~> 0.8.4", require: false
 
   # Rubocop extensions

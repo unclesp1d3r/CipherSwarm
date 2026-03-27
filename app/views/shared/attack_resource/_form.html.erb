@@ -1,5 +1,5 @@
 <%# locals: (resource:,projects:) -%>
-<%= simple_form_for(resource, html: { data: { controller: "direct-upload" } }) do |f| %>
+<%= simple_form_for(resource, html: { data: { controller: "direct-upload", direct_upload_endpoint_value: tus_endpoint } }) do |f| %>
   <% if resource.errors.any? %>
     <div class="alert alert-danger" role="alert">
       <h4 class="alert-heading"><%= pluralize(resource.errors.count, "error") %> prevent this from saving.</h4>
