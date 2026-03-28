@@ -2018,15 +2018,7 @@
         "operationId": "getTaskZaps",
         "responses": {
           "200": {
-            "description": "successful",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "string",
-                  "format": "binary"
-                }
-              }
-            }
+            "description": "successful"
           },
           "422": {
             "description": "already completed",
