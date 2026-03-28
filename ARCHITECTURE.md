@@ -125,7 +125,9 @@ Three core models use `state_machines-activerecord`:
 
 tusd (Go binary) runs as a Docker sidecar for chunked, resumable uploads supporting 100+ GB files.
 
-- Upload flow: Browser → tus-js-client (50 MB chunks) → nginx → tusd → `/srv/tusd-data`
+- Upload flow:
+  - **Production:** Browser → tus-js-client (50 MB chunks) → nginx (`/uploads/` proxy) → tusd → `/srv/tusd-data`
+  - **Dev/Test:** Browser → tus-js-client → tusd directly (Stimulus controller reads `tus_endpoint` helper, backed by `TUS_ENDPOINT_URL` env var)
 - On completion: tusd sends HTTP POST hook to `POST /api/v1/hooks/tus` (`Api::V1::Hooks::TusController`)
 - Hook caches upload metadata in `Rails.cache`; form controllers use `TusUploadHandler` concern to move file to permanent storage
 - `TusUploadHandler` methods: `process_tus_upload` (attack resources → `file_path`) and `process_tus_hash_list_upload` (hash lists → `temp_file_path`)

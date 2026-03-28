@@ -9,7 +9,7 @@ Thank you for your interest in contributing to CipherSwarm! We appreciate your e
 - [Contributing to CipherSwarm](#contributing-to-cipherswarm)
   - [Table of Contents](#table-of-contents)
   - [Getting Started](#getting-started)
-  - [Gitflow Workflow](#gitflow-workflow)
+  - [Branching Workflow](#branching-workflow)
   - [Conventional Commits](#conventional-commits)
   - [Code Standards](#code-standards)
   - [Running Tests](#running-tests)
@@ -71,130 +71,41 @@ This project uses [mise](https://mise.jdx.dev/) to manage all development tools 
 
 Run `just --list` to see all available commands.
 
-## Gitflow Workflow
+## Branching Workflow
 
-We use the Gitflow workflow to manage our development process. Here’s a brief overview:
+All development targets the `main` branch. PRs are merged via Mergify merge queue with squash merge (see [Merge Queue](#merge-queue) below).
 
-- **Main Branches:**
+- **`main`**: The primary branch. All feature work branches from `main` and merges back into `main`.
 
-  - `main`: This is the production branch. All releases are made from this branch.
-  - `develop`: This is the main development branch where the latest development changes are merged.
+- **Branch naming**:
 
-- **Supporting Branches:**
+  - `feature/*` or `<issue-number>-description` — new features and enhancements
+  - `fix/*` — bug fixes
+  - `hotfix/*` — urgent production patches
 
-  - `feature/*`: Feature branches are used to develop new features. They branch off from `develop` and are merged back into `develop` when complete.
-  - `release/*`: Release branches support the preparation of a new production release. They branch off from `develop` and are merged into both `develop` and `main`.
-  - `hotfix/*`: Hotfix branches are used to patch production releases quickly. They branch off from `main` and are merged back into both `develop` and `main`.
+### Creating and Merging Branches
 
-### Using Gitflow Tools
+1. Create a branch from `main`:
 
-To simplify the Gitflow workflow, you can use the `git-flow` tools. First, ensure you have `git-flow` installed:
+   ```sh
+   git checkout main && git pull
+   git checkout -b feature/your-feature-name
+   ```
 
-- **macOS**: Install via Homebrew
+2. Rebase before pushing to keep history clean:
 
-  ```sh
-  brew install git-flow
-  ```
+   ```sh
+   git fetch origin
+   git rebase origin/main
+   ```
 
-- **Windows**: Install via [chocolatey](https://chocolatey.org/)
+3. Push and open a PR targeting `main`:
 
-  ```sh
-  choco install gitflow-avh
-  ```
+   ```sh
+   git push -u origin feature/your-feature-name
+   ```
 
-- **Linux**: Install via your package manager
-
-  ```sh
-  sudo apt-get install git-flow
-  ```
-
-#### Creating and Merging Branches with Gitflow Tools
-
-- **Feature Branches**:
-
-  - Start a new feature:
-
-    ```sh
-    git flow feature start your-feature-name
-    ```
-
-  - Finish the feature (this will merge it into `develop` and delete the feature branch):
-
-    ```sh
-    git flow feature finish your-feature-name
-    ```
-
-- **Release Branches**:
-
-  - Start a new release:
-
-    ```sh
-    git flow release start your-release-name
-    ```
-
-  - Finish the release (this will merge it into both `main` and `develop`, tag the release, and delete the release branch):
-
-    ```sh
-    git flow release finish your-release-name
-    ```
-
-- **Hotfix Branches**:
-
-  - Start a new hotfix:
-
-    ```sh
-    git flow hotfix start your-hotfix-name
-    ```
-
-  - Finish the hotfix (this will merge it into both `main` and `develop`, tag the hotfix, and delete the hotfix branch):
-
-    ```sh
-    git flow hotfix finish your-hotfix-name
-    ```
-
-#### Manually Creating and Merging Branches
-
-If you prefer to manage branches manually, you can follow these steps:
-
-- **Feature Branches** (`feature/*`):
-
-  - **Rebase**: Before merging a feature branch into `develop`, rebase it to ensure a clean, linear commit history.
-
-    ```sh
-    git checkout feature/your-feature-name
-    git rebase develop
-    ```
-
-  - **Merge**: Once rebased, merge the feature branch into `develop` using a regular merge to capture all commits.
-
-    ```sh
-    git checkout develop
-    git merge feature/your-feature-name
-    ```
-
-- **Release Branches** (`release/*`):
-
-  - **Merge**: Use a regular merge to integrate changes from the release branch into both `develop` and `main`.
-
-    ```sh
-    git checkout main
-    git merge release/your-release-name
-    git checkout develop
-    git merge release/your-release-name
-    ```
-
-- **Hotfix Branches** (`hotfix/*`):
-
-  - **Merge**: Use a regular merge to quickly apply the hotfix to both `main` and `develop`.
-
-    ```sh
-    git checkout main
-    git merge hotfix/your-hotfix-name
-    git checkout develop
-    git merge hotfix/your-hotfix-name
-    ```
-
-Following these merge strategies ensures that all commits are correctly captured and our commit history remains straightforward.
+Mergify handles the merge — do not merge manually.
 
 ## Conventional Commits
 

@@ -57,11 +57,17 @@ module TusdHelper
       at_exit { cleanup }
 
       Rails.logger.info("[TusdHelper] tusd container started on localhost:#{@mapped_port}, uploads at #{@uploads_dir}")
+    rescue StandardError => e
+      # Clean up partial state so retry is possible
+      @container&.stop rescue nil
+      FileUtils.rm_rf(@uploads_dir) if @uploads_dir
+      @container = nil
+      @mapped_port = nil
+      @uploads_dir = nil
+      raise "[TusdHelper] Failed to start tusd container: #{e.message}. " \
+            "Ensure Docker is running and the image #{TUSD_IMAGE} is available. " \
+            "For air-gapped environments, pre-pull with: docker pull #{TUSD_IMAGE}"
     end
-  rescue StandardError => e
-    raise "[TusdHelper] Failed to start tusd container: #{e.message}. " \
-          "Ensure Docker is running and the image #{TUSD_IMAGE} is available. " \
-          "For air-gapped environments, pre-pull with: docker pull #{TUSD_IMAGE}"
   end
 
   # rubocop:disable ThreadSafety/ClassInstanceVariable -- called from at_exit after mutex-protected setup

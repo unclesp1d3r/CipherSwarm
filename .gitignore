@@ -193,7 +193,6 @@ modules.xml
 # not project source. Contributors should not commit agent-specific
 # configs; use AGENTS.md and GOTCHAS.md for project standards.
 CLAUDE.md
-DESIGN.md
 .claude/
 .cursor/
 .serena/
@@ -210,6 +209,7 @@ tessl.json
 .prompt/
 .prompts/
 .kiro/
+# GitHub Copilot / AI prompt files (not project workflows)
 .github/commit-instructions.md
 .github/prompts/
 

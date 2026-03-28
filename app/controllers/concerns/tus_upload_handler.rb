@@ -36,12 +36,10 @@ module TusUploadHandler
     VerifyChecksumJob.perform_later(record.id, record.class.name)
 
     true
-  rescue TusUploadError
-    raise
+  rescue TusUploadError => e
+    handle_tus_upload_failure(record, e, orphan_field: :file_path)
   rescue Errno::ENOENT, Errno::EACCES, Errno::ENOSPC, IOError => e
-    log_tus_filesystem_error(record, e)
-    record.destroy! if record.persisted? && record.file_path.blank?
-    false
+    handle_tus_upload_failure(record, e, orphan_field: :file_path, level: :error)
   end
 
   # Processes a tus upload for HashList records. Sets temp_file_path (not file_path)
@@ -59,12 +57,10 @@ module TusUploadHandler
     Rails.logger.info("[TusUpload] Enqueued ProcessHashListJob for HashList##{record.id}")
 
     true
-  rescue TusUploadError
-    raise
+  rescue TusUploadError => e
+    handle_tus_upload_failure(record, e, orphan_field: :temp_file_path)
   rescue Errno::ENOENT, Errno::EACCES, Errno::ENOSPC, IOError => e
-    log_tus_filesystem_error(record, e)
-    record.destroy! if record.persisted? && record.temp_file_path.blank?
-    false
+    handle_tus_upload_failure(record, e, orphan_field: :temp_file_path, level: :error)
   end
 
   # Retrieves a tus upload, validates source, and moves to destination.
@@ -102,9 +98,7 @@ module TusUploadHandler
     id
   end
 
-  def tus_uploads_dir
-    ENV.fetch("TUS_UPLOADS_DIR", "/srv/tusd-data")
-  end
+  def tus_uploads_dir = ENV.fetch("TUS_UPLOADS_DIR", "/srv/tusd-data")
 
   def attack_resource_storage_dir(record)
     base = ENV.fetch("ATTACK_RESOURCE_STORAGE_PATH",
@@ -142,8 +136,14 @@ module TusUploadHandler
     Rails.cache.delete("tus_upload:#{upload_id}")
   end
 
-  def log_tus_filesystem_error(record, error)
-    Rails.logger.error("[TusUpload] File system error for #{record.class.name}##{record.id}: " \
-                       "#{error.class} - #{error.message}\n#{error.backtrace&.first(5)&.join("\n")}")
+  def handle_tus_upload_failure(record, error, orphan_field:, level: :warn)
+    if level == :error
+      Rails.logger.error("[TusUpload] File system error for #{record.class.name}##{record.id}: " \
+                         "#{error.class} - #{error.message}\n#{error.backtrace&.first(5)&.join("\n")}")
+    else
+      Rails.logger.warn("[TusUpload] Validation error for #{record.class.name}##{record.id}: #{error.message}")
+    end
+    record.destroy! if record.persisted? && record.public_send(orphan_field).blank?
+    false
   end
 end
