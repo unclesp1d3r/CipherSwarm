@@ -701,14 +701,14 @@ CipherSwarm uses environment variables for configuration, with different require
 
 ### Security-Critical Variables
 
-| Variable                | Required In | Purpose                                                                                                                                                                                     |
-| ----------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `TUSD_HOOK_SECRET`      | Production  | Shared secret for authenticating tusd webhook requests. Prevents cache poisoning attacks.                                                                                                   |
-| `POSTGRES_PASSWORD`     | Always      | Database password. Fails fast if unset to prevent insecure defaults.                                                                                                                        |
-| `APPLICATION_HOST`      | Optional    | DNS rebinding protection. Set to the hostname used to access the application (e.g., "cipherswarm.lab.local"). When not set, host checking is disabled for backward compatibility.           |
-| `RUN_DB_PREPARE`        | Optional    | When `true`, runs `db:prepare` on container startup. Use only in single-instance mode or one-shot migration jobs to avoid migration races across replicas.                                  |
-| `TMPFS_TMP_SIZE`        | Optional    | Controls tmpfs mount size at `/tmp` for Active Storage blob downloads. Default: `512m` (production), `1g` (development). See [docker-storage-and-tmp.md](docker-storage-and-tmp.md).       |
-| `TMPFS_RAILS_TMP_SIZE`  | Optional    | Controls tmpfs mount size at `/rails/tmp` for Bootsnap cache and Rails temp files. Default: `256m`. Rarely needs tuning.                                                                    |
+| Variable               | Required In | Purpose                                                                                                                                                                              |
+| ---------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `TUSD_HOOK_SECRET`     | Production  | Shared secret for authenticating tusd webhook requests. Prevents cache poisoning attacks.                                                                                            |
+| `POSTGRES_PASSWORD`    | Always      | Database password. Fails fast if unset to prevent insecure defaults.                                                                                                                 |
+| `APPLICATION_HOST`     | Optional    | DNS rebinding protection. Set to the hostname used to access the application (e.g., "cipherswarm.lab.local"). When not set, host checking is disabled for backward compatibility.    |
+| `RUN_DB_PREPARE`       | Optional    | When `true`, runs `db:prepare` on container startup. Use only in single-instance mode or one-shot migration jobs to avoid migration races across replicas.                           |
+| `TMPFS_TMP_SIZE`       | Optional    | Controls tmpfs mount size at `/tmp` for Active Storage blob downloads. Default: `512m` (production), `1g` (development). See [docker-storage-and-tmp.md](docker-storage-and-tmp.md). |
+| `TMPFS_RAILS_TMP_SIZE` | Optional    | Controls tmpfs mount size at `/rails/tmp` for Bootsnap cache and Rails temp files. Default: `256m`. Rarely needs tuning.                                                             |
 
 #### tmpfs Configuration for Large Files
 
