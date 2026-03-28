@@ -1,5 +1,17 @@
 # GOTCHAS.md
 
+<!-- mdformat-toc start --slug=github --no-anchors --maxlevel=4 --minlevel=1 -->
+
+- [GOTCHAS.md](#gotchasmd)
+  - [Frontend & Accessibility](#frontend--accessibility)
+  - [State Machines](#state-machines)
+  - [Testing](#testing)
+  - [API & rswag](#api--rswag)
+  - [Database & ActiveRecord](#database--activerecord)
+  - [Infrastructure](#infrastructure)
+
+<!-- mdformat-toc end -->
+
 Hard-won lessons, edge cases, and "watch out for" patterns. Organized by domain.
 
 Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before working in that area.
