@@ -100,17 +100,13 @@ module TusUploadHandler
 
   def tus_uploads_dir = ENV.fetch("TUS_UPLOADS_DIR", "/srv/tusd-data")
 
+  def storage_base_path = ENV.fetch("ATTACK_RESOURCE_STORAGE_PATH", Rails.root.join("storage/attack_resources").to_s)
+
   def attack_resource_storage_dir(record)
-    base = ENV.fetch("ATTACK_RESOURCE_STORAGE_PATH",
-                     Rails.root.join("storage/attack_resources").to_s)
-    type_dir = record.class.name.underscore.pluralize
-    File.join(base, type_dir)
+    File.join(storage_base_path, record.class.name.underscore.pluralize)
   end
 
-  def hash_list_staging_dir
-    base = ENV.fetch("ATTACK_RESOURCE_STORAGE_PATH", Rails.root.join("storage/attack_resources").to_s)
-    File.join(base, "hash_lists_staging")
-  end
+  def hash_list_staging_dir = File.join(storage_base_path, "hash_lists_staging")
 
   def validate_source_path!(path)
     uploads_prefix = "#{File.realpath(tus_uploads_dir)}/"
@@ -119,8 +115,13 @@ module TusUploadHandler
 
     raise TusUploadError, "Path traversal attempt blocked: source path is outside tusd uploads directory"
   rescue Errno::ENOENT, Errno::EACCES
-    parent = File.realpath(File.expand_path(File.dirname(path))) rescue nil
-    return if parent&.start_with?("#{File.realpath(tus_uploads_dir)}/")
+    # Fail closed: if we can't resolve the parent directory, reject the path.
+    begin
+      parent = File.realpath(File.expand_path(File.dirname(path)))
+      return if parent.start_with?("#{File.realpath(tus_uploads_dir)}/")
+    rescue Errno::ENOENT, Errno::EACCES
+      # Can't resolve directories — fall through to raise
+    end
 
     raise TusUploadError, "Path traversal attempt blocked: source path is outside tusd uploads directory"
   end

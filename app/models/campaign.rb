@@ -149,7 +149,7 @@ class Campaign < ApplicationRecord
   # @return [String] the label showing incomplete and total attacks.
   def attack_count_label
     # PERFORMANCE: Use counter cache column for total, SQL COUNT only for incomplete subset
-    "#{attacks.incomplete.count} / #{attacks_count}"
+    "#{attacks.awaiting_assignment.count} / #{attacks_count}"
   end
 
   # Removes the quarantine flag and clears the reason.

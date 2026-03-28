@@ -29,7 +29,7 @@ class CampaignPriorityRebalanceJob < ApplicationJob
   def perform(campaign_id)
     campaign = Campaign.find(campaign_id)
 
-    attacks = campaign.attacks.incomplete
+    attacks = campaign.attacks.awaiting_assignment
                       .includes(campaign: :hash_list)
 
     preempt_attacks(attacks)

@@ -48,7 +48,7 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 
 **Attack Scope:**
 
-- `Attack.incomplete` excludes `:running` and `:paused` (only matches pending/failed) — use `without_states(:completed, :exhausted)` when you need all unfinished work including running attacks
+- `Attack.awaiting_assignment` excludes `:running` and `:paused` (only matches pending/failed) — use `without_states(:completed, :exhausted)` when you need all unfinished work including running attacks
 
 **Task State Machine:**
 

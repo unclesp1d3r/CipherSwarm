@@ -170,7 +170,7 @@ class UpdateStatusJob < ApplicationJob
   def rebalance_task_assignments
     # Find non-deferred priority attacks with no running tasks
     # Eager load campaign and hash_list to avoid N+1 queries when checking uncracked_count
-    preemptable_attacks = Attack.incomplete
+    preemptable_attacks = Attack.awaiting_assignment
                                 .joins(:campaign)
                                 .includes(:campaign, campaign: :hash_list)
                                 .where(campaigns: { priority: [Campaign.priorities[:normal], Campaign.priorities[:high]] })

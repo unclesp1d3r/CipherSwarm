@@ -388,7 +388,7 @@ class TaskAssignmentService
   #
   # @return [ActiveRecord::Relation<Attack>] attacks ordered by campaign priority, complexity, creation time
   def available_attacks
-    scope = Attack.incomplete
+    scope = Attack.awaiting_assignment
                   .joins(campaign: { hash_list: :hash_type })
                   .includes(campaign: %i[hash_list project])
                   .where(hash_lists: { hash_type_id: allowed_hash_type_ids })
