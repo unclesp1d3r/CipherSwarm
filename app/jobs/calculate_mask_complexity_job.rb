@@ -44,6 +44,8 @@ class CalculateMaskComplexityJob < ApplicationJob
     if record.respond_to?(:file_path) && record.file_path.present? && File.exist?(record.file_path)
       File.open(record.file_path, &)
     elsif record.respond_to?(:file) && record.file.attached?
+      Rails.logger.warn("[CalculateMaskComplexity] Falling back to Active Storage blob.open for #{record.class.name}##{record.id} " \
+                        "— file will be downloaded to /tmp. Ensure file_path is set for tusd uploads.")
       ensure_temp_storage_available!(record.file)
       record.file.open(&)
     else

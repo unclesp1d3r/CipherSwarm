@@ -15,6 +15,7 @@ require_relative "../config/environment"
 abort("The Rails environment is running in production mode!") if Rails.env.production?
 require "rspec/rails"
 require_relative "support/system_helpers"
+require_relative "support/tusd_helper"
 require_relative "support/form_labels_helper"
 require_relative "support/shared_examples/attack_resource_creation"
 require_relative "support/shared_examples/downloadable_file_preview"

@@ -148,8 +148,8 @@ class Campaign < ApplicationRecord
   #
   # @return [String] the label showing incomplete and total attacks.
   def attack_count_label
-    # PERFORMANCE: Use .count for SQL aggregation instead of .size which loads records into memory
-    "#{attacks.incomplete.count} / #{attacks.count}"
+    # PERFORMANCE: Use counter cache column for total, SQL COUNT only for incomplete subset
+    "#{attacks.awaiting_assignment.count} / #{attacks_count}"
   end
 
   # Removes the quarantine flag and clears the reason.
@@ -196,8 +196,14 @@ class Campaign < ApplicationRecord
   # and there is at least one attack in the paused state.
   #
   # @return [Boolean] true if the campaign is paused, false otherwise.
+  # PERFORMANCE: Single query instead of two — counts attacks by state bucket in one pass.
   def paused?
-    attacks.without_states(%i[paused completed]).empty? && attacks.with_state(:paused).any?
+    return false if attacks_count.zero?
+
+    states = attacks.group(:state).count
+    has_paused = (states["paused"] || 0).positive?
+    all_settled = states.keys.all? { |s| %w[paused completed].include?(s) }
+    has_paused && all_settled
   end
 
   # Maps the campaign's priority to an emoji representation.
@@ -314,9 +320,13 @@ class Campaign < ApplicationRecord
   private
 
   # Marks all attacks as complete if the campaign is completed.
+  # PERFORMANCE: Short-circuit with counter cache before running expensive queries.
+  # Most touch-cascaded updates (from HashItem → HashList → Campaign) don't change
+  # attack states, so the counter cache check avoids 2 existence queries per touch.
   #
   # @return [void]
   def mark_attacks_complete
+    return if attacks_count.zero?
     return unless completed?
 
     attacks.without_state(:completed).find_each do |attack|

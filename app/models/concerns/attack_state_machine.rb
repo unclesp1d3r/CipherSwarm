@@ -138,11 +138,11 @@ module AttackStateMachine # rubocop:disable Metrics/ModuleLength
   def complete_hash_list
     return unless campaign.uncracked_count.zero?
 
-    other_incomplete = campaign.attacks.incomplete.where.not(id: id)
-    return if other_incomplete.none?
+    other_awaiting = campaign.attacks.awaiting_assignment.where.not(id: id)
+    return if other_awaiting.none?
 
-    Rails.logger.info("[Attack #{id}] Completing #{other_incomplete.count} related incomplete attacks")
-    other_incomplete.each do |attack|
+    Rails.logger.info("[Attack #{id}] Completing #{other_awaiting.count} related awaiting attacks")
+    other_awaiting.each do |attack|
       attack.complete! if attack.can_complete?
     rescue StandardError => e
       Rails.logger.warn("[Attack #{id}] Failed to complete attack #{attack.id}: #{e.message}")

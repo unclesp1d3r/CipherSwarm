@@ -97,9 +97,9 @@ test-parallel:
 test-api:
     {{mise_exec}} bundle exec rspec spec/requests
 
-# Check test coverage for changed code
+# Check test coverage for changed code (non-fatal, matching CI continue-on-error)
 undercover:
-    {{mise_exec}} bundle exec undercover
+    -{{mise_exec}} bundle exec undercover
 
 # Check test coverage against a specific branch
 undercover-compare ref="origin/main":

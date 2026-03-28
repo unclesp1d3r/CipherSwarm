@@ -132,6 +132,10 @@ module TaskStateMachine
 
       after_transition on: :retry do |task|
         task.send(:log_state_transition, "pending", "Task retried")
+        # update_columns bypasses optimistic locking (lock_version) but is safe here:
+        # TaskAssignmentService holds a pessimistic FOR UPDATE lock during retries,
+        # and the state machine save has already committed. These are non-critical
+        # counters that don't affect concurrent access patterns.
         # rubocop:disable Rails/SkipsModelValidations
         task.update_columns(retry_count: task.retry_count + 1, last_error: nil)
         # rubocop:enable Rails/SkipsModelValidations
@@ -139,6 +143,8 @@ module TaskStateMachine
 
       after_transition on: :preempt do |task|
         task.send(:log_state_transition, "pending", "Task preempted for higher priority attack")
+        # Same locking note as :retry — TaskPreemptionService holds a pessimistic
+        # lock via task.lock! before calling preempt!.
         # rubocop:disable Rails/SkipsModelValidations
         task.update_columns(stale: true, preemption_count: task.preemption_count + 1)
         # rubocop:enable Rails/SkipsModelValidations

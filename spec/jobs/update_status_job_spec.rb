@@ -313,7 +313,7 @@ RSpec.describe UpdateStatusJob do
         high_campaign = create(:campaign, project: project, priority: :high)
 
         # Simulate database error — should propagate so Sidekiq can retry
-        allow(Attack).to receive(:incomplete).and_raise(ActiveRecord::StatementInvalid.new("Database connection lost"))
+        allow(Attack).to receive(:awaiting_assignment).and_raise(ActiveRecord::StatementInvalid.new("Database connection lost"))
 
         expect { described_class.new.perform }.to raise_error(ActiveRecord::StatementInvalid, /Database connection lost/)
       end

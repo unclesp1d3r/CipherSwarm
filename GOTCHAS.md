@@ -1,5 +1,17 @@
 # GOTCHAS.md
 
+<!-- mdformat-toc start --slug=github --no-anchors --maxlevel=4 --minlevel=1 -->
+
+- [GOTCHAS.md](#gotchasmd)
+  - [Frontend & Accessibility](#frontend--accessibility)
+  - [State Machines](#state-machines)
+  - [Testing](#testing)
+  - [API & rswag](#api--rswag)
+  - [Database & ActiveRecord](#database--activerecord)
+  - [Infrastructure](#infrastructure)
+
+<!-- mdformat-toc end -->
+
 Hard-won lessons, edge cases, and "watch out for" patterns. Organized by domain.
 
 Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before working in that area.
@@ -36,7 +48,7 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 
 **Attack Scope:**
 
-- `Attack.incomplete` excludes `:running` and `:paused` (only matches pending/failed) — use `without_states(:completed, :exhausted)` when you need all unfinished work including running attacks
+- `Attack.awaiting_assignment` excludes `:running` and `:paused` (only matches pending/failed) — use `without_states(:completed, :exhausted)` when you need all unfinished work including running attacks
 
 **Task State Machine:**
 
@@ -192,6 +204,12 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 - Use a generic stable error string for clients (e.g., `"Internal health check failure"`), log full exception details server-side with `Rails.logger.error`
 
 ## Database & ActiveRecord
+
+**HashList vs AttackResource Schema Differences:**
+
+- HashList does NOT have `file_name`, `file_path`, `file_size`, or `checksum_verified` columns — it has `temp_file_path` (staging only, consumed and cleared by `ProcessHashListJob`)
+- `TusUploadHandler#process_tus_hash_list_upload` sets `temp_file_path`, NOT `file_path` — do not copy `process_tus_upload` patterns verbatim for HashList
+- HashList's `tus_upload_pending` is an `attr_accessor` on the model (matching `AttackResource` concern), not a DB column
 
 **ActiveRecord Setter Error Trap:**
 

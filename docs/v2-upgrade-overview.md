@@ -1,5 +1,46 @@
 # CipherSwarm V2 Upgrade Overview
 
+<!-- mdformat-toc start --slug=github --no-anchors --maxlevel=3 --minlevel=1 -->
+
+- [CipherSwarm V2 Upgrade Overview](#cipherswarm-v2-upgrade-overview)
+  - [Introduction](#introduction)
+  - [Upgrade Philosophy](#upgrade-philosophy)
+  - [Target Users & Personas](#target-users--personas)
+    - [Red Team Operators](#red-team-operators)
+    - [Blue Team Analysts](#blue-team-analysts)
+    - [Infrastructure Administrators](#infrastructure-administrators)
+    - [Project Managers](#project-managers)
+  - [Core Requirements](#core-requirements)
+    - [1. Enhanced Authentication & Project Context Management](#1-enhanced-authentication--project-context-management)
+    - [2. Real-Time Operations Dashboard](#2-real-time-operations-dashboard)
+    - [3. Enhanced Campaign Management with DAG Support](#3-enhanced-campaign-management-with-dag-support)
+    - [4. Advanced Agent Management & Task Distribution](#4-advanced-agent-management--task-distribution)
+    - [5. Comprehensive Reporting & Analytics](#5-comprehensive-reporting--analytics)
+    - [6. Enhanced Collaboration Features](#6-enhanced-collaboration-features)
+    - [7. Production-Ready Deployment & Operations](#7-production-ready-deployment--operations)
+    - [8. API Compatibility & Extension](#8-api-compatibility--extension)
+  - [Technology Stack Enhancements](#technology-stack-enhancements)
+    - [Core Platform Upgrades](#core-platform-upgrades)
+    - [Authentication & Authorization](#authentication--authorization)
+    - [Real-time & Background Processing](#real-time--background-processing)
+    - [UI & Component Architecture](#ui--component-architecture)
+  - [Implementation Approach](#implementation-approach)
+    - [Development Methodology](#development-methodology)
+    - [Quality Assurance](#quality-assurance)
+    - [Risk Mitigation](#risk-mitigation)
+  - [Implementation Timeline](#implementation-timeline)
+  - [Success Metrics](#success-metrics)
+    - [User Experience Metrics](#user-experience-metrics)
+    - [Technical Performance Metrics](#technical-performance-metrics)
+    - [Operational Metrics](#operational-metrics)
+  - [Migration Strategy](#migration-strategy)
+    - [Backward Compatibility](#backward-compatibility)
+    - [Deployment Strategy](#deployment-strategy)
+    - [Training & Documentation](#training--documentation)
+  - [Conclusion](#conclusion)
+
+<!-- mdformat-toc end -->
+
 ## Introduction
 
 CipherSwarm V2 represents a comprehensive upgrade that transforms the platform from a functional tool into a modern, user-friendly distributed password cracking platform. The upgrade maintains the existing Ruby on Rails + Hotwire technology stack while delivering enhanced user experiences, improved real-time capabilities, and better operational management.

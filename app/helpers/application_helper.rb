@@ -110,6 +110,15 @@ module ApplicationHelper
     false
   end
 
+  # Returns the tus upload endpoint URL.
+  # In production, nginx proxies /uploads/ to tusd. In development/test,
+  # tusd runs on a separate port (8080 by default).
+  #
+  # @return [String] The tus endpoint URL
+  def tus_endpoint
+    ENV.fetch("TUS_ENDPOINT_URL", "/uploads/")
+  end
+
   # Returns the Bootstrap badge class for a HashcatStatus status.
   #
   # @param status [String] The hashcat status string.

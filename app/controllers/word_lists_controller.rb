@@ -94,6 +94,12 @@ class WordListsController < ApplicationController
         format.json { render json: @word_list.errors, status: :unprocessable_content }
       end
     end
+  rescue TusUploadHandler::TusUploadError => e
+    Rails.logger.error("[TusUpload] Word list upload failed: #{e.message}")
+    respond_to do |format|
+      format.html { redirect_to new_word_list_url, alert: "File upload failed: #{e.message}" }
+      format.json { render json: { error: e.message }, status: :unprocessable_content }
+    end
   end
 
   # PATCH/PUT /word_lists/1 or /word_lists/1.json
