@@ -78,19 +78,15 @@ class UpdateStatusJob < ApplicationJob
 
   ##
   # Removes all hashcat_status records associated with tasks that are in the finished state.
-  # REASONING:
-  # - Why: Use destroy_all instead of delete_all to ensure dependent callbacks fire
-  #   (device_statuses and hashcat_guess have dependent: :destroy, touch: true on task).
-  # - Alternatives considered:
-  #   1. delete_all (faster but skips callbacks, orphans dependent records)
-  #   2. destroy_all on full set (simple but loads all records into memory)
-  # - Decision: Use in_batches.destroy_all for memory efficiency while preserving callbacks.
-  # - Performance: Slightly slower than delete_all but maintains referential integrity.
+  # Uses delete_all instead of destroy_all because:
+  # - No destroy callbacks exist on HashcatStatus, DeviceStatus, or HashcatGuess
+  # - ON DELETE CASCADE FKs handle dependent cleanup at the database level
+  # - delete_all issues a single DELETE statement vs loading/destroying records individually
   def remove_finished_tasks_status
-    deleted_count = 0
-    HashcatStatus.where(task_id: Task.finished.select(:id)).in_batches(of: 1000) do |batch|
-      deleted_count += batch.destroy_all.size
-    end
+    deleted_count = HashcatStatus
+                    .where(task_id: Task.finished.select(:id))
+                    .delete_all
+
     if deleted_count.positive?
       Rails.logger.info("[StatusCleanup] Removed #{deleted_count} hashcat_statuses for finished tasks")
     end
@@ -102,58 +98,14 @@ class UpdateStatusJob < ApplicationJob
   end
 
   ##
-  # Removes outdated status entries for tasks that are currently in the incomplete state.
-  # For each incomplete task, purges any stale or expired status data associated with that task.
+  # Trims excess status entries for incomplete tasks using a single CTE-based DELETE.
+  # Delegates to HashcatStatus.trim_excess_for_incomplete_tasks which uses a window function
+  # to rank statuses per task and delete those beyond the configured limit.
   def remove_incomplete_tasks_status
-    # REASONING:
-    # - Why: The previous O(n) approach loaded all incomplete tasks and called remove_old_status on each,
-    #   resulting in n separate DELETE queries. With hundreds of tasks, this caused significant DB load.
-    # - Alternatives considered:
-    #   1. Single DELETE with window function (PostgreSQL-specific, complex)
-    #   2. Batch processing in chunks (chosen - portable and efficient)
-    #   3. Background job per task (overhead of job scheduling)
-    # - Decision: Batch processing in chunks of 100 tasks balances memory usage with query efficiency.
-    #   First query identifies tasks with excess statuses, then processes in batches.
-    # - Performance: Reduces from O(n) queries to O(n/100) + O(tasks_with_excess) queries.
-    # - Future: Consider PostgreSQL-specific optimization if this becomes a bottleneck.
     limit = ApplicationConfig.task_status_limit
-    return unless limit.is_a?(Integer) && limit.positive?
-
-    # Find task IDs that have more than the limit of statuses
-    tasks_with_excess = Task.incomplete
-                            .joins(:hashcat_statuses)
-                            .group(:id)
-                            .having("COUNT(hashcat_statuses.id) > ?", limit)
-                            .pluck(:id)
-
-    return if tasks_with_excess.empty?
-
-    # For each task with excess statuses, delete the oldest ones beyond the limit
-    # Use composite ordering (created_at, id) to handle duplicate timestamps deterministically
-    tasks_with_excess.each_slice(100) do |task_ids|
-      task_ids.each do |task_id|
-        # Get the cutoff point using composite ordering to handle duplicate timestamps
-        cutoff_row = HashcatStatus.where(task_id: task_id)
-                                  .order(created_at: :desc, id: :desc)
-                                  .offset(limit)
-                                  .limit(1)
-                                  .pick(:created_at, :id)
-
-        next unless cutoff_row
-
-        cutoff_time, cutoff_id = cutoff_row
-
-        # Delete all statuses older than the cutoff using deterministic condition
-        # This handles duplicate timestamps by also comparing IDs
-        HashcatStatus.where(task_id: task_id)
-                     .where(
-                       "created_at < ? OR (created_at = ? AND id <= ?)",
-                       cutoff_time,
-                       cutoff_time,
-                       cutoff_id
-                     )
-                     .in_batches(of: 500, &:destroy_all)
-      end
+    deleted_count = HashcatStatus.trim_excess_for_incomplete_tasks(limit: limit)
+    if deleted_count.positive?
+      Rails.logger.info("[StatusCleanup] Trimmed #{deleted_count} excess hashcat_statuses for incomplete tasks")
     end
   rescue StandardError => e
     Rails.logger.error(
