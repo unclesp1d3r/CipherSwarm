@@ -11,6 +11,8 @@ class AddHashValueDigestToHashItems < ActiveRecord::Migration[8.1]
       UPDATE hash_items SET hash_value_digest = md5(hash_value) WHERE hash_value_digest IS NULL
     SQL
 
+    change_column_null :hash_items, :hash_value_digest, false
+
     remove_index :hash_items, name: "index_hash_items_on_hash_value_and_cracked", algorithm: :concurrently
     remove_index :hash_items, name: "index_hash_items_on_hash_value_and_hash_list_id", algorithm: :concurrently
 

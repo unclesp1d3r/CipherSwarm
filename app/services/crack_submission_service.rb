@@ -91,7 +91,7 @@ class CrackSubmissionService
   # @return [HashItem, Result] the hash item or an error result
   def find_hash_item(hash_list)
     digest = Digest::MD5.hexdigest(hash_value)
-    hash_item = hash_list.hash_items.where(hash_value_digest: digest).find { |item| item.hash_value == hash_value }
+    hash_item = hash_list.hash_items.find_by(hash_value_digest: digest, hash_value: hash_value)
     return Result.new(success?: false, error: "Hash not found", error_type: :not_found) if hash_item.blank?
 
     hash_item

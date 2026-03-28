@@ -84,6 +84,7 @@ class StatusSubmissionService
   # Updates the task's activity timestamp and cached progress from the latest status.
   # Uses update_columns to skip callbacks and avoid cascading touch updates.
   # Called inside the transaction so it rolls back if status save fails.
+  # Non-critical: if this fails, the fallback query in Task#progress_percentage still works.
   def cache_task_progress(status)
     # rubocop:disable Rails/SkipsModelValidations
     task.update_columns(
@@ -91,6 +92,10 @@ class StatusSubmissionService
       cached_progress_pct: status.progress_percentage
     )
     # rubocop:enable Rails/SkipsModelValidations
+  rescue ActiveRecord::ActiveRecordError => e
+    Rails.logger.error(
+      "[StatusSubmission] Failed to cache progress for task #{task.id}: #{e.class} - #{e.message}"
+    )
   end
 
   # Builds the HashcatStatus with associated records.

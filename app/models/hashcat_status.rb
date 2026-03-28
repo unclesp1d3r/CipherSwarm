@@ -89,7 +89,11 @@ class HashcatStatus < ApplicationRecord
   scope :latest, -> { order(time: :desc).first }
   scope :older_than, ->(time) { where(time: ...time) }
 
-  # Trims statuses beyond the limit for incomplete tasks using a single SQL CTE.
+  # States for which status trimming applies. Includes all non-terminal states
+  # (pending, running, paused, failed) since these tasks may still accumulate statuses.
+  TRIMMABLE_STATES = %w[pending running paused failed].freeze
+
+  # Trims statuses beyond the limit for non-terminal tasks using a single SQL subquery.
   # Uses ROW_NUMBER() window function to rank statuses per task and delete excess.
   # ON DELETE CASCADE on device_statuses and hashcat_guesses handles dependents.
   #
@@ -98,6 +102,7 @@ class HashcatStatus < ApplicationRecord
   def self.trim_excess_for_incomplete_tasks(limit:)
     return 0 unless limit.is_a?(Integer) && limit.positive?
 
+    states = TRIMMABLE_STATES.map { |s| connection.quote(s) }.join(", ")
     connection.execute(sanitize_sql_array([<<~SQL.squish, limit])).cmd_tuples
       DELETE FROM hashcat_statuses
       WHERE id IN (
@@ -108,7 +113,7 @@ class HashcatStatus < ApplicationRecord
                    ORDER BY created_at DESC, id DESC
                  ) as rn
           FROM hashcat_statuses
-          WHERE task_id IN (SELECT id FROM tasks WHERE state IN ('pending', 'running', 'paused', 'failed'))
+          WHERE task_id IN (SELECT id FROM tasks WHERE state IN (#{states}))
         ) ranked
         WHERE rn > ?
       )
