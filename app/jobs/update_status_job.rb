@@ -7,10 +7,11 @@
 # It performs the following actions:
 # - Checks the online status of agents that have been offline for more than a configurable amount of time.
 # - Removes old status for tasks that are in a finished state.
-# - Removes running status for incomplete tasks.
-# - Cleans up agent error records older than the configured retention period.
+# - Trims excess statuses for incomplete tasks beyond the configured limit.
 # - Abandons tasks that have been running for more than a configurable amount of time without activity.
 # - Rebalances task assignments for non-deferred (normal and high) priority campaigns via preemption.
+#
+# Note: Agent error cleanup is handled by DataCleanupJob (daily) to avoid redundant processing.
 #
 # Runs within an explicit connection pool checkout to avoid leaking connections.
 # Scheduled via sidekiq-cron (see config/schedule.yml, default: every 3 minutes).
@@ -33,7 +34,6 @@ class UpdateStatusJob < ApplicationJob
       check_agents_online_status
       remove_finished_tasks_status
       remove_incomplete_tasks_status
-      cleanup_old_agent_errors
       abandon_inactive_tasks
       rebalance_task_assignments
     end
@@ -45,20 +45,6 @@ class UpdateStatusJob < ApplicationJob
     Task.with_state(:running).inactive_for(ApplicationConfig.task_considered_abandoned_age).find_each(&:abandon)
   end
 
-  ##
-  # Removes agent error records older than the configured retention period.
-  # Uses ApplicationConfig.agent_error_retention (default: 30 days).
-  def cleanup_old_agent_errors
-    deleted_count = AgentError.remove_old_errors
-    if deleted_count.positive?
-      Rails.logger.info("[AgentErrorCleanup] Removed #{deleted_count} agent errors older than #{ApplicationConfig.agent_error_retention}")
-    end
-  rescue StandardError => e
-    Rails.logger.error(
-      "[AgentErrorCleanup] Error cleaning up old agent errors: #{e.class} - #{e.message} - " \
-      "Backtrace: #{Array(e.backtrace).first(5).join(' | ')}"
-    )
-  end
 
   ##
   # Checks agents that have been inactive longer than the configured offline threshold and invokes `check_online` on each candidate.
