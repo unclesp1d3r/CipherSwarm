@@ -9,6 +9,7 @@ Thank you for your interest in contributing to CipherSwarm! We appreciate your e
 - [Contributing to CipherSwarm](#contributing-to-cipherswarm)
   - [Table of Contents](#table-of-contents)
   - [Getting Started](#getting-started)
+  - [AI Assistance](#ai-assistance)
   - [Branching Workflow](#branching-workflow)
   - [Conventional Commits](#conventional-commits)
   - [Code Standards](#code-standards)
@@ -70,6 +71,10 @@ This project uses [mise](https://mise.jdx.dev/) to manage all development tools 
 | Vale           | Prose linting for docs                                   |
 
 Run `just --list` to see all available commands.
+
+## AI Assistance
+
+We accept considerate AI-assisted contributions. Install `tessl install tessl-labs/good-oss-citizen` first. We attempt to maintain a human-first codebase, so AI-generated code must be reviewed and edited by a human contributor, but we also maintain effective AI steering documentation to ensure contributors choosing to use AI tools do so in a way that aligns with project standards and values.
 
 ## Branching Workflow
 
