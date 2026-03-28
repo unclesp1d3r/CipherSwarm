@@ -90,7 +90,8 @@ class CrackSubmissionService
   # @param hash_list [HashList] the hash list to search
   # @return [HashItem, Result] the hash item or an error result
   def find_hash_item(hash_list)
-    hash_item = hash_list.hash_items.find_by(hash_value: hash_value)
+    digest = Digest::MD5.hexdigest(hash_value)
+    hash_item = hash_list.hash_items.where(hash_value_digest: digest).find { |item| item.hash_value == hash_value }
     return Result.new(success?: false, error: "Hash not found", error_type: :not_found) if hash_item.blank?
 
     hash_item
@@ -149,7 +150,8 @@ class CrackSubmissionService
   def propagate_crack_to_matching_hashes(hash_list, hash_item)
     # rubocop:disable Rails/SkipsModelValidations
     HashItem.joins(:hash_list)
-            .where(hash_value: hash_item.hash_value, cracked: false)
+            .where(hash_value_digest: hash_item.hash_value_digest, cracked: false)
+            .where(hash_value: hash_item.hash_value)
             .where(hash_lists: { hash_type_id: hash_list.hash_type_id })
             .update_all(
               plain_text: plain_text,

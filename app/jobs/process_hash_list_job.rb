@@ -88,6 +88,7 @@ class ProcessHashListJob < ApplicationJob
         line = line.strip
         hash_items << {
           hash_value: line,
+          hash_value_digest: Digest::MD5.hexdigest(line),
           metadata: {},
           hash_list_id: list.id,
           created_at: Time.current,
@@ -180,32 +181,42 @@ class ProcessHashListJob < ApplicationJob
       # Future Considerations:
       #   If the cracked-hash lookup needs additional columns, add them to the
       #   pluck list and destructure accordingly.
+      hash_value_digests = hash_values.map { |v| Digest::MD5.hexdigest(v) }
       cracked_hashes = HashItem.joins(:hash_list)
-                               .where(hash_value: hash_values, cracked: true, hash_lists: { hash_type_id: list.hash_type_id })
-                               .pluck(:hash_value, :plain_text, :attack_id)
-                               .each_with_object({}) { |(hv, pt, aid), acc| acc[hv] = [pt, aid] }
+                               .where(hash_value_digest: hash_value_digests, cracked: true, hash_lists: { hash_type_id: list.hash_type_id })
+                               .pluck(:hash_value_digest, :hash_value, :plain_text, :attack_id)
+                               .each_with_object(Hash.new { |h, k| h[k] = [] }) do |(digest, hv, pt, aid), acc|
+                                 acc[digest] << [hv, pt, aid]
+                               end
 
       if cracked_hashes.any?
         now = Time.current
         updates = []
         inserted_items.each do |inserted|
-          if (cracked = cracked_hashes[inserted["hash_value"]])
-            plain_text, attack_id = cracked
-            # All NOT NULL columns required in payload — PG evaluates the INSERT side
-            # before ON CONFLICT activates (see GOTCHAS.md § upsert_all).
-            updates << {
-              id: inserted["id"],
-              hash_list_id: list.id,
-              hash_value: inserted["hash_value"],
-              metadata: {},
-              created_at: now,
-              updated_at: now,
-              plain_text: plain_text,
-              cracked: true,
-              cracked_time: now,
-              attack_id: attack_id
-            }
-          end
+          digest = Digest::MD5.hexdigest(inserted["hash_value"])
+          candidates = cracked_hashes[digest]
+          next if candidates.empty?
+
+          match = candidates.find { |hv, _, _| hv == inserted["hash_value"] }
+          next unless match
+
+          _original_hash_value, plain_text, attack_id = match
+
+          # All NOT NULL columns required in payload — PG evaluates the INSERT side
+          # before ON CONFLICT activates (see GOTCHAS.md § upsert_all).
+          updates << {
+            id: inserted["id"],
+            hash_list_id: list.id,
+            hash_value: inserted["hash_value"],
+            hash_value_digest: digest,
+            metadata: {},
+            created_at: now,
+            updated_at: now,
+            plain_text: plain_text,
+            cracked: true,
+            cracked_time: now,
+            attack_id: attack_id
+          }
         end
 
         # Intentionally skipping validations for performance during bulk update of cracked items.

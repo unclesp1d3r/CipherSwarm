@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_17_061917) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_28_160922) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -210,6 +210,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_17_061917) do
     t.datetime "created_at", null: false
     t.bigint "hash_list_id", null: false
     t.text "hash_value", null: false, comment: "Hash value"
+    t.string "hash_value_digest", limit: 32, null: false, comment: "MD5 fingerprint of hash_value for B-tree indexing"
     t.jsonb "metadata", default: {}, null: false, comment: "Optional metadata fields for the hash item."
     t.string "plain_text", comment: "Plaintext value of the hash"
     t.text "salt", comment: "Salt of the hash"
@@ -218,8 +219,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_17_061917) do
     t.index ["cracked_time"], name: "index_hash_items_on_cracked_time"
     t.index ["hash_list_id", "attack_id"], name: "index_hash_items_on_hash_list_id_and_attack_id"
     t.index ["hash_list_id"], name: "index_hash_items_on_hash_list_id"
-    t.index ["hash_value", "cracked"], name: "index_hash_items_on_hash_value_and_cracked"
-    t.index ["hash_value", "hash_list_id"], name: "index_hash_items_on_hash_value_and_hash_list_id"
+    t.index ["hash_value_digest", "cracked"], name: "index_hash_items_on_hash_value_digest_and_cracked"
+    t.index ["hash_value_digest", "hash_list_id"], name: "index_hash_items_on_hash_value_digest_and_hash_list_id"
   end
 
   create_table "hash_lists", force: :cascade do |t|

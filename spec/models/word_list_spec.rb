@@ -8,6 +8,7 @@
 # Table name: word_lists
 #
 #  id                                           :bigint           not null, primary key
+#  checksum                                     :string
 #  checksum_verified                            :boolean          default(TRUE), not null
 #  description(Description of the word list)    :text
 #  file_name                                    :string
