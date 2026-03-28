@@ -117,7 +117,7 @@ RSpec.describe CampaignPriorityRebalanceJob do
     context "when an unexpected error occurs outside the attack loop" do
       it "propagates the error for Sidekiq retry" do
         allow(Campaign).to receive(:find).with(campaign.id).and_return(campaign)
-        allow(campaign).to receive_message_chain(:attacks, :incomplete, :includes).and_raise(StandardError.new("connection lost")) # rubocop:disable RSpec/MessageChain
+        allow(campaign).to receive_message_chain(:attacks, :awaiting_assignment, :includes).and_raise(StandardError.new("connection lost")) # rubocop:disable RSpec/MessageChain
 
         expect { described_class.new.perform(campaign.id) }.to raise_error(StandardError, "connection lost")
       end

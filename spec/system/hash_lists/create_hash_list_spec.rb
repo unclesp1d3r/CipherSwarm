@@ -12,6 +12,8 @@ RSpec.describe "Create hash list" do
   let!(:hash_type) { create(:md5) }
   let(:file_path) { Rails.root.join("spec/fixtures/hash_lists/example_hashes.txt") }
 
+  before(:all) { TusdHelper.ensure_tusd_running } # rubocop:disable RSpec/BeforeAfterAll
+
   before do
     user.projects << project
   end
@@ -74,9 +76,10 @@ RSpec.describe "Create hash list" do
       expect(page).to have_content("Hash list was successfully created", wait: 5)
       hash_list = HashList.find_by(name: "Processed Hash List")
       expect(hash_list).to be_present
-      expect(hash_list.file).to be_attached
+      # tus upload sets temp_file_path (not Active Storage), then ProcessHashListJob ingests it
+      expect(hash_list.temp_file_path).to be_present
 
-      # Wait for background job to process (or use inline jobs in test)
+      # Wait for background job to process
       perform_enqueued_jobs
 
       hash_list.reload

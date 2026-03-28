@@ -59,6 +59,12 @@ class RuleListsController < ApplicationController
         format.json { render json: @rule_list.errors, status: :unprocessable_content }
       end
     end
+  rescue TusUploadHandler::TusUploadError => e
+    Rails.logger.error("[TusUpload] Rule list upload failed: #{e.message}")
+    respond_to do |format|
+      format.html { redirect_to new_rule_list_url, alert: "File upload failed: #{e.message}" }
+      format.json { render json: { error: e.message }, status: :unprocessable_content }
+    end
   end
 
   # PATCH/PUT /rule_lists/1 or /rule_lists/1.json

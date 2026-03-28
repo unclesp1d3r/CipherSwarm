@@ -72,6 +72,12 @@ class MaskListsController < ApplicationController
         format.json { render json: @mask_list.errors, status: :unprocessable_content }
       end
     end
+  rescue TusUploadHandler::TusUploadError => e
+    Rails.logger.error("[TusUpload] Mask list upload failed: #{e.message}")
+    respond_to do |format|
+      format.html { redirect_to new_mask_list_url, alert: "File upload failed: #{e.message}" }
+      format.json { render json: { error: e.message }, status: :unprocessable_content }
+    end
   end
 
   # PATCH/PUT /mask_lists/1 or /mask_lists/1.json

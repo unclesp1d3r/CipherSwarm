@@ -4,14 +4,29 @@
 
 ## Table of Contents
 
-<!-- mdformat-toc start --slug=github --no-anchors --maxlevel=2 --minlevel=1 -->
+<!-- mdformat-toc start --slug=github --no-anchors --maxlevel=3 --minlevel=1 -->
 
 - [CipherSwarm V1 Upgrade Plan for Delivering V2 Goals](#cipherswarm-v1-upgrade-plan-for-delivering-v2-goals)
   - [Table of Contents](#table-of-contents)
   - [1. Purpose and Scope](#1-purpose-and-scope)
   - [2. Baseline Assessment of the V1 Rails Application](#2-baseline-assessment-of-the-v1-rails-application)
+    - [2.1 Domain Modeling & Persistence](#21-domain-modeling--persistence)
+    - [2.2 APIs, UI, and Real-Time Behavior](#22-apis-ui-and-real-time-behavior)
+    - [2.3 Operational Footprint](#23-operational-footprint)
   - [3. Gap Analysis Versus V2 User Stories](#3-gap-analysis-versus-v2-user-stories)
+    - [3.1 Authentication & Access Control](#31-authentication--access-control)
+    - [3.2 Dashboard & Monitoring](#32-dashboard--monitoring)
+    - [3.3 Campaign & Attack Management](#33-campaign--attack-management)
+    - [3.4 Agent & Task Distribution](#34-agent--task-distribution)
+    - [3.5 Reporting, Analytics, and Collaboration](#35-reporting-analytics-and-collaboration)
+    - [3.6 Deployment & Ops](#36-deployment--ops)
   - [4. Plan of Action & Milestones](#4-plan-of-action--milestones)
+    - [Milestone 1 — Platform Alignment & Foundations (Weeks 1–4)](#milestone-1-%E2%80%94-platform-alignment--foundations-weeks-1%E2%80%934)
+    - [Milestone 2 — Authentication & Project Context (Weeks 3–7)](#milestone-2-%E2%80%94-authentication--project-context-weeks-3%E2%80%937)
+    - [Milestone 3 — Real-Time Operations Dashboard (Weeks 5–10)](#milestone-3-%E2%80%94-real-time-operations-dashboard-weeks-5%E2%80%9310)
+    - [Milestone 4 — Campaign & Attack Experience Overhaul (Weeks 8–14)](#milestone-4-%E2%80%94-campaign--attack-experience-overhaul-weeks-8%E2%80%9314)
+    - [Milestone 5 — Agent & Task Distribution Enhancements (Weeks 12–18)](#milestone-5-%E2%80%94-agent--task-distribution-enhancements-weeks-12%E2%80%9318)
+    - [Milestone 6 — Reporting, Collaboration, and Ops Hardening (Weeks 16–20)](#milestone-6-%E2%80%94-reporting-collaboration-and-ops-hardening-weeks-16%E2%80%9320)
   - [5. Key Technical Considerations & Hurdles](#5-key-technical-considerations--hurdles)
   - [6. Testing & Quality Strategy](#6-testing--quality-strategy)
   - [7. Risk Register & Mitigations](#7-risk-register--mitigations)

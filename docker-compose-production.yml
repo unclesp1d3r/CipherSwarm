@@ -111,6 +111,9 @@ services:
         condition: service_healthy
       postgres-db:
         condition: service_healthy
+    # See docs/deployment/docker-storage-and-tmp.md for tmpfs sizing guidance.
+    # For 100 GB+ attack resources, set TMPFS_TMP_SIZE >= 1.5x your largest file
+    # and increase deploy.resources.limits.memory proportionally (or use TMPDIR volume).
     tmpfs:
       - /tmp:size=${TMPFS_TMP_SIZE:-512m},mode=1777
       - /rails/tmp:size=${TMPFS_RAILS_TMP_SIZE:-256m},mode=1777
@@ -219,6 +222,9 @@ services:
         condition: service_healthy
       postgres-db:
         condition: service_healthy
+    # See docs/deployment/docker-storage-and-tmp.md for tmpfs sizing guidance.
+    # Sidekiq downloads blobs to /tmp during ingest jobs — size this for your largest file.
+    # For 100 GB+ wordlists, consider the TMPDIR volume approach instead of RAM-backed tmpfs.
     tmpfs:
       - /tmp:size=${TMPFS_TMP_SIZE:-512m},mode=1777
       - /rails/tmp:size=${TMPFS_RAILS_TMP_SIZE:-256m},mode=1777

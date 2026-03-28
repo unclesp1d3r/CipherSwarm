@@ -181,7 +181,10 @@ class Attack < ApplicationRecord
   #
   scope :by_complexity, -> { order(:complexity_value, :created_at) }
   scope :pending, -> { with_state(:pending) }
-  scope :incomplete, -> { without_states(:completed, :exhausted, :running, :paused) }
+  # Attacks awaiting agent assignment: pending or failed (eligible for retry).
+  # Does NOT include running or paused — use without_states(:completed, :exhausted)
+  # when you need all unfinished attacks including those in progress.
+  scope :awaiting_assignment, -> { without_states(:completed, :exhausted, :running, :paused) }
   scope :active, -> { with_states(:running, :pending) }
 
   # Concerns

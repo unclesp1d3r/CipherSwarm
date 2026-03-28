@@ -923,12 +923,10 @@ RSpec.describe "api/v1/client/tasks" do
 
       response(200, "successful") do
         let(:id) { task.id }
-        let(:completed_hash_item) { create(:hash_item, plain_text: "plaintext", cracked: true, cracked_time: DateTime.now) }
-        let(:hash_list) do
+
+        before do
           hash_list = task.attack.campaign.hash_list
-          hash_list.hash_items.append(completed_hash_item)
-          hash_list.save!
-          hash_list
+          create(:hash_item, hash_list: hash_list, plain_text: "plaintext", cracked: true, cracked_time: DateTime.now)
         end
 
         after do |example|
@@ -945,9 +943,12 @@ RSpec.describe "api/v1/client/tasks" do
           example.metadata[:response][:content] = content.deep_merge(example_spec)
         end
 
-        schema type: :string, format: :binary
-
-        run_test!
+        # text/plain streaming response — skip rswag JSON body validation
+        run_test! do |response|
+          expect(response).to have_http_status(:ok)
+          expect(response.content_type).to include("text/plain")
+          expect(response.body).to include("plaintext")
+        end
       end
 
       response(422, "already completed") do

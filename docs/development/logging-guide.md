@@ -313,6 +313,7 @@ log_task_api_error("TASK_ABANDON_FAILED", @agent, @task, @task.errors.full_messa
 ```
 
 This helper is used in `TasksController` for all task-related error logging:
+
 - `TASK_ABANDON_FAILED`
 - `TASK_ACCEPT_FAILED`
 - `ATTACK_ACCEPT_FAILED`
@@ -829,6 +830,7 @@ log_task_api_error("TASK_ABANDON_FAILED", @agent, @task, @task.errors.full_messa
 ```
 
 Benefits:
+
 - **Consistency**: Ensures all logs of the same type use identical formatting
 - **Maintainability**: Single place to update format if needed
 - **Testability**: Easier to test log patterns in isolation

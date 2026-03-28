@@ -65,8 +65,13 @@ class HashList < ApplicationRecord
   belongs_to :hash_type
   belongs_to :creator, class_name: "User", optional: true
 
+  # File attachment is required unless using tus upload (temp_file_path set after save by TusUploadHandler).
+  # During tus uploads, the file isn't attached via Active Storage — it's moved to
+  # temp storage by the controller after the record is saved.
+  attr_accessor :tus_upload_pending
+
   validates :name, presence: true, uniqueness: { case_sensitive: false }
-  validates :file, presence: { on: :create }
+  validates :file, presence: { on: :create }, unless: -> { tus_upload_pending || temp_file_path.present? }
   validates :name, length: { maximum: 255 }
   validates :separator, length: { is: 1, allow_blank: true }
   validate :file_must_be_attached
@@ -115,14 +120,11 @@ class HashList < ApplicationRecord
   #   # => "hash1:plain_text1\nhash2:plain_text2\n..."
   #
   # @return [String]
+  # Returns cracked hash list as a string. Capped at 10,000 items to prevent OOM —
+  # use cracked_list_enum for streaming access to the full list.
   def cracked_list
-    parts = []
-    hash_items.where.not(plain_text: nil).in_batches(of: 10_000) do |batch|
-      batch.pluck(:hash_value, :plain_text).each do |h, p|
-        parts << "#{h}#{separator}#{p}"
-      end
-    end
-    parts.join("\n")
+    items = hash_items.where.not(plain_text: nil).limit(10_000).pluck(:hash_value, :plain_text)
+    items.map { |h, p| "#{h}#{separator}#{p}" }.join("\n")
   end
 
   # Returns an Enumerator that yields cracked hash list data in batches.
@@ -177,12 +179,10 @@ class HashList < ApplicationRecord
   # Returns:
   #   A string representation of the uncracked hash list.
   # @return [String]
+  # Returns uncracked hash list as a string. Capped at 10,000 items to prevent OOM —
+  # use uncracked_list_enum for streaming access to the full list.
   def uncracked_list
-    parts = []
-    uncracked_items.in_batches(of: 10_000) do |batch|
-      parts.concat(batch.pluck(:hash_value))
-    end
-    parts.join("\n")
+    uncracked_items.limit(10_000).pluck(:hash_value).join("\n")
   end
 
   # Returns an Enumerator that yields uncracked hash list data in batches.
@@ -272,7 +272,7 @@ class HashList < ApplicationRecord
   end
 
   def file_must_be_attached
-    errors.add(:file, "must be attached") unless processed? || file.attached?
+    errors.add(:file, "must be attached") unless processed? || file.attached? || tus_upload_pending || temp_file_path.present?
   end
 
   # Processes the hash list.
