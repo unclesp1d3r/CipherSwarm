@@ -1113,7 +1113,7 @@ When indexing TEXT columns that may contain values exceeding PostgreSQL's ~2704 
 2. Index the digest column instead of the full text column
 3. Use a `before_validation` callback to auto-populate the digest
 4. **Critical**: Always include collision guards in queries:
-   - For single lookups: `.where(digest_column: digest).find { |item| item.full_column == value }`
+   - For single lookups: `.find_by(digest_column: digest, full_column: value)`
    - For batch operations: `.where(digest_column: digests).where(full_column: values)`
 5. **Critical**: For `insert_all`/`upsert_all`, manually compute the digest since callbacks are bypassed
 

@@ -44,9 +44,18 @@ class AddHashValueDigestToHashItems < ActiveRecord::Migration[8.1]
     add_column :hash_items, :hash_value_digest, :string, limit: 32, null: true,
                                                          comment: "MD5 fingerprint of hash_value for B-tree indexing"
 
-    execute <<~SQL.squish
-      UPDATE hash_items SET hash_value_digest = md5(hash_value) WHERE hash_value_digest IS NULL
-    SQL
+    # Batch the backfill to avoid holding a long-running write lock on the entire table.
+    loop do
+      rows = execute(<<~SQL.squish).cmd_tuples
+        UPDATE hash_items SET hash_value_digest = md5(hash_value)
+        WHERE id IN (
+          SELECT id FROM hash_items WHERE hash_value_digest IS NULL LIMIT 10000
+        )
+      SQL
+      break if rows.zero?
+    end
+
+    change_column_null :hash_items, :hash_value_digest, false
 
     remove_index :hash_items, name: "index_hash_items_on_hash_value_and_cracked", algorithm: :concurrently
     remove_index :hash_items, name: "index_hash_items_on_hash_value_and_hash_list_id", algorithm: :concurrently
@@ -102,8 +111,7 @@ MD5 is not collision-resistant. After any digest-based lookup, confirm the full 
 ```ruby
 digest = Digest::MD5.hexdigest(hash_value)
 hash_item = hash_list.hash_items
-                     .where(hash_value_digest: digest)
-                     .find { |item| item.hash_value == hash_value }
+                     .find_by(hash_value_digest: digest, hash_value: hash_value)
 ```
 
 **Batch update (SQL-side guard):**

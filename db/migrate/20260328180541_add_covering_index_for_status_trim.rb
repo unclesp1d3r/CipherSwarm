@@ -4,9 +4,9 @@ class AddCoveringIndexForStatusTrim < ActiveRecord::Migration[8.1]
   disable_ddl_transaction!
 
   def up
-    add_index :hashcat_statuses, %i[task_id created_at id],
-              order: { created_at: :desc, id: :desc },
-              name: "index_hashcat_statuses_on_task_created_id_desc",
+    add_index :hashcat_statuses, %i[task_id time id],
+              order: { time: :desc, id: :desc },
+              name: "index_hashcat_statuses_on_task_time_id_desc",
               algorithm: :concurrently
 
     # Tune autovacuum for high-churn table: status rows are inserted frequently
@@ -21,7 +21,7 @@ class AddCoveringIndexForStatusTrim < ActiveRecord::Migration[8.1]
   end
 
   def down
-    remove_index :hashcat_statuses, name: "index_hashcat_statuses_on_task_created_id_desc",
+    remove_index :hashcat_statuses, name: "index_hashcat_statuses_on_task_time_id_desc",
                                     algorithm: :concurrently
 
     execute <<~SQL.squish

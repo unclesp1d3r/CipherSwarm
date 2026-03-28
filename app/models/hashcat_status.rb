@@ -110,7 +110,7 @@ class HashcatStatus < ApplicationRecord
           SELECT id,
                  ROW_NUMBER() OVER (
                    PARTITION BY task_id
-                   ORDER BY created_at DESC, id DESC
+                   ORDER BY time DESC, id DESC
                  ) as rn
           FROM hashcat_statuses
           WHERE task_id IN (SELECT id FROM tasks WHERE state IN (#{states}))

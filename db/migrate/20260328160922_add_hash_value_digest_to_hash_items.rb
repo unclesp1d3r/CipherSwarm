@@ -35,6 +35,12 @@ class AddHashValueDigestToHashItems < ActiveRecord::Migration[8.1]
     # NOTE: Rollback re-creates B-tree indexes on hash_value (TEXT column).
     # This will fail for any row with hash_value longer than 2704 bytes,
     # which is the original problem this migration solves (issue #789).
+    if execute("SELECT 1 FROM hash_items WHERE octet_length(hash_value) > 2704 LIMIT 1").any?
+      raise ActiveRecord::IrreversibleMigration,
+        "Cannot rollback: hash_items contains hash_value entries exceeding 2704 bytes. " \
+        "Re-creating B-tree indexes on hash_value would fail."
+    end
+
     remove_index :hash_items, name: "index_hash_items_on_hash_value_digest_and_cracked", algorithm: :concurrently
     remove_index :hash_items, name: "index_hash_items_on_hash_value_digest_and_hash_list_id", algorithm: :concurrently
 
