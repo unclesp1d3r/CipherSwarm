@@ -221,4 +221,4 @@ repomix-output.xml
 docs/plans/
 .worktrees/
 
-*.local.*
+**/*.local.*
