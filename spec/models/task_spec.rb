@@ -9,6 +9,7 @@
 #
 #  id                                                                                                     :bigint           not null, primary key
 #  activity_timestamp(The timestamp of the last activity on the task)                                     :datetime         indexed
+#  cached_progress_pct(Denormalized progress percentage from latest HashcatStatus)                        :decimal(5, 2)    default(0.0), not null
 #  claimed_at                                                                                             :datetime
 #  expires_at                                                                                             :datetime         indexed
 #  keyspace_limit(The maximum number of keyspace values to process.)                                      :integer          default(0)
@@ -301,6 +302,24 @@ RSpec.describe Task do
           context: { target: "attack-progress-#{task.attack_id}", partial: "campaigns/attack_progress" }
         )
       end
+    end
+  end
+
+  describe "#progress_percentage" do
+    let(:task) { create(:task) }
+
+    it "returns cached_progress_pct when positive" do
+      task = create(:task, cached_progress_pct: 42.5)
+      expect(task.progress_percentage).to eq(42.5)
+    end
+
+    it "falls back to latest hashcat_status when cached_progress_pct is zero" do
+      create(:hashcat_status, task: task, progress: [50, 100], status: :running)
+      expect(task.progress_percentage).to eq(50.0)
+    end
+
+    it "returns 0.0 when no cached value and no statuses" do
+      expect(task.progress_percentage).to eq(0.0)
     end
   end
 

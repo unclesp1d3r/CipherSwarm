@@ -9,6 +9,7 @@
 #
 #  id                                                                                                     :bigint           not null, primary key
 #  activity_timestamp(The timestamp of the last activity on the task)                                     :datetime         indexed
+#  cached_progress_pct(Denormalized progress percentage from latest HashcatStatus)                        :decimal(5, 2)    default(0.0), not null
 #  claimed_at                                                                                             :datetime
 #  expires_at                                                                                             :datetime         indexed
 #  keyspace_limit(The maximum number of keyspace values to process.)                                      :integer          default(0)

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_28_160922) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_28_180213) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -502,6 +502,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_28_160922) do
     t.datetime "activity_timestamp", comment: "The timestamp of the last activity on the task"
     t.bigint "agent_id", null: false, comment: "The agent that the task is assigned to, if any."
     t.bigint "attack_id", null: false, comment: "The attack that the task is associated with."
+    t.decimal "cached_progress_pct", precision: 5, scale: 2, default: "0.0", null: false, comment: "Denormalized progress percentage from latest HashcatStatus"
     t.datetime "claimed_at"
     t.bigint "claimed_by_agent_id"
     t.datetime "created_at", null: false
