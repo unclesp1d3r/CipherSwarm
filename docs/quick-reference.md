@@ -29,7 +29,7 @@
 
 ## Domain Hierarchy
 
-```
+```text
 Project → Campaign → Attack → Task → Agent
            ↓
         HashList → HashItem
@@ -100,7 +100,7 @@ Authorization: Bearer <24-char-token>
 
 ## Logging Prefixes
 
-```
+```text
 [APIRequest]      - API requests
 [APIError]        - API errors
 [AgentLifecycle]  - Agent state changes
@@ -199,12 +199,12 @@ end
 
 ## URLs
 
-| Environment | URL                            |
-| ----------- | ------------------------------ |
-| Development | http://localhost:3000          |
-| API Docs    | http://localhost:3000/api-docs |
-| Admin       | http://localhost:3000/admin    |
-| Sidekiq     | http://localhost:3000/sidekiq  |
+| Environment | URL                              |
+| ----------- | -------------------------------- |
+| Development | <http://localhost:3000>          |
+| API Docs    | <http://localhost:3000/api-docs> |
+| Admin       | <http://localhost:3000/admin>    |
+| Sidekiq     | <http://localhost:3000/sidekiq>  |
 
 ## Key Files
 

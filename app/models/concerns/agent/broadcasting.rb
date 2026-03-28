@@ -46,6 +46,12 @@
 module Agent::Broadcasting
   extend ActiveSupport::Concern
 
+  # Fields whose changes should trigger an overview tab broadcast.
+  # These are the metrics shown on the overview tab (state, activity, performance).
+  OVERVIEW_BROADCAST_FIELDS = %w[
+    state current_activity current_hash_rate current_temperature current_utilization
+  ].freeze
+
   # Fields whose changes should trigger a configuration tab broadcast.
   CONFIGURATION_BROADCAST_FIELDS = %w[
     enabled client_signature last_ipaddress advanced_configuration
@@ -95,14 +101,16 @@ module Agent::Broadcasting
   # Broadcasts updates to individual tab streams instead of the root agent stream.
   # This allows each tab panel to update independently without affecting the active tab state.
   #
-  # Overview: always broadcast (last_seen, state, metrics change frequently).
+  # Overview: only when metrics/state change (not on every heartbeat touch).
   # Configuration: only when config-relevant fields change.
   # Capabilities: only when state changes (benchmark data arrives via state transitions).
   def broadcast_tab_updates
-    broadcast_replace_later_to [self, :overview],
-      target: ActionView::RecordIdentifier.dom_id(self, :overview),
-      partial: "agents/overview_tab",
-      locals: { agent: self }
+    if saved_changes.keys.intersect?(OVERVIEW_BROADCAST_FIELDS)
+      broadcast_replace_later_to [self, :overview],
+        target: ActionView::RecordIdentifier.dom_id(self, :overview),
+        partial: "agents/overview_tab",
+        locals: { agent: self }
+    end
 
     if saved_changes.keys.intersect?(CONFIGURATION_BROADCAST_FIELDS)
       broadcast_replace_later_to [self, :configuration],

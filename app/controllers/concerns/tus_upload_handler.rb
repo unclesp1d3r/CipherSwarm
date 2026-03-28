@@ -21,14 +21,56 @@ module TusUploadHandler
   def process_tus_upload(record, tus_upload_url)
     return if tus_upload_url.blank?
 
+    result = retrieve_and_move_upload(tus_upload_url, record) do |cached|
+      record.file_name ||= cached&.dig(:filename)
+      attack_resource_storage_dir(record)
+    end
+
+    record.update!(file_path: result[:dest_path], file_size: File.size(result[:dest_path]), checksum_verified: false)
+
+    if record.respond_to?(:line_count)
+      CountFileLinesJob.perform_later(record.id, record.class.name)
+      Rails.logger.info("[TusUpload] Enqueued CountFileLinesJob for #{record.class.name}##{record.id}")
+    end
+
+    VerifyChecksumJob.perform_later(record.id, record.class.name)
+
+    true
+  rescue TusUploadError => e
+    handle_tus_upload_failure(record, e, orphan_field: :file_path)
+  rescue Errno::ENOENT, Errno::EACCES, Errno::ENOSPC, IOError => e
+    handle_tus_upload_failure(record, e, orphan_field: :file_path, level: :error)
+  end
+
+  # Processes a tus upload for HashList records. Sets temp_file_path (not file_path)
+  # because hash lists are ingested into hash_items rows by ProcessHashListJob,
+  # not served directly to agents like attack resources.
+  def process_tus_hash_list_upload(record, tus_upload_url)
+    return if tus_upload_url.blank?
+
+    result = retrieve_and_move_upload(tus_upload_url, record) do |_cached|
+      hash_list_staging_dir
+    end
+
+    record.update!(temp_file_path: result[:dest_path], processed: false)
+    ProcessHashListJob.perform_later(record.id)
+    Rails.logger.info("[TusUpload] Enqueued ProcessHashListJob for HashList##{record.id}")
+
+    true
+  rescue TusUploadError => e
+    handle_tus_upload_failure(record, e, orphan_field: :temp_file_path)
+  rescue Errno::ENOENT, Errno::EACCES, Errno::ENOSPC, IOError => e
+    handle_tus_upload_failure(record, e, orphan_field: :temp_file_path, level: :error)
+  end
+
+  # Retrieves a tus upload, validates source, and moves to destination.
+  # Block receives cached metadata and must return the target storage directory.
+  def retrieve_and_move_upload(tus_upload_url, record)
     upload_id = extract_upload_id(tus_upload_url)
 
-    # Try cached hook data first (set by TusController post-finish hook),
-    # fall back to constructing path from upload ID
     cached = Rails.cache.read("tus_upload:#{upload_id}")
     source_path = cached&.dig(:file_path) || File.join(tus_uploads_dir, upload_id)
 
-    # Validate source_path is within the expected tusd uploads directory to prevent path traversal
     validate_source_path!(source_path)
 
     unless File.exist?(source_path)
@@ -36,31 +78,16 @@ module TusUploadHandler
       raise TusUploadError, "Upload file not found: #{upload_id}"
     end
 
-    # Use cached filename if available (from tus metadata)
-    record.file_name ||= cached&.dig(:filename)
-
-    storage_dir = attack_resource_storage_dir(record)
+    storage_dir = yield(cached)
     FileUtils.mkdir_p(storage_dir)
-    dest_filename = "#{record.id}-#{sanitize_filename(record.file_name || 'upload')}"
+    filename = cached&.dig(:filename) || record.try(:file_name) || record.try(:name) || "upload"
+    dest_filename = "#{record.id}-#{sanitize_filename(filename)}"
     dest_path = File.join(storage_dir, dest_filename)
 
     FileUtils.mv(source_path, dest_path)
-    # Also clean up the .info metadata file left by tusd
-    info_path = "#{source_path}.info"
-    File.delete(info_path) if File.exist?(info_path)
+    cleanup_tus_metadata(source_path, upload_id)
 
-    record.update!(file_path: dest_path, file_size: File.size(dest_path), checksum_verified: false)
-    VerifyChecksumJob.perform_later(record.id, record.class.name)
-    Rails.cache.delete("tus_upload:#{upload_id}")
-
-    true
-  rescue TusUploadError
-    raise
-  rescue Errno::ENOENT, Errno::EACCES, Errno::ENOSPC, IOError => e
-    Rails.logger.error("[TusUpload] File system error for #{record.class.name}##{record.id}: " \
-                       "#{e.class} - #{e.message}\n#{e.backtrace&.first(5)&.join("\n")}")
-    record.destroy! if record.persisted? && record.file_path.blank?
-    false
+    { upload_id: upload_id, dest_path: dest_path }
   end
 
   def extract_upload_id(url)
@@ -71,44 +98,53 @@ module TusUploadHandler
     id
   end
 
-  def tus_uploads_dir
-    ENV.fetch("TUS_UPLOADS_DIR", "/srv/tusd-data")
-  end
+  def tus_uploads_dir = ENV.fetch("TUS_UPLOADS_DIR", "/srv/tusd-data")
+
+  def storage_base_path = ENV.fetch("ATTACK_RESOURCE_STORAGE_PATH", Rails.root.join("storage/attack_resources").to_s)
 
   def attack_resource_storage_dir(record)
-    base = ENV.fetch("ATTACK_RESOURCE_STORAGE_PATH",
-                     Rails.root.join("storage/attack_resources").to_s)
-    type_dir = record.class.name.underscore.pluralize
-    File.join(base, type_dir)
+    File.join(storage_base_path, record.class.name.underscore.pluralize)
   end
+
+  def hash_list_staging_dir = File.join(storage_base_path, "hash_lists_staging")
 
   def validate_source_path!(path)
-    canonical_source = resolve_path(path)
-    return if path_within_dir?(canonical_source, tus_uploads_dir)
+    uploads_prefix = "#{File.realpath(tus_uploads_dir)}/"
+    resolved = File.realpath(File.expand_path(path))
+    return if resolved.start_with?(uploads_prefix)
 
     raise TusUploadError, "Path traversal attempt blocked: source path is outside tusd uploads directory"
-  rescue Errno::ENOENT
-    # File doesn't exist yet — validate the directory component.
-    # Fail closed: if we can't resolve directories, reject the path.
-    canonical_parent = resolve_path(File.dirname(path))
-    return if path_within_dir?(canonical_parent, tus_uploads_dir)
+  rescue Errno::ENOENT, Errno::EACCES
+    # Fail closed: if we can't resolve the parent directory, reject the path.
+    begin
+      parent = File.realpath(File.expand_path(File.dirname(path)))
+      return if parent.start_with?("#{File.realpath(tus_uploads_dir)}/")
+    rescue Errno::ENOENT, Errno::EACCES
+      # Can't resolve directories — fall through to raise
+    end
 
     raise TusUploadError, "Path traversal attempt blocked: source path is outside tusd uploads directory"
   end
 
-  # Returns the canonical absolute path, raising Errno::ENOENT if it does not exist.
-  def resolve_path(path)
-    File.realpath(File.expand_path(path))
+  def sanitize_filename(name) = name.gsub(/[^0-9A-Za-z.\-_]/, "_")
+
+  def cleanup_tus_metadata(source_path, upload_id)
+    info_path = "#{source_path}.info"
+    File.delete(info_path) if File.exist?(info_path)
+  rescue Errno::ENOENT, Errno::EACCES, IOError => e
+    Rails.logger.warn("[TusUpload] Could not clean up metadata file #{info_path}: #{e.message}")
+  ensure
+    Rails.cache.delete("tus_upload:#{upload_id}")
   end
 
-  # Returns true when +child+ is strictly inside +directory+ (not equal to it).
-  # Both arguments must already be canonical (use resolve_path first).
-  def path_within_dir?(child, directory)
-    canonical_dir = resolve_path(directory)
-    child.start_with?("#{canonical_dir}/")
-  end
-
-  def sanitize_filename(name)
-    name.gsub(/[^0-9A-Za-z.\-_]/, "_")
+  def handle_tus_upload_failure(record, error, orphan_field:, level: :warn)
+    if level == :error
+      Rails.logger.error("[TusUpload] File system error for #{record.class.name}##{record.id}: " \
+                         "#{error.class} - #{error.message}\n#{error.backtrace&.first(5)&.join("\n")}")
+    else
+      Rails.logger.warn("[TusUpload] Validation error for #{record.class.name}##{record.id}: #{error.message}")
+    end
+    record.destroy! if record.persisted? && record.public_send(orphan_field).blank?
+    false
   end
 end

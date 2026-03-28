@@ -1,5 +1,22 @@
 # Campaign Priority System
 
+<!-- mdformat-toc start --slug=github --no-anchors --maxlevel=2 --minlevel=1 -->
+
+- [Campaign Priority System](#campaign-priority-system)
+  - [Priority Levels](#priority-levels)
+  - [Authorization Requirements](#authorization-requirements)
+  - [Intelligent Scheduling Behavior](#intelligent-scheduling-behavior)
+  - [Usage Scenarios](#usage-scenarios)
+  - [Best Practices](#best-practices)
+  - [Monitoring and Management](#monitoring-and-management)
+  - [Migration from 7-Tier System](#migration-from-7-tier-system)
+  - [Technical Implementation](#technical-implementation)
+  - [Troubleshooting](#troubleshooting)
+  - [API Integration](#api-integration)
+  - [Further Reading](#further-reading)
+
+<!-- mdformat-toc end -->
+
 CipherSwarm uses a simplified 3-tier priority system to manage hash cracking campaigns efficiently. This system balances urgency with resource utilization through intelligent scheduling and task preemption.
 
 ## Priority Levels

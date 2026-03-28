@@ -51,14 +51,15 @@ The `/tmp` mount needs to be large enough for concurrent blob downloads (see siz
 
 ## Sizing Guidance
 
-The right tmpfs size depends on your deployment scale and the size of files your campaigns process. The table below assumes typical attack files under 50 MB each. **If your largest file exceeds 50 MB, use the formula in the "Estimating tmpfs needs" section instead.**
+The right tmpfs size depends on your deployment scale and the size of files your campaigns process. The table below assumes typical attack files under 1 GB each. **If your largest file exceeds 1 GB, use the formula in the "Estimating tmpfs needs" section instead.**
 
-| Deployment scale          | Sidekiq replicas | Concurrency | Container memory limit | Recommended `/tmp` tmpfs |
-| ------------------------- | ---------------- | ----------- | ---------------------- | ------------------------ |
-| Development / single node | 1                | 5           | (unlimited)            | 1 GB                     |
-| Small production          | 1-2              | 10          | 2 GB                   | 512 MB                   |
-| Medium production         | 4                | 10          | 2 GB                   | 512 MB                   |
-| Large production          | 8+               | 10          | 4 GB+                  | 1-2 GB                   |
+| Deployment scale          | Sidekiq replicas | Concurrency | Container memory limit          | Recommended `/tmp` tmpfs |
+| ------------------------- | ---------------- | ----------- | ------------------------------- | ------------------------ |
+| Development / single node | 1                | 5           | (unlimited)                     | 1 GB                     |
+| Small production          | 1-2              | 10          | 2 GB                            | 512 MB                   |
+| Medium production         | 4                | 10          | 2 GB                            | 512 MB                   |
+| Large production          | 8+               | 10          | 4 GB+                           | 1-2 GB                   |
+| 100 GB+ files             | 1–4              | 10          | ≥ tmpfs total + 2 GB (see note) | 150 GB+ (see formula)    |
 
 **Key constraint:** tmpfs memory is subtracted from the container's memory limit (`deploy.resources.limits.memory`). Both tmpfs mounts count against the limit: the default `/tmp` (512 MB) plus `/rails/tmp` (256 MB) consume 768 MB combined. With the default 2 GB worker memory limit, this leaves ~1.25 GB for the Ruby process (heap, stack, and gem memory). If you increase either tmpfs size, increase the memory limit proportionally to avoid OOM kills.
 
@@ -72,10 +73,36 @@ In practice, the tmpfs should be **several times larger** than your largest file
 
 ```text
 minimum_tmpfs  = largest_single_file
-recommended    = largest_single_file * sidekiq_concurrency
+recommended    = largest_single_file * 1.5
+peak_worst     = largest_single_file * sidekiq_concurrency
 ```
 
+The `recommended` value (`1.5×`) provides headroom for OS overhead, Ruby temp files, and one concurrent download. The `peak_worst` value accounts for the theoretical maximum when all Sidekiq threads download simultaneously — use this only if your workload routinely triggers concurrent ingest of large files.
+
 For example, if your largest wordlist is 200 MB and Sidekiq concurrency is 10, peak tmp usage could reach 2 GB. The absolute minimum tmpfs would be 200 MB (enough for one file), but 512 MB–2 GB is recommended to handle concurrent downloads plus Ruby's own temp files and OS overhead.
+
+### Sizing for 100 GB+ attack resources
+
+CipherSwarm is designed to handle attack resources (wordlists, rule lists, mask lists) exceeding 100 GB. When your largest file is this large, the sizing formula becomes:
+
+```text
+TMPFS_TMP_SIZE >= 1.5 × largest_attack_resource_file
+```
+
+**Worked example — 100 GB wordlist:**
+
+- **Minimum:** 100 GB (one concurrent download fills `/tmp` completely)
+- **Recommended:** 150 GB (`1.5×` headroom for OS overhead + Ruby temp files)
+- **Memory limit implication:** The container's `deploy.resources.limits.memory` must be raised to at least `TMPFS_TMP_SIZE + TMPFS_RAILS_TMP_SIZE + Ruby process headroom`. For a 150 GB tmpfs, set the memory limit to ≥ 152 GB (150 GB tmpfs + 256 MB `/rails/tmp` + ~1.75 GB Ruby process).
+
+**Important:** For files this large, the **TMPDIR volume approach** (disk-backed, described in the "Alternative: TMPDIR Redirect" section below) is **strongly preferred** over RAM-backed tmpfs. A 150 GB tmpfs consumes 150 GB of RAM from the container's memory limit, which is impractical for most hosts. The TMPDIR volume approach uses disk instead of RAM, at the cost of slower I/O.
+
+If you must use RAM-backed tmpfs (e.g., for I/O performance on NVMe-backed hosts with abundant RAM):
+
+1. Set `TMPFS_TMP_SIZE=150g` in your `.env` file
+2. Increase the Sidekiq container memory limit to ≥ 152 GB
+3. Consider reducing Sidekiq concurrency to limit concurrent large-file downloads
+4. Monitor `/tmp` usage closely — a second concurrent 100 GB download will exhaust 150 GB tmpfs
 
 ## Pre-Download Space Check
 

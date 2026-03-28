@@ -70,6 +70,8 @@ class CountFileLinesJob < ApplicationJob
     if record.file_path.present? && File.exist?(record.file_path)
       File.open(record.file_path, &)
     elsif record.file.attached?
+      Rails.logger.warn("[CountFileLines] Falling back to Active Storage blob.open for #{record.class.name}##{record.id} " \
+                        "— file will be downloaded to /tmp. Ensure file_path is set for tusd uploads.")
       ensure_temp_storage_available!(record.file)
       record.file.open(&)
     else

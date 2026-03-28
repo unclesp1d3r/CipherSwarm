@@ -189,17 +189,36 @@ modules.xml
 /config/*.local.yml
 /config/credentials/local.*
 
-# AI assistant artifacts
-.claude.local.md
-.claude/settings.local.json
-.claude/skills/repomix-reference-cipher-swarm/
+# AI/LLM agent configuration — these are local workflow files,
+# not project source. Contributors should not commit agent-specific
+# configs; use AGENTS.md and GOTCHAS.md for project standards.
+CLAUDE.md
+.claude/
+.cursor/
+.serena/
+.tessl/
+tessl.json
+.aider*
+.continue/
+.continuerules
+.windsurfrules
+.windsurf/
+.copilot/
+.ai/
+.llm/
+.prompt/
+.prompts/
+.kiro/
+# GitHub Copilot / AI prompt files (not project workflows)
+.github/commit-instructions.md
+.github/prompts/
+
+# AI assistant build artifacts
 repomix-output.xml
 .playwright-mcp/
 .devcontainer/.devpod-internal/
-.claude.local.md
 .full-review
-docs/plans
-.cursor/commands
-.github/prompts
-.kiro/specs/*
+docs/plans/
 .worktrees/
+
+**/*.local.*

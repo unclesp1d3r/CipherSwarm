@@ -1,4 +1,4 @@
-<%= simple_form_for(@mask_list, html: { data: { controller: "direct-upload" } }) do |f| %>
+<%= simple_form_for(@mask_list, html: { data: { controller: "direct-upload", direct_upload_endpoint_value: tus_endpoint } }) do |f| %>
   <%= f.error_notification %>
 
   <div class="form-inputs">
