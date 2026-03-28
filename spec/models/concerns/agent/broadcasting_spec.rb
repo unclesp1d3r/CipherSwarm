@@ -15,6 +15,12 @@ RSpec.describe Agent::Broadcasting do
   end
 
   describe "constants" do
+    it "defines OVERVIEW_BROADCAST_FIELDS" do
+      expect(Agent::Broadcasting::OVERVIEW_BROADCAST_FIELDS).to contain_exactly(
+        "state", "current_activity", "current_hash_rate", "current_temperature", "current_utilization"
+      )
+    end
+
     it "defines CONFIGURATION_BROADCAST_FIELDS" do
       expect(Agent::Broadcasting::CONFIGURATION_BROADCAST_FIELDS).to contain_exactly(
         "enabled", "client_signature", "last_ipaddress", "advanced_configuration",
@@ -108,16 +114,29 @@ RSpec.describe Agent::Broadcasting do
   end
 
   describe "#broadcast_tab_updates" do
-    it "always broadcasts the overview tab" do
-      allow(agent).to receive(:broadcast_replace_later_to)
-      agent.update!(last_seen_at: Time.current)
-      expect(agent).to have_received(:broadcast_replace_later_to).with(
-        [agent, :overview],
-        hash_including(
-          target: ActionView::RecordIdentifier.dom_id(agent, :overview),
-          partial: "agents/overview_tab"
+    context "when overview-relevant fields change" do
+      it "broadcasts the overview tab" do
+        allow(agent).to receive(:broadcast_replace_later_to)
+        agent.update!(current_activity: "cracking")
+        expect(agent).to have_received(:broadcast_replace_later_to).with(
+          [agent, :overview],
+          hash_including(
+            target: ActionView::RecordIdentifier.dom_id(agent, :overview),
+            partial: "agents/overview_tab"
+          )
         )
-      )
+      end
+    end
+
+    context "when non-overview fields change" do
+      it "does not broadcast the overview tab" do
+        allow(agent).to receive(:broadcast_replace_later_to)
+        agent.update!(last_seen_at: Time.current)
+        expect(agent).not_to have_received(:broadcast_replace_later_to).with(
+          [agent, :overview],
+          anything
+        )
+      end
     end
 
     context "when configuration-relevant fields change" do

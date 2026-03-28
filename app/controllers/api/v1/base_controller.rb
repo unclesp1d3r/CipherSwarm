@@ -193,7 +193,12 @@ class Api::V1::BaseController < ApplicationController
     ip_changed = @agent.last_ipaddress != request.remote_ip
 
     return unless last_seen.nil? || ip_changed || last_seen < 30.seconds.ago
-    @agent.update(last_seen_at: Time.current, last_ipaddress: request.remote_ip)
+
+    # PERFORMANCE: Use update_columns to bypass callbacks and avoid triggering
+    # broadcast_tab_updates on every heartbeat. last_seen_at is cosmetic UI data
+    # that doesn't need real-time broadcast — the overview tab refreshes on
+    # meaningful state/metrics changes instead.
+    @agent.update_columns(last_seen_at: Time.current, last_ipaddress: request.remote_ip) # rubocop:disable Rails/SkipsModelValidations
     @agent.heartbeat unless @agent.active? # Only fire heartbeat when agent needs state change
   end
 end

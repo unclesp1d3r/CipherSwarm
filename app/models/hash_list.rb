@@ -120,14 +120,11 @@ class HashList < ApplicationRecord
   #   # => "hash1:plain_text1\nhash2:plain_text2\n..."
   #
   # @return [String]
+  # Returns cracked hash list as a string. Capped at 10,000 items to prevent OOM —
+  # use cracked_list_enum for streaming access to the full list.
   def cracked_list
-    parts = []
-    hash_items.where.not(plain_text: nil).in_batches(of: 10_000) do |batch|
-      batch.pluck(:hash_value, :plain_text).each do |h, p|
-        parts << "#{h}#{separator}#{p}"
-      end
-    end
-    parts.join("\n")
+    items = hash_items.where.not(plain_text: nil).limit(10_000).pluck(:hash_value, :plain_text)
+    items.map { |h, p| "#{h}#{separator}#{p}" }.join("\n")
   end
 
   # Returns an Enumerator that yields cracked hash list data in batches.
@@ -182,12 +179,10 @@ class HashList < ApplicationRecord
   # Returns:
   #   A string representation of the uncracked hash list.
   # @return [String]
+  # Returns uncracked hash list as a string. Capped at 10,000 items to prevent OOM —
+  # use uncracked_list_enum for streaming access to the full list.
   def uncracked_list
-    parts = []
-    uncracked_items.in_batches(of: 10_000) do |batch|
-      parts.concat(batch.pluck(:hash_value))
-    end
-    parts.join("\n")
+    uncracked_items.limit(10_000).pluck(:hash_value).join("\n")
   end
 
   # Returns an Enumerator that yields uncracked hash list data in batches.
