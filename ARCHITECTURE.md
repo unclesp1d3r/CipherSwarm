@@ -1,5 +1,29 @@
 # Architecture
 
+<!-- mdformat-toc start --slug=github --no-anchors --maxlevel=3 --minlevel=1 -->
+
+- [Architecture](#architecture)
+  - [Deployment Constraints](#deployment-constraints)
+  - [Core Domain Model](#core-domain-model)
+  - [Authentication & Authorization](#authentication--authorization)
+  - [Project-Based Multi-Tenancy](#project-based-multi-tenancy)
+  - [State Machines](#state-machines)
+  - [Service Layer](#service-layer)
+  - [File Storage & Uploads](#file-storage--uploads)
+    - [Storage Backend](#storage-backend)
+    - [Resumable File Uploads (tusd)](#resumable-file-uploads-tusd)
+    - [Direct Upload (Active Storage, Legacy)](#direct-upload-active-storage-legacy)
+  - [Caching & Real-Time](#caching--real-time)
+  - [API Structure](#api-structure)
+  - [Task Assignment & Agent Lifecycle](#task-assignment--agent-lifecycle)
+  - [UI Patterns](#ui-patterns)
+  - [Key Dependencies](#key-dependencies)
+  - [Configuration Files](#configuration-files)
+  - [File Structure](#file-structure)
+  - [Related Documentation](#related-documentation)
+
+<!-- mdformat-toc end -->
+
 CipherSwarm is a distributed hash cracking system built on Rails 8.1+, inspired by Hashtopolis. It manages hash-cracking tasks across multiple agents using a web interface with real-time capabilities via Hotwire.
 
 **Current Status**: Undergoing V2 upgrade (see `docs/v2-upgrade-overview.md`)
