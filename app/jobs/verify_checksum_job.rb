@@ -15,8 +15,29 @@
 class VerifyChecksumJob < ApplicationJob
   ALLOWED_TYPES = %w[WordList RuleList MaskList].freeze
 
+  # Discard handler for I/O errors that persist after retries.
+  # Follows the TEMP_STORAGE_DISCARD_HANDLER lambda pattern from ApplicationJob
+  # so the handler body stays reachable for undercover coverage.
+  IO_ERROR_DISCARD_HANDLER = lambda { |job, error|
+    begin
+      resource_id   = job.arguments[0]
+      resource_type = job.arguments[1]
+      Rails.logger.error(
+        "[ChecksumVerify] FILE_IO_FAILURE: #{resource_type}##{resource_id} — " \
+        "#{error.class}: #{error.message}. Job ID: #{job.job_id}. " \
+        "File may be missing or inaccessible. Re-upload the resource or check storage mount."
+      )
+    rescue StandardError => e
+      Rails.logger.error("[ChecksumVerify] Failed to log discard for job #{job.job_id}: #{e.message}") rescue nil
+    end
+  }
+
   queue_as :default
   discard_on ActiveRecord::RecordNotFound
+  retry_on Errno::EIO, Errno::ENOENT, Errno::EACCES,
+           wait: :polynomially_longer,
+           attempts: 5,
+           &IO_ERROR_DISCARD_HANDLER
 
   def perform(resource_id, resource_type)
     raise ArgumentError, "Invalid resource type: #{resource_type}" unless ALLOWED_TYPES.include?(resource_type)
@@ -25,7 +46,7 @@ class VerifyChecksumJob < ApplicationJob
     file_path = resolve_file_path(resource)
 
     unless file_path
-      Rails.logger.warn { "[ChecksumVerify] No file found for #{resource_type}##{resource_id}" }
+      Rails.logger.error { "[ChecksumVerify] FILE_NOT_FOUND: #{resource_type}##{resource_id} — file_path absent or missing on disk. Re-upload recommended." }
       return
     end
 
