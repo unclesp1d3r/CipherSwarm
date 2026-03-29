@@ -25,26 +25,27 @@
 #
 # Table name: hash_items
 #
-#  id                                                    :bigint           not null, primary key
-#  cracked(Is the hash cracked?)                         :boolean          default(FALSE), not null, indexed => [hash_value]
-#  cracked_time(Time when the hash was cracked)          :datetime         indexed
-#  hash_value(Hash value)                                :text             not null, indexed => [cracked], indexed => [hash_list_id]
-#  metadata(Optional metadata fields for the hash item.) :jsonb            not null
-#  plain_text(Plaintext value of the hash)               :string
-#  salt(Salt of the hash)                                :text
-#  created_at                                            :datetime         not null
-#  updated_at                                            :datetime         not null
-#  attack_id(The attack that cracked this hash)          :bigint           indexed, indexed => [hash_list_id]
-#  hash_list_id                                          :bigint           not null, indexed, indexed => [attack_id], indexed => [hash_value]
+#  id                                                                   :bigint           not null, primary key
+#  cracked(Is the hash cracked?)                                        :boolean          default(FALSE), not null, indexed => [hash_value_digest]
+#  cracked_time(Time when the hash was cracked)                         :datetime         indexed
+#  hash_value(Hash value)                                               :text             not null
+#  hash_value_digest(MD5 fingerprint of hash_value for B-tree indexing) :string(32)       not null, indexed => [cracked], indexed => [hash_list_id]
+#  metadata(Optional metadata fields for the hash item.)                :jsonb            not null
+#  plain_text(Plaintext value of the hash)                              :string
+#  salt(Salt of the hash)                                               :text
+#  created_at                                                           :datetime         not null
+#  updated_at                                                           :datetime         not null
+#  attack_id(The attack that cracked this hash)                         :bigint           indexed, indexed => [hash_list_id]
+#  hash_list_id                                                         :bigint           not null, indexed, indexed => [attack_id], indexed => [hash_value_digest]
 #
 # Indexes
 #
-#  index_hash_items_on_attack_id                    (attack_id)
-#  index_hash_items_on_cracked_time                 (cracked_time)
-#  index_hash_items_on_hash_list_id                 (hash_list_id)
-#  index_hash_items_on_hash_list_id_and_attack_id   (hash_list_id,attack_id)
-#  index_hash_items_on_hash_value_and_cracked       (hash_value,cracked)
-#  index_hash_items_on_hash_value_and_hash_list_id  (hash_value,hash_list_id)
+#  index_hash_items_on_attack_id                           (attack_id)
+#  index_hash_items_on_cracked_time                        (cracked_time)
+#  index_hash_items_on_hash_list_id                        (hash_list_id)
+#  index_hash_items_on_hash_list_id_and_attack_id          (hash_list_id,attack_id)
+#  index_hash_items_on_hash_value_digest_and_cracked       (hash_value_digest,cracked)
+#  index_hash_items_on_hash_value_digest_and_hash_list_id  (hash_value_digest,hash_list_id)
 #
 # Foreign Keys
 #
@@ -54,7 +55,9 @@
 class HashItem < ApplicationRecord
   belongs_to :hash_list, touch: true, counter_cache: true
   belongs_to :attack, optional: true
+  before_validation :set_hash_value_digest
   validates :hash_value, presence: true
+  validates :hash_value_digest, presence: true
   validates :salt, length: { maximum: 255 }
   validates :plain_text, length: { maximum: 255 }
   validates :metadata, length: { maximum: 255 }
@@ -80,6 +83,10 @@ class HashItem < ApplicationRecord
   end
 
   private
+
+  def set_hash_value_digest
+    self.hash_value_digest = Digest::MD5.hexdigest(hash_value) if hash_value.present?
+  end
 
   # Returns true if cracked transitioned from false to true in this commit.
   #

@@ -243,6 +243,13 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 - When a table has multiple FKs to the same parent, always specify `column:` explicitly in `remove_foreign_key`/`add_foreign_key`
 - Test DB cascades with `delete` (not `destroy`) to verify the FK constraint, not Rails callbacks
 
+**hash_value_digest Pattern (B-tree Index Workaround):**
+
+- PostgreSQL B-tree indexes have a ~2704 byte limit per row — `hash_value` (TEXT) can exceed this, so `hash_value_digest` (MD5 hex, 32 chars) is indexed instead
+- `HashItem` has a `before_validation` callback that auto-sets `hash_value_digest` from `hash_value` — but `insert_all`/`upsert_all` bypass callbacks, so bulk-insert paths must compute `Digest::MD5.hexdigest(value)` inline
+- **Collision guard required:** MD5 is not collision-resistant — always confirm the full `hash_value` matches after a digest-based lookup (Ruby `.find { }` for single-row, SQL `AND hash_value = ?` for batch updates)
+- Digest-based queries should use the composite indexes: `(hash_value_digest, hash_list_id)` for scoped lookups, `(hash_value_digest, cracked)` for cross-list propagation
+
 **Database Transactions:**
 
 - Wrap related operations in `Model.transaction do ... end` when they must succeed/fail together
@@ -254,6 +261,7 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 - When replacing a permissive index with a stricter unique index, add a `DELETE` + `DISTINCT ON` cleanup step before `add_index` to remove duplicate rows that would violate the new constraint
 - Running `db:migrate` regenerates `schema.rb` from actual DATABASE state, not from migrations
 - Manual migration creation causes schema drift: unrelated DB changes get committed
+- **Post-write hooks/linters may silently modify migration files** — verify the migration file content matches `schema.rb` after `just db-migrate`. A removed `change_column_null` or similar step won't affect the current DB (migration already ran) but will break fresh `db:migrate` runs.
 
 **CanCanCan Nested Associations:**
 

@@ -8,6 +8,7 @@
 # Table name: rule_lists
 #
 #  id                                           :bigint           not null, primary key
+#  checksum                                     :string
 #  checksum_verified                            :boolean          default(TRUE), not null
 #  description(Description of the rule list)    :text
 #  file_name                                    :string

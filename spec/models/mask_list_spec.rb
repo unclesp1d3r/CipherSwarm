@@ -8,6 +8,7 @@
 # Table name: mask_lists
 #
 #  id                                                  :bigint           not null, primary key
+#  checksum                                            :string
 #  checksum_verified                                   :boolean          default(TRUE), not null
 #  complexity_value(Total attemptable password values) :decimal(, )      default(0.0)
 #  description(Description of the mask list)           :text

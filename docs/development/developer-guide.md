@@ -1105,6 +1105,24 @@ add_index :tasks, :paused_at, where: "state = 'paused'"
 
 This improves performance for orphaned task recovery queries that only target paused tasks. Partial indexes reduce index size and improve query speed by indexing only relevant rows.
 
+### Indexing Large Text Fields
+
+When indexing TEXT columns that may contain values exceeding PostgreSQL's ~2704 byte B-tree index limit, use a digest-based approach:
+
+1. Add a VARCHAR(32) column to store an MD5 hex digest of the full value
+2. Index the digest column instead of the full text column
+3. Use a `before_validation` callback to auto-populate the digest
+4. **Critical**: Always include collision guards in queries:
+   - For single lookups: `.find_by(digest_column: digest, full_column: value)`
+   - For batch operations: `.where(digest_column: digests).where(full_column: values)`
+5. **Critical**: For `insert_all`/`upsert_all`, manually compute the digest since callbacks are bypassed
+
+**Example**: The `HashItem` model uses `hash_value_digest` (MD5 of `hash_value`) to avoid index size limits while maintaining query performance.
+
+Reference GOTCHAS.md for detailed implementation guidance and see `ProcessHashListJob` and `CrackSubmissionService` for examples.
+
+This pattern should be considered when designing tables that store user-provided text of unbounded length that requires indexing for performance.
+
 ### Fragment Cache Best Practices
 
 **Never cache partials or components that contain authorization checks (`can?`) or CSRF tokens (`form_authenticity_token`).** Cached output is shared across all users, which can leak admin-only UI or serve invalid CSRF tokens.

@@ -7,7 +7,7 @@
 #
 # Table name: hashcat_statuses
 #
-#  id                                                       :bigint           not null, primary key
+#  id                                                       :bigint           not null, primary key, indexed => [task_id, created_at]
 #  estimated_stop(The estimated time of completion)         :datetime
 #  original_line(The original line from the hashcat output) :text
 #  progress(The progress in percentage)                     :bigint           is an Array
@@ -20,15 +20,16 @@
 #  target(The target file)                                  :string           not null
 #  time(The time of the status)                             :datetime         not null, indexed => [task_id, status], indexed
 #  time_start(The time the task started)                    :datetime         not null
-#  created_at                                               :datetime         not null
+#  created_at                                               :datetime         not null, indexed => [task_id, id]
 #  updated_at                                               :datetime         not null
-#  task_id                                                  :bigint           not null, indexed, indexed => [status, time]
+#  task_id                                                  :bigint           not null, indexed => [created_at, id], indexed, indexed => [status, time]
 #
 # Indexes
 #
-#  index_hashcat_statuses_on_task_id           (task_id)
-#  index_hashcat_statuses_on_task_status_time  (task_id,status,time DESC)
-#  index_hashcat_statuses_on_time              (time)
+#  index_hashcat_statuses_on_task_created_id_desc  (task_id,created_at DESC,id DESC)
+#  index_hashcat_statuses_on_task_id               (task_id)
+#  index_hashcat_statuses_on_task_status_time      (task_id,status,time DESC)
+#  index_hashcat_statuses_on_time                  (time)
 #
 # Foreign Keys
 #
@@ -260,6 +261,55 @@ RSpec.describe HashcatStatus do
   describe "factory" do
     it "is valid" do
       expect(build(:hashcat_status)).to be_valid
+    end
+  end
+
+  describe ".trim_excess_for_incomplete_tasks" do
+    let(:running_task) do
+      task = create(:task)
+      task.accept!
+      task
+    end
+
+    it "trims statuses beyond the limit for incomplete tasks" do
+      15.times { create(:hashcat_status, task: running_task) }
+
+      expect { described_class.trim_excess_for_incomplete_tasks(limit: 10) }
+        .to change { described_class.where(task: running_task).count }.from(15).to(10)
+    end
+
+    it "keeps the most recent statuses" do
+      old = create(:hashcat_status, task: running_task, created_at: 1.hour.ago)
+      new_status = create(:hashcat_status, task: running_task, created_at: 1.minute.ago)
+
+      described_class.trim_excess_for_incomplete_tasks(limit: 1)
+
+      expect(described_class.exists?(new_status.id)).to be true
+      expect(described_class.exists?(old.id)).to be false
+    end
+
+    it "does not trim statuses for finished tasks" do
+      task = create(:task)
+      task.accept!
+      task.complete!
+      create_list(:hashcat_status, 5, task: task)
+
+      expect { described_class.trim_excess_for_incomplete_tasks(limit: 2) }
+        .not_to(change { described_class.where(task: task).count })
+    end
+
+    it "cascades deletes to device_statuses via FK" do
+      3.times { create(:hashcat_status, task: running_task) }
+
+      # Factory creates 2 device_statuses per hashcat_status (6 total).
+      # Trimming to 1 deletes 2 statuses and their 4 device_statuses via FK CASCADE.
+      expect { described_class.trim_excess_for_incomplete_tasks(limit: 1) }
+        .to change(DeviceStatus, :count).by(-4)
+    end
+
+    it "returns 0 for invalid limit" do
+      expect(described_class.trim_excess_for_incomplete_tasks(limit: nil)).to eq(0)
+      expect(described_class.trim_excess_for_incomplete_tasks(limit: -1)).to eq(0)
     end
   end
 end
