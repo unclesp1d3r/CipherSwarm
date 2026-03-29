@@ -73,7 +73,6 @@ class StatusSubmissionService
   #
   # @return [Result] the result of the operation
   def call
-    update_activity_timestamp
     build_result = build_status
     return build_result if build_result.is_a?(Result)
 
@@ -82,12 +81,21 @@ class StatusSubmissionService
 
   private
 
-  # Updates the task's activity timestamp.
-  # Uses update_column to skip callbacks and avoid cascading touch updates.
-  def update_activity_timestamp
+  # Updates the task's activity timestamp and cached progress from the latest status.
+  # Uses update_columns to skip callbacks and avoid cascading touch updates.
+  # Called inside the transaction so it rolls back if status save fails.
+  # Non-critical: if this fails, the fallback query in Task#progress_percentage still works.
+  def cache_task_progress(status)
     # rubocop:disable Rails/SkipsModelValidations
-    task.update_column(:activity_timestamp, Time.zone.now)
+    task.update_columns(
+      activity_timestamp: Time.zone.now,
+      cached_progress_pct: status.progress_percentage
+    )
     # rubocop:enable Rails/SkipsModelValidations
+  rescue ActiveRecord::ActiveRecordError => e
+    Rails.logger.error(
+      "[StatusSubmission] Failed to cache progress for task #{task.id}: #{e.class} - #{e.message}"
+    )
   end
 
   # Builds the HashcatStatus with associated records.
@@ -167,6 +175,7 @@ class StatusSubmissionService
       status.save!
       accept_result = accept_status_on_task
       raise ActiveRecord::Rollback if accept_result.status == :error
+      cache_task_progress(status)
     end
 
     accept_result

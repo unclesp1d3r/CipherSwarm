@@ -7,7 +7,7 @@
 #
 # Table name: hashcat_statuses
 #
-#  id                                                       :bigint           not null, primary key
+#  id                                                       :bigint           not null, primary key, indexed => [task_id, created_at]
 #  estimated_stop(The estimated time of completion)         :datetime
 #  original_line(The original line from the hashcat output) :text
 #  progress(The progress in percentage)                     :bigint           is an Array
@@ -20,15 +20,16 @@
 #  target(The target file)                                  :string           not null
 #  time(The time of the status)                             :datetime         not null, indexed => [task_id, status], indexed
 #  time_start(The time the task started)                    :datetime         not null
-#  created_at                                               :datetime         not null
+#  created_at                                               :datetime         not null, indexed => [task_id, id]
 #  updated_at                                               :datetime         not null
-#  task_id                                                  :bigint           not null, indexed, indexed => [status, time]
+#  task_id                                                  :bigint           not null, indexed => [created_at, id], indexed, indexed => [status, time]
 #
 # Indexes
 #
-#  index_hashcat_statuses_on_task_id           (task_id)
-#  index_hashcat_statuses_on_task_status_time  (task_id,status,time DESC)
-#  index_hashcat_statuses_on_time              (time)
+#  index_hashcat_statuses_on_task_created_id_desc  (task_id,created_at DESC,id DESC)
+#  index_hashcat_statuses_on_task_id               (task_id)
+#  index_hashcat_statuses_on_task_status_time      (task_id,status,time DESC)
+#  index_hashcat_statuses_on_time                  (time)
 #
 # Foreign Keys
 #

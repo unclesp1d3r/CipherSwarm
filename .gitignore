@@ -220,5 +220,5 @@ repomix-output.xml
 .full-review
 docs/plans/
 .worktrees/
-
+**/tessl__*
 **/*.local.*

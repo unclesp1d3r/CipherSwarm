@@ -137,7 +137,7 @@ module TaskStateMachine
         # and the state machine save has already committed. These are non-critical
         # counters that don't affect concurrent access patterns.
         # rubocop:disable Rails/SkipsModelValidations
-        task.update_columns(retry_count: task.retry_count + 1, last_error: nil)
+        task.update_columns(retry_count: task.retry_count + 1, last_error: nil, cached_progress_pct: nil)
         # rubocop:enable Rails/SkipsModelValidations
       end
 
@@ -146,7 +146,7 @@ module TaskStateMachine
         # Same locking note as :retry — TaskPreemptionService holds a pessimistic
         # lock via task.lock! before calling preempt!.
         # rubocop:disable Rails/SkipsModelValidations
-        task.update_columns(stale: true, preemption_count: task.preemption_count + 1)
+        task.update_columns(stale: true, preemption_count: task.preemption_count + 1, cached_progress_pct: nil)
         # rubocop:enable Rails/SkipsModelValidations
       end
 
@@ -220,7 +220,7 @@ module TaskStateMachine
   def mark_stale_safely
     # Use update_columns to avoid stale object errors from optimistic locking
     # rubocop:disable Rails/SkipsModelValidations
-    update_columns(stale: true)
+    update_columns(stale: true, cached_progress_pct: nil)
     # rubocop:enable Rails/SkipsModelValidations
   rescue ActiveRecord::ActiveRecordError => e
     Rails.logger.error(

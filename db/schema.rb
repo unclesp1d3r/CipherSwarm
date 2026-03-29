@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_17_061917) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_28_180541) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -210,6 +210,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_17_061917) do
     t.datetime "created_at", null: false
     t.bigint "hash_list_id", null: false
     t.text "hash_value", null: false, comment: "Hash value"
+    t.string "hash_value_digest", limit: 32, null: false, comment: "MD5 fingerprint of hash_value for B-tree indexing"
     t.jsonb "metadata", default: {}, null: false, comment: "Optional metadata fields for the hash item."
     t.string "plain_text", comment: "Plaintext value of the hash"
     t.text "salt", comment: "Salt of the hash"
@@ -218,8 +219,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_17_061917) do
     t.index ["cracked_time"], name: "index_hash_items_on_cracked_time"
     t.index ["hash_list_id", "attack_id"], name: "index_hash_items_on_hash_list_id_and_attack_id"
     t.index ["hash_list_id"], name: "index_hash_items_on_hash_list_id"
-    t.index ["hash_value", "cracked"], name: "index_hash_items_on_hash_value_and_cracked"
-    t.index ["hash_value", "hash_list_id"], name: "index_hash_items_on_hash_value_and_hash_list_id"
+    t.index ["hash_value_digest", "cracked"], name: "index_hash_items_on_hash_value_digest_and_cracked"
+    t.index ["hash_value_digest", "hash_list_id"], name: "index_hash_items_on_hash_value_digest_and_hash_list_id"
   end
 
   create_table "hash_lists", force: :cascade do |t|
@@ -298,6 +299,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_17_061917) do
     t.datetime "time", null: false, comment: "The time of the status"
     t.datetime "time_start", null: false, comment: "The time the task started"
     t.datetime "updated_at", null: false
+    t.index ["task_id", "created_at", "id"], name: "index_hashcat_statuses_on_task_created_id_desc", order: { created_at: :desc, id: :desc }
     t.index ["task_id", "status", "time"], name: "index_hashcat_statuses_on_task_status_time", order: { time: :desc }
     t.index ["task_id"], name: "index_hashcat_statuses_on_task_id"
     t.index ["time"], name: "index_hashcat_statuses_on_time"
@@ -501,6 +503,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_17_061917) do
     t.datetime "activity_timestamp", comment: "The timestamp of the last activity on the task"
     t.bigint "agent_id", null: false, comment: "The agent that the task is assigned to, if any."
     t.bigint "attack_id", null: false, comment: "The attack that the task is associated with."
+    t.decimal "cached_progress_pct", precision: 5, scale: 2, comment: "Denormalized progress percentage from latest HashcatStatus"
     t.datetime "claimed_at"
     t.bigint "claimed_by_agent_id"
     t.datetime "created_at", null: false

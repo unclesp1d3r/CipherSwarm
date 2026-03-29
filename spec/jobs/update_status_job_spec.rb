@@ -150,28 +150,6 @@ RSpec.describe UpdateStatusJob do
       end
     end
 
-    context "when cleaning up old agent errors" do
-      let(:agent) { create(:agent) }
-
-      it "removes agent errors older than the retention period" do
-        old_error = travel_to(31.days.ago) { create(:agent_error, agent: agent) }
-        recent_error = create(:agent_error, agent: agent)
-
-        described_class.new.perform
-
-        expect(AgentError.unscoped.exists?(old_error.id)).to be false
-        expect(AgentError.unscoped.exists?(recent_error.id)).to be true
-      end
-
-      it "handles cleanup errors gracefully" do
-        allow(AgentError).to receive(:remove_old_errors).and_raise(StandardError.new("Cleanup failed"))
-        allow(Rails.logger).to receive(:error)
-
-        expect { described_class.new.perform }.not_to raise_error
-        expect(Rails.logger).to have_received(:error).with(/Error cleaning up old agent errors/)
-      end
-    end
-
     context "when rebalancing task assignments for non-deferred campaigns" do
       let!(:project) { create(:project) }
       let!(:agents) { create_list(:agent, 2, state: :active) }

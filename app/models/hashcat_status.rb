@@ -26,7 +26,7 @@
 #
 # Table name: hashcat_statuses
 #
-#  id                                                       :bigint           not null, primary key
+#  id                                                       :bigint           not null, primary key, indexed => [task_id, created_at]
 #  estimated_stop(The estimated time of completion)         :datetime
 #  original_line(The original line from the hashcat output) :text
 #  progress(The progress in percentage)                     :bigint           is an Array
@@ -39,15 +39,16 @@
 #  target(The target file)                                  :string           not null
 #  time(The time of the status)                             :datetime         not null, indexed => [task_id, status], indexed
 #  time_start(The time the task started)                    :datetime         not null
-#  created_at                                               :datetime         not null
+#  created_at                                               :datetime         not null, indexed => [task_id, id]
 #  updated_at                                               :datetime         not null
-#  task_id                                                  :bigint           not null, indexed, indexed => [status, time]
+#  task_id                                                  :bigint           not null, indexed => [created_at, id], indexed, indexed => [status, time]
 #
 # Indexes
 #
-#  index_hashcat_statuses_on_task_id           (task_id)
-#  index_hashcat_statuses_on_task_status_time  (task_id,status,time DESC)
-#  index_hashcat_statuses_on_time              (time)
+#  index_hashcat_statuses_on_task_created_id_desc  (task_id,created_at DESC,id DESC)
+#  index_hashcat_statuses_on_task_id               (task_id)
+#  index_hashcat_statuses_on_task_status_time      (task_id,status,time DESC)
+#  index_hashcat_statuses_on_time                  (time)
 #
 # Foreign Keys
 #
@@ -87,6 +88,37 @@ class HashcatStatus < ApplicationRecord
 
   scope :latest, -> { order(time: :desc).first }
   scope :older_than, ->(time) { where(time: ...time) }
+
+  # States for which status trimming applies. Includes all non-terminal states
+  # (pending, running, paused, failed) since these tasks may still accumulate statuses.
+  TRIMMABLE_STATES = %w[pending running paused failed].freeze
+
+  # Trims statuses beyond the limit for non-terminal tasks using a single SQL subquery.
+  # Uses ROW_NUMBER() window function to rank statuses per task and delete excess.
+  # ON DELETE CASCADE on device_statuses and hashcat_guesses handles dependents.
+  #
+  # @param limit [Integer] maximum statuses to keep per task
+  # @return [Integer] number of deleted rows
+  def self.trim_excess_for_incomplete_tasks(limit:)
+    return 0 unless limit.is_a?(Integer) && limit.positive?
+
+    states = TRIMMABLE_STATES.map { |s| connection.quote(s) }.join(", ")
+    connection.execute(sanitize_sql_array([<<~SQL.squish, limit])).cmd_tuples
+      DELETE FROM hashcat_statuses
+      WHERE id IN (
+        SELECT id FROM (
+          SELECT id,
+                 ROW_NUMBER() OVER (
+                   PARTITION BY task_id
+                   ORDER BY time DESC, id DESC
+                 ) as rn
+          FROM hashcat_statuses
+          WHERE task_id IN (SELECT id FROM tasks WHERE state IN (#{states}))
+        ) ranked
+        WHERE rn > ?
+      )
+    SQL
+  end
 
   delegate :guess_base_count, to: :hashcat_guess
   delegate :guess_base_offset, to: :hashcat_guess

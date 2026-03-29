@@ -84,6 +84,13 @@ RSpec.describe StatusSubmissionService do
         expect(task.reload.activity_timestamp).not_to eq(original_timestamp)
         expect(task.reload.activity_timestamp).to be_within(5.seconds).of(Time.zone.now)
       end
+
+      it "caches progress percentage on the task" do
+        result
+        task.reload
+        # progress: [100, 1000] = 10.0%
+        expect(task.cached_progress_pct).to eq(10.0)
+      end
     end
 
     context "when hashcat_guess is missing" do

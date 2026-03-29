@@ -75,6 +75,7 @@
 #
 #  id                                                                                                     :bigint           not null, primary key
 #  activity_timestamp(The timestamp of the last activity on the task)                                     :datetime         indexed
+#  cached_progress_pct(Denormalized progress percentage from latest HashcatStatus)                        :decimal(5, 2)
 #  claimed_at                                                                                             :datetime
 #  expires_at                                                                                             :datetime         indexed
 #  keyspace_limit(The maximum number of keyspace values to process.)                                      :integer          default(0)
@@ -123,7 +124,7 @@ class Task < ApplicationRecord
 
   belongs_to :attack, touch: true
   belongs_to :agent
-  has_many :hashcat_statuses, dependent: :destroy # We're going to want to clean these up when the task is finished.
+  has_many :hashcat_statuses, dependent: :delete_all # FK CASCADE handles device_statuses and hashcat_guesses
   has_many :agent_errors, dependent: :destroy
   validates :start_date, presence: true
 
@@ -172,6 +173,7 @@ class Task < ApplicationRecord
   # The task's current progress percentage.
   # @return [Float] The progress percentage between 0.0 and 100.0; `0.0` if no latest status is available.
   def progress_percentage
+    return cached_progress_pct unless cached_progress_pct.nil?
     latest_status&.progress_percentage || 0.0
   end
 
