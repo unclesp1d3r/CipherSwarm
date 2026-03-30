@@ -422,7 +422,7 @@ GEM
       tsort
     redis (5.4.1)
       redis-client (>= 0.22.0)
-    redis-client (0.27.0)
+    redis-client (0.28.0)
       connection_pool
     regexp_parser (2.11.3)
     reline (0.6.3)
@@ -525,7 +525,7 @@ GEM
     show_for (0.9.0)
       actionpack (>= 7.0)
       activemodel (>= 7.0)
-    sidekiq (8.1.1)
+    sidekiq (8.1.2)
       connection_pool (>= 3.0.0)
       json (>= 2.16.0)
       logger (>= 1.7.0)
@@ -688,7 +688,7 @@ DEPENDENCIES
   shoulda-callback-matchers (~> 1.1.4)
   shoulda-matchers (~> 7.0.1)
   show_for (~> 0.9.0)
-  sidekiq (~> 8.1.1)
+  sidekiq (~> 8.1.2)
   sidekiq-cron (~> 2.3.1)
   sidekiq_alive (~> 2.5.0)
   simple_form (~> 5.4.1)
