@@ -352,7 +352,7 @@ RSpec.describe "api/v1/client/agents" do
 
       let(:agent) { create(:agent) }
 
-      response(204, "successful") do
+      response(200, "successful") do
         let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
         let(:id) { agent.id }
         let(:hashcat_benchmarks) {
@@ -368,13 +368,18 @@ RSpec.describe "api/v1/client/agents" do
           }
         }
 
+        schema "$ref" => "#/components/schemas/BenchmarkReceipt"
+
         run_test! do
-          expect(response).to have_http_status(:no_content)
+          expect(response).to have_http_status(:ok)
+          body = JSON.parse(response.body, symbolize_names: true)
+          expect(body).to include(received_count: 1, processed_count: 1, failed_count: 0)
+          expect(body[:message]).to include("1 of 1")
           expect(agent.hashcat_benchmarks.reload.count).to eq(1)
         end
       end
 
-      response(204, "successful, invalid entries are skipped") do
+      response(200, "successful, invalid entries are skipped") do
         let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
         let(:id) { agent.id }
         let(:hashcat_benchmarks) {
@@ -387,8 +392,14 @@ RSpec.describe "api/v1/client/agents" do
           }
         }
 
+        schema "$ref" => "#/components/schemas/BenchmarkReceipt"
+
         run_test! do
-          expect(response).to have_http_status(:no_content)
+          expect(response).to have_http_status(:ok)
+          body = JSON.parse(response.body, symbolize_names: true)
+          expect(body[:received_count]).to eq(3)
+          expect(body[:processed_count]).to eq(1)
+          expect(body[:failed_count]).to eq(2)
           expect(agent.hashcat_benchmarks.reload.count).to eq(1)
         end
       end
@@ -415,7 +426,7 @@ RSpec.describe "api/v1/client/agents" do
         end
       end
 
-      response(204, "successful, extended benchmarks") do
+      response(200, "successful, extended benchmarks") do
         let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
         let(:id) { agent.id }
         let(:hashcat_benchmarks) {
@@ -841,13 +852,19 @@ RSpec.describe "api/v1/client/agents" do
           ] }
         }
 
+        schema "$ref" => "#/components/schemas/BenchmarkReceipt"
+
         run_test! do
-          expect(response).to have_http_status(:no_content)
+          expect(response).to have_http_status(:ok)
+          body = JSON.parse(response.body, symbolize_names: true)
+          expect(body[:received_count]).to eq(418)
+          expect(body[:processed_count]).to eq(418)
+          expect(body[:failed_count]).to eq(0)
           expect(agent.reload.hashcat_benchmarks.count).to eq(418)
         end
       end
 
-      response(204, "successful, multi-batch submission preserves all rows") do
+      response(200, "successful, multi-batch submission preserves all rows") do
         let(:Authorization) { "Bearer #{agent.token}" } # rubocop:disable RSpec/VariableName
         let(:id) { agent.id }
         let(:hashcat_benchmarks) {
@@ -866,8 +883,14 @@ RSpec.describe "api/v1/client/agents" do
                as: :json
         end
 
+        schema "$ref" => "#/components/schemas/BenchmarkReceipt"
+
         run_test! do
-          expect(response).to have_http_status(:no_content)
+          expect(response).to have_http_status(:ok)
+          body = JSON.parse(response.body, symbolize_names: true)
+          expect(body[:received_count]).to eq(1)
+          expect(body[:processed_count]).to eq(1)
+          expect(body[:failed_count]).to eq(0)
           expect(agent.hashcat_benchmarks.reload.count).to eq(2)
         end
       end
