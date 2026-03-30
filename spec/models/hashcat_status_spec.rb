@@ -265,41 +265,54 @@ RSpec.describe HashcatStatus do
   end
 
   describe ".trim_excess_for_incomplete_tasks" do
+    # The SQL orders by `time DESC, id DESC` to determine which statuses to keep.
+    # All tests use explicit, well-spaced `time` values to avoid nondeterminism
+    # from the factory's random Faker::Time generation or tied sort keys.
     let(:running_task) do
       task = create(:task)
       task.accept!
       task
     end
 
+    let(:base_time) { Time.zone.parse("2026-01-01 12:00:00") }
+
     it "trims statuses beyond the limit for incomplete tasks" do
-      15.times { create(:hashcat_status, task: running_task) }
+      15.times do |i|
+        create(:hashcat_status, task: running_task, time: base_time + i.minutes)
+      end
 
       expect { described_class.trim_excess_for_incomplete_tasks(limit: 10) }
         .to change { described_class.where(task: running_task).count }.from(15).to(10)
     end
 
-    it "keeps the most recent statuses" do
-      old = create(:hashcat_status, task: running_task, created_at: 1.hour.ago)
-      new_status = create(:hashcat_status, task: running_task, created_at: 1.minute.ago)
+    it "keeps the most recent statuses by time" do
+      oldest  = create(:hashcat_status, task: running_task, time: base_time)
+      middle  = create(:hashcat_status, task: running_task, time: base_time + 30.minutes)
+      newest  = create(:hashcat_status, task: running_task, time: base_time + 1.hour)
 
-      described_class.trim_excess_for_incomplete_tasks(limit: 1)
+      described_class.trim_excess_for_incomplete_tasks(limit: 2)
 
-      expect(described_class.exists?(new_status.id)).to be true
-      expect(described_class.exists?(old.id)).to be false
+      expect(described_class.exists?(newest.id)).to be true
+      expect(described_class.exists?(middle.id)).to be true
+      expect(described_class.exists?(oldest.id)).to be false
     end
 
     it "does not trim statuses for finished tasks" do
       task = create(:task)
       task.accept!
       task.complete!
-      create_list(:hashcat_status, 5, task: task)
+      5.times do |i|
+        create(:hashcat_status, task: task, time: base_time + i.minutes)
+      end
 
       expect { described_class.trim_excess_for_incomplete_tasks(limit: 2) }
         .not_to(change { described_class.where(task: task).count })
     end
 
     it "cascades deletes to device_statuses via FK" do
-      3.times { create(:hashcat_status, task: running_task) }
+      3.times do |i|
+        create(:hashcat_status, task: running_task, time: base_time + i.minutes)
+      end
 
       # Factory creates 2 device_statuses per hashcat_status (6 total).
       # Trimming to 1 deletes 2 statuses and their 4 device_statuses via FK CASCADE.

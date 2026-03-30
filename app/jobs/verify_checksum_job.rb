@@ -17,9 +17,8 @@
 class VerifyChecksumJob < ApplicationJob
   ALLOWED_TYPES = %w[WordList RuleList MaskList].freeze
 
-  # Discard handler for I/O errors that persist after retries.
-  # Follows the TEMP_STORAGE_DISCARD_HANDLER lambda pattern from ApplicationJob
-  # so the handler body stays reachable for undercover coverage.
+  # Extracted to a lambda constant so the handler body stays reachable for
+  # undercover coverage (same technique as ApplicationJob::TEMP_STORAGE_DISCARD_HANDLER).
   IO_ERROR_DISCARD_HANDLER = lambda { |job, error|
     begin
       resource_id   = job.arguments[0]
@@ -30,12 +29,21 @@ class VerifyChecksumJob < ApplicationJob
         "File may be missing or inaccessible. Re-upload the resource or check storage mount."
       )
     rescue StandardError => e
-      Rails.logger.error("[ChecksumVerify] Failed to log discard for job #{job.job_id}: #{e.message}") rescue nil
+      begin
+        Rails.logger.error("[ChecksumVerify] Failed to log discard for job #{job.job_id}: #{e.message}")
+      rescue StandardError
+        $stderr.puts("[ChecksumVerify] CRITICAL: Unable to log discard handler failure for job #{job.job_id}")
+      end
     end
   }
 
   queue_as :default
-  discard_on ActiveRecord::RecordNotFound
+  discard_on ActiveRecord::RecordNotFound do |job, _error|
+    Rails.logger.info(
+      "[ChecksumVerify] Discarded — #{job.arguments[1]}##{job.arguments[0]} no longer exists. " \
+      "Job ID: #{job.job_id}."
+    )
+  end
   retry_on Errno::EIO, Errno::ENOENT, Errno::EACCES,
            wait: :polynomially_longer,
            attempts: 5,
@@ -48,8 +56,8 @@ class VerifyChecksumJob < ApplicationJob
     file_path = resolve_file_path(resource)
 
     unless file_path
+      Rails.logger.error { "[ChecksumVerify] FILE_PATH_BLANK: #{resource_type}##{resource_id} — no file_path configured. Re-upload recommended." }
       resource.update_column(:updated_at, Time.current) # rubocop:disable Rails/SkipsModelValidations
-      Rails.logger.error { "[ChecksumVerify] FILE_NOT_FOUND: #{resource_type}##{resource_id} — file_path absent or missing on disk. Re-upload recommended." }
       return
     end
 
@@ -72,9 +80,15 @@ class VerifyChecksumJob < ApplicationJob
 
   private
 
+  # Returns the file path if configured and present on disk.
+  # Raises Errno::ENOENT (triggering retry_on) if the path is configured but the file
+  # is missing — this handles transient mount/storage failures.
+  # Returns nil only when file_path is blank (metadata issue, not retryable).
   def resolve_file_path(resource)
-    return resource.file_path if resource.file_path.present? && File.exist?(resource.file_path)
+    return nil if resource.file_path.blank?
 
-    nil
+    raise Errno::ENOENT, "File not found at #{resource.file_path}" unless File.exist?(resource.file_path)
+
+    resource.file_path
   end
 end

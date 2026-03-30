@@ -161,6 +161,32 @@ RSpec.describe RequeueUnverifiedResourcesJob do
       expect(described_class.new.queue_name).to eq("low")
     end
 
+    describe "error isolation" do
+      it "continues processing other resource types when one fails" do
+        allow(WordList).to receive(:checksum_unverified).and_raise(StandardError.new("DB error"))
+        rule = create(:rule_list, checksum_verified: false)
+        rule.update_column(:updated_at, 7.hours.ago) # rubocop:disable Rails/SkipsModelValidations
+        allow(VerifyChecksumJob).to receive(:perform_later)
+        allow(Rails.logger).to receive(:error)
+        allow(Rails.logger).to receive(:info)
+
+        job.perform
+
+        expect(VerifyChecksumJob).to have_received(:perform_later).with(rule.id, "RuleList")
+      end
+
+      it "reports correct count when multiple resource types fail" do
+        allow(WordList).to receive(:checksum_unverified).and_raise(StandardError.new("DB error"))
+        allow(RuleList).to receive(:checksum_unverified).and_raise(StandardError.new("DB error"))
+        allow(Rails.logger).to receive(:error)
+        allow(Rails.logger).to receive(:info)
+
+        job.perform
+
+        expect(Rails.logger).to have_received(:error).with(/Requeue completed with 2 failure.*word_lists.*rule_lists/)
+      end
+    end
+
     describe "sweep summary" do
       it "logs success when all resource types processed without error" do
         allow(Rails.logger).to receive(:info)
@@ -174,6 +200,7 @@ RSpec.describe RequeueUnverifiedResourcesJob do
       it "reports a summary when requeue operations fail" do
         allow(WordList).to receive(:checksum_unverified).and_raise(StandardError.new("DB error"))
         allow(Rails.logger).to receive(:error)
+        allow(Rails.logger).to receive(:info)
 
         job.perform
 
@@ -185,6 +212,7 @@ RSpec.describe RequeueUnverifiedResourcesJob do
         error.set_backtrace(["line1.rb:1:in `method'", "line2.rb:2:in `other'"])
         allow(WordList).to receive(:checksum_unverified).and_raise(error)
         allow(Rails.logger).to receive(:error)
+        allow(Rails.logger).to receive(:info)
 
         job.perform
 
@@ -196,6 +224,7 @@ RSpec.describe RequeueUnverifiedResourcesJob do
         allow(error).to receive(:backtrace).and_return(nil)
         allow(WordList).to receive(:checksum_unverified) { raise error }
         allow(Rails.logger).to receive(:error)
+        allow(Rails.logger).to receive(:info)
 
         job.perform
 

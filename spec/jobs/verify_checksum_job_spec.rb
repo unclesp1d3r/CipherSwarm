@@ -59,29 +59,40 @@ RSpec.describe VerifyChecksumJob do
       end
     end
 
-    context "when file_path does not exist and no Active Storage fallback" do
-      it "logs error and returns" do
-        # Purge AS attachment so fallback doesn't kick in
+    context "when file_path is blank" do
+      it "logs FILE_PATH_BLANK error and returns" do
         word_list.file.purge if word_list.file.attached?
-        word_list.update_columns(file_path: "/nonexistent/path.txt") # rubocop:disable Rails/SkipsModelValidations
+        word_list.update_columns(file_path: nil) # rubocop:disable Rails/SkipsModelValidations
 
         error_messages = []
         allow(Rails.logger).to receive(:error) { |*args, &block| error_messages << (block ? block.call : args.first) }
 
         described_class.perform_now(word_list.id, "WordList")
 
-        expect(error_messages).to include(match(/FILE_NOT_FOUND.*WordList/))
+        expect(error_messages).to include(match(/FILE_PATH_BLANK.*WordList/))
       end
 
       it "touches updated_at to prevent immediate re-enqueue by cron sweep" do
         word_list.file.purge if word_list.file.attached?
-        word_list.update_columns(file_path: "/nonexistent/path.txt", updated_at: 7.hours.ago) # rubocop:disable Rails/SkipsModelValidations
+        word_list.update_columns(file_path: nil, updated_at: 7.hours.ago) # rubocop:disable Rails/SkipsModelValidations
         allow(Rails.logger).to receive(:error)
 
         freeze_time do
           described_class.perform_now(word_list.id, "WordList")
           expect(word_list.reload.updated_at).to be_within(1.second).of(Time.current)
         end
+      end
+
+      it "handles empty string file_path the same as nil" do
+        word_list.file.purge if word_list.file.attached?
+        word_list.update_columns(file_path: "") # rubocop:disable Rails/SkipsModelValidations
+
+        error_messages = []
+        allow(Rails.logger).to receive(:error) { |*args, &block| error_messages << (block ? block.call : args.first) }
+
+        described_class.perform_now(word_list.id, "WordList")
+
+        expect(error_messages).to include(match(/FILE_PATH_BLANK.*WordList/))
       end
     end
 
@@ -114,17 +125,27 @@ RSpec.describe VerifyChecksumJob do
         expect(error_messages).to include(match(/Errno::EACCES/))
       end
 
-      it "IO_ERROR_DISCARD_HANDLER does not raise when logging fails" do
+      it "IO_ERROR_DISCARD_HANDLER falls back to $stderr when logging fails" do
         error = Errno::EIO.new("I/O error")
         allow(Rails.logger).to receive(:error).and_raise(RuntimeError, "logging broken")
 
-        expect { described_class::IO_ERROR_DISCARD_HANDLER.call(job_double, error) }.not_to raise_error
+        expect { described_class::IO_ERROR_DISCARD_HANDLER.call(job_double, error) }
+          .to output(/CRITICAL.*Unable to log discard/).to_stderr
       end
     end
 
     context "when record is not found" do
       it "discards the job without raising" do
         expect { described_class.perform_now(0, "WordList") }.not_to raise_error
+      end
+
+      it "logs the discard at info level" do
+        info_messages = []
+        allow(Rails.logger).to receive(:info) { |*args, &block| info_messages << (block ? block.call : args.first) }
+
+        described_class.perform_now(0, "WordList")
+
+        expect(info_messages).to include(match(/ChecksumVerify.*Discarded.*WordList#0.*no longer exists/))
       end
     end
 
@@ -177,6 +198,13 @@ RSpec.describe VerifyChecksumJob do
     it "re-enqueues on Errno::EACCES (retry before exhaustion)" do
       word_list.update_columns(checksum: nil, checksum_verified: false) # rubocop:disable Rails/SkipsModelValidations
       allow(Digest::MD5).to receive(:file).and_raise(Errno::EACCES, "Permission denied")
+
+      expect { described_class.perform_now(word_list.id, "WordList") }
+        .to have_enqueued_job(described_class).with(word_list.id, "WordList")
+    end
+
+    it "retries when file_path is set but file is missing on disk (transient mount failure)" do
+      word_list.update_columns(file_path: "/mnt/storage/missing.txt", checksum_verified: false) # rubocop:disable Rails/SkipsModelValidations
 
       expect { described_class.perform_now(word_list.id, "WordList") }
         .to have_enqueued_job(described_class).with(word_list.id, "WordList")

@@ -10,8 +10,8 @@
 #   VerifyChecksumJob so they get another verification attempt.
 # - Alternatives: rely on operators to notice unverified resources in the dashboard
 #   (unacceptable — air-gapped deployments have no external monitoring), add retry
-#   logic inside VerifyChecksumJob itself (already has retries, but discards after
-#   exhaustion with no re-enqueue mechanism).
+#   logic inside VerifyChecksumJob itself (already had retries, but previously
+#   discarded after exhaustion with no re-enqueue mechanism — this job fills that gap).
 # - Decision: periodic sweep job following DataCleanupJob's proven structure with
 #   per-resource-type error isolation and summary logging.
 # - Threshold: configurable via ApplicationConfig.checksum_verification_retry_threshold
@@ -32,9 +32,8 @@ class RequeueUnverifiedResourcesJob < ApplicationJob
       requeue_rule_lists
       requeue_mask_lists
     end
-
-    report_summary
   ensure
+    report_summary
     ActiveRecord::Base.connection_handler.clear_active_connections!
   end
 
@@ -54,28 +53,13 @@ class RequeueUnverifiedResourcesJob < ApplicationJob
     end
   end
 
-  # Re-enqueues VerifyChecksumJob for stale unverified word lists.
-  #
-  # @return [void]
-  def requeue_word_lists
-    requeue_resources(WordList, :word_lists)
-  end
+  def requeue_word_lists = requeue_resources(WordList, :word_lists)
+  def requeue_rule_lists = requeue_resources(RuleList, :rule_lists)
+  def requeue_mask_lists = requeue_resources(MaskList, :mask_lists)
 
-  # Re-enqueues VerifyChecksumJob for stale unverified rule lists.
-  #
-  # @return [void]
-  def requeue_rule_lists
-    requeue_resources(RuleList, :rule_lists)
-  end
-
-  # Re-enqueues VerifyChecksumJob for stale unverified mask lists.
-  #
-  # @return [void]
-  def requeue_mask_lists
-    requeue_resources(MaskList, :mask_lists)
-  end
-
-  # Shared logic for re-enqueuing unverified resources of a given type.
+  # Enqueues VerifyChecksumJob for each stale unverified resource of the given type.
+  # Touches updated_at on each resource to reset the staleness clock, preventing
+  # duplicate enqueues on subsequent sweep runs.
   #
   # @param model_class [Class] the ActiveRecord model to query
   # @param failure_key [Symbol] identifier for failure tracking
@@ -86,8 +70,8 @@ class RequeueUnverifiedResourcesJob < ApplicationJob
 
     count = 0
     stale_resources.find_each do |resource|
-      resource.update_column(:updated_at, Time.current) # rubocop:disable Rails/SkipsModelValidations
       VerifyChecksumJob.perform_later(resource.id, resource.class.name)
+      resource.update_column(:updated_at, Time.current) # rubocop:disable Rails/SkipsModelValidations
       count += 1
     end
 

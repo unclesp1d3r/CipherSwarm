@@ -2,7 +2,7 @@
 
 # Adds partial indexes to support the RequeueUnverifiedResourcesJob sweep query:
 #   WHERE checksum_verified = false AND updated_at < cutoff
-# Without these, each 6-hour cron run performs full-table scans on all three
+# Without these, each periodic cron run performs full-table scans on all three
 # resource tables. Partial indexes keep the index small (only unverified rows)
 # and avoid impacting write performance on the majority of verified rows.
 class AddChecksumSweepIndexes < ActiveRecord::Migration[8.1]
