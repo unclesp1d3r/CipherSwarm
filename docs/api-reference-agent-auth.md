@@ -319,8 +319,28 @@ The configuration response includes three additional top-level keys that provide
 
 **Responses:**
 
-- `204`: Successful - No content
+- `200`: Successful - Returns a JSON `BenchmarkReceipt` object
 - `422`: Validation error
+
+#### Response Body — `BenchmarkReceipt`
+
+| Field             | Type    | Required | Description                                                         |
+| ----------------- | ------- | -------- | ------------------------------------------------------------------- |
+| `received_count`  | integer | Yes      | Number of benchmark entries received in the request                 |
+| `processed_count` | integer | Yes      | Number of benchmark entries successfully stored                     |
+| `failed_count`    | integer | Yes      | Number of benchmark entries rejected due to validation failures     |
+| `message`         | string  | No       | Human-readable summary of the submission result                     |
+
+**Example Response:**
+
+```json
+{
+  "received_count": 3,
+  "processed_count": 1,
+  "failed_count": 2,
+  "message": "Successfully processed 1 of 3 benchmarks"
+}
+```
 
 ### POST `/api/v1/client/agents/{id}/submit_error`
 

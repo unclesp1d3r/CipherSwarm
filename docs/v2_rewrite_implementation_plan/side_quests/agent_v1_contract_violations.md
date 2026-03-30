@@ -63,7 +63,7 @@
 | agent.py                     | /client/agents/heartbeat                    | Path/Verb/Contract | POST used, but contract requires POST to `/client/agents/{id}/heartbeat` |
 | agent.py                     | /client/agents/register                     | Extra Endpoint     | Not present in contract (legacy/compat only)                             |
 | agent.py                     | /client/agents/state                        | Extra Endpoint     | Not present in contract (legacy/compat only)                             |
-| agent.py                     | /client/agents/{id}/submit_benchmark        | Path/Param/Model   | Path and model may not match contract                                    |
+| agent.py                     | /client/agents/{id}/submit_benchmark        | Path/Param/Model   | Path param name mismatch; success response now `200 OK` with `BenchmarkReceipt` (resolved); error envelope may not match |
 | agent.py                     | /client/agents/{id}/submit_error            | Path/Param/Model   | Path and model may not match contract                                    |
 | agent.py                     | /client/agents/{id}/shutdown                | Path/Param         | Path and param may not match contract                                    |
 | attacks.py                   | /client/attacks/{id}                        | Param Naming       | Uses `{attack_id}` instead of `{id}`                                     |
@@ -117,15 +117,16 @@
 
 - **Contract:**
   - Path param: `id` (integer, required)
-  - POST: request body `{ "hashcat_benchmarks": [ ... ] }`, 204 on success, 400/401 errors as `{ "error": ... }`
+  - POST: request body `{ "hashcat_benchmarks": [ ... ] }`, 200 on success with `BenchmarkReceipt` JSON body (`received_count`, `processed_count`, `failed_count`, `message`), 400/401 errors as `{ "error": ... }`
 - **Implementation:**
   - Path param is `{agent_id}`
-  - Request body model may not match contract (check for required array, field names)
+  - Returns `200 OK` with `BenchmarkReceipt` JSON body on success; contract updated in `swagger/v1/swagger.json` to match
   - Error envelope may not match
 - **Violations:**
   - [MISMATCH] Path param name
-  - [MISMATCH] Request body schema
   - [MISMATCH] Error envelope
+- **Resolved:**
+  - [OK] Success response: implementation returns `200 OK` with `BenchmarkReceipt` schema; OpenAPI spec updated to match
 
 ### `/api/v1/client/agents/{id}/submit_error` (POST)
 

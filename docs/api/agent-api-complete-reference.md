@@ -256,7 +256,28 @@ Submit hashcat benchmark results.
 }
 ```
 
-**Response** (204 No Content): Benchmarks accepted.
+**Response** (200 OK): Benchmarks processed. Returns a `BenchmarkReceipt` object:
+
+```json
+{
+  "received_count": 2,
+  "processed_count": 2,
+  "failed_count": 0,
+  "message": "Successfully processed 2 of 2 benchmarks"
+}
+```
+
+**BenchmarkReceipt Fields**:
+
+| Field             | Type    | Required | Description                                                    |
+| ----------------- | ------- | -------- | -------------------------------------------------------------- |
+| `received_count`  | integer | Yes      | Number of benchmark entries received in the request            |
+| `processed_count` | integer | Yes      | Number of benchmark entries successfully stored                |
+| `failed_count`    | integer | Yes      | Number of benchmark entries rejected due to validation failures |
+| `message`         | string  | No       | Human-readable summary of the submission result                |
+
+> [!NOTE]
+> Invalid individual entries are silently skipped — the endpoint returns `200 OK` as long as at least one entry is valid. Only when all entries are invalid does the server return `422`. Check `failed_count` in the receipt to detect partial failures.
 
 **Response** (400 Bad Request):
 
