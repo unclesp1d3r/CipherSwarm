@@ -70,9 +70,14 @@ class RequeueUnverifiedResourcesJob < ApplicationJob
 
     count = 0
     stale_resources.find_each do |resource|
-      VerifyChecksumJob.perform_later(resource.id, resource.class.name)
-      resource.update_column(:updated_at, Time.current) # rubocop:disable Rails/SkipsModelValidations
-      count += 1
+      begin
+        VerifyChecksumJob.perform_later(resource.id, resource.class.name)
+        resource.update_column(:updated_at, Time.current) # rubocop:disable Rails/SkipsModelValidations
+        count += 1
+      rescue StandardError => e
+        @failures << failure_key unless @failures.include?(failure_key)
+        log_requeue_error("#{model_class.name}##{resource.id}", e)
+      end
     end
 
     if count.positive?

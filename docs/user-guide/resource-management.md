@@ -671,10 +671,10 @@ curl -I https://CipherSwarm.example.com/api/v1/web/resources/
 
 - **Cause**: Normal for large files (>1 GB) immediately after upload — verification runs as a background job
 - **Expected Duration**: Typically completes within minutes, depending on file size and server load
-- **Automatic Recovery**: The system automatically re-enqueues verification every 6 hours for resources that remain unverified. Transient issues (temporary storage problems, I/O errors) should resolve without manual intervention.
+- **Automatic Recovery**: The system automatically re-enqueues verification on a configurable sweep interval (default: every 6 hours) for resources that remain unverified. Transient issues (temporary storage problems, I/O errors) should resolve without manual intervention.
 - **Admin Monitoring**: Administrators can view unverified resources in the admin dashboards (WordList, RuleList, MaskList) using the `unverified:` collection filter
-- **When to be concerned**: If status remains false for more than 6 hours after automatic recovery attempts, or if it changes to failed
-- **Solution**: Resources should automatically recover within 6 hours if the issue was transient. For persistent failures, check server logs or contact administrator. Re-upload may be required if the file is corrupt or inaccessible.
+- **When to be concerned**: If status remains false beyond the configured retry threshold and at least one subsequent requeue cycle, or if it changes to failed
+- **Solution**: Resources should automatically recover after the next scheduled sweep if the issue was transient. For persistent failures, check server logs or contact administrator. Re-upload may be required if the file is corrupt or inaccessible.
 
 ### 2. Edit Restrictions
 

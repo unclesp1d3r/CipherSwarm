@@ -175,6 +175,37 @@ RSpec.describe RequeueUnverifiedResourcesJob do
         expect(VerifyChecksumJob).to have_received(:perform_later).with(rule.id, "RuleList")
       end
 
+      it "continues processing remaining resources when perform_later raises for one" do
+        first = create(:word_list, checksum_verified: false)
+        first.update_column(:updated_at, 7.hours.ago) # rubocop:disable Rails/SkipsModelValidations
+        first_original_updated_at = first.reload.updated_at
+
+        second = create(:word_list, checksum_verified: false)
+        second.update_column(:updated_at, 7.hours.ago) # rubocop:disable Rails/SkipsModelValidations
+
+        call_count = 0
+        allow(VerifyChecksumJob).to receive(:perform_later) do |id, _klass|
+          call_count += 1
+          raise StandardError, "Redis down" if id == first.id
+        end
+        allow(Rails.logger).to receive(:error)
+        allow(Rails.logger).to receive(:info)
+
+        freeze_time do
+          job.perform
+
+          # First resource errored — updated_at should NOT be bumped
+          expect(first.reload.updated_at).to eq(first_original_updated_at)
+
+          # Second resource succeeded — updated_at SHOULD be bumped
+          expect(second.reload.updated_at).to be_within(1.second).of(Time.current)
+        end
+
+        # Both resources were attempted
+        expect(VerifyChecksumJob).to have_received(:perform_later).with(first.id, "WordList")
+        expect(VerifyChecksumJob).to have_received(:perform_later).with(second.id, "WordList")
+      end
+
       it "reports correct count when multiple resource types fail" do
         allow(WordList).to receive(:checksum_unverified).and_raise(StandardError.new("DB error"))
         allow(RuleList).to receive(:checksum_unverified).and_raise(StandardError.new("DB error"))

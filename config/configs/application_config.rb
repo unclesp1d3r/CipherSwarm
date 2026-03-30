@@ -117,5 +117,11 @@ class ApplicationConfig < Anyway::Config
               "#{attr} must be a positive integer, got: #{value.inspect}"
       end
     end
+
+    threshold = checksum_verification_retry_threshold
+    return if threshold.respond_to?(:positive?) && threshold.positive?
+
+    raise Anyway::Config::ValidationError,
+          "checksum_verification_retry_threshold must be positive, got: #{threshold.inspect}"
   end
 end

@@ -297,6 +297,16 @@ RSpec.describe HashcatStatus do
       expect(described_class.exists?(oldest.id)).to be false
     end
 
+    it "breaks ties on equal time values by keeping the higher id" do
+      earlier_id = create(:hashcat_status, task: running_task, time: base_time)
+      later_id   = create(:hashcat_status, task: running_task, time: base_time)
+
+      described_class.trim_excess_for_incomplete_tasks(limit: 1)
+
+      expect(described_class.exists?(later_id.id)).to be true
+      expect(described_class.exists?(earlier_id.id)).to be false
+    end
+
     it "does not trim statuses for finished tasks" do
       task = create(:task)
       task.accept!
