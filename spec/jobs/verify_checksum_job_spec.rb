@@ -3,6 +3,8 @@
 require "rails_helper"
 
 RSpec.describe VerifyChecksumJob do
+  include ActiveSupport::Testing::TimeHelpers
+
   let(:word_list) { create(:word_list) }
   let(:temp_dir) { Rails.root.join("tmp/test_attack_resources") }
   let(:test_file_path) { File.join(temp_dir, "test-wordlist.txt") }
@@ -69,6 +71,17 @@ RSpec.describe VerifyChecksumJob do
         described_class.perform_now(word_list.id, "WordList")
 
         expect(error_messages).to include(match(/FILE_NOT_FOUND.*WordList/))
+      end
+
+      it "touches updated_at to prevent immediate re-enqueue by cron sweep" do
+        word_list.file.purge if word_list.file.attached?
+        word_list.update_columns(file_path: "/nonexistent/path.txt", updated_at: 7.hours.ago) # rubocop:disable Rails/SkipsModelValidations
+        allow(Rails.logger).to receive(:error)
+
+        freeze_time do
+          described_class.perform_now(word_list.id, "WordList")
+          expect(word_list.reload.updated_at).to be_within(1.second).of(Time.current)
+        end
       end
     end
 
@@ -156,6 +169,26 @@ RSpec.describe VerifyChecksumJob do
     it "re-enqueues on Errno::ENOENT (retry before exhaustion)" do
       word_list.update_columns(checksum: nil, checksum_verified: false) # rubocop:disable Rails/SkipsModelValidations
       allow(Digest::MD5).to receive(:file).and_raise(Errno::ENOENT, "No such file")
+
+      expect { described_class.perform_now(word_list.id, "WordList") }
+        .to have_enqueued_job(described_class).with(word_list.id, "WordList")
+    end
+
+    it "re-enqueues on Errno::EACCES (retry before exhaustion)" do
+      word_list.update_columns(checksum: nil, checksum_verified: false) # rubocop:disable Rails/SkipsModelValidations
+      allow(Digest::MD5).to receive(:file).and_raise(Errno::EACCES, "Permission denied")
+
+      expect { described_class.perform_now(word_list.id, "WordList") }
+        .to have_enqueued_job(described_class).with(word_list.id, "WordList")
+    end
+
+    it "retries when file disappears between exist check and checksum (TOCTOU race)" do
+      word_list.update_columns(checksum: nil, checksum_verified: false) # rubocop:disable Rails/SkipsModelValidations
+      # File.exist? returns true (resolve_file_path passes), but Digest::MD5.file
+      # raises ENOENT because the file was deleted between the two calls.
+      allow(File).to receive(:exist?).and_call_original
+      allow(File).to receive(:exist?).with(test_file_path).and_return(true)
+      allow(Digest::MD5).to receive(:file).with(test_file_path).and_raise(Errno::ENOENT, "deleted mid-flight")
 
       expect { described_class.perform_now(word_list.id, "WordList") }
         .to have_enqueued_job(described_class).with(word_list.id, "WordList")
