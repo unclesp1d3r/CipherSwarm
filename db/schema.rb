@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_28_180541) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_29_211021) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -323,6 +323,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_28_180541) do
     t.index ["creator_id"], name: "index_mask_lists_on_creator_id"
     t.index ["name"], name: "index_mask_lists_on_name", unique: true
     t.index ["processed"], name: "index_mask_lists_on_processed"
+    t.index ["updated_at"], name: "index_mask_lists_on_updated_at_checksum_unverified", where: "(checksum_verified = false)"
   end
 
   create_table "mask_lists_projects", id: false, force: :cascade do |t|
@@ -390,6 +391,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_28_180541) do
     t.datetime "updated_at", null: false
     t.index ["creator_id"], name: "index_rule_lists_on_creator_id"
     t.index ["name"], name: "index_rule_lists_on_name", unique: true
+    t.index ["updated_at"], name: "index_rule_lists_on_updated_at_checksum_unverified", where: "(checksum_verified = false)"
   end
 
   create_table "sessions", force: :cascade do |t|
@@ -586,6 +588,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_28_180541) do
     t.index ["creator_id"], name: "index_word_lists_on_creator_id"
     t.index ["name"], name: "index_word_lists_on_name", unique: true
     t.index ["processed"], name: "index_word_lists_on_processed"
+    t.index ["updated_at"], name: "index_word_lists_on_updated_at_checksum_unverified", where: "(checksum_verified = false)"
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"

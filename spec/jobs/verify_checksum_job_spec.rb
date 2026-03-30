@@ -3,6 +3,8 @@
 require "rails_helper"
 
 RSpec.describe VerifyChecksumJob do
+  include ActiveSupport::Testing::TimeHelpers
+
   let(:word_list) { create(:word_list) }
   let(:temp_dir) { Rails.root.join("tmp/test_attack_resources") }
   let(:test_file_path) { File.join(temp_dir, "test-wordlist.txt") }
@@ -57,24 +59,93 @@ RSpec.describe VerifyChecksumJob do
       end
     end
 
-    context "when file_path does not exist and no Active Storage fallback" do
-      it "logs warning and returns" do
-        # Purge AS attachment so fallback doesn't kick in
+    context "when file_path is blank" do
+      it "logs FILE_PATH_BLANK error and returns" do
         word_list.file.purge if word_list.file.attached?
-        word_list.update_columns(file_path: "/nonexistent/path.txt") # rubocop:disable Rails/SkipsModelValidations
+        word_list.update_columns(file_path: nil) # rubocop:disable Rails/SkipsModelValidations
 
-        warn_messages = []
-        allow(Rails.logger).to receive(:warn) { |*args, &block| warn_messages << (block ? block.call : args.first) }
+        error_messages = []
+        allow(Rails.logger).to receive(:error) { |*args, &block| error_messages << (block ? block.call : args.first) }
 
         described_class.perform_now(word_list.id, "WordList")
 
-        expect(warn_messages).to include(match(/No file found/))
+        expect(error_messages).to include(match(/FILE_PATH_BLANK.*WordList/))
+      end
+
+      it "touches updated_at to prevent immediate re-enqueue by cron sweep" do
+        word_list.file.purge if word_list.file.attached?
+        word_list.update_columns(file_path: nil, updated_at: 7.hours.ago) # rubocop:disable Rails/SkipsModelValidations
+        allow(Rails.logger).to receive(:error)
+
+        freeze_time do
+          described_class.perform_now(word_list.id, "WordList")
+          expect(word_list.reload.updated_at).to be_within(1.second).of(Time.current)
+        end
+      end
+
+      it "handles empty string file_path the same as nil" do
+        word_list.file.purge if word_list.file.attached?
+        word_list.update_columns(file_path: "") # rubocop:disable Rails/SkipsModelValidations
+
+        error_messages = []
+        allow(Rails.logger).to receive(:error) { |*args, &block| error_messages << (block ? block.call : args.first) }
+
+        described_class.perform_now(word_list.id, "WordList")
+
+        expect(error_messages).to include(match(/FILE_PATH_BLANK.*WordList/))
+      end
+    end
+
+    context "when an I/O error is raised during checksum computation" do
+      let(:job_double) do
+        instance_double(described_class, arguments: [word_list.id, "WordList"], job_id: "test-job-123")
+      end
+
+      it "IO_ERROR_DISCARD_HANDLER logs error with resource details" do
+        error = Errno::ENOENT.new("No such file or directory - /mnt/data/missing.txt")
+
+        error_messages = []
+        allow(Rails.logger).to receive(:error) { |*args, &block| error_messages << (block ? block.call : args.first) }
+
+        described_class::IO_ERROR_DISCARD_HANDLER.call(job_double, error)
+
+        expect(error_messages).to include(match(/ChecksumVerify.*FILE_IO_FAILURE.*WordList##{word_list.id}/))
+        expect(error_messages).to include(match(/Re-upload the resource or check storage mount/))
+      end
+
+      it "IO_ERROR_DISCARD_HANDLER includes job ID and error class" do
+        error = Errno::EACCES.new("Permission denied - /mnt/data/locked.txt")
+
+        error_messages = []
+        allow(Rails.logger).to receive(:error) { |*args, &block| error_messages << (block ? block.call : args.first) }
+
+        described_class::IO_ERROR_DISCARD_HANDLER.call(job_double, error)
+
+        expect(error_messages).to include(match(/Job ID: test-job-123/))
+        expect(error_messages).to include(match(/Errno::EACCES/))
+      end
+
+      it "IO_ERROR_DISCARD_HANDLER falls back to $stderr when logging fails" do
+        error = Errno::EIO.new("I/O error")
+        allow(Rails.logger).to receive(:error).and_raise(RuntimeError, "logging broken")
+
+        expect { described_class::IO_ERROR_DISCARD_HANDLER.call(job_double, error) }
+          .to output(/CRITICAL.*Unable to log discard/).to_stderr
       end
     end
 
     context "when record is not found" do
       it "discards the job without raising" do
         expect { described_class.perform_now(0, "WordList") }.not_to raise_error
+      end
+
+      it "logs the discard at info level" do
+        info_messages = []
+        allow(Rails.logger).to receive(:info) { |*args, &block| info_messages << (block ? block.call : args.first) }
+
+        described_class.perform_now(0, "WordList")
+
+        expect(info_messages).to include(match(/ChecksumVerify.*Discarded.*WordList#0.*no longer exists/))
       end
     end
 
@@ -88,6 +159,84 @@ RSpec.describe VerifyChecksumJob do
       it "raises ArgumentError" do
         expect { described_class.perform_now(1, "User") }.to raise_error(ArgumentError, /Invalid resource type/)
       end
+    end
+  end
+
+  describe "retry_on configuration" do
+    around do |example|
+      original_adapter = ActiveJob::Base.queue_adapter
+      ActiveJob::Base.queue_adapter = :test
+      example.run
+    ensure
+      ActiveJob::Base.queue_adapter = original_adapter
+    end
+
+    it "configures retry_on for Errno::EIO, Errno::ENOENT, and Errno::EACCES" do
+      handled_exceptions = described_class.rescue_handlers.map(&:first)
+
+      expect(handled_exceptions).to include("Errno::EIO")
+      expect(handled_exceptions).to include("Errno::ENOENT")
+      expect(handled_exceptions).to include("Errno::EACCES")
+    end
+
+    it "re-enqueues on Errno::EIO (retry before exhaustion)" do
+      word_list.update_columns(checksum: nil, checksum_verified: false) # rubocop:disable Rails/SkipsModelValidations
+      allow(Digest::MD5).to receive(:file).and_raise(Errno::EIO, "I/O error")
+
+      expect { described_class.perform_now(word_list.id, "WordList") }
+        .to have_enqueued_job(described_class).with(word_list.id, "WordList")
+    end
+
+    it "re-enqueues on Errno::ENOENT (retry before exhaustion)" do
+      word_list.update_columns(checksum: nil, checksum_verified: false) # rubocop:disable Rails/SkipsModelValidations
+      allow(Digest::MD5).to receive(:file).and_raise(Errno::ENOENT, "No such file")
+
+      expect { described_class.perform_now(word_list.id, "WordList") }
+        .to have_enqueued_job(described_class).with(word_list.id, "WordList")
+    end
+
+    it "re-enqueues on Errno::EACCES (retry before exhaustion)" do
+      word_list.update_columns(checksum: nil, checksum_verified: false) # rubocop:disable Rails/SkipsModelValidations
+      allow(Digest::MD5).to receive(:file).and_raise(Errno::EACCES, "Permission denied")
+
+      expect { described_class.perform_now(word_list.id, "WordList") }
+        .to have_enqueued_job(described_class).with(word_list.id, "WordList")
+    end
+
+    it "retries when file_path is set but file is missing on disk (transient mount failure)" do
+      word_list.update_columns(file_path: "/mnt/storage/missing.txt", checksum_verified: false) # rubocop:disable Rails/SkipsModelValidations
+
+      expect { described_class.perform_now(word_list.id, "WordList") }
+        .to have_enqueued_job(described_class).with(word_list.id, "WordList")
+    end
+
+    it "retries when file disappears between exist check and checksum (TOCTOU race)" do
+      word_list.update_columns(checksum: nil, checksum_verified: false) # rubocop:disable Rails/SkipsModelValidations
+      # File.exist? returns true (resolve_file_path passes), but Digest::MD5.file
+      # raises ENOENT because the file was deleted between the two calls.
+      allow(File).to receive(:exist?).and_call_original
+      allow(File).to receive(:exist?).with(test_file_path).and_return(true)
+      allow(Digest::MD5).to receive(:file).with(test_file_path).and_raise(Errno::ENOENT, "deleted mid-flight")
+
+      expect { described_class.perform_now(word_list.id, "WordList") }
+        .to have_enqueued_job(described_class).with(word_list.id, "WordList")
+    end
+
+    it "discards and calls handler after exhausting all 5 attempts" do
+      word_list.update_columns(checksum: nil, checksum_verified: false) # rubocop:disable Rails/SkipsModelValidations
+      allow(Digest::MD5).to receive(:file).and_raise(Errno::EACCES, "Permission denied")
+
+      error_messages = []
+      allow(Rails.logger).to receive(:error) { |*args, &block| error_messages << (block ? block.call : args.first) }
+
+      # Simulate exhausted retries by setting exception_executions to the max
+      job = described_class.new(word_list.id, "WordList")
+      job.exception_executions["[Errno::EIO, Errno::ENOENT, Errno::EACCES]"] = 4
+
+      expect { job.perform_now }
+        .not_to have_enqueued_job(described_class)
+
+      expect(error_messages).to include(match(/FILE_IO_FAILURE/))
     end
   end
 end

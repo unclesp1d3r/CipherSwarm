@@ -57,13 +57,14 @@
 #  processed                                    :boolean          default(FALSE), not null
 #  sensitive(Sensitive rule list)               :boolean          default(FALSE), not null
 #  created_at                                   :datetime         not null
-#  updated_at                                   :datetime         not null
+#  updated_at                                   :datetime         not null, indexed
 #  creator_id(The user who created this list)   :bigint           indexed
 #
 # Indexes
 #
-#  index_rule_lists_on_creator_id  (creator_id)
-#  index_rule_lists_on_name        (name) UNIQUE
+#  index_rule_lists_on_creator_id                      (creator_id)
+#  index_rule_lists_on_name                            (name) UNIQUE
+#  index_rule_lists_on_updated_at_checksum_unverified  (updated_at) WHERE (checksum_verified = false)
 #
 # Foreign Keys
 #

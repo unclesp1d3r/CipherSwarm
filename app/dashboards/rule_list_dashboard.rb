@@ -20,6 +20,7 @@ class RuleListDashboard < Administrate::BaseDashboard
     name: Field::String,
     projects: Field::HasMany,
     sensitive: Field::Boolean,
+    checksum_verified: Field::Boolean,
     created_at: Field::DateTime,
     updated_at: Field::DateTime
   }.freeze
@@ -33,6 +34,7 @@ class RuleListDashboard < Administrate::BaseDashboard
     id
     description
     file
+    checksum_verified
   ].freeze
 
   # SHOW_PAGE_ATTRIBUTES
@@ -45,6 +47,7 @@ class RuleListDashboard < Administrate::BaseDashboard
     name
     projects
     sensitive
+    checksum_verified
     created_at
     updated_at
   ].freeze
@@ -70,7 +73,9 @@ class RuleListDashboard < Administrate::BaseDashboard
   #   COLLECTION_FILTERS = {
   #     open: ->(resources) { resources.where(open: true) }
   #   }.freeze
-  COLLECTION_FILTERS = {}.freeze
+  COLLECTION_FILTERS = {
+    unverified: ->(resources) { resources.checksum_unverified }
+  }.freeze
 
   # Overwrite this method to customize how rule lists are displayed
   # across all pages of the admin dashboard.

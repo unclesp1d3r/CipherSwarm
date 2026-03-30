@@ -11,3 +11,10 @@ data_cleanup_job:
   active_job: true
   # Cleans up old agent errors, audit records, and HashcatStatus records
   # Queue defined in job class (queue_as :low)
+
+requeue_unverified_resources_job:
+  cron: "0 */6 * * *"  # Every 6 hours
+  class: "RequeueUnverifiedResourcesJob"
+  active_job: true
+  # Re-enqueues VerifyChecksumJob for stale unverified resources
+  # Queue defined in job class (queue_as :low)
