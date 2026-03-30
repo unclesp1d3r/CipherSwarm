@@ -21,6 +21,7 @@ class WordListDashboard < Administrate::BaseDashboard
     projects: Field::HasMany,
     processed: Field::Boolean,
     sensitive: Field::Boolean,
+    checksum_verified: Field::Boolean,
     created_at: Field::DateTime,
     updated_at: Field::DateTime
   }.freeze
@@ -36,6 +37,7 @@ class WordListDashboard < Administrate::BaseDashboard
     file
     projects
     line_count
+    checksum_verified
   ].freeze
 
   # SHOW_PAGE_ATTRIBUTES
@@ -49,6 +51,7 @@ class WordListDashboard < Administrate::BaseDashboard
     projects
     sensitive
     processed
+    checksum_verified
     created_at
     updated_at
   ].freeze
@@ -74,7 +77,9 @@ class WordListDashboard < Administrate::BaseDashboard
   #   COLLECTION_FILTERS = {
   #     open: ->(resources) { resources.where(open: true) }
   #   }.freeze
-  COLLECTION_FILTERS = {}.freeze
+  COLLECTION_FILTERS = {
+    unverified: ->(resources) { resources.checksum_unverified }
+  }.freeze
 
   # Overwrite this method to customize how word lists are displayed
   # across all pages of the admin dashboard.
