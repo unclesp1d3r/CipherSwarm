@@ -41,6 +41,7 @@ module AttackResource
 
     scope :sensitive, -> { where(sensitive: true) }
     scope :shared, -> { where(sensitive: false) }
+    scope :checksum_unverified, -> { where(checksum_verified: false) }
 
     self.implicit_order_column = :created_at
 
