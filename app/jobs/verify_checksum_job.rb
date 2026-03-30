@@ -10,7 +10,9 @@
 #   skip verification entirely (unacceptable — corrupt wordlists waste agent time)
 # - Decision: async verification via Sidekiq, flag resources as checksum_verified
 # - Performance: reads file once from disk via file_path (no tmp download)
-# - Future: could add automatic re-download on mismatch
+# - Recovery: RequeueUnverifiedResourcesJob re-enqueues stale unverified
+#   resources on a cron. Re-download on mismatch is not feasible — tus moves
+#   (not copies) files to permanent storage, so no secondary copy exists.
 
 class VerifyChecksumJob < ApplicationJob
   ALLOWED_TYPES = %w[WordList RuleList MaskList].freeze
@@ -46,6 +48,7 @@ class VerifyChecksumJob < ApplicationJob
     file_path = resolve_file_path(resource)
 
     unless file_path
+      resource.update_column(:updated_at, Time.current) # rubocop:disable Rails/SkipsModelValidations
       Rails.logger.error { "[ChecksumVerify] FILE_NOT_FOUND: #{resource_type}##{resource_id} — file_path absent or missing on disk. Re-upload recommended." }
       return
     end
