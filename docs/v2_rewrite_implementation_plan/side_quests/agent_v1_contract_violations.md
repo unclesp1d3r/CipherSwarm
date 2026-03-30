@@ -117,7 +117,7 @@
 
 - **Contract:**
   - Path param: `id` (integer, required)
-  - POST: request body `{ "hashcat_benchmarks": [ ... ] }`, 200 on success with `BenchmarkReceipt` JSON body (`received_count`, `processed_count`, `failed_count`, `message`), 400/401 errors as `{ "error": ... }`
+  - POST: request body `{ "hashcat_benchmarks": [ ... ] }`, 200 on success with `BenchmarkReceipt` JSON body (`received_count`, `processed_count`, `failed_count`, `message`), 400/401/422 errors as `{ "error": ... }`
 - **Implementation:**
   - Path param is `{agent_id}`
   - Returns `200 OK` with `BenchmarkReceipt` JSON body on success; contract updated in `swagger/v1/swagger.json` to match

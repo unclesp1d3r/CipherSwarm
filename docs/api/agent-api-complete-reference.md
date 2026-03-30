@@ -277,7 +277,7 @@ Submit hashcat benchmark results.
 | `message`         | string  | No       | Human-readable summary of the submission result                 |
 
 > [!NOTE]
-> Invalid individual entries are silently skipped — the endpoint returns `200 OK` as long as at least one entry is valid. Only when all entries are invalid does the server return `422`. Check `failed_count` in the receipt to detect partial failures.
+> Invalid individual entries are skipped and reflected in `failed_count`. The endpoint returns `200 OK` with a `BenchmarkReceipt` when processing succeeds; `422` is returned when submission fails validation/processing for the current agent state. Clients should rely on both HTTP status and receipt counts (`processed_count`/`failed_count`) to handle partial or zero-processed batches safely.
 
 > [!IMPORTANT]
 > During rolling deployments across mixed server versions, clients SHOULD accept either:
