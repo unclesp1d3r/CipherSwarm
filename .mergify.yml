@@ -87,7 +87,7 @@ merge_protections:
     success_conditions:
       - "title ~=
         ^(fix|feat|docs|style|refactor|perf|test|build|ci|chore|revert)(?:\\(.+\
-        \\))?:"
+        \\))?!?:"
 
   - name: Full CI must pass
     description: All CI checks must pass for non-bot PRs and dependabot non-workflow changes

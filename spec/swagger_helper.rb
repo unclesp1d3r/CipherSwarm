@@ -190,6 +190,17 @@ RSpec.configure do |config|
             },
             required: %i[hashcat_benchmarks]
           },
+          BenchmarkReceipt: {
+            type: :object,
+            description: "Receipt returned after benchmark submission indicating how many entries were accepted",
+            properties: {
+              received_count: { type: :integer, description: "Number of benchmark entries received in the request" },
+              processed_count: { type: :integer, description: "Number of benchmark entries successfully stored" },
+              failed_count: { type: :integer, description: "Number of benchmark entries rejected due to validation failures" },
+              message: { type: :string, description: "Human-readable summary of the submission result" }
+            },
+            required: %i[received_count processed_count failed_count]
+          },
           SubmitErrorRequest: {
             type: :object,
             description: "Error details reported by the agent",

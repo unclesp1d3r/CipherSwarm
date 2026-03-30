@@ -128,7 +128,10 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
       return
     end
 
+    received_count = params[:hashcat_benchmarks].length
     valid_records = build_valid_benchmark_records(params[:hashcat_benchmarks])
+    processed_count = valid_records.length
+    failed_count = received_count - processed_count
 
     write_success = false
     HashcatBenchmark.transaction do
@@ -148,7 +151,12 @@ class Api::V1::Client::AgentsController < Api::V1::BaseController
     end
 
     if write_success
-      head :no_content
+      render json: {
+        received_count: received_count,
+        processed_count: processed_count,
+        failed_count: failed_count,
+        message: "Successfully processed #{processed_count} of #{received_count} benchmarks"
+      }, status: :ok
       return
     end
 

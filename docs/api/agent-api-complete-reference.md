@@ -256,7 +256,34 @@ Submit hashcat benchmark results.
 }
 ```
 
-**Response** (204 No Content): Benchmarks accepted.
+**Response** (200 OK): Benchmarks processed. Returns a `BenchmarkReceipt` object:
+
+```json
+{
+  "received_count": 2,
+  "processed_count": 2,
+  "failed_count": 0,
+  "message": "Successfully processed 2 of 2 benchmarks"
+}
+```
+
+**BenchmarkReceipt Fields**:
+
+| Field             | Type    | Required | Description                                                     |
+| ----------------- | ------- | -------- | --------------------------------------------------------------- |
+| `received_count`  | integer | Yes      | Number of benchmark entries received in the request             |
+| `processed_count` | integer | Yes      | Number of benchmark entries successfully stored                 |
+| `failed_count`    | integer | Yes      | Number of benchmark entries rejected due to validation failures |
+| `message`         | string  | No       | Human-readable summary of the submission result                 |
+
+> [!NOTE]
+> Invalid individual entries are skipped and reflected in `failed_count`. The endpoint returns `200 OK` with a `BenchmarkReceipt` when processing succeeds; `422` is returned when submission fails validation/processing for the current agent state. Clients should rely on both HTTP status and receipt counts (`processed_count`/`failed_count`) to handle partial or zero-processed batches safely.
+
+> [!IMPORTANT]
+> During rolling deployments across mixed server versions, clients SHOULD accept either:
+>
+> - `200 OK` with `BenchmarkReceipt` JSON body (current contract), or
+> - `204 No Content` with no body (legacy behavior from older servers).
 
 **Response** (400 Bad Request):
 
