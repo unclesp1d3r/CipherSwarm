@@ -180,13 +180,26 @@ RSpec.describe RequeueUnverifiedResourcesJob do
         expect(Rails.logger).to have_received(:error).with(/Requeue completed with 1 failure.*word_lists/)
       end
 
-      it "includes backtrace in error logs" do
-        allow(WordList).to receive(:checksum_unverified).and_raise(StandardError.new("DB error"))
+      it "includes backtrace in error logs when available" do
+        error = StandardError.new("DB error")
+        error.set_backtrace(["line1.rb:1:in `method'", "line2.rb:2:in `other'"])
+        allow(WordList).to receive(:checksum_unverified).and_raise(error)
         allow(Rails.logger).to receive(:error)
 
         job.perform
 
-        expect(Rails.logger).to have_received(:error).with(/Backtrace:/).at_least(:once)
+        expect(Rails.logger).to have_received(:error).with(/line1\.rb/).at_least(:once)
+      end
+
+      it "handles errors with no backtrace" do
+        error = StandardError.new("DB error")
+        allow(error).to receive(:backtrace).and_return(nil)
+        allow(WordList).to receive(:checksum_unverified) { raise error }
+        allow(Rails.logger).to receive(:error)
+
+        job.perform
+
+        expect(Rails.logger).to have_received(:error).with(/Not available/).at_least(:once)
       end
     end
   end
