@@ -324,12 +324,12 @@ The configuration response includes three additional top-level keys that provide
 
 #### Response Body — `BenchmarkReceipt`
 
-| Field             | Type    | Required | Description                                                         |
-| ----------------- | ------- | -------- | ------------------------------------------------------------------- |
-| `received_count`  | integer | Yes      | Number of benchmark entries received in the request                 |
-| `processed_count` | integer | Yes      | Number of benchmark entries successfully stored                     |
-| `failed_count`    | integer | Yes      | Number of benchmark entries rejected due to validation failures     |
-| `message`         | string  | No       | Human-readable summary of the submission result                     |
+| Field             | Type    | Required | Description                                                     |
+| ----------------- | ------- | -------- | --------------------------------------------------------------- |
+| `received_count`  | integer | Yes      | Number of benchmark entries received in the request             |
+| `processed_count` | integer | Yes      | Number of benchmark entries successfully stored                 |
+| `failed_count`    | integer | Yes      | Number of benchmark entries rejected due to validation failures |
+| `message`         | string  | No       | Human-readable summary of the submission result                 |
 
 **Example Response:**
 
