@@ -269,15 +269,21 @@ Submit hashcat benchmark results.
 
 **BenchmarkReceipt Fields**:
 
-| Field             | Type    | Required | Description                                                    |
-| ----------------- | ------- | -------- | -------------------------------------------------------------- |
-| `received_count`  | integer | Yes      | Number of benchmark entries received in the request            |
-| `processed_count` | integer | Yes      | Number of benchmark entries successfully stored                |
+| Field             | Type    | Required | Description                                                     |
+| ----------------- | ------- | -------- | --------------------------------------------------------------- |
+| `received_count`  | integer | Yes      | Number of benchmark entries received in the request             |
+| `processed_count` | integer | Yes      | Number of benchmark entries successfully stored                 |
 | `failed_count`    | integer | Yes      | Number of benchmark entries rejected due to validation failures |
-| `message`         | string  | No       | Human-readable summary of the submission result                |
+| `message`         | string  | No       | Human-readable summary of the submission result                 |
 
 > [!NOTE]
 > Invalid individual entries are silently skipped — the endpoint returns `200 OK` as long as at least one entry is valid. Only when all entries are invalid does the server return `422`. Check `failed_count` in the receipt to detect partial failures.
+
+> [!IMPORTANT]
+> During rolling deployments across mixed server versions, clients SHOULD accept either:
+>
+> - `200 OK` with `BenchmarkReceipt` JSON body (current contract), or
+> - `204 No Content` with no body (legacy behavior from older servers).
 
 **Response** (400 Bad Request):
 
