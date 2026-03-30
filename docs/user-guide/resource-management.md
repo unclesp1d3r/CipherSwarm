@@ -218,6 +218,14 @@ When client-side checksums are skipped for large files:
 - The `checksum_verified` status is set to `false` during upload and updated to `true` once verification completes
 - Verification typically completes within minutes, depending on file size and server load
 
+#### Enhanced Error Handling
+
+The verification system includes robust error handling for reliability:
+
+- **Automatic Retry**: `VerifyChecksumJob` retries I/O errors (file not found, permission denied, I/O errors) up to 5 times with polynomial backoff before logging error-level messages
+- **Actionable Remediation**: Error messages include resource details and recommended actions for administrators
+- **Persistent Failure Recovery**: If a resource remains unverified after retries, `RequeueUnverifiedResourcesJob` automatically re-enqueues it for verification every 6 hours
+
 #### Integrity Verification
 
 - **Regular files (\<1 GB)**: Integrity verified during upload via client-side MD5 checksum
@@ -562,6 +570,22 @@ Each uploaded resource includes a `checksum_verified` attribute that indicates t
 
 The `checksum_verified` status can be viewed in the resource browser or via the resource metadata API. Verification typically completes within minutes for large files, depending on file size and server load.
 
+#### Automatic Recovery
+
+CipherSwarm provides automatic recovery for resources that remain unverified:
+
+- **Automatic Re-enqueue**: `RequeueUnverifiedResourcesJob` runs every 6 hours to automatically re-enqueue verification for resources stuck with `checksum_verified: false`
+- **Configurable Threshold**: Resources are re-enqueued if they remain unverified longer than the configured threshold (default: 6 hours, configurable via `ApplicationConfig.checksum_verification_retry_threshold`)
+- **Transient Failure Recovery**: This mechanism provides automatic recovery from transient storage issues, I/O errors, or temporary file access problems without manual intervention
+
+#### Admin Dashboard Visibility
+
+Administrators can monitor checksum verification status through the admin dashboards:
+
+- **Verification Status Field**: The `checksum_verified` attribute is displayed in WordList, RuleList, and MaskList dashboards
+- **Unverified Filter**: Use the `unverified:` collection filter in any admin dashboard to quickly identify resources requiring attention
+- **Monitoring**: Track resources that remain unverified to identify persistent storage or configuration issues
+
 ## Security and Access Control
 
 ### 1. Project Isolation
@@ -647,8 +671,10 @@ curl -I https://CipherSwarm.example.com/api/v1/web/resources/
 
 - **Cause**: Normal for large files (>1 GB) immediately after upload — verification runs as a background job
 - **Expected Duration**: Typically completes within minutes, depending on file size and server load
-- **When to be concerned**: If status remains false for more than an hour, or if it changes to failed
-- **Solution**: Check server logs or contact administrator if verification fails or takes unusually long
+- **Automatic Recovery**: The system automatically re-enqueues verification every 6 hours for resources that remain unverified. Transient issues (temporary storage problems, I/O errors) should resolve without manual intervention.
+- **Admin Monitoring**: Administrators can view unverified resources in the admin dashboards (WordList, RuleList, MaskList) using the `unverified:` collection filter
+- **When to be concerned**: If status remains false for more than 6 hours after automatic recovery attempts, or if it changes to failed
+- **Solution**: Resources should automatically recover within 6 hours if the issue was transient. For persistent failures, check server logs or contact administrator. Re-upload may be required if the file is corrupt or inaccessible.
 
 ### 2. Edit Restrictions
 
