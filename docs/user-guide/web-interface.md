@@ -392,6 +392,19 @@ CipherSwarm manages several resource types:
 - **Metadata Tracking**: Size, line count, usage statistics
 - **Project Linking**: Resources can be project-specific or global
 
+#### Checksum Verification Monitoring (Admin Only)
+
+After uploading wordlists, rule lists, or mask lists through the admin interface, the system performs background checksum verification to ensure file integrity. Administrators can monitor this process:
+
+- **Verification Status Field**: The `checksum_verified` field appears in the index and detail views for WordLists, RuleLists, and MaskLists in the admin dashboard
+  - `true`: File uploaded successfully and checksum verified
+  - `false`: Verification pending or failed
+- **Unverified Filter**: Click the "unverified" collection filter in any resource dashboard to show only resources with pending or failed verification
+- **Automatic Recovery**: Resources stuck in unverified state are automatically re-queued for verification on a configurable sweep interval (default: every 6 hours), so transient failures (I/O errors, temporary storage issues) should self-resolve
+- **Manual Intervention**: If a resource remains unverified beyond the configured retry threshold and at least one subsequent requeue cycle, check system logs for persistent errors and consider re-uploading the file
+
+This visibility helps administrators identify and resolve issues with uploaded resources in air-gapped deployments where external monitoring is unavailable.
+
 #### Line-Level Editing
 
 For smaller resources (under configured size limits):

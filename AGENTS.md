@@ -39,6 +39,15 @@ When adding new files:
 - `docs/user-guide/` → update both `docs/user-guide/README.md` and `docs/README.md`
 - `docs/deployment/` → update `docs/README.md`
 
+### For planning agents
+
+When planning new features or architectural changes, use the `layered-rails` skill for analysis:
+
+- `/layers:gradual` — plan incremental adoption of layered patterns
+- `/layers:analyze` — full codebase architecture analysis
+- `/layers:review` — review code from a layered architecture perspective
+- `/layers:spec-test` — apply the specification test to evaluate layer placement
+
 ## Agent Rules <!-- tessl-managed -->
 
 @.tessl/RULES.md follow the [instructions](.tessl/RULES.md)
