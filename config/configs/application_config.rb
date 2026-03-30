@@ -20,6 +20,7 @@
 # - agent_error_retention: Time duration for retaining agent errors (default: 30 days)
 # - audit_retention: Time duration for retaining audit records (default: 90 days)
 # - hashcat_status_retention: Time duration for retaining completed task status (default: 7 days)
+# - checksum_verification_retry_threshold: Time duration before re-enqueuing VerifyChecksumJob for unverified resources (default: 6 hours)
 # - recommended_connect_timeout: Integer, seconds for TCP connect timeout (default: 10)
 # - recommended_read_timeout: Integer, seconds for read timeout (default: 30)
 # - recommended_write_timeout: Integer, seconds for write timeout (default: 30)
@@ -62,6 +63,7 @@ class ApplicationConfig < Anyway::Config
               agent_error_retention: 30.days,
               audit_retention: 90.days,
               hashcat_status_retention: 7.days,
+              checksum_verification_retry_threshold: 6.hours,
               recommended_connect_timeout: 10,
               recommended_read_timeout: 30,
               recommended_write_timeout: 30,
@@ -115,5 +117,11 @@ class ApplicationConfig < Anyway::Config
               "#{attr} must be a positive integer, got: #{value.inspect}"
       end
     end
+
+    threshold = checksum_verification_retry_threshold
+    return if threshold.respond_to?(:positive?) && threshold.positive?
+
+    raise Anyway::Config::ValidationError,
+          "checksum_verification_retry_threshold must be positive, got: #{threshold.inspect}"
   end
 end

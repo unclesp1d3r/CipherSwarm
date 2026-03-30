@@ -76,6 +76,10 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 - Selenium requires explicit Chrome binary path: `options.binary = ENV["CHROME_BIN"]` in `spec/support/capybara.rb`
 - File downloads don't work in CI headless Chrome; test download content via request specs instead
 - `ProcessHashListJob` can race against DB truncation cleanup causing intermittent `PG::ForeignKeyViolation` on `hash_items` — safe to re-run
+- **ActiveJob retry specs need `:test` adapter** — RSpec doesn't include Minitest's `assert_enqueued_jobs`. Use `have_enqueued_job` matcher with `ActiveJob::Base.queue_adapter = :test` set in an `around` block. See `verify_checksum_job_spec.rb` for the pattern.
+- **Jobs with `with_connection` blocks break `have_enqueued_job`** — `ActiveRecord::Base.connection_pool.with_connection` + `clear_active_connections!` in `ensure` can make `find_each` return 0 rows under DatabaseCleaner `:transaction` strategy. Use `allow(JobClass).to receive(:perform_later)` + `have_received` instead of `have_enqueued_job` for these job specs. See `requeue_unverified_resources_job_spec.rb`.
+- **`freeze_time` over `travel_to(Time.current)`** — RuboCop `Rails/FreezeTime` cop enforces this. Requires `include ActiveSupport::Testing::TimeHelpers` in the describe block.
+- **Factory `updated_at` may be reset by `after_commit` callbacks** — set `updated_at` via `update_column` after `create` rather than passing it to the factory, especially for resources with `after_commit :update_line_count`.
 
 **ActiveStorage Blob Change Detection in Tests:**
 
@@ -258,6 +262,7 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 
 **Migration Generation:**
 
+- **Partial indexes for periodic sweep queries** — use `add_index :table, :column, where: "condition", algorithm: :concurrently` with `disable_ddl_transaction!` for zero-downtime deployment. See `AddChecksumSweepIndexes` migration.
 - When replacing a permissive index with a stricter unique index, add a `DELETE` + `DISTINCT ON` cleanup step before `add_index` to remove duplicate rows that would violate the new constraint
 - Running `db:migrate` regenerates `schema.rb` from actual DATABASE state, not from migrations
 - Manual migration creation causes schema drift: unrelated DB changes get committed
