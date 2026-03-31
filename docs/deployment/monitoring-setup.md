@@ -6,7 +6,7 @@ CipherSwarm includes an optional Prometheus + Grafana monitoring stack. It runs 
 
 ## Architecture
 
-```
+```text
 ┌─────────────┐     scrape /metrics      ┌──────────────┐
 │  Prometheus  │◄────────────────────────│  web (Puma)   │
 │  :9090       │                          └──────────────┘
@@ -53,7 +53,14 @@ Add to your `.env`:
 
 ```bash
 METRICS_ENABLED=true
-GRAFANA_PASSWORD=$(openssl rand -base64 16)
+GRAFANA_PASSWORD=<generated-random-password>
+```
+
+Generate and append a secure password to `.env`:
+
+```bash
+# Generate and append a secure password to .env:
+printf 'GRAFANA_PASSWORD=%s\n' "$(openssl rand -base64 16)" >> .env
 ```
 
 Restart the production stack so web and Sidekiq processes expose `/metrics`:
@@ -70,7 +77,7 @@ docker compose -f docker-compose-monitoring.yml up -d
 
 ### 4. Access Grafana
 
-Open `http://<host>:3001` and log in with:
+Open `http://<host>:<GRAFANA_PORT>` (default: 3001, configurable via `GRAFANA_PORT` env var) and log in with:
 
 - **Username**: `admin`
 - **Password**: the `GRAFANA_PASSWORD` you set

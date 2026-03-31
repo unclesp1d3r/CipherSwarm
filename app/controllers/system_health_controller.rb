@@ -39,10 +39,18 @@ class SystemHealthController < ApplicationController
   def details_for(service_key, check)
     case service_key
     when :postgresql
-      {
+      details = {
         "Connections" => check[:connection_count],
         "Database Size" => check[:database_size] ? number_to_human_size(check[:database_size]) : nil
       }
+      if check[:pool].is_a?(Hash)
+        details["Pool Size"] = check[:pool][:size]
+        details["Pool Busy"] = check[:pool][:busy]
+        details["Pool Idle"] = check[:pool][:idle]
+        details["Pool Waiting"] = check[:pool][:waiting]
+        details["Pool Dead"] = check[:pool][:dead]
+      end
+      details
     when :redis
       details = { "Memory" => check[:used_memory], "Clients" => check[:connected_clients] }
       details["Hit Rate"] = "#{check[:hit_rate]}%" if check[:hit_rate]

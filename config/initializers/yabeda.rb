@@ -16,7 +16,7 @@
 #
 # Scraped by Prometheus at GET /metrics (see config/routes.rb).
 
-return if ENV["METRICS_ENABLED"].blank?
+return unless ENV["METRICS_ENABLED"] == "true"
 
 require "yabeda/rails"
 require "yabeda/sidekiq"

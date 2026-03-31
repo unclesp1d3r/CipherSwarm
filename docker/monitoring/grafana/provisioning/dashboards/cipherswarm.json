@@ -140,7 +140,7 @@
       "gridPos": { "h": 8, "w": 8, "x": 0, "y": 10 },
       "targets": [
         {
-          "expr": "db_pool_busy / db_pool_size",
+          "expr": "db_pool_busy / clamp_min(db_pool_size, 1)",
           "legendFormat": "{{ pool_name }}"
         }
       ],
@@ -165,10 +165,10 @@
       "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
       "gridPos": { "h": 8, "w": 8, "x": 8, "y": 10 },
       "targets": [
-        { "expr": "db_pool_busy", "legendFormat": "busy" },
-        { "expr": "db_pool_idle", "legendFormat": "idle" },
-        { "expr": "db_pool_dead", "legendFormat": "dead" },
-        { "expr": "db_pool_waiting", "legendFormat": "waiting" }
+        { "expr": "db_pool_busy", "legendFormat": "{{ instance }} {{ pool_name }} busy" },
+        { "expr": "db_pool_idle", "legendFormat": "{{ instance }} {{ pool_name }} idle" },
+        { "expr": "db_pool_dead", "legendFormat": "{{ instance }} {{ pool_name }} dead" },
+        { "expr": "db_pool_waiting", "legendFormat": "{{ instance }} {{ pool_name }} waiting" }
       ],
       "fieldConfig": {
         "defaults": {
@@ -185,7 +185,7 @@
       "targets": [
         {
           "expr": "db_pool_waiting",
-          "legendFormat": "{{ pool_name }}"
+          "legendFormat": "{{ instance }} {{ pool_name }}"
         }
       ],
       "fieldConfig": {
@@ -254,7 +254,7 @@
       "gridPos": { "h": 8, "w": 8, "x": 16, "y": 19 },
       "targets": [
         {
-          "expr": "rate(redis_keyspace_hits_total[5m]) / (rate(redis_keyspace_hits_total[5m]) + rate(redis_keyspace_misses_total[5m]))",
+          "expr": "rate(redis_keyspace_hits_total[5m]) / clamp_min(rate(redis_keyspace_hits_total[5m]) + rate(redis_keyspace_misses_total[5m]), 1e-9)",
           "legendFormat": "hit rate"
         }
       ],
@@ -326,7 +326,7 @@
       "gridPos": { "h": 8, "w": 8, "x": 16, "y": 28 },
       "targets": [
         {
-          "expr": "sum(rate(rails_requests_total{status=~\"5..\"}[5m])) / sum(rate(rails_requests_total[5m]))",
+          "expr": "sum(rate(rails_requests_total{status=~\"5..\"}[5m])) / clamp_min(sum(rate(rails_requests_total[5m])), 1e-9)",
           "legendFormat": "error rate"
         }
       ],

@@ -92,7 +92,7 @@ services:
     image: oliver006/redis_exporter:v1.67.0
     environment:
       REDIS_ADDR: "redis://redis-db:6379"
-      REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD must be set}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
     networks:
       - monitoring
       - backend
