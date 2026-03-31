@@ -530,7 +530,7 @@ RSpec.describe "api/v1/client/tasks" do
       produces "application/json"
       operationId "sendStatus"
 
-      request_body_json schema: { "$ref" => "#/components/schemas/TaskStatus" },
+      request_body_json schema: { "$ref" => "#/components/schemas/HashcatStatusUpdate" },
                         required: true, description: "Hashcat status update for the task",
                         examples: :hashcat_status
 

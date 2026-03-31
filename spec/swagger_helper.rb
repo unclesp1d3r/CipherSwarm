@@ -538,7 +538,7 @@ RSpec.configure do |config|
             nullable: true,
             required: %i[id download_url checksum file_name]
           },
-          TaskStatus: {
+          HashcatStatusUpdate: {
             type: :object,
             description: "A hashcat status update submitted by an agent during task execution",
             properties: {
