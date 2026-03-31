@@ -105,11 +105,12 @@ gem "sys-filesystem", "~> 1.5"
 # large Active Storage direct uploads (multi-GB word lists). See #675.
 gem "view_component", "~> 4.5.0"
 
-# Prometheus metrics (opt-in via METRICS_ENABLED env var)
-gem "yabeda", "~> 0.12"
-gem "yabeda-prometheus", "~> 0.9"
-gem "yabeda-puma-plugin", "~> 0.7"
-gem "yabeda-rails", "~> 0.9"
-gem "yabeda-sidekiq", "~> 0.12"
+# Prometheus metrics (opt-in via METRICS_ENABLED env var).
+# require: false — only loaded by config/initializers/yabeda.rb when enabled.
+gem "yabeda", "~> 0.12", require: false
+gem "yabeda-prometheus", "~> 0.9", require: false
+gem "yabeda-puma-plugin", "~> 0.7", require: false
+gem "yabeda-rails", "~> 0.9", require: false
+gem "yabeda-sidekiq", "~> 0.12", require: false
 
 gem "openssl", "~> 4.0.1"

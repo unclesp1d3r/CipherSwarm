@@ -48,8 +48,9 @@ Yabeda.configure do
           comment: "Threads blocked waiting for a connection"
   end
 
-  # Collect is called by the Prometheus client on each scrape request,
-  # ensuring gauges reflect the current pool state without polling.
+  # Collect runs in the Prometheus scrape request thread on each scrape.
+  # Errors are rescued per-pool so a single bad pool doesn't break the
+  # entire scrape (other metrics like Sidekiq/Rails still get exported).
   collect do
     ActiveRecord::Base.connection_handler.all_connection_pools.each do |pool|
       stat = pool.stat
@@ -61,14 +62,32 @@ Yabeda.configure do
       db_pool_dead.set({ pool_name: pool_name }, stat[:dead])
       db_pool_idle.set({ pool_name: pool_name }, stat[:idle])
       db_pool_waiting.set({ pool_name: pool_name }, stat[:waiting])
+    rescue StandardError => e
+      Rails.logger.error("[Yabeda] Failed to collect metrics for pool #{pool.db_config&.name || 'unknown'}: #{e.class} - #{e.message}")
     end
+  rescue StandardError => e
+    Rails.logger.error("[Yabeda] Failed to enumerate connection pools: #{e.class} - #{e.message}")
   end
 end
 
 # Sidekiq processes don't run Puma/Rack, so they can't serve /metrics via the
 # route mount. Instead, start a standalone WEBrick metrics server on a dedicated
 # port. Web (Puma) processes use the Rack mount in routes.rb.
+#
+# Note: PROMETHEUS_EXPORTER_PORT (not PORT) is used to avoid conflicting with
+# Puma's PORT=80 inside the Docker container.
 if defined?(Sidekiq::CLI)
-  port = ENV.fetch("METRICS_SERVER_PORT", 9394).to_i
-  Yabeda::Prometheus::Exporter.start_metrics_server!(port: port)
+  begin
+    raw_port = ENV.fetch("PROMETHEUS_EXPORTER_PORT", "9394")
+    port = Integer(raw_port)
+    ENV["PROMETHEUS_EXPORTER_PORT"] = port.to_s
+    Yabeda::Prometheus::Exporter.start_metrics_server!
+  rescue ArgumentError
+    Rails.logger.error("[Yabeda] Invalid PROMETHEUS_EXPORTER_PORT=#{raw_port.inspect} — must be an integer. Metrics server not started.")
+  rescue StandardError => e
+    Rails.logger.error(
+      "[Yabeda] Failed to start Sidekiq metrics server on port #{port}: #{e.class} - #{e.message}. " \
+      "Sidekiq will continue without metrics export."
+    )
+  end
 end

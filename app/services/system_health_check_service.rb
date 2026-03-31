@@ -147,10 +147,14 @@ class SystemHealthCheckService
         "SELECT pg_database_size(current_database()) AS size"
       )
       database_size = result.first&.fetch("size", nil)&.to_i
+    rescue => e
+      Rails.logger.warn("[SystemHealth] PostgreSQL query metrics failed: #{e.class} - #{e.message}")
+    end
 
+    begin
       pool_stats = ActiveRecord::Base.connection_pool.stat
     rescue => e
-      Rails.logger.warn("[SystemHealth] PostgreSQL extended metrics failed: #{e.message}")
+      Rails.logger.warn("[SystemHealth] Connection pool stats failed: #{e.class} - #{e.message}")
     end
 
     {

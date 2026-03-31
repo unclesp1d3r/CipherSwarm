@@ -8,7 +8,7 @@ groups:
   - name: sidekiq
     rules:
       - alert: SidekiqDeadSetNonEmpty
-        expr: sidekiq_dead_size > 0
+        expr: sidekiq_jobs_dead_count > 0
         for: 5m
         labels:
           severity: warning
@@ -19,7 +19,7 @@ groups:
             the Sidekiq web UI at /sidekiq/morgue for failure details.
 
       - alert: SidekiqQueueLatencyHigh
-        expr: sidekiq_queue_latency_seconds > 30
+        expr: sidekiq_queue_latency > 30
         for: 5m
         labels:
           severity: warning
@@ -30,7 +30,7 @@ groups:
             Consider scaling Sidekiq replicas or investigating slow jobs.
 
       - alert: SidekiqQueueDepthHigh
-        expr: sidekiq_queue_size > 1000
+        expr: sidekiq_jobs_waiting_count > 1000
         for: 10m
         labels:
           severity: warning

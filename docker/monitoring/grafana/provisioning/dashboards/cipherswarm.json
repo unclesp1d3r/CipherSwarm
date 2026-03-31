@@ -18,7 +18,7 @@
       "gridPos": { "h": 8, "w": 8, "x": 0, "y": 1 },
       "targets": [
         {
-          "expr": "sidekiq_queue_size",
+          "expr": "sidekiq_jobs_waiting_count",
           "legendFormat": "{{ queue }}"
         }
       ],
@@ -36,7 +36,7 @@
       "gridPos": { "h": 8, "w": 8, "x": 8, "y": 1 },
       "targets": [
         {
-          "expr": "sidekiq_queue_latency_seconds",
+          "expr": "sidekiq_queue_latency",
           "legendFormat": "{{ queue }}"
         }
       ],
@@ -54,7 +54,7 @@
       "gridPos": { "h": 4, "w": 4, "x": 16, "y": 1 },
       "targets": [
         {
-          "expr": "sidekiq_dead_size",
+          "expr": "sidekiq_jobs_dead_count",
           "legendFormat": "Dead jobs"
         }
       ],
@@ -77,7 +77,7 @@
       "gridPos": { "h": 4, "w": 4, "x": 20, "y": 1 },
       "targets": [
         {
-          "expr": "rate(sidekiq_jobs_processed_total[5m])",
+          "expr": "rate(sidekiq_jobs_executed_total[5m])",
           "legendFormat": "processed/s"
         },
         {
@@ -99,7 +99,7 @@
       "gridPos": { "h": 4, "w": 4, "x": 16, "y": 5 },
       "targets": [
         {
-          "expr": "sidekiq_workers_size",
+          "expr": "sidekiq_active_workers_count",
           "legendFormat": "workers"
         }
       ]
@@ -111,7 +111,7 @@
       "gridPos": { "h": 4, "w": 4, "x": 20, "y": 5 },
       "targets": [
         {
-          "expr": "sidekiq_retry_size",
+          "expr": "sidekiq_jobs_retry_count",
           "legendFormat": "retries"
         }
       ],

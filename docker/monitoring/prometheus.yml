@@ -11,7 +11,10 @@ rule_files:
   - /etc/prometheus/alerts.yml
 
 scrape_configs:
-  # Rails web application (yabeda-rails + custom PG pool gauges)
+  # Rails web application (yabeda-rails + custom PG pool gauges).
+  # Port 80: Puma listens on 80 inside the container (Dockerfile ENV PORT=80).
+  # Nginx does not proxy /metrics — Prometheus connects directly to web containers
+  # on the backend network.
   - job_name: cipherswarm_web
     metrics_path: /metrics
     dns_sd_configs:
