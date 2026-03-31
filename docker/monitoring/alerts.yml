@@ -1,0 +1,105 @@
+# CipherSwarm Alerting Rules
+#
+# These fire as Prometheus alerts and appear in Grafana's unified alerting UI.
+# No external alertmanager or notification channel required — operators check
+# the Grafana dashboard directly (air-gapped environments have no email/Slack).
+
+groups:
+  - name: sidekiq
+    rules:
+      - alert: SidekiqDeadSetNonEmpty
+        expr: sidekiq_dead_size > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Sidekiq dead set contains {{ $value }} jobs"
+          description: >
+            Jobs in the dead set have exhausted all retries. Investigate
+            the Sidekiq web UI at /sidekiq/morgue for failure details.
+
+      - alert: SidekiqQueueLatencyHigh
+        expr: sidekiq_queue_latency_seconds > 30
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Queue {{ $labels.queue }} latency is {{ $value }}s"
+          description: >
+            Jobs are waiting more than 30 seconds before being picked up.
+            Consider scaling Sidekiq replicas or investigating slow jobs.
+
+      - alert: SidekiqQueueDepthHigh
+        expr: sidekiq_queue_size > 1000
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Queue {{ $labels.queue }} has {{ $value }} pending jobs"
+          description: >
+            Large queue backlog may indicate a processing bottleneck.
+
+  - name: postgresql
+    rules:
+      - alert: PGConnectionPoolExhaustion
+        expr: db_pool_busy / db_pool_size > 0.8
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Connection pool {{ $labels.pool_name }} is {{ $value | humanizePercentage }} utilized"
+          description: >
+            More than 80% of the connection pool is checked out. Requests may
+            start blocking. Consider increasing RAILS_MAX_THREADS or PostgreSQL
+            max_connections. See docs/deployment/connection-pool-sizing.md.
+
+      - alert: PGConnectionPoolWaiting
+        expr: db_pool_waiting > 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "{{ $value }} threads waiting for a DB connection in pool {{ $labels.pool_name }}"
+          description: >
+            Threads are actively blocked waiting for a database connection.
+            This causes request latency spikes and potential timeouts.
+
+  - name: redis
+    rules:
+      - alert: RedisMemoryHigh
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Redis memory usage at {{ $value | humanizePercentage }}"
+          description: >
+            Redis is approaching its memory limit. Sidekiq job data and
+            Rails cache may start evicting. Check for memory leaks or
+            increase Redis maxmemory.
+
+      - alert: RedisDown
+        expr: redis_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Redis is unreachable"
+          description: >
+            The redis-exporter cannot connect to Redis. Sidekiq, caching,
+            and Action Cable will all be impacted.
+
+  - name: rails
+    rules:
+      - alert: HighErrorRate
+        expr: >
+          sum(rate(rails_requests_total{status=~"5.."}[5m]))
+          / sum(rate(rails_requests_total[5m])) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Rails 5xx error rate is {{ $value | humanizePercentage }}"
+          description: >
+            More than 5% of requests are returning server errors.
+            Check Rails logs for exception details.

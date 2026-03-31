@@ -363,6 +363,10 @@ Rails.application.routes.draw do
   draw(:errors)
   draw(:devise)
 
+  # Prometheus metrics scrape endpoint (unauthenticated — restrict via network policy).
+  # Activated by METRICS_ENABLED env var; see config/initializers/yabeda.rb.
+  mount Yabeda::Prometheus::Exporter => "/metrics" if ENV["METRICS_ENABLED"].present?
+
   get "up" => "rails/health#show", as: :rails_health_check
 
   # Render dynamic PWA files from app/views/pwa/*

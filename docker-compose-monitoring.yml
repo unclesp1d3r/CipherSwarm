@@ -1,0 +1,117 @@
+# CipherSwarm Monitoring Stack (Optional)
+#
+# Standalone Docker Compose file for Prometheus + Grafana monitoring.
+# Connects to the production stack's backend network as an external network.
+#
+# Prerequisites:
+#   1. Production stack running: docker compose -f docker-compose-production.yml up -d
+#   2. METRICS_ENABLED=true in .env (enables /metrics on web and sidekiq)
+#   3. All images pre-pulled for air-gapped environments (see docs/deployment/monitoring-setup.md)
+#
+# Usage:
+#   docker compose -f docker-compose-monitoring.yml up -d
+#
+# Pre-pull images for air-gap:
+#   docker pull prom/prometheus:v3.4.1
+#   docker pull grafana/grafana-oss:11.6.0
+#   docker pull oliver006/redis_exporter:v1.67.0
+
+services:
+  prometheus:
+    image: prom/prometheus:v3.4.1
+    volumes:
+      - ./docker/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./docker/monitoring/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=30d
+      - --storage.tsdb.retention.size=10GB
+      - --web.enable-lifecycle
+    networks:
+      - monitoring
+      - backend
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 2G
+        reservations:
+          cpus: '0.25'
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  grafana:
+    image: grafana/grafana-oss:11.6.0
+    volumes:
+      - ./docker/monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana_data:/var/lib/grafana
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:?GRAFANA_PASSWORD must be set}
+      GF_SERVER_ROOT_URL: "http://${APPLICATION_HOST:-localhost}:${GRAFANA_PORT:-3001}"
+      # Air-gapped: disable all external checks
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_NEWS_NEWS_FEED_ENABLED: "false"
+      GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: ""
+      GF_UNIFIED_ALERTING_ENABLED: "true"
+    networks:
+      - monitoring
+    ports:
+      - "${GRAFANA_PORT:-3001}:3000"
+    depends_on:
+      prometheus:
+        condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.67.0
+    environment:
+      REDIS_ADDR: "redis://redis-db:6379"
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD must be set}
+    networks:
+      - monitoring
+      - backend
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9121/metrics"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+networks:
+  monitoring:
+    driver: bridge
+  backend:
+    external: true
+    name: ${COMPOSE_PROJECT_NAME:-cipherswarm}_backend
+
+volumes:
+  prometheus_data:
+  grafana_data:
