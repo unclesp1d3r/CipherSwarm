@@ -20,46 +20,6 @@ x-common-env-vars: &common-env-vars
   # Disable Rails force_ssl since TLS is terminated upstream (or not used in lab environments).
   DISABLE_SSL: ${DISABLE_SSL:-true}
 
-x-web-resources: &web-resources
-  limits:
-    cpus: '1'
-    memory: 1G
-  reservations:
-    cpus: '0.5'
-    memory: 512M
-
-x-nginx-resources: &nginx-resources
-  limits:
-    cpus: '0.5'
-    memory: 128M
-  reservations:
-    cpus: '0.25'
-    memory: 64M
-
-x-db-resources: &db-resources
-  limits:
-    cpus: '2'
-    memory: 2G
-  reservations:
-    cpus: '1'
-    memory: 1G
-
-x-worker-resources: &worker-resources
-  limits:
-    cpus: '1'
-    memory: 2G
-  reservations:
-    cpus: '0.5'
-    memory: 1G
-
-x-default-resources: &default-resources
-  limits:
-    cpus: '1'
-    memory: 512M
-  reservations:
-    cpus: '0.5'
-    memory: 256M
-
 x-replicas: &replicas
   mode: replicated
   endpoint_mode: vip
@@ -91,9 +51,6 @@ services:
     networks:
       - frontend
       - backend
-    deploy:
-      resources:
-        <<: *nginx-resources
     healthcheck:
       test: ["CMD-SHELL", "wget -q --spider http://localhost:8080/nginx-health || exit 1"]
       interval: 30s
@@ -112,8 +69,7 @@ services:
       postgres-db:
         condition: service_healthy
     # See docs/deployment/docker-storage-and-tmp.md for tmpfs sizing guidance.
-    # For 100 GB+ attack resources, set TMPFS_TMP_SIZE >= 1.5x your largest file
-    # and increase deploy.resources.limits.memory proportionally (or use TMPDIR volume).
+    # For 100 GB+ attack resources, set TMPFS_TMP_SIZE >= 1.5x your largest file.
     tmpfs:
       - /tmp:size=${TMPFS_TMP_SIZE:-512m},mode=1777
       - /rails/tmp:size=${TMPFS_RAILS_TMP_SIZE:-256m},mode=1777
@@ -124,9 +80,6 @@ services:
     networks:
       - frontend
       - backend
-    deploy:
-      resources:
-        <<: *web-resources
     healthcheck:
       test: [ "CMD-SHELL", "curl --fail http://localhost/up || exit 1" ]
       interval: 30s
@@ -148,9 +101,6 @@ services:
       retries: 30
     networks:
       - backend
-    deploy:
-      resources:
-        <<: *db-resources
 
   redis-db:
     image: redis:7.2-alpine
@@ -160,8 +110,6 @@ services:
     deploy:
       restart_policy:
         condition: on-failure
-      resources:
-        <<: *default-resources
     volumes:
       - redis:/data
     healthcheck:
@@ -189,9 +137,6 @@ services:
       - attack_resources:/data/attack_resources
     networks:
       - backend
-    deploy:
-      resources:
-        <<: *default-resources
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/metrics"]
       interval: 30s
@@ -237,13 +182,93 @@ services:
     deploy:
       replicas: 4
       <<: *replicas
-      resources:
-        <<: *worker-resources
     healthcheck:
       test: [ "CMD-SHELL", "curl --fail http://localhost:7433 || exit 1" ]
       interval: 30s
       timeout: 10s
       retries: 3
+
+  # ---------------------------------------------------------------------------
+  # Monitoring (opt-in via --profile monitoring)
+  #
+  # Enable:  docker compose -f docker-compose-production.yml --profile monitoring up -d
+  # Disable: omit --profile monitoring (these services won't start)
+  #
+  # Requires METRICS_ENABLED=true in .env so web/sidekiq expose /metrics.
+  # All images pinned for air-gapped deployment — pre-pull before transfer.
+  # ---------------------------------------------------------------------------
+
+  prometheus:
+    profiles: ["monitoring"]
+    image: prom/prometheus:v3.4.1
+    volumes:
+      - ./docker/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./docker/monitoring/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=30d
+      - --storage.tsdb.retention.size=10GB
+      - --web.enable-lifecycle
+    networks:
+      - backend
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  grafana:
+    profiles: ["monitoring"]
+    image: grafana/grafana-oss:11.6.0
+    volumes:
+      - ./docker/monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana_data:/var/lib/grafana
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:?GRAFANA_PASSWORD must be set}
+      GF_SERVER_ROOT_URL: "http://${APPLICATION_HOST:-localhost}:${GRAFANA_PORT:-3001}"
+      # Air-gapped: disable all external checks
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_NEWS_NEWS_FEED_ENABLED: "false"
+      GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: ""
+      GF_UNIFIED_ALERTING_ENABLED: "true"
+    networks:
+      - backend
+    ports:
+      - "${GRAFANA_PORT:-3001}:3000"
+    depends_on:
+      prometheus:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  redis-exporter:
+    profiles: ["monitoring"]
+    image: oliver006/redis_exporter:v1.67.0
+    environment:
+      REDIS_ADDR: "redis://redis-db:6379"
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+    networks:
+      - backend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9121/metrics"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
 networks:
   backend:
@@ -255,3 +280,5 @@ volumes:
   redis:
   tus_uploads:
   attack_resources:
+  prometheus_data:
+  grafana_data:
