@@ -76,7 +76,13 @@ docker compose -f docker-compose-production.yml up -d
 
 ### 4. Access Grafana
 
-Open `http://<host>:<GRAFANA_PORT>` (default: 3001, configurable via `GRAFANA_PORT` env var) and log in with:
+Prometheus and Grafana bind to `127.0.0.1` by default (localhost only). Access from the server itself or via SSH tunnel:
+
+```bash
+ssh -L 3001:localhost:3001 user@cipherswarm-host
+```
+
+Open `http://localhost:3001` and log in with:
 
 - **Username**: `admin`
 - **Password**: the `GRAFANA_PASSWORD` you set
@@ -121,10 +127,10 @@ global:
 
 ### Add alert thresholds
 
-Edit `docker/monitoring/alerts.yml` and reload Prometheus:
+Edit `docker/monitoring/alerts.yml` and restart Prometheus:
 
 ```bash
-curl -X POST http://localhost:9090/-/reload
+docker compose -f docker-compose-production.yml --profile monitoring restart prometheus
 ```
 
 ### Custom Grafana dashboards
