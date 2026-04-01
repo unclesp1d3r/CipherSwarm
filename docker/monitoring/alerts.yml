@@ -42,7 +42,7 @@ groups:
   - name: postgresql
     rules:
       - alert: PGConnectionPoolExhaustion
-        expr: db_pool_busy / db_pool_size > 0.8
+        expr: db_pool_size > 0 and (db_pool_busy / db_pool_size) > 0.8
         for: 2m
         labels:
           severity: critical
@@ -50,8 +50,9 @@ groups:
           summary: "Connection pool {{ $labels.pool_name }} is {{ $value | humanizePercentage }} utilized"
           description: >
             More than 80% of the connection pool is checked out. Requests may
-            start blocking. Consider increasing RAILS_MAX_THREADS or PostgreSQL
-            max_connections. See docs/deployment/connection-pool-sizing.md.
+            start blocking. Consider adding web replicas, reducing concurrency,
+            or increasing pool size via RAILS_MAX_THREADS.
+            See docs/deployment/connection-pool-sizing.md.
 
       - alert: PGConnectionPoolWaiting
         expr: db_pool_waiting > 0
@@ -88,6 +89,19 @@ groups:
           description: >
             The redis-exporter cannot connect to Redis. Sidekiq, caching,
             and Action Cable will all be impacted.
+
+  - name: scrape_targets
+    rules:
+      - alert: SidekiqMetricsDown
+        expr: up{job="cipherswarm_sidekiq"} == 0
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Sidekiq metrics target {{ $labels.instance }} is down"
+          description: >
+            Prometheus cannot scrape the Sidekiq metrics server on port 9394.
+            Check Sidekiq logs for "[Yabeda] Failed to start" messages.
 
   - name: rails
     rules:
