@@ -222,3 +222,4 @@ docs/plans/
 .worktrees/
 **/tessl__*
 **/*.local.*
+/todos/*.md
