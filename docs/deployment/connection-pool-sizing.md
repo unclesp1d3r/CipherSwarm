@@ -76,7 +76,7 @@ Alert thresholds (see `docker/monitoring/alerts.yml`):
 
 ## Tuning Tips
 
-1. **Sidekiq concurrency vs pool size**: Sidekiq concurrency is set in `config/sidekiq.yml` (10 in production). The pool must be >= concurrency. The `× 2` multiplier in `database.yml` provides headroom for callbacks and eager-loaded associations that open additional connections.
+1. **Sidekiq concurrency vs pool size**: Sidekiq runs with the production database config, where `RAILS_MAX_THREADS` defaults to 10. Sidekiq concurrency is set in `config/sidekiq.yml` (10 in production). The pool must be >= concurrency. The `× 2` multiplier in `database.yml` provides headroom for callbacks and eager-loaded associations that open additional connections. **If overriding `RAILS_MAX_THREADS`, ensure `RAILS_MAX_THREADS × 2 >= Sidekiq concurrency`** to prevent connection pool exhaustion under load.
 
 2. **PgBouncer**: For deployments exceeding 300 connections, consider adding PgBouncer as a connection pooler between Rails and PostgreSQL. This reduces PostgreSQL memory pressure and allows more Rails processes with fewer backend connections.
 
