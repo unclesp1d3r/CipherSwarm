@@ -20,24 +20,26 @@ headroom          = 5                          (migrations, console, health chec
 | ------------------- | ----------- | --------------- |
 | `RAILS_MAX_THREADS` | 10          | 10              |
 | Pool per process    | 20          | 20              |
-| Replicas            | 1           | 4               |
+| Replicas            | 1           | 1 (default)     |
+
+> **Note:** Scale Sidekiq with `--scale sidekiq=N`. The `deploy.replicas: 4` in the compose file is only used in Docker Swarm mode.
 
 ### Single-server (default)
 
 ```
-= (1 × 20) + (4 × 20) + 5 = 105 connections
+= (1 × 20) + (1 × 20) + 5 = 45 connections
 ```
 
 ### 10-agent deployment (9 web replicas per scaling formula)
 
 ```
-= (9 × 20) + (4 × 20) + 5 = 265 connections
+= (9 × 20) + (1 × 20) + 5 = 205 connections
 ```
 
 ### 20-agent deployment (21 web replicas)
 
 ```
-= (21 × 20) + (4 × 20) + 5 = 505 connections
+= (21 × 20) + (1 × 20) + 5 = 445 connections
 ```
 
 ## PostgreSQL max_connections
