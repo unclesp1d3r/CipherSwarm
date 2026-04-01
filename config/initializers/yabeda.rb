@@ -11,7 +11,7 @@
 # Exposes:
 # - Rails request metrics (yabeda-rails)
 # - Sidekiq queue/job metrics (yabeda-sidekiq)
-# - Puma thread/worker metrics (yabeda-puma-plugin)
+# - Puma thread/worker metrics (yabeda-puma-plugin, web processes only)
 # - Custom ActiveRecord connection pool gauges
 #
 # Scraped by Prometheus at GET /metrics (see config/routes.rb).
@@ -49,10 +49,10 @@ Yabeda.configure do
   end
 
   # Collect runs in the Prometheus scrape request thread on each scrape.
-  # Errors are rescued per-pool so a single bad pool doesn't break the
-  # entire scrape (other metrics like Sidekiq/Rails still get exported).
+  # Inner rescue: isolates per-pool failures so one bad pool doesn't blank all gauges.
+  # Outer rescue: handles failure to enumerate pools at all (e.g., handler unavailable).
   collect do
-    ActiveRecord::Base.connection_handler.all_connection_pools.each do |pool|
+    ActiveRecord::Base.connection_handler.each_connection_pool do |pool|
       stat = pool.stat
       pool_name = pool.db_config.name
 
