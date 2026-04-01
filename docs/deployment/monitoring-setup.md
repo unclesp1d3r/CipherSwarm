@@ -2,7 +2,7 @@
 
 ## Overview
 
-CipherSwarm includes an optional Prometheus + Grafana monitoring stack. It runs as a separate Docker Compose file alongside the production stack and requires no Internet connectivity (all images are pre-pulled).
+CipherSwarm includes an optional Prometheus + Grafana monitoring stack built into `docker-compose-production.yml` using Docker Compose profiles. Enable it with `--profile monitoring` — no separate compose file needed. All images are pinned for air-gapped deployment.
 
 ## Architecture
 
@@ -47,7 +47,7 @@ docker save prom/prometheus:v3.4.1 grafana/grafana-oss:11.6.0 oliver006/redis_ex
 docker load < monitoring-images.tar.gz
 ```
 
-### 2. Enable metrics in the production stack
+### 2. Configure environment
 
 Add to your `.env`:
 
@@ -59,20 +59,19 @@ GRAFANA_PASSWORD=<generated-random-password>
 Generate and append a secure password to `.env`:
 
 ```bash
-# Generate and append a secure password to .env:
 printf 'GRAFANA_PASSWORD=%s\n' "$(openssl rand -base64 16)" >> .env
 ```
 
-Restart the production stack so web and Sidekiq processes expose `/metrics`:
+### 3. Start with monitoring
+
+```bash
+docker compose -f docker-compose-production.yml --profile monitoring up -d
+```
+
+To run **without** monitoring (default), omit `--profile monitoring`:
 
 ```bash
 docker compose -f docker-compose-production.yml up -d
-```
-
-### 3. Start the monitoring stack
-
-```bash
-docker compose -f docker-compose-monitoring.yml up -d
 ```
 
 ### 4. Access Grafana
@@ -132,10 +131,12 @@ curl -X POST http://localhost:9090/-/reload
 
 Place JSON files in `docker/monitoring/grafana/provisioning/dashboards/`. They are auto-loaded on Grafana startup.
 
-## Stopping
+## Stopping Monitoring
+
+To stop only the monitoring services while keeping the app running:
 
 ```bash
-docker compose -f docker-compose-monitoring.yml down
+docker compose -f docker-compose-production.yml --profile monitoring stop prometheus grafana redis-exporter
 ```
 
-Data is retained in `prometheus_data` and `grafana_data` volumes. To fully reset: `docker compose -f docker-compose-monitoring.yml down -v`
+Data is retained in `prometheus_data` and `grafana_data` volumes.
