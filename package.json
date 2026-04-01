@@ -1,5 +1,5 @@
 {
-  "name": "app",
+  "name": "cipherswarm",
   "dependencies": {
     "@fontsource-variable/jetbrains-mono": "^5.2.8",
     "@fontsource-variable/space-grotesk": "^5.2.10",
@@ -7,15 +7,15 @@
     "@hotwired/stimulus": "^3.2.2",
     "@hotwired/turbo-rails": "^8.0.23",
     "@popperjs/core": "^2.11.8",
-    "@rails/activestorage": "^8.1.200",
-    "autoprefixer": "^10.4.24",
+    "@rails/activestorage": "^8.1.300",
+    "autoprefixer": "^10.4.27",
     "bootstrap": "^5.3.8",
     "bootstrap-icons": "^1.13.1",
-    "esbuild": "^0.27.3",
+    "esbuild": "^0.27.4",
     "nodemon": "^3.1.14",
-    "postcss": "^8.5.6",
+    "postcss": "^8.5.8",
     "postcss-cli": "^11.0.1",
-    "sass": "^1.97.3",
+    "sass": "^1.98.0",
     "tom-select": "^2.5.2",
     "tus-js-client": "^4.3.1"
   },
