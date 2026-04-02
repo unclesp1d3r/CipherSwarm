@@ -28,6 +28,7 @@
 # - tasks: only allows show, new, and update actions
 namespace :client do
   get "health", to: "health#index"
+  get "system_health", to: "system_health#index"
   get "configuration"
   get "authenticate"
   resources :agents, only: %i[ show update ]

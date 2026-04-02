@@ -136,6 +136,7 @@ class SystemHealthCheckService
 
     connection_count = nil
     database_size = nil
+    pool_stats = nil
     begin
       result = ActiveRecord::Base.connection.execute(
         "SELECT numbackends FROM pg_stat_database WHERE datname = current_database()"
@@ -147,13 +148,23 @@ class SystemHealthCheckService
       )
       database_size = result.first&.fetch("size", nil)&.to_i
     rescue => e
-      Rails.logger.warn("[SystemHealth] PostgreSQL extended metrics failed: #{e.message}")
+      Rails.logger.warn("[SystemHealth] PostgreSQL query metrics failed: #{e.class} - #{e.message}")
     end
 
-    { status: :healthy, latency: latency, error: nil, connection_count: connection_count, database_size: database_size }
+    begin
+      pool_stats = ActiveRecord::Base.connection_pool.stat
+    rescue => e
+      Rails.logger.warn("[SystemHealth] Connection pool stats failed: #{e.class} - #{e.message}")
+    end
+
+    {
+      status: :healthy, latency: latency, error: nil,
+      connection_count: connection_count, database_size: database_size,
+      pool: pool_stats
+    }
   rescue => e
     Rails.logger.error("[SystemHealth] PostgreSQL check failed: #{e.message}\n#{Array(e.backtrace).first(5).join("\n")}")
-    { status: :unhealthy, latency: nil, error: e.message, connection_count: nil, database_size: nil }
+    { status: :unhealthy, latency: nil, error: e.message, connection_count: nil, database_size: nil, pool: nil }
   end
 
   def check_redis
@@ -216,7 +227,7 @@ class SystemHealthCheckService
 
   def checking_status
     {
-      postgresql: { status: :checking, latency: nil, error: nil, connection_count: nil, database_size: nil },
+      postgresql: { status: :checking, latency: nil, error: nil, connection_count: nil, database_size: nil, pool: nil },
       redis: { status: :checking, latency: nil, error: nil, used_memory: nil, connected_clients: nil, hit_rate: nil },
       storage: { status: :checking, latency: nil, error: nil, storage_used: nil, bucket_count: nil },
       sidekiq: { status: :checking, latency: nil, error: nil, workers: 0, queues: 0, enqueued: 0 },

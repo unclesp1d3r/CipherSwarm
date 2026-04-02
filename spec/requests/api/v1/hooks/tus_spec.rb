@@ -5,6 +5,10 @@ require "rails_helper"
 # -- describes a hook endpoint, not a class
 RSpec.describe "Api::V1::Hooks::Tus" do
   describe "POST /api/v1/hooks/tus" do
+    let(:hook_secret) { "test-hook-secret" }
+    let(:auth_headers) do
+      { "Content-Type" => "application/json", "X-Tusd-Hook-Secret" => hook_secret }
+    end
     let(:post_finish_payload) do
       {
         "Type" => "post-finish",
@@ -27,6 +31,11 @@ RSpec.describe "Api::V1::Hooks::Tus" do
       }
     end
 
+    before do
+      allow(ENV).to receive(:fetch).and_call_original
+      allow(ENV).to receive(:fetch).with("TUSD_HOOK_SECRET", nil).and_return(hook_secret)
+    end
+
     context "with a valid post-finish payload" do
       before do
         # Test env uses null_store — swap to memory_store for cache verification
@@ -36,7 +45,7 @@ RSpec.describe "Api::V1::Hooks::Tus" do
       it "caches upload metadata and returns ok" do
         post api_v1_hooks_tus_path,
              params: post_finish_payload.to_json,
-             headers: { "Content-Type" => "application/json" }
+             headers: auth_headers
 
         expect(response).to have_http_status(:ok)
 
@@ -54,7 +63,7 @@ RSpec.describe "Api::V1::Hooks::Tus" do
 
         post api_v1_hooks_tus_path,
              params: payload.to_json,
-             headers: { "Content-Type" => "application/json" }
+             headers: auth_headers
 
         expect(response).to have_http_status(:ok)
         expect(Rails.cache.read("tus_upload:anything")).to be_nil
@@ -65,7 +74,7 @@ RSpec.describe "Api::V1::Hooks::Tus" do
       it "returns bad request" do
         post api_v1_hooks_tus_path,
              params: "not json",
-             headers: { "Content-Type" => "application/json" }
+             headers: auth_headers
 
         expect(response).to have_http_status(:bad_request)
       end
@@ -77,7 +86,7 @@ RSpec.describe "Api::V1::Hooks::Tus" do
 
         post api_v1_hooks_tus_path,
              params: payload.to_json,
-             headers: { "Content-Type" => "application/json" }
+             headers: auth_headers
 
         expect(response).to have_http_status(:bad_request)
       end

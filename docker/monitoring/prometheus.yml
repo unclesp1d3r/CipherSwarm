@@ -1,0 +1,51 @@
+# CipherSwarm Prometheus Configuration
+#
+# All scrape targets are internal Docker network hostnames.
+# No external/Internet connectivity required.
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - /etc/prometheus/alerts.yml
+
+scrape_configs:
+  # Rails web application (yabeda-rails + custom PG pool gauges).
+  # Port 80: Puma listens on 80 inside the container (Dockerfile ENV PORT=80).
+  # Nginx blocks /metrics (returns 403) — Prometheus connects directly to web containers
+  # on the backend network, bypassing nginx.
+  - job_name: cipherswarm_web
+    metrics_path: /metrics
+    dns_sd_configs:
+      - names: ["web"]
+        type: A
+        port: 80
+        refresh_interval: 30s
+
+  # Sidekiq workers (yabeda-sidekiq queue/job metrics)
+  # Each replica runs a standalone WEBrick metrics server on port 9394
+  # (Sidekiq doesn't run Puma, so Rack mount isn't available).
+  - job_name: cipherswarm_sidekiq
+    metrics_path: /metrics
+    dns_sd_configs:
+      - names: ["sidekiq"]
+        type: A
+        port: 9394
+        refresh_interval: 30s
+
+  # Redis via redis_exporter sidecar
+  - job_name: redis
+    static_configs:
+      - targets: ["redis-exporter:9121"]
+
+  # tusd upload server (built-in Prometheus endpoint)
+  - job_name: tusd
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["tusd:8080"]
+
+  # Prometheus self-monitoring
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]

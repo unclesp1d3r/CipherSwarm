@@ -108,6 +108,26 @@ RSpec.describe SystemHealthCheckService do
           expect(result).to have_key(:connection_count)
           expect(result).to have_key(:database_size)
         end
+
+        it "includes pool stats from the connection pool" do
+          result = service.send(:check_postgresql)
+          expect(result[:pool]).to be_a(Hash)
+          expect(result[:pool]).to include(:size, :busy, :idle, :waiting, :dead)
+        end
+      end
+
+      context "when connection pool stats fail" do
+        before do
+          allow(ActiveRecord::Base.connection_pool).to receive(:stat)
+            .and_raise(StandardError.new("pool stat unavailable"))
+          allow(Rails.logger).to receive(:warn)
+        end
+
+        it "returns nil pool with healthy status" do
+          result = service.send(:check_postgresql)
+          expect(result[:status]).to eq(:healthy)
+          expect(result[:pool]).to be_nil
+        end
       end
 
       context "when PostgreSQL extended metrics fail" do

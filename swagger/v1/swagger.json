@@ -858,7 +858,7 @@
           "file_name"
         ]
       },
-      "TaskStatus": {
+      "HashcatStatusUpdate": {
         "type": "object",
         "description": "A hashcat status update submitted by an agent during task execution",
         "properties": {
@@ -1833,7 +1833,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TaskStatus",
+                "$ref": "#/components/schemas/HashcatStatusUpdate",
                 "description": "Hashcat status update for the task"
               }
             }

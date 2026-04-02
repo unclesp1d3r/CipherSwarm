@@ -37,6 +37,8 @@ Welcome to the CipherSwarm documentation. This directory contains comprehensive 
 - [Air-Gapped Deployment](deployment/air-gapped-deployment.md) - Deploying in isolated environments
 - [Production Load Balancing](deployment/production-load-balancing.md) - Nginx load balancing with horizontal web scaling
 - [Docker Storage and /tmp Management](deployment/docker-storage-and-tmp.md) - Preventing Sidekiq filesystem exhaustion with tmpfs mounts
+- [Connection Pool Sizing](deployment/connection-pool-sizing.md) - PostgreSQL connection pool formula and monitoring
+- [Monitoring Setup](deployment/monitoring-setup.md) - Prometheus + Grafana monitoring stack for air-gapped production
 
 ### Development Documentation
 
