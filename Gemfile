@@ -32,7 +32,7 @@ group :development, :test do
   gem "debug", platforms: %i[mri windows], require: "debug/prelude"
   gem "erb_lint", "~> 0.9.0"
   gem "factory_bot_rails", "~> 6.5.1"
-  gem "factory_trace", "~> 2.0.0"
+  gem "factory_trace", "~> 3.0.1"
   gem "faker", "~> 3.6.1"
   gem "fuubar", "~> 2.5.1"
   gem "rails-controller-testing", "~> 1.0.5"
