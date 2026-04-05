@@ -32,7 +32,7 @@ group :development, :test do
   gem "debug", platforms: %i[mri windows], require: "debug/prelude"
   gem "erb_lint", "~> 0.9.0"
   gem "factory_bot_rails", "~> 6.5.1"
-  gem "factory_trace", "~> 2.0.0"
+  gem "factory_trace", "~> 3.0.1"
   gem "faker", "~> 3.6.1"
   gem "fuubar", "~> 2.5.1"
   gem "rails-controller-testing", "~> 1.0.5"
@@ -74,7 +74,7 @@ gem "administrate-field-jsonb", "~> 0.4.8"
 gem "anyway_config", "~> 2.8.0"
 gem "ar_lazy_preload", "~> 2.1.1"
 gem "audited", "~> 5.8.0"
-gem "aws-sdk-s3", "~> 1.216.0", groups: %i[production development]
+gem "aws-sdk-s3", "~> 1.218.0", groups: %i[production development]
 gem "cancancan", "~> 3.6.1"
 gem "csv", "~> 3.3.5" # Required for Ruby 3.4+ (no longer in standard library)
 gem "devise", "~> 5.0.3"
@@ -104,7 +104,7 @@ gem "sys-filesystem", "~> 1.5"
 # in production. Thruster's default 30s HTTP_READ_TIMEOUT silently killed
 # large Active Storage direct uploads (multi-GB word lists). See #675.
 gem "openssl", "~> 4.0.1"
-gem "view_component", "~> 4.5.0"
+gem "view_component", "~> 4.6.0"
 
 # Prometheus metrics (opt-in via METRICS_ENABLED env var).
 # require: false — only loaded by config/initializers/yabeda.rb when enabled.
