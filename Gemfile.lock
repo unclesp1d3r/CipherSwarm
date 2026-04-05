@@ -153,7 +153,7 @@ GEM
       erubi (~> 1.4)
       parser (>= 2.4)
       smart_properties
-    bigdecimal (4.1.0)
+    bigdecimal (4.1.1)
     bindex (0.8.1)
     bootsnap (1.23.0)
       msgpack (~> 1.2)
@@ -309,7 +309,7 @@ GEM
     mini_magick (5.3.1)
       logger
     mini_mime (1.1.5)
-    minitest (6.0.2)
+    minitest (6.0.3)
       drb (~> 2.0)
       prism (~> 1.5)
     msgpack (1.8.0)
@@ -598,7 +598,7 @@ GEM
     uniform_notifier (1.18.0)
     uri (1.1.1)
     useragent (0.16.11)
-    view_component (4.5.0)
+    view_component (4.6.0)
       actionview (>= 7.1.0)
       activesupport (>= 7.1.0)
       concurrent-ruby (~> 1)
@@ -726,7 +726,7 @@ DEPENDENCIES
   turbo-rails (~> 2.0.23)
   tzinfo-data
   undercover (~> 0.8.4)
-  view_component (~> 4.5.0)
+  view_component (~> 4.6.0)
   web-console (~> 4.3.0)
   yabeda (~> 0.12)
   yabeda-prometheus (~> 0.9)
