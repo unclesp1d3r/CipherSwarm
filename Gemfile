@@ -18,7 +18,7 @@ gem "jbuilder", "~> 2.14.1"
 gem "jsbundling-rails", "~> 1.3.1"
 gem "pg", "~> 1.6.3"
 gem "propshaft", "~> 1.3.1"
-gem "puma", "~> 7.2"
+gem "puma", "~> 8.0"
 gem "stimulus-rails", "~> 1.3.4"
 gem "turbo-rails", "~> 2.0.23"
 gem "tzinfo-data", platforms: %i[windows jruby]
