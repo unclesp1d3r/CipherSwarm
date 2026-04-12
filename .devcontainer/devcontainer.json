@@ -4,7 +4,7 @@
   "service": "rails-app",
   "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
   "features": {
-    "ghcr.io/devcontainers-extra/features/claude-code:1": {},
+    "ghcr.io/devcontainers-extra/features/claude-code:2": {},
     "ghcr.io/joshuanianji/devcontainer-features/aws-cli-persistence:1": {},
     "ghcr.io/joshuanianji/devcontainer-features/github-cli-persistence:1": {},
     "ghcr.io/nikobockerman/devcontainer-features/yarn-persistent-cache:1": {},
