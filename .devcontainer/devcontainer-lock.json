@@ -1,9 +1,9 @@
 {
   "features": {
-    "ghcr.io/devcontainers-extra/features/claude-code:1": {
-      "version": "1.0.0",
-      "resolved": "ghcr.io/devcontainers-extra/features/claude-code@sha256:cce04f0fb8313336f679c243f032338434d9386d4857c3d38e1253b1e3d62a00",
-      "integrity": "sha256:cce04f0fb8313336f679c243f032338434d9386d4857c3d38e1253b1e3d62a00"
+    "ghcr.io/devcontainers-extra/features/claude-code:2": {
+      "version": "2.0.0",
+      "resolved": "ghcr.io/devcontainers-extra/features/claude-code@sha256:37b0d444a704021ee5f6d24242a4621bf337867d110e4e3c06b863a3a78122ac",
+      "integrity": "sha256:37b0d444a704021ee5f6d24242a4621bf337867d110e4e3c06b863a3a78122ac"
     },
     "ghcr.io/devcontainers-extra/features/markdownlint-cli2:1": {
       "version": "1.0.2",
