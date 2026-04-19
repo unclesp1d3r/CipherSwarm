@@ -139,7 +139,7 @@ docker-up:
 
 # Build and start in watch mode (auto-reload)
 docker-dev-watch:
-    docker compose -p csdev up --watch
+    DATABASE_URL="postgres://root:password@postgres-db/cipher_swarm_dev" docker compose -p csdev up --watch
 
 # Build and start production environment
 docker-prod-up:

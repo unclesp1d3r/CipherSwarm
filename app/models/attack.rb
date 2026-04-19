@@ -104,7 +104,56 @@
 #  fk_rails_...  (word_list_id => word_lists.id) ON DELETE => cascade
 #
 class Attack < ApplicationRecord
-  acts_as_paranoid # Soft deletes the attack
+  include Discard::Model
+  # Explicit even though :deleted_at is Discard's default — keeps the intent
+  # visible and guards against upstream default changes. The column itself is
+  # the one paranoia used, reused to avoid a schema migration.
+  self.discard_column = :deleted_at
+  # Preserves paranoia's implicit filter so every Attack query keeps hiding
+  # soft-deleted rows by default. Use `.unscoped` to reach discarded records.
+  default_scope -> { kept }
+
+  # Default_scope combines its `deleted_at IS NULL` clause with Discard's
+  # built-in `.discarded` (which adds `deleted_at IS NOT NULL`), producing
+  # an always-empty set. Removing only the deleted_at predicate restores
+  # the expected behavior while leaving any future default_scope additions
+  # intact.
+  scope :discarded, -> { unscope(where: :deleted_at).where.not(deleted_at: nil) }
+
+  # Concerns
+  include SafeBroadcasting
+  include AttackHashcatParameters
+  include AttackComplexityCalculation
+  include AttackStateMachine
+  include AttackProgress
+
+  QUARANTINE_RELEVANT_COLUMNS = %i[
+    word_list_id rule_list_id mask_list_id mask attack_mode
+    left_rule right_rule
+    increment_mode increment_minimum increment_maximum
+    custom_charset_1 custom_charset_2 custom_charset_3 custom_charset_4
+    classic_markov disable_markov markov_threshold
+    optimized slow_candidate_generators workload_profile
+  ].freeze
+
+  # Preserve paranoia's destroy-means-soft-delete contract: `destroy` runs the
+  # standard destroy callbacks (so `dependent: :destroy` cascades to child
+  # tasks and `before_destroy` / `after_destroy` hooks still fire) but replaces
+  # the DELETE with `discard` (sets deleted_at). The `discarded?` guard makes
+  # a second `destroy` call a no-op so cascades never fire twice.
+  def destroy
+    return self if discarded?
+    with_transaction_returning_status do
+      run_callbacks(:destroy) { discard }
+    end
+    self
+  end
+
+  def destroy!
+    destroy
+    raise ActiveRecord::RecordNotDestroyed.new("Failed to discard #{self.class}", self) unless discarded?
+    self
+  end
 
   ##
   # Associations
@@ -187,12 +236,6 @@ class Attack < ApplicationRecord
   scope :awaiting_assignment, -> { without_states(:completed, :exhausted, :running, :paused) }
   scope :active, -> { with_states(:running, :pending) }
 
-  # Concerns
-  include SafeBroadcasting
-  include AttackHashcatParameters
-  include AttackComplexityCalculation
-  include AttackStateMachine
-  include AttackProgress
 
   ##
   # Delegations
@@ -206,14 +249,6 @@ class Attack < ApplicationRecord
   after_update_commit :broadcast_index_state, if: :saved_change_to_state?
   after_commit :clear_campaign_quarantine_if_needed, on: [:update]
 
-  QUARANTINE_RELEVANT_COLUMNS = %i[
-    word_list_id rule_list_id mask_list_id mask attack_mode
-    left_rule right_rule
-    increment_mode increment_minimum increment_maximum
-    custom_charset_1 custom_charset_2 custom_charset_3 custom_charset_4
-    classic_markov disable_markov markov_threshold
-    optimized slow_candidate_generators workload_profile
-  ].freeze
 
   def to_full_label
     "#{campaign.name} - #{to_label}"

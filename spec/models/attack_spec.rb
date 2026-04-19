@@ -155,6 +155,66 @@ RSpec.describe Attack do
     it { expect(child_task).to be_valid }
     it { expect(attack.tasks.count).to eq(1) }
     it { expect { attack.destroy }.to change(Task, :count).by(-1) }
+    it { expect { attack.destroy }.to change { Task.unscoped.exists?(child_task.id) }.from(true).to(false) }
+  end
+
+  describe "soft delete" do
+    subject(:attack) { create(:dictionary_attack) }
+
+    it "sets deleted_at instead of deleting the row" do
+      expect { attack.destroy }
+        .to change { described_class.unscoped.find(attack.id).deleted_at }.from(nil)
+    end
+
+    it "keeps the row in the database after destroy" do
+      attack.destroy
+      expect(described_class.unscoped.exists?(attack.id)).to be true
+    end
+
+    it "excludes discarded records from default queries" do
+      attack.destroy
+      expect(described_class.all).not_to include(attack)
+    end
+
+    it "exposes .kept scope for non-discarded records" do
+      other = create(:dictionary_attack)
+      attack.destroy
+      expect(described_class.kept).to include(other)
+      expect(described_class.kept).not_to include(attack)
+    end
+
+    it "exposes .discarded scope for soft-deleted records" do
+      other = create(:dictionary_attack)
+      attack.destroy
+      expect(described_class.discarded.pluck(:id)).to contain_exactly(attack.id)
+      expect(described_class.discarded).not_to include(other)
+    end
+
+    it "reaches discarded records via .unscoped" do
+      attack.destroy
+      expect(described_class.unscoped.pluck(:id)).to include(attack.id)
+    end
+
+    it "answers discarded? true after destroy" do
+      attack.destroy
+      expect(attack.reload.discarded?).to be true
+    end
+
+    it "answers kept? false after destroy" do
+      attack.destroy
+      expect(attack.reload.kept?).to be false
+    end
+
+    it "is a no-op when destroy is called on an already-discarded record" do
+      attack.destroy
+      expect { attack.destroy }.not_to change { attack.reload.deleted_at }
+    end
+
+    it "supports destroy! by soft-deleting the record" do
+      expect { attack.destroy! }
+        .to change { described_class.unscoped.find(attack.id).deleted_at }.from(nil)
+      expect(attack.reload.discarded?).to be true
+    end
   end
 
   describe "state machine callbacks" do

@@ -105,6 +105,72 @@ RSpec.describe Campaign do
     end
   end
 
+  describe "soft delete" do
+    subject(:campaign) { create(:campaign) }
+
+    it "sets deleted_at instead of deleting the row" do
+      expect { campaign.destroy }
+        .to change { described_class.unscoped.find(campaign.id).deleted_at }.from(nil)
+    end
+
+    it "keeps the row in the database after destroy" do
+      campaign.destroy
+      expect(described_class.unscoped.exists?(campaign.id)).to be true
+    end
+
+    it "excludes discarded records from default queries" do
+      campaign.destroy
+      expect(described_class.all).not_to include(campaign)
+    end
+
+    it "exposes .kept scope for non-discarded records" do
+      other = create(:campaign)
+      campaign.destroy
+      expect(described_class.kept).to include(other)
+      expect(described_class.kept).not_to include(campaign)
+    end
+
+    it "exposes .discarded scope for soft-deleted records" do
+      other = create(:campaign)
+      campaign.destroy
+      expect(described_class.discarded.pluck(:id)).to contain_exactly(campaign.id)
+      expect(described_class.discarded).not_to include(other)
+    end
+
+    it "reaches discarded records via .unscoped" do
+      campaign.destroy
+      expect(described_class.unscoped.pluck(:id)).to include(campaign.id)
+    end
+
+    it "answers discarded? true after destroy" do
+      campaign.destroy
+      expect(campaign.reload.discarded?).to be true
+    end
+
+    it "answers kept? false after destroy" do
+      campaign.destroy
+      expect(campaign.reload.kept?).to be false
+    end
+
+    it "cascades discard to associated attacks" do
+      attack = create(:dictionary_attack, campaign: campaign)
+      expect { campaign.destroy }.to change { Attack.kept.exists?(attack.id) }.from(true).to(false)
+      expect(Attack.unscoped.exists?(attack.id)).to be true # soft-deleted, still in DB
+      expect(Attack.unscoped.find(attack.id).discarded?).to be true
+    end
+
+    it "is a no-op when destroy is called on an already-discarded record" do
+      campaign.destroy
+      expect { campaign.destroy }.not_to change { campaign.reload.deleted_at }
+    end
+
+    it "supports destroy! by soft-deleting the record" do
+      expect { campaign.destroy! }
+        .to change { described_class.unscoped.find(campaign.id).deleted_at }.from(nil)
+      expect(campaign.reload.discarded?).to be true
+    end
+  end
+
   describe "instance methods" do
     let(:hash_list) { create(:hash_list) }
     let(:hash_item) { create(:hash_item, hash_list: hash_list, cracked: true, cracked_time: DateTime.now, plain_text: "nothing") }
