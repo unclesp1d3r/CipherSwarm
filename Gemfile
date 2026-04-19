@@ -84,7 +84,7 @@ gem "inline_svg", "~> 1.10.0"
 gem "lograge", "~> 0.14"
 gem "meta-tags", "~> 2.23.0"
 gem "oj", "~> 3.16.16"
-gem "pagy", "~> 43.5.0"
+gem "pagy", "~> 43.5.1"
 gem "paranoia", "~> 3.1.0"
 gem "redis", "~> 5.4.1"
 gem "rexml", "~> 3.4.4"
@@ -104,7 +104,7 @@ gem "sys-filesystem", "~> 1.5"
 # in production. Thruster's default 30s HTTP_READ_TIMEOUT silently killed
 # large Active Storage direct uploads (multi-GB word lists). See #675.
 gem "openssl", "~> 4.0.1"
-gem "view_component", "~> 4.6.0"
+gem "view_component", "~> 4.7.0"
 
 # Prometheus metrics (opt-in via METRICS_ENABLED env var).
 # require: false — only loaded by config/initializers/yabeda.rb when enabled.
