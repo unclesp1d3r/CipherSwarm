@@ -249,6 +249,19 @@ class Attack < ApplicationRecord
   after_update_commit :broadcast_index_state, if: :saved_change_to_state?
   after_commit :clear_campaign_quarantine_if_needed, on: [:update]
 
+  # ActiveRecord's counter_cache decrement is wired to the DELETE path, not
+  # the discard UPDATE path. Maintain the cached `campaigns.attacks_count`
+  # manually so Campaign#attacks_count always reflects kept associations.
+  after_discard :decrement_campaign_attacks_counter
+
+  def decrement_campaign_attacks_counter
+    return unless campaign_id
+    # Counter caches intentionally bypass validations and callbacks — that's
+    # the Rails idiom for keeping cached counts in sync with UPDATE-based
+    # operations like discard.
+    Campaign.decrement_counter(:attacks_count, campaign_id) # rubocop:disable Rails/SkipsModelValidations
+  end
+
 
   def to_full_label
     "#{campaign.name} - #{to_label}"

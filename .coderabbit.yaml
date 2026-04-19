@@ -87,7 +87,7 @@ reviews:
     - "!app/assets/builds/**"
   path_instructions:
     - path: "app/models/**/*.rb"
-      instructions: "Verify acts_as_paranoid for soft deletes, state machine transitions, validations, YARD documentation, and proper associations. Check for N+1 queries in callbacks. Ensure business logic follows Single Responsibility Principle."
+      instructions: "Verify Discard::Model for soft deletes, state machine transitions, validations, YARD documentation, and proper associations. Check for N+1 queries in callbacks. Ensure business logic follows Single Responsibility Principle."
     - path: "app/controllers/**/*.rb"
       instructions: "Keep controllers thin. Verify strong parameters with params.permit(). Check CanCanCan authorize! calls. Ensure proper error handling and status codes. RESTful actions should follow standard order: index, show, new, edit, create, update, destroy."
     - path: "app/controllers/api/**/*.rb"
@@ -188,7 +188,7 @@ reviews:
       - name: "State Machine Safety"
         instructions: "For models using state_machines-activerecord, verify: 1) Transition guards prevent invalid state changes, 2) Callbacks don't have side effects that break idempotency, 3) State column has database default, 4) Tests cover all transitions. Check Agent, Attack, and Task models specifically."
       - name: "Soft Delete Awareness"
-        instructions: "For models using paranoia (acts_as_paranoid), verify: 1) Queries use default scope (deleted records excluded), 2) really_destroy! is used intentionally, 3) Associations handle soft-deleted parents correctly, 4) Unique constraints consider deleted_at. Campaign model uses paranoia."
+        instructions: "For models using discard (include Discard::Model), verify: 1) Queries honor default_scope -> { kept } so discarded records are excluded, 2) .discarded / .unscoped are used intentionally when reaching soft-deleted records, 3) Associations handle soft-deleted parents correctly, 4) Unique constraints consider deleted_at, 5) counter_cache on belongs_to is maintained by an after_discard callback (the DELETE-path decrement does not fire on discard's UPDATE). Campaign and Attack use Discard::Model."
       - name: "Agent API Contract"
         instructions: "Changes to app/controllers/api/v1/client/** must maintain backward compatibility with v1 API contract. Verify: 1) Response schema matches existing format, 2) New fields are optional, 3) Deprecations are documented, 4) Rswag specs are updated. Breaking changes require api-v2 label."
   tools:
@@ -322,7 +322,7 @@ code_generation:
     language: en-US
     path_instructions:
       - path: "app/models/**/*.rb"
-        instructions: "Generate YARD documentation including @param, @return, @raise tags. Document state machine transitions, validations, associations, and business logic. Include examples for complex queries. Document soft delete behavior with acts_as_paranoid."
+        instructions: "Generate YARD documentation including @param, @return, @raise tags. Document state machine transitions, validations, associations, and business logic. Include examples for complex queries. Document soft delete behavior with Discard::Model."
       - path: "app/controllers/**/*.rb"
         instructions: "Document controller actions with @param for route parameters, @return for response types, and @raise for error conditions. Include authorization requirements and response format examples (JSON/HTML)."
       - path: "app/controllers/api/**/*.rb"
