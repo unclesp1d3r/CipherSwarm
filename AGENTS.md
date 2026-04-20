@@ -31,6 +31,7 @@ Decision filter: "Will this work on an isolated LAN with no Internet, 10+ agents
 - Run `just ci-check` as final verification before claiming work is complete
 - `docs/plans/` is gitignored — working implementation documents, stay local only
 - `docs/solutions/` is committed — searchable knowledge base of documented solutions organized by category (e.g. `best-practices/`, `runtime-errors/`, `database-issues/`) with YAML frontmatter (`module`, `tags`, `problem_type`). Relevant when implementing or debugging in documented areas.
+- `todos/` is committed — triaged follow-up backlog as `todos/NNN-<status>-<priority>-<slug>.md` (status: `pending` / `ready` / `complete`); run `/todo-triage` → `/todo-resolve` to work them
 
 ### Documentation Indexes
 
@@ -38,6 +39,10 @@ When adding new files:
 
 - `docs/user-guide/` → update both `docs/user-guide/README.md` and `docs/README.md`
 - `docs/deployment/` → update `docs/README.md`
+
+### Soft-delete
+
+Campaign and Attack use `SoftDeletable` concern (`app/models/concerns/soft_deletable.rb`), which wraps the `discard` gem. `destroy` soft-deletes (sets `deleted_at`), `default_scope -> { kept }` hides discarded rows. Reach for `.unscoped` or `.discarded` to see soft-deleted records. See `docs/solutions/best-practices/paranoia-to-discard-migration.md` for gotchas when extending this pattern.
 
 ### For planning agents
 
