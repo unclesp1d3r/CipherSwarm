@@ -87,12 +87,16 @@ module SoftDeletable
     # @param on [Symbol] the belongs_to association name on this model
     def discards_with_counter_cache(column, on:)
       after_discard do
-        parent_fk = public_send("#{on}_id")
+        reflection = self.class.reflect_on_association(on)
+        # Use the reflected foreign_key so custom `foreign_key:` settings
+        # on the belongs_to association work correctly — not every
+        # `belongs_to :parent` maps to a `parent_id` column.
+        parent_fk = public_send(reflection.foreign_key)
         next unless parent_fk
 
-        parent_class = self.class.reflect_on_association(on).klass
-        # Counter caches intentionally skip validations and callbacks.
-        parent_class.decrement_counter(column, parent_fk) # rubocop:disable Rails/SkipsModelValidations
+        # Counter caches intentionally skip validations and callbacks
+        # (the Rails idiom for keeping cached counts in sync).
+        reflection.klass.decrement_counter(column, parent_fk) # rubocop:disable Rails/SkipsModelValidations
       end
     end
   end

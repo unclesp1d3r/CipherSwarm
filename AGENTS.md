@@ -30,7 +30,7 @@ Decision filter: "Will this work on an isolated LAN with no Internet, 10+ agents
 - Service objects and concerns require a REASONING block (see CONTRIBUTING.md)
 - Run `just ci-check` as final verification before claiming work is complete
 - `docs/plans/` is gitignored — working implementation documents, stay local only
-- `docs/solutions/` is committed — operational knowledge base
+- `docs/solutions/` is committed — searchable knowledge base of documented solutions organized by category (e.g. `best-practices/`, `runtime-errors/`, `database-issues/`) with YAML frontmatter (`module`, `tags`, `problem_type`). Relevant when implementing or debugging in documented areas.
 
 ### Documentation Indexes
 
