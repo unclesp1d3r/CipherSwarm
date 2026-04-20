@@ -5,8 +5,9 @@
 
 # Manages hash cracking campaigns with priority-based execution.
 #
-# @acts_as
-# - paranoid: enables soft deletes
+# @soft_delete
+# - Uses Discard::Model; destroy is overridden to soft-delete (set deleted_at)
+#   while still running destroy callbacks so `dependent: :destroy` cascades.
 #
 # @enums
 # - priority:
@@ -90,7 +91,10 @@
 #  fk_rails_...  (project_id => projects.id) ON DELETE => cascade
 #
 class Campaign < ApplicationRecord
-  acts_as_paranoid # Soft deletes the campaign.
+  include SoftDeletable
+
+  # Broadcasts targeted updates to the client when the campaign is updated unless running in test environment
+  include SafeBroadcasting
 
   # Priority enum for the campaign.
   #
@@ -136,13 +140,17 @@ class Campaign < ApplicationRecord
   # Delegations
   delegate :uncracked_count, :cracked_count, :hash_item_count, to: :hash_list
 
-  # Broadcasts targeted updates to the client when the campaign is updated unless running in test environment
-  include SafeBroadcasting
 
   # Callbacks
-  after_commit :mark_attacks_complete, on: [:update]
-  after_commit :broadcast_eta_update, on: [:update], if: :should_broadcast_eta?
-  after_commit :trigger_priority_rebalance_if_needed, on: [:update]
+  # `discard` is an UPDATE, which fires `after_commit on: :update`. These
+  # callbacks broadcast or trigger downstream work that makes no sense for
+  # a record that's about to vanish from every default query — and in some
+  # paths (e.g. broadcasting to a destroyed Turbo Stream channel) they
+  # would raise and turn a successful soft-delete into a 500. Guard with
+  # `unless: :discarded?` so soft-delete is a silent UPDATE.
+  after_commit :mark_attacks_complete, on: [:update], unless: :discarded?
+  after_commit :broadcast_eta_update, on: [:update], if: :should_broadcast_eta?, unless: :discarded?
+  after_commit :trigger_priority_rebalance_if_needed, on: [:update], unless: :discarded?
 
   # Provides a label indicating the number of incomplete attacks out of the total number of attacks.
   #

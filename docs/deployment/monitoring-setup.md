@@ -2,7 +2,7 @@
 
 ## Overview
 
-CipherSwarm includes an optional Prometheus + Grafana monitoring stack built into `docker-compose-production.yml` using Docker Compose profiles. Enable it with `--profile monitoring` — no separate compose file needed. All images are pinned for air-gapped deployment.
+CipherSwarm includes an optional Prometheus + Grafana monitoring stack built into `docker-compose.prod.yml` using Docker Compose profiles. Enable it with `--profile monitoring` — no separate compose file needed. All images are pinned for air-gapped deployment.
 
 ## Architecture
 
@@ -65,13 +65,13 @@ printf 'GRAFANA_PASSWORD=%s\n' "$(openssl rand -base64 16)" >> .env
 ### 3. Start with monitoring
 
 ```bash
-docker compose -f docker-compose-production.yml --profile monitoring up -d
+docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile monitoring up -d
 ```
 
 To run **without** monitoring (default), omit `--profile monitoring`:
 
 ```bash
-docker compose -f docker-compose-production.yml up -d
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 ```
 
 ### 4. Access Grafana
@@ -130,7 +130,7 @@ global:
 Edit `docker/monitoring/alerts.yml` and restart Prometheus:
 
 ```bash
-docker compose -f docker-compose-production.yml --profile monitoring restart prometheus
+docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile monitoring restart prometheus
 ```
 
 ### Custom Grafana dashboards
@@ -142,7 +142,7 @@ Place JSON files in `docker/monitoring/grafana/provisioning/dashboards/`. They a
 To stop only the monitoring services while keeping the app running:
 
 ```bash
-docker compose -f docker-compose-production.yml --profile monitoring stop prometheus grafana redis-exporter
+docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile monitoring stop prometheus grafana redis-exporter
 ```
 
 Data is retained in `prometheus_data` and `grafana_data` volumes.

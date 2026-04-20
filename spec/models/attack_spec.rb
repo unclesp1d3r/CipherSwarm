@@ -155,6 +155,112 @@ RSpec.describe Attack do
     it { expect(child_task).to be_valid }
     it { expect(attack.tasks.count).to eq(1) }
     it { expect { attack.destroy }.to change(Task, :count).by(-1) }
+    it { expect { attack.destroy }.to change { Task.unscoped.exists?(child_task.id) }.from(true).to(false) }
+  end
+
+  describe "soft delete" do
+    subject(:attack) { create(:dictionary_attack) }
+
+    it "sets deleted_at instead of deleting the row" do
+      expect { attack.destroy }
+        .to change { described_class.unscoped.find(attack.id).deleted_at }.from(nil)
+    end
+
+    it "keeps the row in the database after destroy" do
+      attack.destroy
+      expect(described_class.unscoped.exists?(attack.id)).to be true
+    end
+
+    it "excludes discarded records from default queries" do
+      attack.destroy
+      expect(described_class.all).not_to include(attack)
+    end
+
+    it "exposes .kept scope for non-discarded records" do
+      other = create(:dictionary_attack)
+      attack.destroy
+      expect(described_class.kept).to include(other)
+      expect(described_class.kept).not_to include(attack)
+    end
+
+    it "exposes .discarded scope for soft-deleted records" do
+      other = create(:dictionary_attack)
+      attack.destroy
+      expect(described_class.discarded.pluck(:id)).to contain_exactly(attack.id)
+      expect(described_class.discarded).not_to include(other)
+    end
+
+    it "reaches discarded records via .unscoped" do
+      attack.destroy
+      expect(described_class.unscoped.pluck(:id)).to include(attack.id)
+    end
+
+    it "answers discarded? true after destroy" do
+      attack.destroy
+      expect(attack.reload.discarded?).to be true
+    end
+
+    it "answers kept? false after destroy" do
+      attack.destroy
+      expect(attack.reload.kept?).to be false
+    end
+
+    it "decrements the campaign.attacks_count counter cache on destroy" do
+      campaign = attack.campaign
+      create(:dictionary_attack, campaign: campaign)
+      expect(campaign.reload.attacks_count).to eq(2)
+      attack.destroy
+      expect(campaign.reload.attacks_count).to eq(1)
+      expect(described_class.unscoped.where(campaign_id: campaign.id).count).to eq(2)
+    end
+
+    it "is a no-op when destroy is called on an already-discarded record" do
+      attack.destroy
+      expect { attack.destroy }.not_to change { attack.reload.deleted_at }
+    end
+
+    it "supports destroy! by soft-deleting the record" do
+      expect { attack.destroy! }
+        .to change { described_class.unscoped.find(attack.id).deleted_at }.from(nil)
+      expect(attack.reload.discarded?).to be true
+    end
+
+    # Spying on the subject is the correct tool for asserting whether
+    # `after_commit` callbacks fire — the cop is over-broad here.
+    # rubocop:disable RSpec/SubjectStub
+    describe "broadcast guards" do
+      it "does not fire after_commit on: :update broadcasters on discard" do
+        allow(attack).to receive(:broadcast_attack_progress_update)
+        allow(attack).to receive(:clear_campaign_quarantine_if_needed)
+        attack.destroy
+        expect(attack).not_to have_received(:broadcast_attack_progress_update)
+        expect(attack).not_to have_received(:clear_campaign_quarantine_if_needed)
+      end
+
+      it "still fires after_commit on: :update broadcasters for normal updates" do
+        allow(attack).to receive(:broadcast_attack_progress_update)
+        attack.update!(description: "regression guard — normal update still broadcasts")
+        expect(attack).to have_received(:broadcast_attack_progress_update).at_least(:once)
+      end
+    end
+    # rubocop:enable RSpec/SubjectStub
+
+    it "raises RecordNotDestroyed from destroy! when discard returns false" do
+      allow(attack).to receive(:discard).and_return(false) # rubocop:disable RSpec/SubjectStub
+      expect { attack.destroy! }.to raise_error(ActiveRecord::RecordNotDestroyed, /Failed to discard Attack/)
+    end
+
+    it "exposes nil hash_list through a discarded parent campaign" do
+      campaign = attack.campaign
+      # Reload the attack through unscoped so default_scope doesn't hide it
+      # after the campaign is discarded via the cascade path.
+      campaign.destroy
+      reloaded = described_class.unscoped.find(attack.id)
+      # Campaign is hidden by its default_scope, so the through-association
+      # traversal returns nil. Callers iterating unscoped attacks must guard
+      # against nil before delegating through #hash_list.
+      expect(reloaded.hash_list).to be_nil
+    end
   end
 
   describe "state machine callbacks" do

@@ -104,7 +104,23 @@
 #  fk_rails_...  (word_list_id => word_lists.id) ON DELETE => cascade
 #
 class Attack < ApplicationRecord
-  acts_as_paranoid # Soft deletes the attack
+  include SoftDeletable
+
+  # Concerns
+  include SafeBroadcasting
+  include AttackHashcatParameters
+  include AttackComplexityCalculation
+  include AttackStateMachine
+  include AttackProgress
+
+  QUARANTINE_RELEVANT_COLUMNS = %i[
+    word_list_id rule_list_id mask_list_id mask attack_mode
+    left_rule right_rule
+    increment_mode increment_minimum increment_maximum
+    custom_charset_1 custom_charset_2 custom_charset_3 custom_charset_4
+    classic_markov disable_markov markov_threshold
+    optimized slow_candidate_generators workload_profile
+  ].freeze
 
   ##
   # Associations
@@ -117,6 +133,10 @@ class Attack < ApplicationRecord
   belongs_to :mask_list, optional: true
   belongs_to :word_list, optional: true
   belongs_to :creator, class_name: "User", optional: true
+
+  # Must follow the `belongs_to :campaign` declaration above — the concern
+  # validates the association exists at registration time.
+  discards_with_counter_cache :attacks_count, on: :campaign
 
   # Validations
   validates :attack_mode, presence: true,
@@ -187,12 +207,6 @@ class Attack < ApplicationRecord
   scope :awaiting_assignment, -> { without_states(:completed, :exhausted, :running, :paused) }
   scope :active, -> { with_states(:running, :pending) }
 
-  # Concerns
-  include SafeBroadcasting
-  include AttackHashcatParameters
-  include AttackComplexityCalculation
-  include AttackStateMachine
-  include AttackProgress
 
   ##
   # Delegations
@@ -202,18 +216,14 @@ class Attack < ApplicationRecord
   alias_method :hash_type, :hash_mode # Alias for hash_mode
 
   # Callbacks
-  after_commit :broadcast_attack_progress_update, on: [:update]
-  after_update_commit :broadcast_index_state, if: :saved_change_to_state?
-  after_commit :clear_campaign_quarantine_if_needed, on: [:update]
-
-  QUARANTINE_RELEVANT_COLUMNS = %i[
-    word_list_id rule_list_id mask_list_id mask attack_mode
-    left_rule right_rule
-    increment_mode increment_minimum increment_maximum
-    custom_charset_1 custom_charset_2 custom_charset_3 custom_charset_4
-    classic_markov disable_markov markov_threshold
-    optimized slow_candidate_generators workload_profile
-  ].freeze
+  # `discard` is an UPDATE, which fires `after_commit on: :update`. These
+  # broadcasters push Turbo Stream updates to the client; firing them for a
+  # record that's about to be hidden by default_scope produces noise at best
+  # and 500s at worst (e.g., broadcasting to a now-gone channel). Guard with
+  # `unless: :discarded?` so soft-delete is a silent UPDATE.
+  after_commit :broadcast_attack_progress_update, on: [:update], unless: :discarded?
+  after_update_commit :broadcast_index_state, if: :saved_change_to_state?, unless: :discarded?
+  after_commit :clear_campaign_quarantine_if_needed, on: [:update], unless: :discarded?
 
   def to_full_label
     "#{campaign.name} - #{to_label}"

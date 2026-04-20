@@ -24,7 +24,7 @@ Active Storage's download path is: `blob.open` → `ActiveStorage::Downloader#op
 
 ## Fix: tmpfs Mounts
 
-Both `docker-compose.yml` and `docker-compose-production.yml` mount tmpfs filesystems on the Sidekiq and web services. There are **two** temp directories that need protection from overlay exhaustion:
+Both `docker-compose.yml` and `docker-compose.prod.yml` mount tmpfs filesystems on the Sidekiq and web services. There are **two** temp directories that need protection from overlay exhaustion:
 
 ### /tmp — Active Storage blob downloads
 
@@ -181,7 +181,7 @@ Confirm the tmpfs mounts inside a running Sidekiq container:
 docker compose exec sidekiq df -h /tmp /rails/tmp
 
 # Production
-docker compose -f docker-compose-production.yml exec sidekiq df -h /tmp /rails/tmp
+docker compose -f docker-compose.yml -f docker-compose.prod.yml exec sidekiq df -h /tmp /rails/tmp
 ```
 
 Expected output shows `tmpfs` as the filesystem type for both paths:
@@ -220,7 +220,7 @@ If a Sidekiq container hits `Errno::ENOSPC`:
 1. **Restart the container** — tmpfs is cleared automatically on restart:
 
    ```bash
-   docker compose -f docker-compose-production.yml restart sidekiq
+   docker compose -f docker-compose.yml -f docker-compose.prod.yml restart sidekiq
    ```
 
 2. **Check for stuck jobs** — large temp files from failed jobs may linger until the container restarts.

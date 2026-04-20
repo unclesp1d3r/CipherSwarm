@@ -65,6 +65,12 @@
 /mise.toml
 /vitest.config.js
 /vacuum-ruleset.yaml
+/todos
+
+# Host bind-mount data directories — never baked into the image.
+/postgres-data
+/redis-data
+/storage
 
 # Ignore local/runtime noise
 /.DS_Store

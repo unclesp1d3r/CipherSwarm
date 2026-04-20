@@ -149,14 +149,20 @@ RSpec.describe "Air-Gapped Deployment Validation", type: :request do
   end
 
   describe "production Docker configuration" do
-    it "production docker-compose file exists" do
-      expect(Rails.root.join("docker-compose-production.yml").exist?).to be(true)
+    it "production docker-compose files exist" do
+      expect(Rails.root.join("docker-compose.yml").exist?).to be(true)
+      expect(Rails.root.join("docker-compose.prod.yml").exist?).to be(true)
     end
 
-    it "production compose includes all required services" do
-      content = Rails.root.join("docker-compose-production.yml").read
-      expect(content).to include("postgres")
-      expect(content).to include("redis")
+    it "merged production compose includes all required services" do
+      # The production config is now split across the base file + prod overlay;
+      # verify both halves name the core services so air-gapped deployments
+      # still get postgres/redis/nginx when rendered via `-f base -f prod`.
+      base = Rails.root.join("docker-compose.yml").read
+      prod = Rails.root.join("docker-compose.prod.yml").read
+      expect(base).to include("postgres")
+      expect(base).to include("redis")
+      expect(prod).to include("nginx")
     end
   end
 

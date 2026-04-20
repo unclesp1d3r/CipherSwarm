@@ -894,7 +894,7 @@ Environment variables are referenced in the following files:
 | `config/initializers/devise.rb`               | Devise authentication         | `APPLICATION_HOST`                                                                                                                             |
 | `config/initializers/storage_config_check.rb` | S3 credentials validation     | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`                                                                                                   |
 | `docker-compose.yml`                          | Docker Compose orchestration  | `RAILS_MASTER_KEY`, `POSTGRES_PASSWORD`, `APPLICATION_HOST`, `DISABLE_SSL`, `ACTIVE_STORAGE_SERVICE`, `TMPFS_TMP_SIZE`, `TMPFS_RAILS_TMP_SIZE` |
-| `docker-compose-production.yml`               | Production Docker Compose     | `TMPFS_TMP_SIZE`, `TMPFS_RAILS_TMP_SIZE`, `TUSD_HOOK_SECRET`, `REDIS_PASSWORD`                                                                 |
+| `docker-compose.prod.yml`                     | Production Docker Compose     | `TMPFS_TMP_SIZE`, `TMPFS_RAILS_TMP_SIZE`, `TUSD_HOOK_SECRET`, `REDIS_PASSWORD`                                                                 |
 
 ---
 

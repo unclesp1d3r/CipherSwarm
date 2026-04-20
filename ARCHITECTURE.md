@@ -38,7 +38,7 @@ Production runs in **air-gapped, non-Internet-connected lab environments**. Deve
 - **Attack resources exceeding 100 GB** — word lists, rule lists, and mask lists can be 100+ GB. Upload, storage, download, and processing pipelines must handle these sizes without timeouts, memory exhaustion, or filesystem limits.
 - **Self-hosted fonts and assets** — all fonts vendored via `@fontsource`; Bootstrap Icons self-hosted. No Google Fonts, no CDN links.
 - **Local disk or S3-compatible storage** — production uses local disk by default (`ACTIVE_STORAGE_SERVICE=local`). S3-compatible backends (MinIO, SeaweedFS) are opt-in.
-- **Docker Compose is the only supported deployment method** — production runs via `docker-compose-production.yml` on bare metal or VMs. All services (Rails, Sidekiq, PostgreSQL, Redis, nginx, tusd) are containerized. Scaling is horizontal via `--scale web=N`.
+- **Docker Compose is the only supported deployment method** — production runs via `docker-compose.prod.yml` on bare metal or VMs. All services (Rails, Sidekiq, PostgreSQL, Redis, nginx, tusd) are containerized. Scaling is horizontal via `--scale web=N`.
 
 **Decision filter:** "Will this work in production on an isolated LAN with no Internet, 10+ agents, and 100 GB files?"
 
