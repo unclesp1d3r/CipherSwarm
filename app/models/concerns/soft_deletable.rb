@@ -86,17 +86,22 @@ module SoftDeletable
     # @param column [Symbol] the counter column on the parent table
     # @param on [Symbol] the belongs_to association name on this model
     def discards_with_counter_cache(column, on:)
+      # Validate at declaration time so misuse fails fast with an actionable
+      # message instead of a NoMethodError on every discard call.
+      reflection = reflect_on_association(on)
+      raise ArgumentError, "discards_with_counter_cache: no association `#{on}` on #{name}" unless reflection
+      raise ArgumentError, "discards_with_counter_cache: `#{on}` is not a belongs_to (got #{reflection.macro})" unless reflection.macro == :belongs_to
+
       after_discard do
-        reflection = self.class.reflect_on_association(on)
-        # Use the reflected foreign_key so custom `foreign_key:` settings
-        # on the belongs_to association work correctly — not every
-        # `belongs_to :parent` maps to a `parent_id` column.
-        parent_fk = public_send(reflection.foreign_key)
+        # `self` here is the record; re-resolve the reflection so per-instance
+        # subclassing (STI) still gets the right parent class.
+        instance_reflection = self.class.reflect_on_association(on)
+        parent_fk = public_send(instance_reflection.foreign_key)
         next unless parent_fk
 
         # Counter caches intentionally skip validations and callbacks
         # (the Rails idiom for keeping cached counts in sync).
-        reflection.klass.decrement_counter(column, parent_fk) # rubocop:disable Rails/SkipsModelValidations
+        instance_reflection.klass.decrement_counter(column, parent_fk) # rubocop:disable Rails/SkipsModelValidations
       end
     end
   end
@@ -111,6 +116,11 @@ module SoftDeletable
   # throws `:abort`, `with_transaction_returning_status` returns `false`
   # and we propagate that — partial child cascades are rolled back because
   # the transaction also unwinds.
+  #
+  # Also sets `@destroyed` and `@_trigger_destroy_callback` after a successful
+  # discard so `destroyed?` and `after_destroy_commit` hooks behave the same
+  # way they would after a real DELETE — AR's internal destroy bookkeeping is
+  # tied to `destroy_row`, which our override skips.
   def destroy
     return self if discarded?
 
@@ -120,6 +130,11 @@ module SoftDeletable
       run_callbacks(:destroy) do
         discarded = discard
         raise ActiveRecord::Rollback unless discarded
+
+        # Mirror AR's `destroy_row`-driven bookkeeping so callers relying on
+        # the standard destroy contract see consistent state.
+        @destroyed = true
+        @_trigger_destroy_callback = true
         discarded
       end
     end

@@ -105,7 +105,6 @@
 #
 class Attack < ApplicationRecord
   include SoftDeletable
-  discards_with_counter_cache :attacks_count, on: :campaign
 
   # Concerns
   include SafeBroadcasting
@@ -134,6 +133,10 @@ class Attack < ApplicationRecord
   belongs_to :mask_list, optional: true
   belongs_to :word_list, optional: true
   belongs_to :creator, class_name: "User", optional: true
+
+  # Must follow the `belongs_to :campaign` declaration above — the concern
+  # validates the association exists at registration time.
+  discards_with_counter_cache :attacks_count, on: :campaign
 
   # Validations
   validates :attack_mode, presence: true,

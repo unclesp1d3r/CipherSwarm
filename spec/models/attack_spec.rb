@@ -207,12 +207,11 @@ RSpec.describe Attack do
 
     it "decrements the campaign.attacks_count counter cache on destroy" do
       campaign = attack.campaign
-      other = create(:dictionary_attack, campaign: campaign)
+      create(:dictionary_attack, campaign: campaign)
       expect(campaign.reload.attacks_count).to eq(2)
       attack.destroy
       expect(campaign.reload.attacks_count).to eq(1)
       expect(described_class.unscoped.where(campaign_id: campaign.id).count).to eq(2)
-      _ = other # reference to silence unused-let warnings
     end
 
     it "is a no-op when destroy is called on an already-discarded record" do

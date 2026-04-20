@@ -137,9 +137,11 @@ db-test-reset:
 docker-up:
     docker compose -p csdev up
 
-# Build and start in watch mode (auto-reload)
+# Build and start in watch mode (auto-reload).
+# DATABASE_URL defaults to the compose default DB (`cipherswarm`); override via
+# shell env to point at a different DB for ad-hoc testing.
 docker-dev-watch:
-    DATABASE_URL="postgres://root:password@postgres-db/cipher_swarm_dev" docker compose -p csdev up --watch
+    DATABASE_URL="${DATABASE_URL:-postgres://root:password@postgres-db/cipherswarm}" docker compose -p csdev up --watch
 
 # Build and start production environment (explicit -f layering)
 docker-prod-up:
