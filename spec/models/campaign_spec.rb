@@ -105,6 +105,145 @@ RSpec.describe Campaign do
     end
   end
 
+  describe "soft delete" do
+    subject(:campaign) { create(:campaign) }
+
+    it "sets deleted_at instead of deleting the row" do
+      expect { campaign.destroy }
+        .to change { described_class.unscoped.find(campaign.id).deleted_at }.from(nil)
+    end
+
+    it "keeps the row in the database after destroy" do
+      campaign.destroy
+      expect(described_class.unscoped.exists?(campaign.id)).to be true
+    end
+
+    it "excludes discarded records from default queries" do
+      campaign.destroy
+      expect(described_class.all).not_to include(campaign)
+    end
+
+    it "exposes .kept scope for non-discarded records" do
+      other = create(:campaign)
+      campaign.destroy
+      expect(described_class.kept).to include(other)
+      expect(described_class.kept).not_to include(campaign)
+    end
+
+    it "exposes .discarded scope for soft-deleted records" do
+      other = create(:campaign)
+      campaign.destroy
+      expect(described_class.discarded.pluck(:id)).to contain_exactly(campaign.id)
+      expect(described_class.discarded).not_to include(other)
+    end
+
+    it "reaches discarded records via .unscoped" do
+      campaign.destroy
+      expect(described_class.unscoped.pluck(:id)).to include(campaign.id)
+    end
+
+    it "answers discarded? true after destroy" do
+      campaign.destroy
+      expect(campaign.reload.discarded?).to be true
+    end
+
+    it "answers kept? false after destroy" do
+      campaign.destroy
+      expect(campaign.reload.kept?).to be false
+    end
+
+    it "cascades discard to associated attacks" do
+      attack = create(:dictionary_attack, campaign: campaign)
+      expect { campaign.destroy }.to change { Attack.kept.exists?(attack.id) }.from(true).to(false)
+      expect(Attack.unscoped.exists?(attack.id)).to be true # soft-deleted, still in DB
+      expect(Attack.unscoped.find(attack.id).discarded?).to be true
+    end
+
+    it "hard-deletes transitively-associated tasks when the campaign is discarded" do
+      attack = create(:dictionary_attack, campaign: campaign)
+      task = create(:task, attack: attack)
+      expect { campaign.destroy }.to change { Task.unscoped.exists?(task.id) }.from(true).to(false)
+    end
+
+    it "raises RecordNotDestroyed from destroy! when discard returns false" do
+      allow(campaign).to receive(:discard).and_return(false) # rubocop:disable RSpec/SubjectStub
+      expect { campaign.destroy! }.to raise_error(ActiveRecord::RecordNotDestroyed, /Failed to discard Campaign/)
+    end
+
+    it "suppresses destroy callbacks on a second destroy call (idempotency guard)" do
+      counter = 0
+      cb = -> { counter += 1 }
+      described_class.set_callback(:destroy, :before, cb)
+      begin
+        campaign.destroy
+        expect(counter).to eq(1)
+        campaign.destroy
+        expect(counter).to eq(1) # guard short-circuits before running callbacks again
+      ensure
+        described_class.skip_callback(:destroy, :before, cb)
+      end
+    end
+
+    it "is a no-op when destroy is called on an already-discarded record" do
+      campaign.destroy
+      expect { campaign.destroy }.not_to change { campaign.reload.deleted_at }
+    end
+
+    it "supports destroy! by soft-deleting the record" do
+      expect { campaign.destroy! }
+        .to change { described_class.unscoped.find(campaign.id).deleted_at }.from(nil)
+      expect(campaign.reload.discarded?).to be true
+    end
+
+    context "when a before_destroy callback throws :abort" do
+      before do
+        described_class.set_callback(:destroy, :before, :abort_destroy_for_spec)
+        described_class.define_method(:abort_destroy_for_spec) { throw :abort }
+      end
+
+      after do
+        described_class.skip_callback(:destroy, :before, :abort_destroy_for_spec)
+        described_class.remove_method(:abort_destroy_for_spec)
+      end
+
+      it "returns false from destroy and leaves deleted_at nil" do
+        expect(campaign.destroy).to be false
+        expect(campaign.reload.deleted_at).to be_nil
+      end
+
+      it "raises RecordNotDestroyed from destroy!" do
+        expect { campaign.destroy! }.to raise_error(ActiveRecord::RecordNotDestroyed)
+        expect(campaign.reload.deleted_at).to be_nil
+      end
+
+      it "rolls back any partial child cascade (attacks stay kept)" do
+        attack = create(:dictionary_attack, campaign: campaign)
+        expect(campaign.destroy).to be false
+        expect(Attack.unscoped.find(attack.id).discarded?).to be false
+      end
+    end
+
+    # Spying on the subject is the correct tool for asserting whether
+    # `after_commit` callbacks fire — the cop is over-broad here.
+    # rubocop:disable RSpec/SubjectStub
+    describe "broadcast guards" do
+      it "does not fire after_commit on: :update broadcasters on discard" do
+        allow(campaign).to receive(:mark_attacks_complete)
+        allow(campaign).to receive(:trigger_priority_rebalance_if_needed)
+        campaign.destroy
+        expect(campaign).not_to have_received(:mark_attacks_complete)
+        expect(campaign).not_to have_received(:trigger_priority_rebalance_if_needed)
+      end
+
+      it "still fires after_commit on: :update broadcasters for normal updates" do
+        allow(campaign).to receive(:mark_attacks_complete)
+        campaign.update!(description: "regression guard — normal update still broadcasts")
+        expect(campaign).to have_received(:mark_attacks_complete).at_least(:once)
+      end
+    end
+    # rubocop:enable RSpec/SubjectStub
+  end
+
   describe "instance methods" do
     let(:hash_list) { create(:hash_list) }
     let(:hash_item) { create(:hash_item, hash_list: hash_list, cracked: true, cracked_time: DateTime.now, plain_text: "nothing") }

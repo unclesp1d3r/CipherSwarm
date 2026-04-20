@@ -47,7 +47,7 @@ headroom          = 5                          (migrations, console, health chec
 Set `max_connections` in `postgresql.conf` (or via Docker env) to at least the calculated total. The default PostgreSQL value is **100**, which is insufficient for any scaled deployment.
 
 ```yaml
-# docker-compose-production.yml (example override)
+# docker-compose.prod.yml (example override)
 postgres-db:
   environment:
     POSTGRES_EXTRA_ARGS: -c max_connections=300

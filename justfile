@@ -133,33 +133,39 @@ db-test-reset:
 
 # === Docker Operations ===
 
-# Build and start development environment
+# Build and start development environment (loads docker-compose.yml + .override.yml)
 docker-up:
     docker compose -p csdev up
 
-# Build and start in watch mode (auto-reload)
+# Build and start in watch mode (auto-reload).
+# DATABASE_URL defaults to the compose default DB (`cipherswarm`); override via
+# shell env to point at a different DB for ad-hoc testing.
 docker-dev-watch:
-    docker compose -p csdev up --watch
+    DATABASE_URL="${DATABASE_URL:-postgres://root:password@postgres-db/cipherswarm}" docker compose -p csdev up --watch
 
-# Build and start production environment
+# Build and start production environment (explicit -f layering)
 docker-prod-up:
-    docker compose -f docker-compose-production.yml up
+    docker compose -f docker-compose.yml -f docker-compose.prod.yml up
+
+# Build and start production environment with monitoring profile
+docker-prod-up-monitoring:
+    docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile monitoring up
 
 # Scale production web service (use n+1 where n=active nodes)
 docker-prod-scale NUMBER:
-    docker compose -f docker-compose-production.yml up -d --scale web={{NUMBER}}
+    docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --scale web={{NUMBER}}
 
 # View nginx load balancer logs
 docker-prod-logs-nginx:
-    docker compose -f docker-compose-production.yml logs -f nginx
+    docker compose -f docker-compose.yml -f docker-compose.prod.yml logs -f nginx
 
 # View web service replica logs
 docker-prod-logs-web:
-    docker compose -f docker-compose-production.yml logs -f web
+    docker compose -f docker-compose.yml -f docker-compose.prod.yml logs -f web
 
 # Check status of all production services
 docker-prod-status:
-    docker compose -f docker-compose-production.yml ps
+    docker compose -f docker-compose.yml -f docker-compose.prod.yml ps
 
 # Stop and clean up development environment
 docker-down:

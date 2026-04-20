@@ -59,3 +59,7 @@ repos:
           - mdformat-toc
           - mdformat-front-matters
         types: [markdown]
+        # `docs/plans/` is a gitignored working-artifact directory (per AGENTS.md);
+        # `.context/` holds ce-review and other agent-pipeline artifacts. Neither
+        # should be reformatted during a normal commit — they're scratch space.
+        exclude: ^(docs/plans/|\.context/)

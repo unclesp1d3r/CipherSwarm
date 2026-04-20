@@ -179,7 +179,7 @@ The quickest way to get CipherSwarm up and running is to use Docker. The followi
 2. Deploy the Docker containers:
 
    ```bash
-   docker compose -f docker-compose-production.yml up
+   docker compose -f docker-compose.yml -f docker-compose.prod.yml up
    ```
 
 3. Access the CipherSwarm web interface at <http://localhost:3000>.

@@ -73,12 +73,25 @@ RUN JSBUNDLING_BUILD_COMMAND="bun run build:production" SECRET_KEY_BASE_DUMMY=1 
 # Final stage for app image
 FROM base
 
-# Install packages needed for deployment
-RUN apk add --no-cache imagemagick libpq vim vips wget
+# Install packages needed for deployment. curl (from the base stage) is
+# already available for healthchecks; vim and wget intentionally omitted
+# to keep the runtime attack surface small.
+RUN apk add --no-cache imagemagick libpq vips
 
-# Copy built artifacts: gems, application
-COPY --from=build "${BUNDLE_PATH}" "${BUNDLE_PATH}"
-COPY --from=build /rails /rails
+# Create an unprivileged user to run the application. The uid/gid are fixed
+# so host bind mounts (./storage, tus_uploads, attack_resources) can be chown'd
+# predictably by operators on the deployment host.
+RUN addgroup -g 1001 -S rails && \
+    adduser -S rails -u 1001 -G rails && \
+    mkdir -p /rails/tmp /rails/log /rails/storage && \
+    chown -R rails:rails /rails
+
+# Copy built artifacts: gems, application. Chown in-copy to avoid a
+# second pass that would double the final-image layer size.
+COPY --from=build --chown=rails:rails "${BUNDLE_PATH}" "${BUNDLE_PATH}"
+COPY --from=build --chown=rails:rails /rails /rails
+
+USER rails
 
 # Deployment options
 ENV RUBY_YJIT_ENABLE="1"

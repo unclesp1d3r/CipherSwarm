@@ -36,7 +36,7 @@ TEST_DATABASE_URL=postgres://root:password@localhost:5432/cipher_swarm_test bund
 
 ```bash
 # Start production environment
-docker compose -f docker-compose-production.yml up
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up
 
 # Scale web replicas (formula: n+1 where n = active cracking nodes)
 just docker-prod-scale 9
