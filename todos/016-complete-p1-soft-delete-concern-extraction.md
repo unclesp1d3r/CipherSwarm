@@ -1,5 +1,5 @@
 ---
-status: ready
+status: complete
 priority: p1
 issue_id: '016'
 tags: [code-review, refactoring, architecture, soft-delete, dry]

@@ -91,43 +91,10 @@
 #  fk_rails_...  (project_id => projects.id) ON DELETE => cascade
 #
 class Campaign < ApplicationRecord
-  include Discard::Model
-  # Explicit even though :deleted_at is Discard's default — keeps the intent
-  # visible and guards against upstream default changes. The column itself is
-  # the one paranoia used, reused to avoid a schema migration.
-  self.discard_column = :deleted_at
-  # Preserves paranoia's implicit filter so every Campaign query keeps hiding
-  # soft-deleted rows by default. Use `.unscoped` to reach discarded records.
-  default_scope -> { kept }
-
-  # Default_scope combines its `deleted_at IS NULL` clause with Discard's
-  # built-in `.discarded` (which adds `deleted_at IS NOT NULL`), producing
-  # an always-empty set. Removing only the deleted_at predicate restores
-  # the expected behavior while leaving any future default_scope additions
-  # intact.
-  scope :discarded, -> { unscope(where: :deleted_at).where.not(deleted_at: nil) }
+  include SoftDeletable
 
   # Broadcasts targeted updates to the client when the campaign is updated unless running in test environment
   include SafeBroadcasting
-
-  # Preserve paranoia's destroy-means-soft-delete contract: `destroy` runs the
-  # standard destroy callbacks (so `dependent: :destroy` cascades to children
-  # and `before_destroy` / `after_destroy` hooks still fire) but replaces the
-  # DELETE with `discard` (sets deleted_at). The `discarded?` guard makes a
-  # second `destroy` call a no-op so cascades never fire twice.
-  def destroy
-    return self if discarded?
-    with_transaction_returning_status do
-      run_callbacks(:destroy) { discard }
-    end
-    self
-  end
-
-  def destroy!
-    destroy
-    raise ActiveRecord::RecordNotDestroyed.new("Failed to discard #{self.class}", self) unless discarded?
-    self
-  end
 
   # Priority enum for the campaign.
   #
@@ -175,9 +142,15 @@ class Campaign < ApplicationRecord
 
 
   # Callbacks
-  after_commit :mark_attacks_complete, on: [:update]
-  after_commit :broadcast_eta_update, on: [:update], if: :should_broadcast_eta?
-  after_commit :trigger_priority_rebalance_if_needed, on: [:update]
+  # `discard` is an UPDATE, which fires `after_commit on: :update`. These
+  # callbacks broadcast or trigger downstream work that makes no sense for
+  # a record that's about to vanish from every default query — and in some
+  # paths (e.g. broadcasting to a destroyed Turbo Stream channel) they
+  # would raise and turn a successful soft-delete into a 500. Guard with
+  # `unless: :discarded?` so soft-delete is a silent UPDATE.
+  after_commit :mark_attacks_complete, on: [:update], unless: :discarded?
+  after_commit :broadcast_eta_update, on: [:update], if: :should_broadcast_eta?, unless: :discarded?
+  after_commit :trigger_priority_rebalance_if_needed, on: [:update], unless: :discarded?
 
   # Provides a label indicating the number of incomplete attacks out of the total number of attacks.
   #

@@ -104,21 +104,8 @@
 #  fk_rails_...  (word_list_id => word_lists.id) ON DELETE => cascade
 #
 class Attack < ApplicationRecord
-  include Discard::Model
-  # Explicit even though :deleted_at is Discard's default — keeps the intent
-  # visible and guards against upstream default changes. The column itself is
-  # the one paranoia used, reused to avoid a schema migration.
-  self.discard_column = :deleted_at
-  # Preserves paranoia's implicit filter so every Attack query keeps hiding
-  # soft-deleted rows by default. Use `.unscoped` to reach discarded records.
-  default_scope -> { kept }
-
-  # Default_scope combines its `deleted_at IS NULL` clause with Discard's
-  # built-in `.discarded` (which adds `deleted_at IS NOT NULL`), producing
-  # an always-empty set. Removing only the deleted_at predicate restores
-  # the expected behavior while leaving any future default_scope additions
-  # intact.
-  scope :discarded, -> { unscope(where: :deleted_at).where.not(deleted_at: nil) }
+  include SoftDeletable
+  discards_with_counter_cache :attacks_count, on: :campaign
 
   # Concerns
   include SafeBroadcasting
@@ -135,25 +122,6 @@ class Attack < ApplicationRecord
     classic_markov disable_markov markov_threshold
     optimized slow_candidate_generators workload_profile
   ].freeze
-
-  # Preserve paranoia's destroy-means-soft-delete contract: `destroy` runs the
-  # standard destroy callbacks (so `dependent: :destroy` cascades to child
-  # tasks and `before_destroy` / `after_destroy` hooks still fire) but replaces
-  # the DELETE with `discard` (sets deleted_at). The `discarded?` guard makes
-  # a second `destroy` call a no-op so cascades never fire twice.
-  def destroy
-    return self if discarded?
-    with_transaction_returning_status do
-      run_callbacks(:destroy) { discard }
-    end
-    self
-  end
-
-  def destroy!
-    destroy
-    raise ActiveRecord::RecordNotDestroyed.new("Failed to discard #{self.class}", self) unless discarded?
-    self
-  end
 
   ##
   # Associations
@@ -245,23 +213,14 @@ class Attack < ApplicationRecord
   alias_method :hash_type, :hash_mode # Alias for hash_mode
 
   # Callbacks
-  after_commit :broadcast_attack_progress_update, on: [:update]
-  after_update_commit :broadcast_index_state, if: :saved_change_to_state?
-  after_commit :clear_campaign_quarantine_if_needed, on: [:update]
-
-  # ActiveRecord's counter_cache decrement is wired to the DELETE path, not
-  # the discard UPDATE path. Maintain the cached `campaigns.attacks_count`
-  # manually so Campaign#attacks_count always reflects kept associations.
-  after_discard :decrement_campaign_attacks_counter
-
-  def decrement_campaign_attacks_counter
-    return unless campaign_id
-    # Counter caches intentionally bypass validations and callbacks — that's
-    # the Rails idiom for keeping cached counts in sync with UPDATE-based
-    # operations like discard.
-    Campaign.decrement_counter(:attacks_count, campaign_id) # rubocop:disable Rails/SkipsModelValidations
-  end
-
+  # `discard` is an UPDATE, which fires `after_commit on: :update`. These
+  # broadcasters push Turbo Stream updates to the client; firing them for a
+  # record that's about to be hidden by default_scope produces noise at best
+  # and 500s at worst (e.g., broadcasting to a now-gone channel). Guard with
+  # `unless: :discarded?` so soft-delete is a silent UPDATE.
+  after_commit :broadcast_attack_progress_update, on: [:update], unless: :discarded?
+  after_update_commit :broadcast_index_state, if: :saved_change_to_state?, unless: :discarded?
+  after_commit :clear_campaign_quarantine_if_needed, on: [:update], unless: :discarded?
 
   def to_full_label
     "#{campaign.name} - #{to_label}"

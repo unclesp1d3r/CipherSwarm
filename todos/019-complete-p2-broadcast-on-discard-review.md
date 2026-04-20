@@ -1,5 +1,5 @@
 ---
-status: ready
+status: complete
 priority: p2
 issue_id: '019'
 tags: [code-review, soft-delete, turbo, broadcasting]

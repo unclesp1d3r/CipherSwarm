@@ -1,5 +1,5 @@
 ---
-status: ready
+status: complete
 priority: p1
 issue_id: '017'
 tags: [code-review, correctness, soft-delete, active-record]

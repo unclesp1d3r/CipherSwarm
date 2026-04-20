@@ -225,6 +225,43 @@ RSpec.describe Attack do
         .to change { described_class.unscoped.find(attack.id).deleted_at }.from(nil)
       expect(attack.reload.discarded?).to be true
     end
+
+    # Spying on the subject is the correct tool for asserting whether
+    # `after_commit` callbacks fire — the cop is over-broad here.
+    # rubocop:disable RSpec/SubjectStub
+    describe "broadcast guards" do
+      it "does not fire after_commit on: :update broadcasters on discard" do
+        allow(attack).to receive(:broadcast_attack_progress_update)
+        allow(attack).to receive(:clear_campaign_quarantine_if_needed)
+        attack.destroy
+        expect(attack).not_to have_received(:broadcast_attack_progress_update)
+        expect(attack).not_to have_received(:clear_campaign_quarantine_if_needed)
+      end
+
+      it "still fires after_commit on: :update broadcasters for normal updates" do
+        allow(attack).to receive(:broadcast_attack_progress_update)
+        attack.update!(description: "regression guard — normal update still broadcasts")
+        expect(attack).to have_received(:broadcast_attack_progress_update).at_least(:once)
+      end
+    end
+    # rubocop:enable RSpec/SubjectStub
+
+    it "raises RecordNotDestroyed from destroy! when discard returns false" do
+      allow(attack).to receive(:discard).and_return(false) # rubocop:disable RSpec/SubjectStub
+      expect { attack.destroy! }.to raise_error(ActiveRecord::RecordNotDestroyed, /Failed to discard Attack/)
+    end
+
+    it "exposes nil hash_list through a discarded parent campaign" do
+      campaign = attack.campaign
+      # Reload the attack through unscoped so default_scope doesn't hide it
+      # after the campaign is discarded via the cascade path.
+      campaign.destroy
+      reloaded = described_class.unscoped.find(attack.id)
+      # Campaign is hidden by its default_scope, so the through-association
+      # traversal returns nil. Callers iterating unscoped attacks must guard
+      # against nil before delegating through #hash_list.
+      expect(reloaded.hash_list).to be_nil
+    end
   end
 
   describe "state machine callbacks" do
