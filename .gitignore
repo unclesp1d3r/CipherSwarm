@@ -225,7 +225,9 @@ docs/plans/
 /.context/
 
 # Docker bind-mount data directories (created on `docker compose up`).
-# Contents are managed by Postgres/Redis/Rails — never committed.
+# Contents are managed by Postgres/Redis — never committed.
+# `/storage/` intentionally omitted: the existing `/storage/*` + `!/storage/.keep`
+# pattern above already ignores bind-mounted contents while preserving the
+# Rails storage-directory marker.
 /postgres-data/
 /redis-data/
-/storage/

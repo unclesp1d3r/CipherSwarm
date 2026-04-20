@@ -73,8 +73,10 @@ RUN JSBUNDLING_BUILD_COMMAND="bun run build:production" SECRET_KEY_BASE_DUMMY=1 
 # Final stage for app image
 FROM base
 
-# Install packages needed for deployment (no vim — keep attack surface small).
-RUN apk add --no-cache imagemagick libpq vips wget
+# Install packages needed for deployment. curl (from the base stage) is
+# already available for healthchecks; vim and wget intentionally omitted
+# to keep the runtime attack surface small.
+RUN apk add --no-cache imagemagick libpq vips
 
 # Create an unprivileged user to run the application. The uid/gid are fixed
 # so host bind mounts (./storage, tus_uploads, attack_resources) can be chown'd

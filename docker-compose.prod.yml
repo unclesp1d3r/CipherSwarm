@@ -88,8 +88,12 @@ services:
 
   redis-db:
     command: redis-server --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD must be set}
+    # Passing the password via REDISCLI_AUTH keeps it out of the healthcheck
+    # command line (and thus out of `docker inspect` and host ps listings).
+    environment:
+      REDISCLI_AUTH: ${REDIS_PASSWORD:?REDIS_PASSWORD must be set}
     healthcheck:
-      test: ["CMD-SHELL", "redis-cli -a ${REDIS_PASSWORD} ping"]
+      test: ["CMD-SHELL", "redis-cli ping"]
       interval: 1s
       timeout: 3s
       retries: 5

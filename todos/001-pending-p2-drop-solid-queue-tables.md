@@ -10,12 +10,12 @@ dependencies: []
 
 ## Problem Statement
 
-Eight `solid_queue_*` tables remain in the schema (blocked_executions, claimed_executions, failed_executions, jobs, pauses, processes, ready_executions, scheduled_executions, semaphores) while Sidekiq is the active job backend. These are dead weight from a migration or exploration that was abandoned. They confuse contributors, add migration complexity, and could mask configuration errors if Rails auto-discovers the Solid Queue adapter.
+Nine `solid_queue_*` tables remain in the schema (blocked_executions, claimed_executions, failed_executions, jobs, pauses, processes, ready_executions, scheduled_executions, semaphores) while Sidekiq is the active job backend. These are dead weight from a migration or exploration that was abandoned. They confuse contributors, add migration complexity, and could mask configuration errors if Rails auto-discovers the Solid Queue adapter.
 
 ## Findings
 
 - **Source**: architecture-strategist agent, schema review
-- **Evidence**: `db/schema.rb` lines 410-501 contain 8 `solid_queue_*` tables
+- **Evidence**: `db/schema.rb` contains 9 `solid_queue_*` tables
 - **Impact**: Contributor confusion, unnecessary schema bloat, potential adapter misconfiguration
 
 ## Proposed Solutions
