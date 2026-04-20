@@ -57,7 +57,7 @@ Each web replica is constrained to:
 
 Both web and Sidekiq services need memory headroom for tmpfs mounts (up to 768 MB combined for `/tmp` and `/rails/tmp`) alongside the Ruby process. PostgreSQL also has higher limits (2 GB) to handle connection pooling from multiple web replicas.
 
-Plan your host resources accordingly. For example, 9 web replicas require at minimum 4.5 CPU cores and 9 GB RAM reserved, with burst capacity up to 9 cores and 18 GB. See `docker-compose-production.yml` for the canonical resource definitions.
+Plan your host resources accordingly. For example, 9 web replicas require at minimum 4.5 CPU cores and 9 GB RAM reserved, with burst capacity up to 9 cores and 18 GB. See `docker-compose.prod.yml` for the canonical resource definitions.
 
 ## Configuration
 
@@ -118,12 +118,12 @@ The general `/` location uses `proxy_read_timeout 300s` and `proxy_send_timeout 
 
    ```bash
    # Run migrations once before scaling to multiple replicas to avoid migration races
-   docker compose -f docker-compose-production.yml run --rm -e RUN_DB_PREPARE=true web
+   docker compose -f docker-compose.yml -f docker-compose.prod.yml run --rm -e RUN_DB_PREPARE=true web
    ```
 
    > **Important:** Database migrations must be run **once** before starting multiple web replicas. The `RUN_DB_PREPARE=true` flag prevents migration races where multiple containers might try to run migrations simultaneously. Regular web service containers should not have this flag set.
 
-3. **Adjust the replica count** (optional — edit `docker-compose-production.yml`):
+3. **Adjust the replica count** (optional — edit `docker-compose.prod.yml`):
 
    ```yaml
    web:
@@ -136,16 +136,16 @@ The general `/` location uses `proxy_read_timeout 300s` and `proxy_send_timeout 
 4. **Deploy the stack:**
 
    ```bash
-   docker compose -f docker-compose-production.yml up -d
+   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 
    # Or with a specific replica count:
-   docker compose -f docker-compose-production.yml up -d --scale web=9
+   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --scale web=9
    ```
 
 5. **Verify all replicas are healthy:**
 
    ```bash
-   docker compose -f docker-compose-production.yml ps
+   docker compose -f docker-compose.yml -f docker-compose.prod.yml ps
    ```
 
    All web replicas and the nginx service should show `healthy` status. Note that web replicas take 10-45 seconds to boot Rails, and nginx waits for at least one healthy web replica before starting.
@@ -165,10 +165,10 @@ Scale web replicas up or down at any time without restarting other services:
 
 ```bash
 # Scale to 17 replicas (for 16 active nodes)
-docker compose -f docker-compose-production.yml up -d --scale web=17
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --scale web=17
 
 # Scale down to 5 replicas
-docker compose -f docker-compose-production.yml up -d --scale web=5
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --scale web=5
 ```
 
 Or use the justfile shortcut:
@@ -188,7 +188,7 @@ Nginx's DNS re-resolution (every 10 s) automatically picks up added or removed r
 just docker-prod-status
 
 # Or directly
-docker compose -f docker-compose-production.yml ps
+docker compose -f docker-compose.yml -f docker-compose.prod.yml ps
 ```
 
 ### Viewing Logs
@@ -201,22 +201,22 @@ just docker-prod-logs-nginx
 just docker-prod-logs-web
 
 # Specific replica logs
-docker compose -f docker-compose-production.yml logs web --index 1
+docker compose -f docker-compose.yml -f docker-compose.prod.yml logs web --index 1
 ```
 
 The nginx access log includes upstream context (`upstream=`, `upstream_status=`, `upstream_response_time=`, `request_time=`) to help diagnose load distribution and slow backends.
 
 ### Common Issues
 
-| Symptom                        | Likely Cause                  | Solution                                                                       |
-| ------------------------------ | ----------------------------- | ------------------------------------------------------------------------------ |
-| Replicas fail to start         | Insufficient host resources   | Reduce replica count or increase host capacity                                 |
-| Uneven load distribution       | DNS cache stale               | Restart nginx: `docker compose -f docker-compose-production.yml restart nginx` |
-| Connection timeouts on uploads | `proxy_read_timeout` too low  | Increase timeout in `docker/nginx/nginx.conf`                                  |
-| 502 Bad Gateway                | All replicas down or starting | Wait for health checks to pass; check web replica logs                         |
-| Database connection errors     | Too many connections          | Tune `pool` size in `config/database.yml` or add PgBouncer                     |
-| OOM kills (exit code 137)      | Memory limit too low          | Check `docker inspect --format='{{.State.OOMKilled}}'`; increase service limit |
-| WebSocket disconnects          | Missing `/cable` location     | Verify `docker/nginx/nginx.conf` has the `/cable` WebSocket block              |
+| Symptom                        | Likely Cause                  | Solution                                                                                       |
+| ------------------------------ | ----------------------------- | ---------------------------------------------------------------------------------------------- |
+| Replicas fail to start         | Insufficient host resources   | Reduce replica count or increase host capacity                                                 |
+| Uneven load distribution       | DNS cache stale               | Restart nginx: `docker compose -f docker-compose.yml -f docker-compose.prod.yml restart nginx` |
+| Connection timeouts on uploads | `proxy_read_timeout` too low  | Increase timeout in `docker/nginx/nginx.conf`                                                  |
+| 502 Bad Gateway                | All replicas down or starting | Wait for health checks to pass; check web replica logs                                         |
+| Database connection errors     | Too many connections          | Tune `pool` size in `config/database.yml` or add PgBouncer                                     |
+| OOM kills (exit code 137)      | Memory limit too low          | Check `docker inspect --format='{{.State.OOMKilled}}'`; increase service limit                 |
+| WebSocket disconnects          | Missing `/cable` location     | Verify `docker/nginx/nginx.conf` has the `/cable` WebSocket block                              |
 
 ### Performance Monitoring
 
@@ -264,13 +264,13 @@ To update the web application image without downtime:
 
 ```bash
 # Pull the latest image
-docker compose -f docker-compose-production.yml pull web
+docker compose -f docker-compose.yml -f docker-compose.prod.yml pull web
 
 # Run migrations once before restarting replicas (if schema changed)
-docker compose -f docker-compose-production.yml run --rm -e RUN_DB_PREPARE=true web
+docker compose -f docker-compose.yml -f docker-compose.prod.yml run --rm -e RUN_DB_PREPARE=true web
 
 # Recreate web replicas (nginx continues serving via remaining replicas)
-docker compose -f docker-compose-production.yml up -d --no-deps web
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --no-deps web
 ```
 
 Nginx's passive health checks automatically route traffic away from replicas that are restarting.
@@ -290,7 +290,7 @@ For dynamic scaling based on agent count, you could script the replica adjustmen
 # Hypothetical example — requires implementing an /api/v1/agents/active_count endpoint.
 ACTIVE_AGENTS=$(curl -s http://localhost/api/v1/agents/active_count)
 REPLICAS=$((ACTIVE_AGENTS + 1))
-docker compose -f docker-compose-production.yml up -d --scale web=$REPLICAS
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --scale web=$REPLICAS
 ```
 
 ## References

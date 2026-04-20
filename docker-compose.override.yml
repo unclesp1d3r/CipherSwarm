@@ -1,0 +1,71 @@
+# Dev-only layer — auto-loaded by Compose alongside docker-compose.yml.
+#
+# What this adds for dev:
+# - `build: .` for web and sidekiq (base file has no image:/build:)
+# - Direct port 80:80 on web (prod uses nginx sidecar)
+# - `develop.watch` sync blocks for hot code reload
+# - Permissive env defaults (dev does not fail-fast on missing secrets)
+#
+# For a production deployment, use the explicit prod file instead:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+services:
+  web:
+    build: .
+    ports:
+      - "80:80"
+    # Dev doesn't require TUSD_HOOK_SECRET or RAILS_MASTER_KEY from the shell —
+    # .env provides them or they're left blank for local experimentation.
+    environment:
+      RAILS_MASTER_KEY: ${RAILS_MASTER_KEY:-}
+      TUSD_HOOK_SECRET: ${TUSD_HOOK_SECRET:-}
+    develop:
+      watch:
+        - path: ./app
+          action: sync
+          target: /rails/app
+        - path: ./config
+          action: sync
+          target: /rails/config
+        - path: ./lib
+          action: sync
+          target: /rails/lib
+        - path: ./db
+          action: sync
+          target: /rails/db
+        - path: ./Gemfile
+          action: rebuild
+        - path: ./Gemfile.lock
+          action: rebuild
+        - path: ./Dockerfile
+          action: rebuild
+
+  sidekiq:
+    build: .
+    environment:
+      RAILS_MASTER_KEY: ${RAILS_MASTER_KEY:-}
+    develop:
+      watch:
+        - path: ./app
+          action: sync
+          target: /rails/app
+        - path: ./config
+          action: sync
+          target: /rails/config
+        - path: ./lib
+          action: sync
+          target: /rails/lib
+        - path: ./Gemfile
+          action: rebuild
+        - path: ./Gemfile.lock
+          action: rebuild
+        - path: ./Dockerfile
+          action: rebuild
+
+  postgres-db:
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+    # Uncomment to expose Postgres on the host. Conflicts with a host-local
+    # Postgres on 5432; stop it first (`brew services stop postgresql@17`).
+    # ports:
+    #   - "127.0.0.1:5432:5432"

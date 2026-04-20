@@ -753,7 +753,7 @@ end
 Set `APPLICATION_HOST` to enable DNS rebinding attack protection in production:
 
 ```yaml
-# docker-compose-production.yml
+# docker-compose.prod.yml
 environment:
   APPLICATION_HOST: cipherswarm.lab.local
 ```

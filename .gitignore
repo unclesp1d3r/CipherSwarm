@@ -223,3 +223,9 @@ docs/plans/
 **/tessl__*
 **/*.local.*
 .context/
+
+# Docker bind-mount data directories (created on `docker compose up`).
+# Contents are managed by Postgres/Redis/Rails — never committed.
+/postgres-data/
+/redis-data/
+/storage/

@@ -84,7 +84,7 @@ For complete documentation of all environment variables, see [Environment Variab
 By default, CipherSwarm uses local disk storage. Files are stored at `/rails/storage` inside the web container, backed by a Docker volume. To inspect or back up stored files:
 
 ```bash
-docker compose -f docker-compose-production.yml exec web ls -la /rails/storage
+docker compose -f docker-compose.yml -f docker-compose.prod.yml exec web ls -la /rails/storage
 ```
 
 ### Optional: S3-Compatible Storage
@@ -115,7 +115,7 @@ docker save minio/minio:latest -o storage-service.tar
 docker load -i storage-service.tar
 ```
 
-**3. Add the storage service** to your `docker-compose-production.yml`. Example for MinIO:
+**3. Add the storage service** to your `docker-compose.prod.yml`. Example for MinIO:
 
 ```yaml
 services:
@@ -160,22 +160,22 @@ All `AWS_*` credentials are required when using S3 storage — the application w
 
 ```bash
 # MinIO CLI example
-docker compose -f docker-compose-production.yml exec minio \
+docker compose -f docker-compose.yml -f docker-compose.prod.yml exec minio \
   mc alias set local http://localhost:9000 <access-key> <secret-key>
-docker compose -f docker-compose-production.yml exec minio \
+docker compose -f docker-compose.yml -f docker-compose.prod.yml exec minio \
   mc mb local/application
 ```
 
 ## Step 4: Deploy Services
 
 ```bash
-docker compose -f docker-compose-production.yml up -d
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 ```
 
 Verify all services started:
 
 ```bash
-docker compose -f docker-compose-production.yml ps
+docker compose -f docker-compose.yml -f docker-compose.prod.yml ps
 ```
 
 All services should show a healthy status: `web`, `postgres-db`, `redis-db`, `sidekiq`.
@@ -185,7 +185,7 @@ All services should show a healthy status: `web`, `postgres-db`, `redis-db`, `si
 On first deployment, create and migrate the database using the `RUN_DB_PREPARE` flag:
 
 ```bash
-docker compose -f docker-compose-production.yml run --rm -e RUN_DB_PREPARE=true web bin/rails db:create db:migrate db:seed
+docker compose -f docker-compose.yml -f docker-compose.prod.yml run --rm -e RUN_DB_PREPARE=true web bin/rails db:create db:migrate db:seed
 ```
 
 **Why `RUN_DB_PREPARE=true`?**
@@ -195,7 +195,7 @@ The `RUN_DB_PREPARE` environment variable prevents database migration races in s
 On subsequent deployments (upgrades), run migrations only:
 
 ```bash
-docker compose -f docker-compose-production.yml run --rm -e RUN_DB_PREPARE=true web bin/rails db:migrate
+docker compose -f docker-compose.yml -f docker-compose.prod.yml run --rm -e RUN_DB_PREPARE=true web bin/rails db:migrate
 ```
 
 **Scaling Guidance:**
@@ -257,21 +257,21 @@ If your deployment previously used S3-compatible storage (MinIO, SeaweedFS, AWS 
 **1. Preview what will be migrated (recommended first step):**
 
 ```bash
-docker compose -f docker-compose-production.yml exec web \
+docker compose -f docker-compose.yml -f docker-compose.prod.yml exec web \
   bin/rails storage:migrate_to_local DRY_RUN=true
 ```
 
 **2. Run the actual migration:**
 
 ```bash
-docker compose -f docker-compose-production.yml exec web \
+docker compose -f docker-compose.yml -f docker-compose.prod.yml exec web \
   bin/rails storage:migrate_to_local
 ```
 
 **3. If blobs reference an old service name (e.g., "minio") but your storage.yml uses "s3":**
 
 ```bash
-docker compose -f docker-compose-production.yml exec web \
+docker compose -f docker-compose.yml -f docker-compose.prod.yml exec web \
   bin/rails storage:migrate_to_local SOURCE_SERVICE=s3
 ```
 
@@ -311,26 +311,26 @@ After successful migration:
 4. Back up the database:
 
    ```bash
-   docker compose -f docker-compose-production.yml exec postgres-db \
+   docker compose -f docker-compose.yml -f docker-compose.prod.yml exec postgres-db \
      pg_dump -U cipherswarm -d cipherswarm > backup_$(date +%Y%m%d_%H%M%S).sql
    ```
 
 5. Stop application services (keep the database running):
 
    ```bash
-   docker compose -f docker-compose-production.yml stop web sidekiq
+   docker compose -f docker-compose.yml -f docker-compose.prod.yml stop web sidekiq
    ```
 
 6. Run migrations with the `RUN_DB_PREPARE` flag:
 
    ```bash
-   docker compose -f docker-compose-production.yml run --rm -e RUN_DB_PREPARE=true web bin/rails db:migrate
+   docker compose -f docker-compose.yml -f docker-compose.prod.yml run --rm -e RUN_DB_PREPARE=true web bin/rails db:migrate
    ```
 
 7. Restart all services:
 
    ```bash
-   docker compose -f docker-compose-production.yml up -d
+   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
    ```
 
 8. Verify with the checklist above.
@@ -354,7 +354,7 @@ If a deployment causes issues:
 1. Stop services:
 
    ```bash
-   docker compose -f docker-compose-production.yml down
+   docker compose -f docker-compose.yml -f docker-compose.prod.yml down
    ```
 
 2. Load the previous CipherSwarm image:
@@ -367,18 +367,18 @@ If a deployment causes issues:
 3. Rollback database migrations (adjust STEP count to match the number of new migrations):
 
    ```bash
-   docker compose -f docker-compose-production.yml run --rm web bin/rails db:rollback STEP=4
+   docker compose -f docker-compose.yml -f docker-compose.prod.yml run --rm web bin/rails db:rollback STEP=4
    ```
 
 4. Or restore from backup:
 
    ```bash
-   docker compose -f docker-compose-production.yml exec postgres-db \
+   docker compose -f docker-compose.yml -f docker-compose.prod.yml exec postgres-db \
      psql -U cipherswarm -d cipherswarm < backup_YYYYMMDD_HHMMSS.sql
    ```
 
 5. Restart services:
 
    ```bash
-   docker compose -f docker-compose-production.yml up -d
+   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
    ```

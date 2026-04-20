@@ -1,74 +1,94 @@
-# Environment variables shared by all services
-# See docs/deployment/environment-variables.md for complete documentation
-# Copy .env.example to .env and fill in your values
+# CipherSwarm base Compose file.
+#
+# This file is the authoritative service shape shared by dev and prod.
+# It does NOT build images, expose web ports publicly, or add nginx/monitoring
+# — those are layered in by environment-specific files:
+#
+#   Dev  (auto-loaded):    docker-compose.override.yml
+#   Prod (explicit -f):    docker-compose.prod.yml
+#   Monitoring (profile):  docker-compose.prod.yml under `--profile monitoring`
+#
+# Usage:
+#   Dev:   docker compose up
+#   Prod:  docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# Data persistence uses host bind mounts under ./postgres-data/, ./redis-data/,
+# and ./storage/ — gitignored but preserved across rebuilds and easy to back up
+# with host-level tools. tus_uploads and attack_resources stay as named volumes
+# because they are typically mounted to dedicated filesystems in production.
+
 x-common-env-vars: &common-env-vars
-  RAILS_MASTER_KEY: ${RAILS_MASTER_KEY}
-  REDIS_URL: redis://redis-db:6379/0
-  DATABASE_URL: postgres://root:${POSTGRES_PASSWORD:-password}@postgres-db/cipherswarm
+  RAILS_MASTER_KEY: ${RAILS_MASTER_KEY:?RAILS_MASTER_KEY must be set}
+  REDIS_URL: ${REDIS_URL:-redis://redis-db:6379/0}
+  DATABASE_URL: ${DATABASE_URL:-postgres://root:${POSTGRES_PASSWORD:-password}@postgres-db/cipherswarm}
   APPLICATION_HOST: ${APPLICATION_HOST:-localhost}
   DISABLE_SSL: ${DISABLE_SSL:-true}
   ACTIVE_STORAGE_SERVICE: ${ACTIVE_STORAGE_SERVICE:-local}
 
 services:
   web:
-    build: .
-    ports:
-      - "80:80"
     environment:
       <<: *common-env-vars
       TUSD_HOOK_SECRET: ${TUSD_HOOK_SECRET:-}
     depends_on:
-      - redis-db
-      - postgres-db
-      - sidekiq
+      postgres-db:
+        condition: service_healthy
+      redis-db:
+        condition: service_healthy
     tmpfs:
       - /tmp:size=${TMPFS_TMP_SIZE:-1g},mode=1777
       - /rails/tmp:size=${TMPFS_RAILS_TMP_SIZE:-256m},mode=1777
     volumes:
-      - storage:/rails/storage
+      - ./storage:/rails/storage
       - tus_uploads:/srv/tusd-data
       - attack_resources:/data/attack_resources
     networks:
       - frontend
       - backend
-    deploy:
-      restart_policy:
-        condition: on-failure
+    security_opt:
+      - no-new-privileges:true
     healthcheck:
-      test: [ "CMD-SHELL", "curl --fail http://localhost/up || exit 1" ]
+      test: ["CMD-SHELL", "curl --fail http://localhost/up || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
-    develop:
-      watch:
-        - path: ./app
-          action: sync
-          target: /rails/app
-        - path: ./config
-          action: sync
-          target: /rails/config
-        - path: ./lib
-          action: sync
-          target: /rails/lib
-        - path: ./db
-          action: sync
-          target: /rails/db
-        - path: ./Gemfile
-          action: rebuild
-        - path: ./Gemfile.lock
-          action: rebuild
-        - path: ./Dockerfile
-          action: rebuild
+      start_period: 45s
+    restart: unless-stopped
+
+  sidekiq:
+    command: bundle exec sidekiq
+    environment:
+      <<: *common-env-vars
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+      redis-db:
+        condition: service_healthy
+    tmpfs:
+      - /tmp:size=${TMPFS_TMP_SIZE:-1g},mode=1777
+      - /rails/tmp:size=${TMPFS_RAILS_TMP_SIZE:-256m},mode=1777
+    volumes:
+      - ./storage:/rails/storage
+      - tus_uploads:/srv/tusd-data
+      - attack_resources:/data/attack_resources
+    networks:
+      - backend
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail http://localhost:7433 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
 
   postgres-db:
     image: postgres:17.2-alpine
     environment:
       POSTGRES_USER: root
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
     volumes:
-      - postgres:/var/lib/postgresql/data
-    # ports:
-    #   - "5432:5432"
+      - ./postgres-data:/var/lib/postgresql/data
     healthcheck:
       test: pg_isready
       interval: 2s
@@ -76,21 +96,24 @@ services:
       retries: 30
     networks:
       - backend
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
 
   redis-db:
     image: redis:7.2-alpine
-    networks:
-      - backend
-    deploy:
-      restart_policy:
-        condition: on-failure
     volumes:
-      - redis-data:/data
+      - ./redis-data:/data
     healthcheck:
-      test: [ "CMD-SHELL", "redis-cli ping | grep PONG" ]
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
       interval: 1s
       timeout: 3s
       retries: 5
+    networks:
+      - backend
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
 
   tusd:
     image: tusproject/tusd:v2
@@ -98,6 +121,8 @@ services:
       - -upload-dir=/srv/tusd-data
       - -hooks-http=http://web:80/api/v1/hooks/tus
       - -hooks-enabled-events=post-finish
+      - -hooks-http-retry=5
+      - -hooks-http-backoff=2
       - -hooks-http-forward-headers=X-Tusd-Hook-Secret
       - -behind-proxy
       - -base-path=/uploads/
@@ -108,63 +133,24 @@ services:
       - tus_uploads:/srv/tusd-data
       - attack_resources:/data/attack_resources
     depends_on:
-      - web
+      web:
+        condition: service_healthy
     networks:
       - backend
+    security_opt:
+      - no-new-privileges:true
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/metrics"]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 5s
-
-  sidekiq:
-    build: .
-    command: bundle exec sidekiq
-    environment:
-      <<: *common-env-vars
-    depends_on:
-      - redis-db
-      - postgres-db
-    tmpfs:
-      - /tmp:size=${TMPFS_TMP_SIZE:-1g},mode=1777
-      - /rails/tmp:size=${TMPFS_RAILS_TMP_SIZE:-256m},mode=1777
-    volumes:
-      - storage:/rails/storage
-      - tus_uploads:/srv/tusd-data
-      - attack_resources:/data/attack_resources
-    networks:
-      - backend
-    healthcheck:
-      test: [ "CMD-SHELL", "curl --fail http://localhost:7433 || exit 1" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    develop:
-      watch:
-        - path: ./app
-          action: sync
-          target: /rails/app
-        - path: ./config
-          action: sync
-          target: /rails/config
-        - path: ./lib
-          action: sync
-          target: /rails/lib
-        - path: ./Gemfile
-          action: rebuild
-        - path: ./Gemfile.lock
-          action: rebuild
-        - path: ./Dockerfile
-          action: rebuild
+    restart: unless-stopped
 
 networks:
   backend:
   frontend:
 
 volumes:
-  storage:
-  postgres:
-  redis-data:
   tus_uploads:
   attack_resources:
