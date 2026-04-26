@@ -25,7 +25,7 @@ gem "tzinfo-data", platforms: %i[windows jruby]
 
 group :development, :test do
   gem "brakeman", ">= 8.0.4", require: false
-  gem "bullet", "~> 8.1.0"
+  gem "bullet", "~> 8.1.1"
   gem "bundler-audit", "~> 0.9.3", require: false
   gem "capybara", "~> 3.40"
   gem "database_cleaner-active_record", "~> 2.2.2"
