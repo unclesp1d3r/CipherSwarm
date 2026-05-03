@@ -2,7 +2,6 @@ queue_rules:
   # Dosubot: only needs lint to pass
   - name: dosubot
     merge_method: squash
-    autoqueue: true
     queue_conditions:
       - author = dosubot[bot]
       - base = main
@@ -12,7 +11,6 @@ queue_rules:
   # Dependabot workflow-only changes: only needs lint to pass
   - name: dependabot-workflows
     merge_method: squash
-    autoqueue: true
     queue_conditions:
       - author = dependabot[bot]
       - base = main
@@ -23,7 +21,6 @@ queue_rules:
   # Dependabot non-workflow changes: full merge protections required
   - name: dependabot
     merge_method: squash
-    autoqueue: true
     queue_conditions:
       - author = dependabot[bot]
       - base = main
@@ -125,3 +122,16 @@ merge_protections:
       - "#commits-behind <= 10"
 merge_protections_settings:
   reporting_method: check-runs
+# auto_merge_conditions reflects the queue_conditions of the queue rules that previously had autoqueue: true. The following queue rules were manual-only ('default') and remain reachable via the `/queue` command. Review and adjust if needed.
+  auto_merge_conditions:
+    - or:
+        - and:
+            - author = dosubot[bot]
+            - base = main
+        - and:
+            - author = dependabot[bot]
+            - base = main
+            - "-files ~= ^(?!\\.github/workflows/)"
+        - and:
+            - author = dependabot[bot]
+            - base = main
