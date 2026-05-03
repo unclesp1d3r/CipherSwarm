@@ -8,7 +8,7 @@ source "https://rubygems.org"
 ruby "3.4.5"
 
 # Rails 8.1+ for modern real-time capabilities and performance improvements
-gem "rails", "~> 8.1.2"
+gem "rails", "~> 8.1.3"
 
 gem "bcrypt", "~> 3.1.22"
 gem "bootsnap", "~> 1.23", require: false
@@ -74,7 +74,7 @@ gem "administrate-field-jsonb", "~> 0.4.8"
 gem "anyway_config", "~> 2.8.0"
 gem "ar_lazy_preload", "~> 2.1.1"
 gem "audited", "~> 5.8.0"
-gem "aws-sdk-s3", "~> 1.218.0", groups: %i[production development]
+gem "aws-sdk-s3", "~> 1.220.0", groups: %i[production development]
 gem "cancancan", "~> 3.6.1"
 gem "csv", "~> 3.3.5" # Required for Ruby 3.4+ (no longer in standard library)
 gem "devise", "~> 5.0.3"
