@@ -8,7 +8,7 @@ source "https://rubygems.org"
 ruby "3.4.5"
 
 # Rails 8.1+ for modern real-time capabilities and performance improvements
-gem "rails", "~> 8.1.2"
+gem "rails", "~> 8.1.3"
 
 gem "bcrypt", "~> 3.1.22"
 gem "bootsnap", "~> 1.23", require: false
