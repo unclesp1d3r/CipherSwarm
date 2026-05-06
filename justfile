@@ -135,53 +135,53 @@ db-test-reset:
 
 # Build and start development environment (loads docker-compose.yml + .override.yml)
 docker-up:
-    docker compose -p csdev up
+    {{mise_exec}} docker compose -p csdev up
 
 # Build and start in watch mode (auto-reload).
 # DATABASE_URL defaults to the compose default DB (`cipherswarm`); override via
 # shell env to point at a different DB for ad-hoc testing.
 docker-dev-watch:
-    DATABASE_URL="${DATABASE_URL:-postgres://root:password@postgres-db/cipherswarm}" docker compose -p csdev up --watch
+    DATABASE_URL="${DATABASE_URL:-postgres://root:password@postgres-db/cipherswarm}" {{mise_exec}} docker compose -p csdev up --watch
 
 # Build and start production environment (explicit -f layering)
 docker-prod-up:
-    docker compose -f docker-compose.yml -f docker-compose.prod.yml up
+    {{mise_exec}} docker compose -f docker-compose.yml -f docker-compose.prod.yml up
 
 # Build and start production environment with monitoring profile
 docker-prod-up-monitoring:
-    docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile monitoring up
+    {{mise_exec}} docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile monitoring up
 
 # Scale production web service (use n+1 where n=active nodes)
 docker-prod-scale NUMBER:
-    docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --scale web={{NUMBER}}
+    {{mise_exec}} docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --scale web={{NUMBER}}
 
 # View nginx load balancer logs
 docker-prod-logs-nginx:
-    docker compose -f docker-compose.yml -f docker-compose.prod.yml logs -f nginx
+    {{mise_exec}} docker compose -f docker-compose.yml -f docker-compose.prod.yml logs -f nginx
 
 # View web service replica logs
 docker-prod-logs-web:
-    docker compose -f docker-compose.yml -f docker-compose.prod.yml logs -f web
+    {{mise_exec}} docker compose -f docker-compose.yml -f docker-compose.prod.yml logs -f web
 
 # Check status of all production services
 docker-prod-status:
-    docker compose -f docker-compose.yml -f docker-compose.prod.yml ps
+    {{mise_exec}} docker compose -f docker-compose.yml -f docker-compose.prod.yml ps
 
 # Stop and clean up development environment
 docker-down:
-    docker compose -p csdev down
+    {{mise_exec}} docker compose -p csdev down
 
 # View container logs
 docker-logs:
-    docker compose -p csdev logs -f
+    {{mise_exec}} docker compose -p csdev logs -f
 
 # Rebuild all containers
 docker-rebuild:
-    docker compose -p csdev build --no-cache
+    {{mise_exec}} docker compose -p csdev build --no-cache
 
 # Shell into Rails container
 docker-shell:
-    docker compose -p csdev exec web bash
+    {{mise_exec}} docker compose -p csdev exec web bash
 
 # === Asset Pipeline ===
 
@@ -191,8 +191,8 @@ assets-build: css-build js-build
 # Watch assets for changes
 assets-watch:
     #!/usr/bin/env bash
-    mise exec -- bun run watch:css &
-    mise exec -- bun run build --watch &
+    {{mise_exec}} bun run watch:css &
+    {{mise_exec}} bun run build --watch &
     wait
 
 # Build CSS only
@@ -278,7 +278,7 @@ annotate:
 
 # Generate changelog (requires git-cliff)
 changelog:
-    git cliff -o CHANGELOG.md
+    {{mise_exec}} git cliff -o CHANGELOG.md
 
 ci-check: check test undercover docs-generate lint-api
     @echo "✓ CI checks passed"
