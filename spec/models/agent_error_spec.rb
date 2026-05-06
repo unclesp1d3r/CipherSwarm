@@ -49,6 +49,21 @@ RSpec.describe AgentError do
     it { is_expected.to have_db_column(:severity).of_type(:integer).with_options(null: false) }
   end
 
+  describe "broadcasting" do
+    let(:agent) { create(:agent) }
+
+    it "does not trigger a page-refresh broadcast on create" do
+      expect_any_instance_of(described_class).not_to receive(:broadcast_refresh_later_to) # rubocop:disable RSpec/AnyInstance
+      create(:agent_error, agent: agent)
+    end
+
+    it "triggers the targeted index_errors broadcast on create" do
+      allow(agent).to receive(:broadcast_index_errors)
+      create(:agent_error, agent: agent)
+      expect(agent).to have_received(:broadcast_index_errors)
+    end
+  end
+
   describe ".remove_old_errors" do
     let(:agent) { create(:agent) }
 

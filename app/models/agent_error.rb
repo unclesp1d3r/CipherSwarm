@@ -62,8 +62,6 @@ class AgentError < ApplicationRecord
 
   include SafeBroadcasting
 
-  broadcasts_refreshes
-
   # Replace just the error count value on the agent's index card when a new error is created.
   after_create_commit -> { agent.broadcast_index_errors }
 
