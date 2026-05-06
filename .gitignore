@@ -231,3 +231,7 @@ docs/plans/
 # Rails storage-directory marker.
 /postgres-data/
 /redis-data/
+
+# Claude Code
+.claude/settings.local.json
+.claude/hooks/node_modules/
