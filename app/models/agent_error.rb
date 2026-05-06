@@ -60,11 +60,9 @@ class AgentError < ApplicationRecord
 
   scope :recent_first, -> { order(created_at: :desc) }
 
-  include SafeBroadcasting
-
-  broadcasts_refreshes
-
   # Replace just the error count value on the agent's index card when a new error is created.
+  # Note: Agent#broadcast_index_errors is the only broadcast path; it routes through Agent's own
+  # SafeBroadcasting include, so AgentError does not need its own.
   after_create_commit -> { agent.broadcast_index_errors }
 
   # Scopes for common query patterns
