@@ -39,8 +39,11 @@ RSpec.describe SafeBroadcasting do
       expect(Attack.ancestors).to include(described_class)
     end
 
-    it "is included in AgentError" do
-      expect(AgentError.ancestors).to include(described_class)
+    it "is not included in AgentError" do
+      # AgentError previously included SafeBroadcasting to wrap `broadcasts_refreshes`.
+      # That macro was removed (issue #795) since the targeted `agent.broadcast_index_errors`
+      # callback is the sole UI-update path and routes through Agent's own SafeBroadcasting.
+      expect(AgentError.ancestors).not_to include(described_class)
     end
 
     it "is included in HashItem" do
