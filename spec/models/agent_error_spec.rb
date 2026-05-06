@@ -52,15 +52,34 @@ RSpec.describe AgentError do
   describe "broadcasting" do
     let(:agent) { create(:agent) }
 
+    # Regression guard for issue #795: `broadcasts_refreshes` is a high-volume page-refresh
+    # macro that is redundant given the targeted `agent.broadcast_index_errors` callback.
+    # In turbo-rails 2.0.x, `broadcasts_refreshes` registers
+    # `after_create_commit -> { broadcast_refresh_later_to(stream) }` on the model, so a
+    # re-introduction is detected by spying on `broadcast_refresh_later_to`. That method
+    # is provided by Turbo::Broadcastable (not wrapped by SafeBroadcasting), so the spy
+    # observes a real invocation when the macro is present and zero invocations when it
+    # is absent.
     it "does not trigger a page-refresh broadcast on create" do
-      expect_any_instance_of(described_class).not_to receive(:broadcast_refresh_later_to) # rubocop:disable RSpec/AnyInstance
+      # rubocop:disable RSpec/AnyInstance -- AgentError is built by the factory; the
+      # instance under test is not addressable before `create`, so any-instance is required.
+      expect_any_instance_of(described_class).not_to receive(:broadcast_refresh_later_to)
+      # rubocop:enable RSpec/AnyInstance
       create(:agent_error, agent: agent)
     end
 
+    # Setting the expectation at the class level (rather than on the in-memory `agent` let)
+    # keeps this test independent of Active Record's belongs_to identity cache:
+    # `agent_error.agent` may or may not return the same Ruby object as the factory-passed
+    # `agent`, but the broadcast is observed on whichever Agent instance the association
+    # loads.
     it "triggers the targeted index_errors broadcast on create" do
-      allow(agent).to receive(:broadcast_index_errors)
+      # rubocop:disable RSpec/AnyInstance -- the AgentError after_create_commit reads its
+      # belongs_to :agent association, which may instantiate a separate Ruby object; class-
+      # level expectation is the only way to observe both the cached and reloaded paths.
+      expect_any_instance_of(Agent).to receive(:broadcast_index_errors)
+      # rubocop:enable RSpec/AnyInstance
       create(:agent_error, agent: agent)
-      expect(agent).to have_received(:broadcast_index_errors)
     end
   end
 
