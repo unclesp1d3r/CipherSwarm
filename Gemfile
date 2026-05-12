@@ -95,7 +95,7 @@ gem "rswag", github: "rswag/rswag", ref: "0a5a04983b5fe16f1698f2acf7ec787bf08ebf
 gem "show_for", "~> 0.9.0"
 gem "sidekiq", "~> 8.1.4"
 gem "sidekiq_alive", "~> 2.5.0", groups: %i[production development]
-gem "sidekiq-cron", "~> 2.3.1"
+gem "sidekiq-cron", "~> 2.4.0"
 gem "simple_form", "~> 5.4.1"
 gem "state_machines-activerecord", "~> 0.103.0"
 gem "store_model", "~> 4.5"
