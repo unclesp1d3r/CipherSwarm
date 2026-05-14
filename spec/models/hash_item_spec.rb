@@ -99,10 +99,20 @@ RSpec.describe HashItem do
       second = create(:hash_item, hash_list: hash_list, plain_text: nil)
       clear_enqueued_jobs
 
-      travel 6.seconds do
+      travel(HashItem::BROADCAST_DEBOUNCE_WINDOW + 1.second) do
         expect {
           second.update!(cracked: true, plain_text: "qwerty", cracked_time: Time.current)
         }.to have_enqueued_job(BroadcastRecentCracksJob).with(campaign.id)
+      end
+    end
+
+    it "schedules the broadcast at the trailing edge of the debounce window" do
+      freeze_time do
+        expect {
+          hash_item.update!(cracked: true, plain_text: "password", cracked_time: Time.current)
+        }.to have_enqueued_job(BroadcastRecentCracksJob)
+          .with(campaign.id)
+          .at(HashItem::BROADCAST_DEBOUNCE_WINDOW.from_now)
       end
     end
 

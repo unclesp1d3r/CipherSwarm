@@ -139,13 +139,18 @@ class HashItem < ApplicationRecord
   # key is not already held. Failures (cache, Sidekiq, etc.) are logged but
   # do not propagate, so they cannot abort sibling enqueues.
   #
+  # Trailing-edge semantics: the job runs after BROADCAST_DEBOUNCE_WINDOW
+  # has elapsed, so the broadcast snapshot reflects every crack that
+  # accumulated during the window — not just the first one. This avoids
+  # a stale panel after a burst tail when no further cracks arrive.
+  #
   # @param campaign_id [Integer] the campaign whose recent_cracks panel should refresh
   # @return [void]
   def enqueue_recent_cracks_broadcast(campaign_id)
     debounce_key = "broadcast_recent_cracks:#{hash_list_id}:#{campaign_id}"
     return unless Rails.cache.write(debounce_key, true, expires_in: BROADCAST_DEBOUNCE_WINDOW, unless_exist: true)
 
-    BroadcastRecentCracksJob.perform_later(campaign_id)
+    BroadcastRecentCracksJob.set(wait: BROADCAST_DEBOUNCE_WINDOW).perform_later(campaign_id)
   rescue StandardError => e
     Rails.logger.error("[BroadcastUpdate] HashItem #{id} - Failed to enqueue recent cracks broadcast for campaign #{campaign_id}: #{e.message}")
   end
