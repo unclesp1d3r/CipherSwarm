@@ -60,20 +60,21 @@ RSpec.describe HashItem do
     # Test env normally uses :null_store, which always reports the cache key
     # was NOT written. We swap to :memory_store so the SET NX EX debounce
     # behavior is observable.
+    #
+    # queue_adapter is process-global; restore it after each example so this
+    # group cannot leak state into specs that run after it.
     around do |example|
       previous_cache = Rails.cache
+      previous_queue_adapter = ActiveJob::Base.queue_adapter
       Rails.cache = ActiveSupport::Cache::MemoryStore.new
-      example.run
-    ensure
-      Rails.cache = previous_cache
-    end
-
-    before do
       ActiveJob::Base.queue_adapter = :test
       clear_enqueued_jobs
+      example.run
+    ensure
+      clear_enqueued_jobs
+      ActiveJob::Base.queue_adapter = previous_queue_adapter
+      Rails.cache = previous_cache
     end
-
-    after { clear_enqueued_jobs }
 
     it "enqueues BroadcastRecentCracksJob on first crack within window" do
       expect {
