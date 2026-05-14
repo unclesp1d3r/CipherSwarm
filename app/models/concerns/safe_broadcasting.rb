@@ -19,8 +19,8 @@ module SafeBroadcasting
   extend ActiveSupport::Concern
 
   # Only wrap broadcast methods that are actually used in the codebase:
-  # - broadcast_replace_to: used by Campaign, Attack, Agent, HashItem
-  # - broadcast_replace_later_to: used by Agent
+  # - broadcast_replace_to: used by Campaign (eta_summary), Attack
+  # - broadcast_replace_later_to: used by Agent, Attack, Campaign (recent_cracks, via BroadcastRecentCracksJob), HashcatStatus
   # - broadcast_refresh_to/broadcast_refresh: used via broadcasts_refreshes
   BROADCAST_METHODS = %i[
     broadcast_replace_to

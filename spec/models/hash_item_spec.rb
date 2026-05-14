@@ -37,6 +37,9 @@
 require "rails_helper"
 
 RSpec.describe HashItem do
+  include ActiveJob::TestHelper
+  include ActiveSupport::Testing::TimeHelpers
+
   describe "validations" do
     it { is_expected.to validate_presence_of(:hash_value) }
     it { is_expected.to validate_length_of(:salt).is_at_most(255) }
@@ -46,5 +49,89 @@ RSpec.describe HashItem do
 
   describe "associations" do
     it { is_expected.to belong_to(:hash_list) }
+  end
+
+  describe "broadcast_recent_cracks_update" do
+    let(:project) { create(:project) }
+    let(:campaign) { create(:campaign, project: project) }
+    let(:hash_list) { campaign.hash_list }
+    let(:hash_item) { create(:hash_item, hash_list: hash_list, plain_text: nil) }
+
+    # Test env normally uses :null_store, which always reports the cache key
+    # was NOT written. We swap to :memory_store so the SET NX EX debounce
+    # behavior is observable.
+    around do |example|
+      previous_cache = Rails.cache
+      Rails.cache = ActiveSupport::Cache::MemoryStore.new
+      example.run
+    ensure
+      Rails.cache = previous_cache
+    end
+
+    before do
+      ActiveJob::Base.queue_adapter = :test
+      clear_enqueued_jobs
+    end
+
+    after { clear_enqueued_jobs }
+
+    it "enqueues BroadcastRecentCracksJob on first crack within window" do
+      expect {
+        hash_item.update!(cracked: true, plain_text: "password", cracked_time: Time.current)
+      }.to have_enqueued_job(BroadcastRecentCracksJob).with(campaign.id)
+    end
+
+    it "does not enqueue a second job within the 5-second debounce window" do
+      hash_item.update!(cracked: true, plain_text: "password", cracked_time: Time.current)
+      second = create(:hash_item, hash_list: hash_list, plain_text: nil)
+      clear_enqueued_jobs
+
+      expect {
+        second.update!(cracked: true, plain_text: "qwerty", cracked_time: Time.current)
+      }.not_to have_enqueued_job(BroadcastRecentCracksJob)
+    end
+
+    it "enqueues again after the debounce window expires" do
+      hash_item.update!(cracked: true, plain_text: "password", cracked_time: Time.current)
+      second = create(:hash_item, hash_list: hash_list, plain_text: nil)
+      clear_enqueued_jobs
+
+      travel 6.seconds do
+        expect {
+          second.update!(cracked: true, plain_text: "qwerty", cracked_time: Time.current)
+        }.to have_enqueued_job(BroadcastRecentCracksJob).with(campaign.id)
+      end
+    end
+
+    it "debounces per campaign — sibling campaigns get independent windows" do
+      second_campaign = create(:campaign, project: project, hash_list: hash_list)
+      clear_enqueued_jobs
+
+      expect {
+        hash_item.update!(cracked: true, plain_text: "password", cracked_time: Time.current)
+      }.to have_enqueued_job(BroadcastRecentCracksJob).exactly(:twice)
+
+      broadcast_jobs = enqueued_jobs.select { |j| j[:job] == BroadcastRecentCracksJob }
+      expect(broadcast_jobs.map { |j| j[:args].first }).to contain_exactly(campaign.id, second_campaign.id)
+    end
+
+    it "does not enqueue when cracked did not transition false → true" do
+      hash_item.update!(cracked: true, plain_text: "password", cracked_time: Time.current)
+      clear_enqueued_jobs
+
+      expect {
+        hash_item.update!(plain_text: "different")
+      }.not_to have_enqueued_job(BroadcastRecentCracksJob)
+    end
+
+    it "logs and swallows cache failures without raising" do
+      allow(Rails.cache).to receive(:write).and_raise(StandardError.new("redis down"))
+      allow(Rails.logger).to receive(:error)
+
+      expect {
+        hash_item.update!(cracked: true, plain_text: "password", cracked_time: Time.current)
+      }.not_to raise_error
+      expect(Rails.logger).to have_received(:error).with(/Failed to enqueue recent cracks broadcast/)
+    end
   end
 end
