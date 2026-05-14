@@ -82,13 +82,16 @@ RSpec.describe HashItem do
     end
 
     it "does not enqueue a second job within the 5-second debounce window" do
-      hash_item.update!(cracked: true, plain_text: "password", cracked_time: Time.current)
       second = create(:hash_item, hash_list: hash_list, plain_text: nil)
-      clear_enqueued_jobs
 
-      expect {
-        second.update!(cracked: true, plain_text: "qwerty", cracked_time: Time.current)
-      }.not_to have_enqueued_job(BroadcastRecentCracksJob)
+      freeze_time do
+        hash_item.update!(cracked: true, plain_text: "password", cracked_time: Time.current)
+        clear_enqueued_jobs
+
+        expect {
+          second.update!(cracked: true, plain_text: "qwerty", cracked_time: Time.current)
+        }.not_to have_enqueued_job(BroadcastRecentCracksJob)
+      end
     end
 
     it "enqueues again after the debounce window expires" do
