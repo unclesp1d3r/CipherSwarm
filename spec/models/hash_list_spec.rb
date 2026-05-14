@@ -295,22 +295,23 @@ RSpec.describe HashList do
         hash_list.hash_items.delete_all
       end
 
-      it "returns fresh data even when the cached values are stale" do
-        aggregate_failures do
-          # Prime caches while empty
-          expect(hash_list.recent_cracks_count).to eq(0)
-          expect(hash_list.recent_cracks).to be_empty
+      it "keeps cached values stale within their TTL after a new crack lands" do
+        # Prime caches while empty
+        expect(hash_list.recent_cracks_count).to eq(0)
+        expect(hash_list.recent_cracks).to be_empty
 
-          create(:hash_item, :cracked_recently, hash_list: hash_list, plain_text: "fresh")
+        create(:hash_item, :cracked_recently, hash_list: hash_list, plain_text: "fresh")
 
-          # Cached values remain stale within TTL
-          expect(hash_list.recent_cracks_count).to eq(0)
-          expect(hash_list.recent_cracks).to be_empty
+        # Cached values remain stale within TTL
+        expect(hash_list.recent_cracks_count).to eq(0)
+        expect(hash_list.recent_cracks).to be_empty
+      end
 
-          # Uncached helpers see the new crack immediately
-          expect(hash_list.recent_cracks_count_uncached).to eq(1)
-          expect(hash_list.recent_cracks_uncached.map(&:plain_text)).to eq(["fresh"])
-        end
+      it "returns fresh values from the uncached helpers immediately" do
+        create(:hash_item, :cracked_recently, hash_list: hash_list, plain_text: "fresh")
+
+        expect(hash_list.recent_cracks_count_uncached).to eq(1)
+        expect(hash_list.recent_cracks_uncached.map(&:plain_text)).to eq(["fresh"])
       end
     end
   end

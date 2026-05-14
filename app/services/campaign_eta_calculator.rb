@@ -149,14 +149,13 @@ class CampaignEtaCalculator
     Rails.cache.fetch(cache_key(suffix), **cache_options) { yield }
   end
 
-  # Generates a cache key for the campaign that incorporates attack and task freshness.
+  # Generates a stable, ID-based cache key for the campaign ETA.
   #
-  # The key includes the latest updated_at timestamps from attacks and tasks so that
   # PERFORMANCE: Use a simple time-based TTL cache key instead of freshness queries.
   # The previous implementation ran 3 SQL queries (attacks.maximum, attack_ids,
   # tasks.maximum) just to build the cache key, defeating the purpose of caching
   # when called multiple times per request. ETA does not require sub-second
-  # freshness — a 30-second TTL is appropriate for progress estimates.
+  # freshness — a 1-minute TTL is appropriate for progress estimates.
   #
   # @param suffix [String] the cache key suffix
   # @return [String] the full cache key

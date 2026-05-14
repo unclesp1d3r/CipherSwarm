@@ -128,6 +128,33 @@ RSpec.describe CrackSubmissionService do
     end
   end
 
+  describe "final-crack completion when same-list duplicate exists" do
+    # Regression: if accept_crack runs before propagate_crack_to_matching_hashes,
+    # the completion guard sees the same-hash_list duplicate as still-uncracked
+    # and leaves the task in `running`. Propagating first lets the guard read
+    # the post-propagate count.
+    let!(:duplicate_hash_item) do
+      create(:hash_item,
+             hash_list: hash_list,
+             hash_value: "test_hash_value",
+             hash_value_digest: Digest::MD5.hexdigest("test_hash_value"),
+             cracked: false)
+    end
+
+    it "marks the duplicate cracked and transitions the task to completed in one submission" do
+      result = described_class.new(
+        task: task,
+        hash_value: "test_hash_value",
+        plain_text: "shared_password",
+        timestamp: Time.current
+      ).call
+
+      expect(result.success?).to be true
+      expect(duplicate_hash_item.reload.cracked).to be true
+      expect(task.reload.state).to eq("completed")
+    end
+  end
+
   describe "Result struct" do
     it "has success? attribute" do
       result = described_class::Result.new(success?: true)

@@ -115,7 +115,7 @@ module AttackStateMachine # rubocop:disable Metrics/ModuleLength
       after_transition any => :completed, :do => :complete_hash_list
       after_transition any => :completed, :do => :touch_campaign
       before_transition on: :complete do |attack|
-        if attack.hash_list.uncracked_count_uncached.zero?
+        if (attack.hash_list&.uncracked_count_uncached || 0).zero?
           attack.tasks.without_state(:completed).find_each(&:complete!)
         end
       end

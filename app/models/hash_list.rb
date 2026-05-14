@@ -107,10 +107,22 @@ class HashList < ApplicationRecord
   # @return [Integer]
   def cracked_count
     Rails.cache.fetch("hash_list/#{id}/cracked_count", expires_in: 20.minutes) do
-      # PERFORMANCE: Use .count for SQL COUNT aggregation instead of .size
-      # which loads all records into memory when the relation isn't already loaded
-      hash_items.where.not(plain_text: nil).count
+      cracked_count_uncached
     end
+  end
+
+  # Returns a fresh count of cracked hash items, bypassing the TTL cache.
+  #
+  # Use this where staleness would mislead — e.g., write-triggered broadcasts
+  # rendering the just-committed crack, or post-write API responses. Mirrors
+  # the `_uncached` siblings on `uncracked_count` and `recent_cracks*`.
+  #
+  # PERFORMANCE: Use .count for SQL COUNT aggregation instead of .size
+  # which loads all records into memory when the relation isn't already loaded.
+  #
+  # @return [Integer]
+  def cracked_count_uncached
+    hash_items.where.not(plain_text: nil).count
   end
 
   # Returns a string representation of the cracked hash list.
@@ -281,7 +293,7 @@ class HashList < ApplicationRecord
     hash_items.where(cracked: true)
               .where("cracked_time > ?", 24.hours.ago)
               .includes(:attack)
-              .order(cracked_time: :desc)
+              .order(cracked_time: :desc, id: :desc)
               .limit(limit)
               .to_a
   end
