@@ -33,12 +33,12 @@ RSpec.describe "Create agent" do
       agent_form.submit_form
 
       # Wait for redirect and agent creation
-      expect(page).to have_content("Agent was successfully created", wait: 10)
+      expect(page).to have_text("Agent was successfully created", wait: 10)
 
       agent = Agent.find_by(custom_label: "Test Agent")
       expect(agent).to be_present
       expect(page).to have_current_path(agent_path(agent))
-      expect(page).to have_content("Test Agent")
+      expect(page).to have_text("Test Agent")
     end
   end
 
@@ -63,12 +63,12 @@ RSpec.describe "Create agent" do
       agent_form.submit_form
 
       # Wait for redirect and agent creation
-      expect(page).to have_content("Agent was successfully created", wait: 10)
+      expect(page).to have_text("Agent was successfully created", wait: 10)
 
       agent = Agent.find_by(custom_label: "Advanced Agent")
       expect(agent).to be_present
       expect(page).to have_current_path(agent_path(agent))
-      expect(page).to have_content("Advanced Agent")
+      expect(page).to have_text("Advanced Agent")
     end
   end
 
@@ -97,7 +97,7 @@ RSpec.describe "Create agent" do
       agent_form.submit_form
 
       # Wait for redirect and agent creation
-      expect(page).to have_content("Agent was successfully created", wait: 10)
+      expect(page).to have_text("Agent was successfully created", wait: 10)
 
       agent = Agent.find_by(custom_label: "Admin Assigned Agent")
       # Combine agent presence and user assignment checks

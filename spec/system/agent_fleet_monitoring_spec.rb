@@ -42,8 +42,8 @@ RSpec.describe "Agent Fleet Monitoring", skip: ENV["CI"].present? do
       expect(page).to have_css("##{ActionView::RecordIdentifier.dom_id(pending_agent)}")
 
       within("##{ActionView::RecordIdentifier.dom_id(active_agent)}") do
-        expect(page).to have_content(active_agent.name)
-        expect(page).to have_content(active_agent.hash_rate_display)
+        expect(page).to have_text(active_agent.name)
+        expect(page).to have_text(active_agent.hash_rate_display)
       end
     end
 
@@ -53,8 +53,8 @@ RSpec.describe "Agent Fleet Monitoring", skip: ENV["CI"].present? do
       visit agents_path
 
       within("##{ActionView::RecordIdentifier.dom_id(active_agent)}") do
-        expect(page).to have_content("Errors (24h):")
-        expect(page).to have_content("3")
+        expect(page).to have_text("Errors (24h):")
+        expect(page).to have_text("3")
       end
     end
   end

@@ -86,7 +86,7 @@ RSpec.describe "Loading & Feedback Patterns", skip: ENV["CI"].present? do
     it "displays service cards on system health page" do
       visit system_health_path
 
-      expect(page).to have_content("System Health")
+      expect(page).to have_text("System Health")
       expect(page).to have_css(".card", minimum: 4)
     end
 
@@ -158,7 +158,7 @@ RSpec.describe "Loading & Feedback Patterns", skip: ENV["CI"].present? do
       # Fresh user with no agents
       visit agents_path
 
-      expect(page).to have_content("Create your first agent to start cracking hashes")
+      expect(page).to have_text("Create your first agent to start cracking hashes")
       expect(page).to have_link("New Agent")
     end
   end

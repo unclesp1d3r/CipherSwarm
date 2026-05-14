@@ -261,5 +261,58 @@ RSpec.describe HashList do
         expect(Rails.cache).to have_received(:fetch).at_least(:once)
       end
     end
+
+    describe "#uncracked_count_uncached" do
+      let(:memory_cache) { ActiveSupport::Cache::MemoryStore.new }
+
+      before do
+        allow(Rails).to receive(:cache).and_return(memory_cache)
+        hash_list.hash_items.delete_all
+        create(:hash_item, hash_list: hash_list, cracked: false)
+      end
+
+      it "returns the current uncracked count" do
+        expect(hash_list.uncracked_count_uncached).to eq(1)
+      end
+
+      it "ignores a stale cached value warmed by uncracked_count" do
+        # Warm the cached value at 1 uncracked
+        expect(hash_list.uncracked_count).to eq(1)
+
+        # Crack the only hash, which would leave the cache stale
+        hash_list.hash_items.update_all(cracked: true, plain_text: "x", cracked_time: Time.current) # rubocop:disable Rails/SkipsModelValidations
+
+        expect(hash_list.uncracked_count).to eq(1) # still stale
+        expect(hash_list.uncracked_count_uncached).to eq(0)
+      end
+    end
+
+    describe "#recent_cracks_uncached and #recent_cracks_count_uncached" do
+      let(:memory_cache) { ActiveSupport::Cache::MemoryStore.new }
+
+      before do
+        allow(Rails).to receive(:cache).and_return(memory_cache)
+        hash_list.hash_items.delete_all
+      end
+
+      it "keeps cached values stale within their TTL after a new crack lands" do
+        # Prime caches while empty
+        expect(hash_list.recent_cracks_count).to eq(0)
+        expect(hash_list.recent_cracks).to be_empty
+
+        create(:hash_item, :cracked_recently, hash_list: hash_list, plain_text: "fresh")
+
+        # Cached values remain stale within TTL
+        expect(hash_list.recent_cracks_count).to eq(0)
+        expect(hash_list.recent_cracks).to be_empty
+      end
+
+      it "returns fresh values from the uncached helpers immediately" do
+        create(:hash_item, :cracked_recently, hash_list: hash_list, plain_text: "fresh")
+
+        expect(hash_list.recent_cracks_count_uncached).to eq(1)
+        expect(hash_list.recent_cracks_uncached.map(&:plain_text)).to eq(["fresh"])
+      end
+    end
   end
 end

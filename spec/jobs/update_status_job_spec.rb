@@ -212,7 +212,7 @@ RSpec.describe UpdateStatusJob do
         high_campaign = create(:campaign, project: project, priority: :high)
         create(:dictionary_attack, campaign: high_campaign)
 
-        allow_any_instance_of(HashList).to receive(:uncracked_count).and_return(0) # rubocop:disable RSpec/AnyInstance
+        allow_any_instance_of(HashList).to receive(:uncracked_count_uncached).and_return(0) # rubocop:disable RSpec/AnyInstance
 
         service_double = instance_double(TaskPreemptionService)
         allow(TaskPreemptionService).to receive(:new).and_return(service_double)

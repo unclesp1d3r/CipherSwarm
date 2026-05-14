@@ -40,7 +40,7 @@ RSpec.describe "Create hash list" do
       expect(hash_list).to be_present
       expect(page).to have_current_path(hash_list_path(hash_list), wait: 5)
       expect_flash_message("Hash list was successfully created")
-      expect(page).to have_content("Test Hash List")
+      expect(page).to have_text("Test Hash List")
     end
   end
 
@@ -73,7 +73,7 @@ RSpec.describe "Create hash list" do
       hash_list_form.submit_form
 
       # Wait for redirect and hash list creation
-      expect(page).to have_content("Hash list was successfully created", wait: 5)
+      expect(page).to have_text("Hash list was successfully created", wait: 5)
       hash_list = HashList.find_by(name: "Processed Hash List")
       expect(hash_list).to be_present
       # tus upload sets temp_file_path (not Active Storage), then ProcessHashListJob ingests it

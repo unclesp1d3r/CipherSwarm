@@ -28,7 +28,7 @@ RSpec.describe "Edit agent" do
 
       expect(page).to have_current_path(agent_path(agent))
       expect_flash_message("Agent was successfully updated.")
-      expect(page).to have_content("Updated Label")
+      expect(page).to have_text("Updated Label")
     end
   end
 
@@ -86,6 +86,6 @@ RSpec.describe "Edit agent - admin" do
     agent_form.submit_form
 
     expect(page).to have_current_path(agent_path(other_agent))
-    expect(page).to have_content("Admin Updated")
+    expect(page).to have_text("Admin Updated")
   end
 end

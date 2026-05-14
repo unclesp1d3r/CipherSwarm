@@ -45,7 +45,7 @@ module TaskStateMachine
 
       event :complete do
         transition running: :completed
-        transition pending: :completed if ->(task) { task.attack.hash_list.uncracked_count.zero? }
+        transition pending: :completed if ->(task) { task.attack.hash_list.uncracked_count_uncached.zero? }
         transition any - [:running] => same
       end
 
@@ -102,7 +102,7 @@ module TaskStateMachine
       end
 
       after_transition to: :completed do |task|
-        uncracked = task.hash_list.uncracked_count
+        uncracked = task.hash_list.uncracked_count_uncached
         task.send(:log_state_transition, "completed", "Uncracked hashes: #{uncracked}")
         task.attack.complete if task.attack.can_complete?
         task.hashcat_statuses.delete_all

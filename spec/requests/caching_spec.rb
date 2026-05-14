@@ -180,7 +180,7 @@ RSpec.describe "Caching Behavior" do
       eta_campaign = create(:campaign, project: project)
       calculator = CampaignEtaCalculator.new(eta_campaign, cache: true)
       options = calculator.send(:cache_options)
-      expect(options[:expires_in]).to eq(30.seconds)
+      expect(options[:expires_in]).to eq(1.minute)
     end
   end
 

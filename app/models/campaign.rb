@@ -138,7 +138,7 @@ class Campaign < ApplicationRecord
   scope :not_quarantined, -> { where(quarantined: false) }
 
   # Delegations
-  delegate :uncracked_count, :cracked_count, :hash_item_count, to: :hash_list
+  delegate :uncracked_count, :uncracked_count_uncached, :cracked_count, :hash_item_count, to: :hash_list
 
 
   # Callbacks
@@ -321,7 +321,7 @@ class Campaign < ApplicationRecord
       self,
       target: "recent_cracks",
       partial: "campaigns/recent_cracks",
-      locals: { campaign: self }
+      locals: { campaign: self, uncached: true }
     )
   end
 

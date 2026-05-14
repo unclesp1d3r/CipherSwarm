@@ -134,7 +134,7 @@ module SystemHelpers
   # Assert that a validation error is displayed
   # @param message [String] the expected validation error message
   def expect_validation_error(message)
-    expect(page).to have_content(message)
+    expect(page).to have_text(message)
   end
 
   # Form Helpers

@@ -57,7 +57,7 @@ RSpec.describe CampaignPriorityRebalanceJob do
     context "when the attack has zero uncracked count" do
       before do
         create(:dictionary_attack, campaign: campaign)
-        allow_any_instance_of(HashList).to receive(:uncracked_count).and_return(0) # rubocop:disable RSpec/AnyInstance
+        allow_any_instance_of(HashList).to receive(:uncracked_count_uncached).and_return(0) # rubocop:disable RSpec/AnyInstance
       end
 
       it "skips preemption for that attack" do

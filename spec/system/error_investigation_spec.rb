@@ -56,9 +56,9 @@ RSpec.describe "Error Investigation", skip: ENV["CI"].present? do
       expect(page_object).to have_error_log_section
 
       within("div[role='region'][aria-label='Campaign error log']") do
-        expect(page).to have_content("Hardware failure detected")
-        expect(page).to have_content("Critical")
-        expect(page).to have_content("Temperature warning")
+        expect(page).to have_text("Hardware failure detected")
+        expect(page).to have_text("Critical")
+        expect(page).to have_text("Temperature warning")
       end
     end
   end
@@ -81,9 +81,9 @@ RSpec.describe "Error Investigation", skip: ENV["CI"].present? do
       page_object.wait_for_error_log_loaded
 
       within("div[role='region'][aria-label='Campaign error log']") do
-        expect(page).to have_content("Critical")
-        expect(page).to have_content("Warning")
-        expect(page).to have_content("Info")
+        expect(page).to have_text("Critical")
+        expect(page).to have_text("Warning")
+        expect(page).to have_text("Info")
       end
     end
   end
@@ -106,8 +106,8 @@ RSpec.describe "Error Investigation", skip: ENV["CI"].present? do
 
       visit task_path(task)
 
-      expect(page).to have_content("Last Error")
-      expect(page).to have_content("Out of memory")
+      expect(page).to have_text("Last Error")
+      expect(page).to have_text("Out of memory")
     end
   end
 end

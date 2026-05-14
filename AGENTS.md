@@ -44,6 +44,10 @@ When adding new files:
 
 Campaign and Attack use `SoftDeletable` concern (`app/models/concerns/soft_deletable.rb`), which wraps the `discard` gem. `destroy` soft-deletes (sets `deleted_at`), `default_scope -> { kept }` hides discarded rows. Reach for `.unscoped` or `.discarded` to see soft-deleted records. See `docs/solutions/best-practices/paranoia-to-discard-migration.md` for gotchas when extending this pattern.
 
+### Caching aggregates read by state machines
+
+When `Rails.cache.fetch` wraps a model aggregate (e.g. `uncracked_count`, `recent_cracks_count`), also expose a `*_uncached` sibling. State-machine transition guards, `before_transition`/`after_transition` blocks, service objects returning the value to API clients, and Turbo broadcast partials must read the uncached variant — TTL staleness in these paths leaves work running after it should have completed or re-renders stale UI. See `docs/solutions/best-practices/cache-key-strategy.md`.
+
 ### For planning agents
 
 When planning new features or architectural changes, use the `layered-rails` skill for analysis:

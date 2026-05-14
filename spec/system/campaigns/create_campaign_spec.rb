@@ -28,12 +28,12 @@ RSpec.describe "Create campaign" do
       click_button "Submit"
 
       # Wait for redirect
-      expect(page).to have_content("Campaign was successfully created", wait: 10)
+      expect(page).to have_text("Campaign was successfully created", wait: 10)
 
       campaign = Campaign.find_by(name: "Test Campaign")
       expect(campaign).to be_present
       expect(page).to have_current_path(campaign_path(campaign))
-      expect(page).to have_content("Test Campaign")
+      expect(page).to have_text("Test Campaign")
     end
   end
 
@@ -45,7 +45,7 @@ RSpec.describe "Create campaign" do
       campaigns_index_page.visit_page
       campaigns_index_page.click_new_campaign
 
-      expect(page).to have_content("You do not have any hash lists yet")
+      expect(page).to have_text("You do not have any hash lists yet")
       expect(page).to have_link("Add Hash List")
     end
   end
@@ -60,7 +60,7 @@ RSpec.describe "Create campaign" do
 
       click_button "Submit"
 
-      expect(page).to have_content("Name can't be blank")
+      expect(page).to have_text("Name can't be blank")
     end
   end
 
@@ -77,7 +77,7 @@ RSpec.describe "Create campaign" do
       click_button "Submit"
 
       # Wait for redirect
-      expect(page).to have_content("Campaign was successfully created", wait: 10)
+      expect(page).to have_text("Campaign was successfully created", wait: 10)
 
       campaign = Campaign.find_by(name: "Project Campaign")
       expect(campaign).to be_present
@@ -94,9 +94,9 @@ RSpec.describe "Create campaign" do
       expect(page).to have_field("Name", wait: 5)
 
       # Verify no raw ERB syntax is rendered (regression test for malformed magic comments)
-      expect(page).to have_no_content("# locals:")
-      expect(page).to have_no_content("%>")
-      expect(page).to have_no_content("<%#")
+      expect(page).to have_no_text("# locals:")
+      expect(page).to have_no_text("%>")
+      expect(page).to have_no_text("<%#")
     end
   end
 end

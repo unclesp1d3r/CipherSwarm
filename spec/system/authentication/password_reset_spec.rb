@@ -16,7 +16,7 @@ RSpec.describe "Password reset" do
       fill_in "Email", with: user.email
       click_button "Send me reset password instructions"
 
-      expect(page).to have_content("You will receive an email with instructions")
+      expect(page).to have_text("You will receive an email with instructions")
       expect(ActionMailer::Base.deliveries.count).to eq(1)
     end
   end
@@ -30,7 +30,7 @@ RSpec.describe "Password reset" do
       fill_in "Confirm your new password", with: "newpassword123"
       click_button "Change my password"
 
-      expect(page).to have_content("Your password has been changed successfully")
+      expect(page).to have_text("Your password has been changed successfully")
       expect(page).to have_current_path(root_path)
     end
   end
@@ -43,7 +43,7 @@ RSpec.describe "Password reset" do
       fill_in "Confirm your new password", with: "newpassword123"
       click_button "Change my password"
 
-      expect(page).to have_content("Reset password token is invalid")
+      expect(page).to have_text("Reset password token is invalid")
     end
   end
 end
