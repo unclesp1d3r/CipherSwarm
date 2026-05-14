@@ -124,14 +124,28 @@ RSpec.describe HashItem do
       }.not_to have_enqueued_job(BroadcastRecentCracksJob)
     end
 
-    it "logs and swallows cache failures without raising" do
-      allow(Rails.cache).to receive(:write).and_raise(StandardError.new("redis down"))
+    it "logs and swallows cache fetch failures without raising" do
+      allow(Rails.cache).to receive(:fetch).and_raise(StandardError.new("redis down"))
       allow(Rails.logger).to receive(:error)
 
       expect {
         hash_item.update!(cracked: true, plain_text: "password", cracked_time: Time.current)
       }.not_to raise_error
-      expect(Rails.logger).to have_received(:error).with(/Failed to enqueue recent cracks broadcast/)
+      expect(Rails.logger).to have_received(:error).with(/Failed to load campaigns for recent cracks broadcast/)
+    end
+
+    it "continues enqueuing siblings when one campaign's debounce write fails" do
+      second_campaign = create(:campaign, project: project, hash_list: hash_list)
+      allow(Rails.cache).to receive(:write).and_call_original
+      allow(Rails.cache).to receive(:write)
+        .with("broadcast_recent_cracks:#{hash_list.id}:#{campaign.id}", any_args)
+        .and_raise(StandardError.new("transient redis hiccup"))
+      allow(Rails.logger).to receive(:error)
+
+      expect {
+        hash_item.update!(cracked: true, plain_text: "password", cracked_time: Time.current)
+      }.to have_enqueued_job(BroadcastRecentCracksJob).with(second_campaign.id)
+      expect(Rails.logger).to have_received(:error).with(/Failed to enqueue recent cracks broadcast for campaign #{campaign.id}/)
     end
   end
 end
