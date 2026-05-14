@@ -28,7 +28,7 @@ RSpec.describe "Add attack to campaign" do
 
       expect(page).to have_current_path(campaign_path(campaign))
       expect_flash_message("Attack was successfully created")
-      expect(page).to have_content("Dictionary Attack")
+      expect(page).to have_text("Dictionary Attack")
     end
   end
 
@@ -42,7 +42,7 @@ RSpec.describe "Add attack to campaign" do
       click_button "Submit"
 
       expect(page).to have_current_path(campaign_path(campaign))
-      expect(page).to have_content("Mask Attack")
+      expect(page).to have_text("Mask Attack")
     end
   end
 
@@ -54,7 +54,7 @@ RSpec.describe "Add attack to campaign" do
       fill_in "Name", with: "Invalid Attack"
       click_button "Submit"
 
-      expect(page).to have_content(/Word list/i)
+      expect(page).to have_text(/Word list/i)
     end
   end
 

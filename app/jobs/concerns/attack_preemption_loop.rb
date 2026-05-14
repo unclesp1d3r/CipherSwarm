@@ -28,7 +28,9 @@ module AttackPreemptionLoop
   # @return [void]
   def preempt_attacks(attacks)
     attacks.find_each do |attack|
-      next if attack.uncracked_count.zero?
+      # Uncached read: a stale 30s TTL can drive preemption against a
+      # fully-cracked attack. See Issue #570.
+      next if attack.uncracked_count_uncached.zero?
 
       TaskPreemptionService.new(attack).preempt_if_needed
     rescue ActiveRecord::ConnectionNotEstablished

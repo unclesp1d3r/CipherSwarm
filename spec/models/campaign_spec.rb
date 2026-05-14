@@ -545,7 +545,7 @@ RSpec.describe Campaign do
         campaign,
         target: "recent_cracks",
         partial: "campaigns/recent_cracks",
-        locals: { campaign: campaign }
+        locals: { campaign: campaign, uncached: true }
       )
     end
   end

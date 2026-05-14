@@ -601,4 +601,39 @@ RSpec.describe Task do
       end
     end
   end
+
+  describe "accept_crack with a warmed uncracked_count cache" do
+    # Issue #570 — completion guards must read uncracked_count_uncached so a
+    # warmed TTL cache cannot leave a Task running after the final hash is
+    # cracked. This is an integration test against the real cache + state
+    # machine to catch a regression that unit tests of HashList alone would
+    # miss.
+    let(:memory_cache) { ActiveSupport::Cache::MemoryStore.new }
+    let(:project) { create(:project) }
+    let(:hash_list) { create(:hash_list, project: project) }
+    let(:campaign) { create(:campaign, project: project, hash_list: hash_list) }
+    let(:attack) { create(:dictionary_attack, campaign: campaign) }
+    let(:agent) { create(:agent, projects: [project]) }
+    let(:task) { create(:task, attack: attack, agent: agent, state: "running") }
+
+    before do
+      allow(Rails).to receive(:cache).and_return(memory_cache)
+    end
+
+    it "transitions running -> completed when the final hash is cracked despite a warm cache" do
+      hash_list.hash_items.delete_all
+      create(:hash_item, hash_list: hash_list, cracked: false)
+
+      # Warm the cache so it reports 1 uncracked.
+      expect(hash_list.uncracked_count).to eq(1)
+
+      # Simulate the final crack landing — bypass callbacks so the cached
+      # value stays stale, exactly the failure mode the fix is meant to catch.
+      hash_list.hash_items.update_all(cracked: true, plain_text: "x", cracked_time: Time.current) # rubocop:disable Rails/SkipsModelValidations
+
+      task.accept_crack!
+
+      expect(task.reload.state).to eq("completed")
+    end
+  end
 end

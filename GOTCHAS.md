@@ -280,6 +280,14 @@ Referenced from [AGENTS.md](AGENTS.md) — read the relevant section before work
 - Use `params[:field].present?` to check for non-nil values only
 - Important for API endpoints that need to distinguish between missing vs null values
 
+**Cache Key Strategy (Issue #570):**
+
+- For high-write data (ETA, hash counts, recent cracks), use ID-based keys with `expires_in:`: `Rails.cache.fetch("hash_list/#{id}/uncracked_count", expires_in: 30.seconds)`
+- For low-write, configuration-level data (agent project access, hash type names), `cache_key_with_version` is fine — version-driven invalidation is correct when writes are rare
+- Never embed `cache_key_with_version` in keys over volatile data — cascading `touch: true` (Task → Attack → Campaign) collapses hit rate to ~0 under sustained crack load
+- Completion guards (state-machine transitions, post-write checks) must read uncached counts to avoid leaving tasks running on stale data — see `HashList#uncracked_count_uncached`, `recent_cracks_uncached`
+- `spec/models/cache_strategy_spec.rb` guards against regression; full policy in `docs/solutions/best-practices/cache-key-strategy.md`
+
 ## Infrastructure
 
 **Redis Lock Patterns:**

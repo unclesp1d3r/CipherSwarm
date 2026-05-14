@@ -12,9 +12,9 @@ RSpec.describe "Admin user management" do
     it "displays admin interface with users and projects" do
       visit admin_index_path
 
-      expect(page).to have_content("Admin")
-      expect(page).to have_content("Users")
-      expect(page).to have_content("Projects")
+      expect(page).to have_text("Admin")
+      expect(page).to have_text("Users")
+      expect(page).to have_text("Projects")
     end
   end
 
@@ -47,7 +47,7 @@ RSpec.describe "Admin user management" do
     it "locks user account" do
       visit admin_index_path
 
-      expect(page).to have_content(user.name)
+      expect(page).to have_text(user.name)
       find("#lock-user-#{user.id}").click
 
       # Wait for Turbo form submission, redirect, and button update
@@ -69,7 +69,7 @@ RSpec.describe "Admin user management" do
     it "unlocks user account" do
       visit admin_index_path
 
-      expect(page).to have_content(user.name)
+      expect(page).to have_text(user.name)
       find("#unlock-user-#{user.id}").click
 
       # Wait for Turbo form submission and button update
@@ -96,7 +96,7 @@ RSpec.describe "Admin user management" do
       fill_in "Name", with: "updated name"
       click_button "Update User"
 
-      expect(page).to have_content("User was successfully updated")
+      expect(page).to have_text("User was successfully updated")
     end
   end
 
@@ -108,7 +108,7 @@ RSpec.describe "Admin user management" do
       sign_in_as(user)
       visit admin_index_path
 
-      expect(page).to have_content("Not Authorized")
+      expect(page).to have_text("Not Authorized")
     end
   end
 end

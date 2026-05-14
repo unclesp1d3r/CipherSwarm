@@ -107,7 +107,7 @@ RSpec.describe "Agent monitoring" do
 
     expect(agent_page.has_active_tab?("Errors")).to be true
     agent_page.click_tab("Overview")
-    expect(page).to have_content(agent.reload.hash_rate_display)
+    expect(page).to have_text(agent.reload.hash_rate_display)
   end
 
   describe "real-time updates via Turbo Streams", :js do
@@ -122,7 +122,7 @@ RSpec.describe "Agent monitoring" do
       expect(page).to have_css("turbo-cable-stream-source", visible: :all)
 
       # Verify agent data is displayed correctly
-      expect(page).to have_content(agent.hash_rate_display)
+      expect(page).to have_text(agent.hash_rate_display)
     end
 
     it "broadcasts agent card updates correctly" do
@@ -176,7 +176,7 @@ RSpec.describe "Agent monitoring" do
       # Verify the active tab can be restored and shows updated content
       expect(page).to have_css(".nav-link.active", text: "Errors")
       expect(agent_page.has_active_tab?("Errors")).to be true
-      expect(page).to have_content("New broadcast error")
+      expect(page).to have_text("New broadcast error")
     end
 
     it "displays updated error count after content refresh" do
@@ -203,7 +203,7 @@ RSpec.describe "Agent monitoring" do
 
       # Verify tab persists and content updates
       expect(page).to have_css(".nav-link.active", text: "Errors")
-      expect(page).to have_content("New broadcast error")
+      expect(page).to have_text("New broadcast error")
       expect(agent_page.error_count).to eq(1)
     end
 
@@ -228,7 +228,7 @@ RSpec.describe "Agent monitoring" do
       # Refresh and switch to overview to verify updated data
       page.driver.browser.navigate.refresh
       agent_page.click_tab("Overview")
-      expect(page).to have_content(agent.reload.hash_rate_display)
+      expect(page).to have_text(agent.reload.hash_rate_display)
     end
   end
 
@@ -340,10 +340,10 @@ RSpec.describe "Agent monitoring" do
 
       within(agents_index.agent_card(agent.name)) do
         # Ensure no raw HTML text like '<i class="bi-eye"></i>' appears
-        expect(page).to have_no_content('<i class="bi')
-        expect(page).to have_no_content("bi-eye")
-        expect(page).to have_no_content("bi-pencil")
-        expect(page).to have_no_content("bi-trash")
+        expect(page).to have_no_text('<i class="bi')
+        expect(page).to have_no_text("bi-eye")
+        expect(page).to have_no_text("bi-pencil")
+        expect(page).to have_no_text("bi-trash")
       end
     end
 
@@ -390,7 +390,7 @@ RSpec.describe "Agent monitoring" do
       agents_index.visit_page
 
       expect(agents_index.has_no_agents_message?).to be true
-      expect(page).to have_content("Create your first agent to start cracking hashes")
+      expect(page).to have_text("Create your first agent to start cracking hashes")
       expect(page).to have_link("New Agent")
     end
 

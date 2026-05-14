@@ -13,8 +13,8 @@ RSpec.describe "Navbar navigation" do
       visit root_path
 
       expect(page).to have_css("nav")
-      expect(page).to have_content(user.name)
-      expect(page).to have_content("Tools")
+      expect(page).to have_text(user.name)
+      expect(page).to have_text("Tools")
     end
   end
 

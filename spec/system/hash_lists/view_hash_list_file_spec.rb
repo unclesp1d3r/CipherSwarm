@@ -18,9 +18,9 @@ RSpec.describe "View hash list" do
     it "displays hash list information" do
       visit hash_list_path(hash_list)
 
-      expect(page).to have_content(hash_list.name)
-      expect(page).to have_content(hash_list.hash_type.name)
-      expect(page).to have_content(hash_list.project.name)
+      expect(page).to have_text(hash_list.name)
+      expect(page).to have_text(hash_list.hash_type.name)
+      expect(page).to have_text(hash_list.project.name)
     end
   end
 
@@ -33,8 +33,8 @@ RSpec.describe "View hash list" do
       visit hash_list_path(hash_list)
 
       expect(page).to have_table
-      expect(page).to have_content("Hash")
-      expect(page).to have_content("Plain Text")
+      expect(page).to have_text("Hash")
+      expect(page).to have_text("Plain Text")
     end
   end
 

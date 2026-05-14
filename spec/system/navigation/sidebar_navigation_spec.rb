@@ -81,7 +81,7 @@ RSpec.describe "Sidebar navigation" do
     it "does not render sidebar on sign in page" do
       visit new_user_session_path
       # Wait for page to load before checking for absence
-      expect(page).to have_content("Log in")
+      expect(page).to have_text("Log in")
 
       expect(page).to have_no_css(".sidebar")
     end

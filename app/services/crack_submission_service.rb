@@ -105,14 +105,18 @@ class CrackSubmissionService
   def process_crack(hash_list, hash_item)
     HashItem.transaction do
       update_hash_item!(hash_item)
-      accept_crack!
+      # Propagate to duplicates BEFORE the task's completion guard reads
+      # the uncracked count — otherwise a hash_list with duplicates can
+      # leave the task in `running` because accept_crack saw 1 remaining
+      # (the duplicate) just before propagate marked it cracked. See PR #900.
       propagate_crack_to_matching_hashes(hash_list, hash_item)
+      accept_crack!
       mark_related_tasks_stale(hash_list)
       touch_campaign
 
       Result.new(
         success?: true,
-        uncracked_count: hash_list.uncracked_count,
+        uncracked_count: hash_list.uncracked_count_uncached,
         error: nil,
         error_type: nil
       )

@@ -10,7 +10,7 @@ RSpec.describe "Error pages" do
     it "handles non-existent routes" do
       visit "/nonexistent"
 
-      expect(page).to have_content("Routing Error")
+      expect(page).to have_text("Routing Error")
     end
   end
 
@@ -22,7 +22,7 @@ RSpec.describe "Error pages" do
       visit hash_list_path(other_hash_list)
 
       expect(page).to have_current_path(new_user_session_path)
-      expect(page).to have_content("Log in")
+      expect(page).to have_text("Log in")
     end
   end
 
@@ -39,7 +39,7 @@ RSpec.describe "Error pages" do
       fill_in FormLabelsHelper::Agent.custom_label, with: "Existing"
       click_button "Submit"
 
-      expect(page).to have_content("Custom label has already been taken")
+      expect(page).to have_text("Custom label has already been taken")
     end
   end
 
@@ -63,7 +63,7 @@ RSpec.describe "Error pages" do
       click_button "Submit"
 
       expect(page).to have_css(".alert.alert-success")
-      expect(page).to have_content("Agent was successfully created")
+      expect(page).to have_text("Agent was successfully created")
     end
   end
 
@@ -81,7 +81,7 @@ RSpec.describe "Error pages" do
       click_button "Submit"
 
       expect(page).to have_field(FormLabelsHelper::Agent.custom_label, with: "Duplicate")
-      expect(page).to have_content("Custom label has already been taken")
+      expect(page).to have_text("Custom label has already been taken")
     end
   end
 end

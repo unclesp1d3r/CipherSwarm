@@ -138,7 +138,7 @@ RSpec.describe CampaignEtaCalculator do
       cached_calculator.current_eta
 
       expect(Rails.cache).to have_received(:fetch)
-        .with(/eta\/current_eta/, expires_in: 30.seconds)
+        .with(/eta\/current_eta/, expires_in: 1.minute)
     end
 
     it "caches total_eta results when cache is enabled" do
@@ -147,7 +147,7 @@ RSpec.describe CampaignEtaCalculator do
       cached_calculator.total_eta
 
       expect(Rails.cache).to have_received(:fetch)
-        .with(/eta\/total_eta/, expires_in: 30.seconds)
+        .with(/eta\/total_eta/, expires_in: 1.minute)
     end
 
     it "does not cache when cache is disabled" do
