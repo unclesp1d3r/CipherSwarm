@@ -82,8 +82,8 @@ RSpec.describe "Campaign Progress Monitoring (Integration)", skip: ENV["CI"].pre
       expect(page_object).to have_recent_cracks_section
       page_object.expand_recent_cracks
 
-      expect(page).to have_content("letmein")
-      expect(page).to have_content("qwerty")
+      expect(page).to have_text("letmein")
+      expect(page).to have_text("qwerty")
     end
   end
 

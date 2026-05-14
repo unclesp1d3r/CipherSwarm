@@ -15,7 +15,7 @@ RSpec.describe "System Health Dashboard", skip: ENV["CI"].present? do
       create_and_sign_in_user
       visit system_health_path
 
-      expect(page).to have_content("System Health")
+      expect(page).to have_text("System Health")
       expect(page).to have_css(".card", minimum: 4)
     end
 
@@ -30,7 +30,7 @@ RSpec.describe "System Health Dashboard", skip: ENV["CI"].present? do
       create_and_sign_in_user
       visit system_health_path
 
-      expect(page).to have_content("Diagnostics")
+      expect(page).to have_text("Diagnostics")
     end
   end
 
@@ -57,7 +57,7 @@ RSpec.describe "System Health Dashboard", skip: ENV["CI"].present? do
       end
 
       expect(page).to have_current_path(system_health_path)
-      expect(page).to have_content("System Health")
+      expect(page).to have_text("System Health")
     end
   end
 
@@ -66,15 +66,15 @@ RSpec.describe "System Health Dashboard", skip: ENV["CI"].present? do
       create_and_sign_in_admin
       visit system_health_path
 
-      expect(page).to have_content("Sidekiq Dashboard")
+      expect(page).to have_text("Sidekiq Dashboard")
     end
 
     it "hides sidekiq dashboard link for regular users" do
       create_and_sign_in_user
       visit system_health_path
 
-      expect(page).to have_content("System Health")
-      expect(page).to have_no_content("Sidekiq Dashboard")
+      expect(page).to have_text("System Health")
+      expect(page).to have_no_text("Sidekiq Dashboard")
     end
   end
 
@@ -83,10 +83,10 @@ RSpec.describe "System Health Dashboard", skip: ENV["CI"].present? do
       create_and_sign_in_user
       visit system_health_path
 
-      expect(page).to have_content("PostgreSQL")
-      expect(page).to have_content("Redis")
-      expect(page).to have_content("Storage")
-      expect(page).to have_content("Sidekiq")
+      expect(page).to have_text("PostgreSQL")
+      expect(page).to have_text("Redis")
+      expect(page).to have_text("Storage")
+      expect(page).to have_text("Sidekiq")
     end
 
     it "shows health status indicators on each card" do
@@ -103,7 +103,7 @@ RSpec.describe "System Health Dashboard", skip: ENV["CI"].present? do
       create_and_sign_in_user
       visit system_health_path
 
-      expect(page).to have_content("Diagnostics")
+      expect(page).to have_text("Diagnostics")
     end
   end
 
@@ -143,8 +143,8 @@ RSpec.describe "System Health Dashboard", skip: ENV["CI"].present? do
       create_and_sign_in_user
       visit system_health_path
 
-      expect(page).to have_content("System Health")
-      expect(page).to have_content("connection refused")
+      expect(page).to have_text("System Health")
+      expect(page).to have_text("connection refused")
     end
   end
 
@@ -156,7 +156,7 @@ RSpec.describe "System Health Dashboard", skip: ENV["CI"].present? do
       visit system_health_path
       elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time
 
-      expect(page).to have_content("System Health")
+      expect(page).to have_text("System Health")
       expect(elapsed).to be < 10 # Health checks should complete within 10 seconds
     end
   end

@@ -53,7 +53,7 @@ RSpec.describe "Campaign Progress Monitoring" do
       page_object.visit_page(empty_campaign)
 
       expect(page_object).to have_blank_slate
-      expect(page).to have_content("The campaign is empty")
+      expect(page).to have_text("The campaign is empty")
     end
   end
 
@@ -92,8 +92,8 @@ RSpec.describe "Campaign Progress Monitoring" do
       expect(page_object).to have_error_log_section
 
       within("div[role='region'][aria-label='Campaign error log']") do
-        expect(page).to have_content("GPU overheating error")
-        expect(page).to have_content("Critical")
+        expect(page).to have_text("GPU overheating error")
+        expect(page).to have_text("Critical")
       end
     end
 
@@ -129,16 +129,16 @@ RSpec.describe "Campaign Progress Monitoring" do
         page_object.expand_recent_cracks
 
         # Verify content
-        expect(page).to have_content("password123")
-        expect(page).to have_content("admin123")
-        expect(page).to have_content(attack.name)
+        expect(page).to have_text("password123")
+        expect(page).to have_text("admin123")
+        expect(page).to have_text(attack.name)
 
         # Verify hash value (truncated) and tooltip
         first_crack = hash_list.recent_cracks.first
         expect(page).to have_css("span[data-bs-toggle='tooltip'][data-bs-title='#{first_crack.hash_value}']")
 
         # Verify cracked timestamp is displayed
-        expect(page).to have_content("ago") # time_ago_in_words includes "ago"
+        expect(page).to have_text("ago") # time_ago_in_words includes "ago"
       end
     end
 

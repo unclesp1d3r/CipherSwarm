@@ -26,22 +26,22 @@ RSpec.describe "Task Detail Investigation", skip: ENV["CI"].present? do
       visit task_path(task)
 
       # Task header and breadcrumb
-      expect(page).to have_content("Task ##{task.id}")
+      expect(page).to have_text("Task ##{task.id}")
       expect(page).to have_link(campaign.name)
       expect(page).to have_link(attack.name)
 
       # Task details
-      expect(page).to have_content("Task Details")
+      expect(page).to have_text("Task Details")
       expect(page).to have_link(agent.host_name)
 
       # Progress section
-      expect(page).to have_content("Progress")
-      expect(page).to have_content("Percentage")
-      expect(page).to have_content("ETA")
+      expect(page).to have_text("Progress")
+      expect(page).to have_text("Percentage")
+      expect(page).to have_text("ETA")
 
       # Timestamps section
-      expect(page).to have_content("Timestamps")
-      expect(page).to have_content("Created")
+      expect(page).to have_text("Timestamps")
+      expect(page).to have_text("Created")
     end
 
     it "displays error section when last_error is present" do
@@ -51,8 +51,8 @@ RSpec.describe "Task Detail Investigation", skip: ENV["CI"].present? do
 
       visit task_path(task)
 
-      expect(page).to have_content("Last Error")
-      expect(page).to have_content("GPU memory exhausted")
+      expect(page).to have_text("Last Error")
+      expect(page).to have_text("GPU memory exhausted")
     end
 
     it "displays recent status history when statuses exist" do
@@ -62,11 +62,11 @@ RSpec.describe "Task Detail Investigation", skip: ENV["CI"].present? do
 
       visit task_path(task)
 
-      expect(page).to have_content("Recent Status History")
+      expect(page).to have_text("Recent Status History")
       expect(page).to have_table
-      expect(page).to have_content("Time")
-      expect(page).to have_content("Speed")
-      expect(page).to have_content("Recovered")
+      expect(page).to have_text("Time")
+      expect(page).to have_text("Speed")
+      expect(page).to have_text("Recovered")
     end
 
     it "shows empty state when no status history exists" do
@@ -75,7 +75,7 @@ RSpec.describe "Task Detail Investigation", skip: ENV["CI"].present? do
 
       visit task_path(task)
 
-      expect(page).to have_content("No status history available")
+      expect(page).to have_text("No status history available")
     end
   end
 
@@ -122,7 +122,7 @@ RSpec.describe "Task Detail Investigation", skip: ENV["CI"].present? do
 
       sleep 1
       visit task_path(task)
-      expect(page).to have_content("Task ##{task.id}")
+      expect(page).to have_text("Task ##{task.id}")
       expect(page).to have_no_button("Cancel")
     end
   end
@@ -168,7 +168,7 @@ RSpec.describe "Task Detail Investigation", skip: ENV["CI"].present? do
 
       sleep 1
       visit task_path(task)
-      expect(page).to have_content("Task ##{task.id}")
+      expect(page).to have_text("Task ##{task.id}")
       expect(page).to have_no_button("Retry")
     end
   end
@@ -211,7 +211,7 @@ RSpec.describe "Task Detail Investigation", skip: ENV["CI"].present? do
 
       visit task_path(task)
 
-      expect(page).to have_content("No compatible agents available")
+      expect(page).to have_text("No compatible agents available")
     end
 
     it "does not show reassign for completed tasks" do
@@ -220,7 +220,7 @@ RSpec.describe "Task Detail Investigation", skip: ENV["CI"].present? do
       sign_in_project_user
 
       visit task_path(task)
-      expect(page).to have_content("Task ##{task.id}")
+      expect(page).to have_text("Task ##{task.id}")
 
       expect(page).to have_no_button("Reassign")
       expect(page).to have_no_select("agent_id")
@@ -248,7 +248,7 @@ RSpec.describe "Task Detail Investigation", skip: ENV["CI"].present? do
       visit task_path(task)
       click_link "Logs"
 
-      expect(page).to have_content("Status Logs")
+      expect(page).to have_text("Status Logs")
       expect(page).to have_link("Back to Task")
 
       click_link "Back to Task"
@@ -264,7 +264,7 @@ RSpec.describe "Task Detail Investigation", skip: ENV["CI"].present? do
       visit task_path(task)
 
       expect(page).to have_css("body")
-      expect(page).to have_no_content("Task ##{task.id}")
+      expect(page).to have_no_text("Task ##{task.id}")
     end
 
     it "allows admin users to access any task" do
@@ -273,8 +273,8 @@ RSpec.describe "Task Detail Investigation", skip: ENV["CI"].present? do
 
       visit task_path(task)
 
-      expect(page).to have_content("Task ##{task.id}")
-      expect(page).to have_content("Task Details")
+      expect(page).to have_text("Task ##{task.id}")
+      expect(page).to have_text("Task Details")
     end
   end
 end

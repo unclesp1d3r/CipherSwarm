@@ -15,13 +15,13 @@ RSpec.describe "Delete agent" do
   describe "delete agent successfully" do
     it "removes agent from list after confirmation" do
       agents_page.visit_page
-      expect(page).to have_content("To Delete")
+      expect(page).to have_text("To Delete")
 
       agents_page.click_delete_agent("To Delete")
 
       expect(page).to have_current_path(agents_path)
       expect_flash_message("Agent was successfully destroyed.")
-      expect(page).to have_no_content("To Delete")
+      expect(page).to have_no_text("To Delete")
     end
   end
 
@@ -35,7 +35,7 @@ RSpec.describe "Delete agent" do
         end
       end
 
-      expect(page).to have_content("To Delete")
+      expect(page).to have_text("To Delete")
     end
   end
 
@@ -47,7 +47,7 @@ RSpec.describe "Delete agent" do
       agents_page.visit_page
 
       # Non-admin users should not see other users' agents at all
-      expect(page).to have_no_content(other_agent.custom_label || other_agent.host_name)
+      expect(page).to have_no_text(other_agent.custom_label || other_agent.host_name)
     end
   end
 end

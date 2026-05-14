@@ -26,12 +26,12 @@ RSpec.describe "Campaign Creation Workflow", skip: ENV["CI"].present? do
       select hash_list.name, from: "Hash list"
       click_button "Submit"
 
-      expect(page).to have_content("Campaign was successfully created", wait: 10)
+      expect(page).to have_text("Campaign was successfully created", wait: 10)
 
       campaign = Campaign.find_by(name: "Integration Test Campaign")
       expect(campaign).to be_present
       expect(page).to have_current_path(campaign_path(campaign))
-      expect(page).to have_content("Integration Test Campaign")
+      expect(page).to have_text("Integration Test Campaign")
     end
   end
 
@@ -46,10 +46,10 @@ RSpec.describe "Campaign Creation Workflow", skip: ENV["CI"].present? do
       select hash_list.name, from: "Hash list"
       click_button "Submit"
 
-      expect(page).to have_content("Campaign was successfully created", wait: 10)
+      expect(page).to have_text("Campaign was successfully created", wait: 10)
 
       # Campaign show page should offer attack creation
-      expect(page).to have_content("The campaign is empty")
+      expect(page).to have_text("The campaign is empty")
       expect(page).to have_css("a[title='Add Dictionary Attack']")
     end
   end
@@ -62,7 +62,7 @@ RSpec.describe "Campaign Creation Workflow", skip: ENV["CI"].present? do
       expect(page).to have_field("Name", wait: 5)
       click_button "Submit"
 
-      expect(page).to have_content("Name can't be blank")
+      expect(page).to have_text("Name can't be blank")
     end
   end
 
@@ -77,7 +77,7 @@ RSpec.describe "Campaign Creation Workflow", skip: ENV["CI"].present? do
       select hash_list.name, from: "Hash list"
       click_button "Submit"
 
-      expect(page).to have_content("Campaign was successfully created", wait: 10)
+      expect(page).to have_text("Campaign was successfully created", wait: 10)
 
       campaign = Campaign.find_by(name: "Project Scoped Campaign")
       expect(campaign.project).to eq(hash_list.project)
@@ -91,7 +91,7 @@ RSpec.describe "Campaign Creation Workflow", skip: ENV["CI"].present? do
       campaigns_index_page.visit_page
       campaigns_index_page.click_new_campaign
 
-      expect(page).to have_content("You do not have any hash lists yet")
+      expect(page).to have_text("You do not have any hash lists yet")
       expect(page).to have_link("Add Hash List")
     end
   end

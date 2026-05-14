@@ -20,23 +20,23 @@ RSpec.describe "Task Management" do
 
       aggregate_failures "verifying task detail display" do
         # Check page title
-        expect(page).to have_content("Task ##{task.id}")
+        expect(page).to have_text("Task ##{task.id}")
 
         # Check task details are displayed
-        expect(page).to have_content("Task Details")
-        expect(page).to have_content(task.agent.host_name)
-        expect(page).to have_content("Pending")
+        expect(page).to have_text("Task Details")
+        expect(page).to have_text(task.agent.host_name)
+        expect(page).to have_text("Pending")
 
         # Check progress section exists
-        expect(page).to have_content("Progress")
-        expect(page).to have_content("Percentage")
+        expect(page).to have_text("Progress")
+        expect(page).to have_text("Percentage")
 
         # Check timestamps section exists
-        expect(page).to have_content("Timestamps")
-        expect(page).to have_content("Created")
+        expect(page).to have_text("Timestamps")
+        expect(page).to have_text("Created")
 
         # Check actions section exists
-        expect(page).to have_content("Actions")
+        expect(page).to have_text("Actions")
       end
     end
 
@@ -49,7 +49,7 @@ RSpec.describe "Task Management" do
       end
 
       expect(page).to have_current_path(campaign_attack_path(campaign, attack))
-      expect(page).to have_content(attack.name)
+      expect(page).to have_text(attack.name)
     end
 
     it "navigates from task detail page to campaign page via link" do
@@ -61,7 +61,7 @@ RSpec.describe "Task Management" do
       end
 
       expect(page).to have_current_path(campaign_path(campaign))
-      expect(page).to have_content(campaign.name)
+      expect(page).to have_text(campaign.name)
     end
   end
 
@@ -116,8 +116,8 @@ RSpec.describe "Task Management" do
     it "displays last error for failed task" do
       visit task_path(failed_task)
 
-      expect(page).to have_content("Last Error")
-      expect(page).to have_content("Test error")
+      expect(page).to have_text("Last Error")
+      expect(page).to have_text("Test error")
     end
   end
 
@@ -141,7 +141,7 @@ RSpec.describe "Task Management" do
       visit task_path(other_task_id)
 
       # User should see "Not Authorized" error page
-      expect(page).to have_content("Not Authorized")
+      expect(page).to have_text("Not Authorized")
     end
   end
 
@@ -157,14 +157,14 @@ RSpec.describe "Task Management" do
     it "shows activity timestamp for running task" do
       visit task_path(running_task)
 
-      expect(page).to have_content("Last Activity")
-      expect(page).to have_content("ago")
+      expect(page).to have_text("Last Activity")
+      expect(page).to have_text("ago")
     end
 
     it "shows running state badge" do
       visit task_path(running_task)
 
-      expect(page).to have_content("Running")
+      expect(page).to have_text("Running")
     end
   end
 
@@ -199,7 +199,7 @@ RSpec.describe "Task Management" do
 
       # When only the currently assigned agent is available (or no agents),
       # the component shows a message
-      expect(page).to have_content("No compatible agents available").or have_select(id: /.+/)
+      expect(page).to have_text("No compatible agents available").or have_select(id: /.+/)
     end
 
     it "reassigns task to compatible agent successfully" do

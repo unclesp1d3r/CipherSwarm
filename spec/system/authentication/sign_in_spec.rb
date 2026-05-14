@@ -17,7 +17,7 @@ RSpec.describe "User sign in" do
       sign_in_page.sign_in_with(name: user.name, password: user.password)
 
       expect(page).to have_current_path(root_path)
-      expect(page).to have_content(user.name)
+      expect(page).to have_text(user.name)
     end
   end
 
@@ -46,12 +46,12 @@ RSpec.describe "User sign in" do
   describe "sign out" do
     it "allows user to sign out" do
       sign_in_as(user)
-      expect(page).to have_content(user.name)
+      expect(page).to have_text(user.name)
 
       sign_out_via_ui(user)
 
       expect(page).to have_current_path(new_user_session_path)
-      expect(page).to have_no_content(user.name)
+      expect(page).to have_no_text(user.name)
     end
   end
 end
