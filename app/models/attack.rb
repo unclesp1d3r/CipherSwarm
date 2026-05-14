@@ -211,7 +211,7 @@ class Attack < ApplicationRecord
   ##
   # Delegations
   #
-  delegate :uncracked_count, to: :campaign, allow_nil: true # Delegates the uncracked_count method to the campaign
+  delegate :uncracked_count, :uncracked_count_uncached, to: :campaign, allow_nil: true # Delegates the uncracked_count method to the campaign
   delegate :hash_mode, to: :hash_list # Delegates the hash_mode method to the hash list
   alias_method :hash_type, :hash_mode # Alias for hash_mode
 

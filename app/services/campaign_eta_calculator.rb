@@ -165,6 +165,6 @@ class CampaignEtaCalculator
   end
 
   def cache_options
-    { expires_in: 30.seconds }
+    { expires_in: 1.minute }
   end
 end

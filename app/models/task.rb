@@ -229,9 +229,13 @@ class Task < ApplicationRecord
 
   # Checks if there are any uncracked hashes remaining.
   #
+  # Reads the uncached count because this guard runs immediately after a
+  # crack write (via `accept_crack`) and a stale cache could leave the task
+  # running after the last hash was cracked.
+  #
   # @return [Boolean] true if there are uncracked hashes, false otherwise.
   def uncracked_remaining
-    hash_list.uncracked_count.positive?
+    hash_list.uncracked_count_uncached.positive?
   end
 
   # Updates the activity timestamp of the task to the current time in the application's time zone.

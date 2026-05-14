@@ -106,7 +106,7 @@ class HashList < ApplicationRecord
   # Returns the count of hash items that have been cracked (i.e., their plain_text is not nil).
   # @return [Integer]
   def cracked_count
-    Rails.cache.fetch("#{cache_key_with_version}/cracked_count", expires_in: 20.minutes) do
+    Rails.cache.fetch("hash_list/#{id}/cracked_count", expires_in: 20.minutes) do
       # PERFORMANCE: Use .count for SQL COUNT aggregation instead of .size
       # which loads all records into memory when the relation isn't already loaded
       hash_items.where.not(plain_text: nil).count
@@ -155,9 +155,20 @@ class HashList < ApplicationRecord
   #
   # @return [Integer] the number of uncracked hash items
   def uncracked_count
-    Rails.cache.fetch("#{cache_key_with_version}/uncracked_count", expires_in: 30.seconds) do
+    Rails.cache.fetch("hash_list/#{id}/uncracked_count", expires_in: 30.seconds) do
       hash_items.uncracked.count
     end
+  end
+
+  # Returns a fresh count of uncracked hash items, bypassing the TTL cache.
+  #
+  # Use this in completion/write paths (state-machine guards, post-write checks)
+  # where stale data could leave a task or attack running after the last hash
+  # has been cracked.
+  #
+  # @return [Integer] the number of uncracked hash items
+  def uncracked_count_uncached
+    hash_items.uncracked.count
   end
 
   # Returns a collection of hash items that are uncracked.
@@ -227,14 +238,20 @@ class HashList < ApplicationRecord
   # @param limit [Integer] Maximum number of recent cracks to return (default: 100)
   # @return [Array] Collection of hash items cracked in the last 24 hours
   def recent_cracks(limit: 100)
-    Rails.cache.fetch("#{cache_key_with_version}/recent_cracks/#{limit}", expires_in: 1.minute) do
-      hash_items.where(cracked: true)
-                .where("cracked_time > ?", 24.hours.ago)
-                .includes(:attack)
-                .order(cracked_time: :desc)
-                .limit(limit)
-                .to_a
+    Rails.cache.fetch("hash_list/#{id}/recent_cracks/#{limit}", expires_in: 1.minute) do
+      fetch_recent_cracks(limit)
     end
+  end
+
+  # Returns recently cracked hashes from the last 24 hours, bypassing the TTL cache.
+  #
+  # Use this only for write-triggered broadcasts where the rendered partial must
+  # reflect the just-committed crack rather than possibly stale cached rows.
+  #
+  # @param limit [Integer] Maximum number of recent cracks to return (default: 100)
+  # @return [Array] Collection of hash items cracked in the last 24 hours
+  def recent_cracks_uncached(limit: 100)
+    fetch_recent_cracks(limit)
   end
 
   # Returns the count of recently cracked hashes from the last 24 hours.
@@ -243,12 +260,35 @@ class HashList < ApplicationRecord
   #
   # @return [Integer] Count of hash items cracked in the last 24 hours
   def recent_cracks_count
-    Rails.cache.fetch("#{cache_key_with_version}/recent_cracks_count", expires_in: 1.minute) do
-      hash_items.where(cracked: true).where("cracked_time > ?", 24.hours.ago).count
+    Rails.cache.fetch("hash_list/#{id}/recent_cracks_count", expires_in: 1.minute) do
+      fetch_recent_cracks_count
     end
   end
 
+  # Returns a fresh count of recently cracked hashes, bypassing the TTL cache.
+  #
+  # Use this only for write-triggered broadcasts where the rendered badge must
+  # reflect the just-committed crack rather than possibly stale cached counts.
+  #
+  # @return [Integer] Count of hash items cracked in the last 24 hours
+  def recent_cracks_count_uncached
+    fetch_recent_cracks_count
+  end
+
   private
+
+  def fetch_recent_cracks(limit)
+    hash_items.where(cracked: true)
+              .where("cracked_time > ?", 24.hours.ago)
+              .includes(:attack)
+              .order(cracked_time: :desc)
+              .limit(limit)
+              .to_a
+  end
+
+  def fetch_recent_cracks_count
+    hash_items.where(cracked: true).where("cracked_time > ?", 24.hours.ago).count
+  end
 
   # Clears quarantine on associated campaigns when the hash type or file attachment changes.
   # This allows campaigns that were quarantined due to hash format errors to be retried

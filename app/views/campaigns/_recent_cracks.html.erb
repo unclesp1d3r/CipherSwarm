@@ -1,3 +1,5 @@
+<% uncached = local_assigns.fetch(:uncached, false) %>
+<% recent_cracks_count = uncached ? campaign.hash_list.recent_cracks_count_uncached : campaign.hash_list.recent_cracks_count %>
 <%= turbo_frame_tag "recent_cracks" do %>
   <div class="card mt-4 mb-3" role="region" aria-label="Recent cracks section">
     <div class="card-header">
@@ -9,12 +11,12 @@
               aria-controls="recent-cracks-section">
         <%= icon("chevron-down") %>
         <span>Recent Cracks (Last 24 Hours)</span>
-        <span class="badge text-bg-success"><%= campaign.hash_list.recent_cracks_count %></span>
+        <span class="badge text-bg-success"><%= recent_cracks_count %></span>
       </button>
     </div>
     <div class="collapse" id="recent-cracks-section">
       <div class="card-body">
-        <% recent_cracks = campaign.hash_list.recent_cracks(limit: 100) %>
+        <% recent_cracks = uncached ? campaign.hash_list.recent_cracks_uncached(limit: 100) : campaign.hash_list.recent_cracks(limit: 100) %>
         <% if recent_cracks.empty? %>
           <div class="text-center">
             <div class="mb-4">

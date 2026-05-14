@@ -43,7 +43,7 @@ module AttackStateMachine # rubocop:disable Metrics/ModuleLength
       # completed state if the hash list is fully cracked.
       event :complete do
         transition running: :completed if ->(attack) { !attack.tasks.without_state(:completed).exists? || attack.campaign.completed? }
-        transition pending: :completed if ->(attack) { (attack.hash_list&.uncracked_count || 0).zero? }
+        transition pending: :completed if ->(attack) { (attack.hash_list&.uncracked_count_uncached || 0).zero? }
         transition all - [:running] => same
       end
 
@@ -64,7 +64,7 @@ module AttackStateMachine # rubocop:disable Metrics/ModuleLength
       # is fully cracked.
       event :exhaust do
         transition running: :exhausted if ->(attack) { !attack.tasks.without_state(:exhausted).exists? }
-        transition running: :exhausted if ->(attack) { (attack.hash_list&.uncracked_count || 0).zero? }
+        transition running: :exhausted if ->(attack) { (attack.hash_list&.uncracked_count_uncached || 0).zero? }
         transition any => same
       end
 
@@ -115,7 +115,7 @@ module AttackStateMachine # rubocop:disable Metrics/ModuleLength
       after_transition any => :completed, :do => :complete_hash_list
       after_transition any => :completed, :do => :touch_campaign
       before_transition on: :complete do |attack|
-        if attack.hash_list.uncracked_count.zero?
+        if attack.hash_list.uncracked_count_uncached.zero?
           attack.tasks.without_state(:completed).find_each(&:complete!)
         end
       end
@@ -136,7 +136,7 @@ module AttackStateMachine # rubocop:disable Metrics/ModuleLength
   #
   # @return [void]
   def complete_hash_list
-    return unless campaign.uncracked_count.zero?
+    return unless campaign.uncracked_count_uncached.zero?
 
     other_awaiting = campaign.attacks.awaiting_assignment.where.not(id: id)
     return if other_awaiting.none?

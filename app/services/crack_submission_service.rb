@@ -112,7 +112,7 @@ class CrackSubmissionService
 
       Result.new(
         success?: true,
-        uncracked_count: hash_list.uncracked_count,
+        uncracked_count: hash_list.uncracked_count_uncached,
         error: nil,
         error_type: nil
       )
