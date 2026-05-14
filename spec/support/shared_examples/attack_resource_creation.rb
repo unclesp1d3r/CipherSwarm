@@ -51,7 +51,7 @@ RSpec.shared_examples "attack resource creation" do |resource_type, resource_nam
       form_page.select_projects([first_project.name])
       form_page.submit_form
 
-      expect(page).to have_content(success_message, wait: 5)
+      expect(page).to have_text(success_message, wait: 5)
 
       resource = resource_class.find_by(name: "Test #{resource_name}")
       expect(resource).to be_present
@@ -76,7 +76,7 @@ RSpec.shared_examples "attack resource creation" do |resource_type, resource_nam
       form_page.select_projects([first_project.name, second_project.name])
       form_page.submit_form
 
-      expect(page).to have_content(success_message, wait: 5)
+      expect(page).to have_text(success_message, wait: 5)
 
       resource = resource_class.find_by(name: "Multi-Project #{resource_name}")
       expect(resource).to be_present
@@ -99,7 +99,7 @@ RSpec.shared_examples "attack resource creation" do |resource_type, resource_nam
       form_page.wait_for_upload_complete
       form_page.submit_form
 
-      expect(page).to have_content(success_message, wait: 5)
+      expect(page).to have_text(success_message, wait: 5)
 
       resource = resource_class.find_by(name: "Shared #{resource_name}")
       expect(resource).to be_present
@@ -134,7 +134,7 @@ RSpec.shared_examples "attack resource creation" do |resource_type, resource_nam
         form_page.select_projects([accessible_project.name])
         form_page.submit_form
 
-        expect(page).to have_content(success_message, wait: 5)
+        expect(page).to have_text(success_message, wait: 5)
 
         resource = resource_class.find_by(name: "Accessible Project #{resource_name}")
         expect(resource).to be_present
@@ -149,7 +149,7 @@ RSpec.shared_examples "attack resource creation" do |resource_type, resource_nam
 
       it "does not display project in checkbox list" do
         visit new_path
-        expect(page).to have_content("Name", wait: 5)
+        expect(page).to have_text("Name", wait: 5)
 
         expect(page).to have_no_field(inaccessible_project.name, type: "checkbox")
       end
@@ -166,7 +166,7 @@ RSpec.shared_examples "attack resource creation" do |resource_type, resource_nam
 
       it "displays no project checkboxes" do
         visit new_path
-        expect(page).to have_content("Name", wait: 5)
+        expect(page).to have_text("Name", wait: 5)
 
         expect(page).to have_no_css("input[type='checkbox'][name*='project_ids']")
       end
@@ -180,7 +180,7 @@ RSpec.shared_examples "attack resource creation" do |resource_type, resource_nam
         form_page_no_projects.wait_for_upload_complete
         form_page_no_projects.submit_form
 
-        expect(page).to have_content(success_message, wait: 5)
+        expect(page).to have_text(success_message, wait: 5)
 
         resource = resource_class.find_by(name: "Shared Resource No Projects")
         expect(resource).to be_present

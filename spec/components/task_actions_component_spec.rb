@@ -41,7 +41,7 @@ RSpec.describe TaskActionsComponent, type: :component do
         # All agents are incompatible (different projects)
         render_inline(described_class.new(task: task, current_ability: ability))
 
-        expect(page).to have_content("No compatible agents available")
+        expect(page).to have_text("No compatible agents available")
       end
 
       it "does not render retry button" do
