@@ -67,6 +67,13 @@ class HashItem < ApplicationRecord
 
   include SafeBroadcasting
 
+  # Debounce window for "recent cracks" broadcasts. With ~25 RTX 4090s producing
+  # thousands of cracks per second, an unthrottled broadcast per crack per
+  # campaign overwhelms Action Cable. Capping at one broadcast per
+  # (hash_list_id, campaign_id) per BROADCAST_DEBOUNCE_WINDOW keeps the UI
+  # eventually-consistent without DOM thrash.
+  BROADCAST_DEBOUNCE_WINDOW = 5.seconds
+
   after_commit :broadcast_recent_cracks_update, on: [:update], if: :just_cracked?
 
   # Returns a string representation of the hash item.
@@ -95,18 +102,56 @@ class HashItem < ApplicationRecord
     saved_change_to_cracked? && cracked?
   end
 
+  # Enqueues at most one BroadcastRecentCracksJob per campaign per debounce
+  # window. Uses Rails.cache.write(..., unless_exist: true) — an atomic
+  # Redis SET NX EX — so only the first crack in each window wins.
+  #
+  # Each campaign enqueue is wrapped in its own rescue so a transient
+  # failure for one sibling (e.g. Redis hiccup, Sidekiq enqueue error)
+  # does not suppress broadcasts for the others sharing this hash list.
+  #
+  # The campaign-id list itself is cached per hash_list for the same
+  # debounce window so high-rate crack streams don't run the
+  # `campaigns WHERE hash_list_id = ?` query on every commit.
+  #
+  # @return [void]
   def broadcast_recent_cracks_update
-    Rails.logger.info("[BroadcastUpdate] HashItem #{id} - Broadcasting recent cracks update for hash_list #{hash_list_id}")
-
-    hash_list.campaigns.find_each do |campaign|
-      broadcast_replace_to(
-        campaign,
-        target: "recent_cracks",
-        partial: "campaigns/recent_cracks",
-        locals: { campaign: campaign }
-      )
+    campaign_ids_for_broadcast.each do |campaign_id|
+      enqueue_recent_cracks_broadcast(campaign_id)
     end
   rescue StandardError => e
-    Rails.logger.error("[BroadcastUpdate] HashItem #{id} - Failed to broadcast recent cracks update: #{e.message}")
+    Rails.logger.error("[BroadcastUpdate] HashItem #{id} - Failed to load campaigns for recent cracks broadcast: #{e.message}")
+  end
+
+  # Returns the campaign ids that should receive recent-cracks broadcasts,
+  # memoized at the cache layer for the debounce window. Stale by at most
+  # BROADCAST_DEBOUNCE_WINDOW when a campaign is newly attached to this
+  # hash list — acceptable for a UI refresh signal.
+  #
+  # @return [Array<Integer>] campaign ids in ascending order
+  def campaign_ids_for_broadcast
+    Rails.cache.fetch("hash_list:#{hash_list_id}:broadcast_campaign_ids", expires_in: BROADCAST_DEBOUNCE_WINDOW) do
+      hash_list.campaigns.order(:id).pluck(:id)
+    end
+  end
+
+  # Enqueues a single BroadcastRecentCracksJob if the per-campaign debounce
+  # key is not already held. Failures (cache, Sidekiq, etc.) are logged but
+  # do not propagate, so they cannot abort sibling enqueues.
+  #
+  # Trailing-edge semantics: the job runs after BROADCAST_DEBOUNCE_WINDOW
+  # has elapsed, so the broadcast snapshot reflects every crack that
+  # accumulated during the window — not just the first one. This avoids
+  # a stale panel after a burst tail when no further cracks arrive.
+  #
+  # @param campaign_id [Integer] the campaign whose recent_cracks panel should refresh
+  # @return [void]
+  def enqueue_recent_cracks_broadcast(campaign_id)
+    debounce_key = "broadcast_recent_cracks:#{hash_list_id}:#{campaign_id}"
+    return unless Rails.cache.write(debounce_key, true, expires_in: BROADCAST_DEBOUNCE_WINDOW, unless_exist: true)
+
+    BroadcastRecentCracksJob.set(wait: BROADCAST_DEBOUNCE_WINDOW).perform_later(campaign_id)
+  rescue StandardError => e
+    Rails.logger.error("[BroadcastUpdate] HashItem #{id} - Failed to enqueue recent cracks broadcast for campaign #{campaign_id}: #{e.message}")
   end
 end
