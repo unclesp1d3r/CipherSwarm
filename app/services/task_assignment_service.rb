@@ -249,7 +249,9 @@ class TaskAssignmentService
     end
 
     attacks.each do |attack|
-      if attack.uncracked_count.zero?
+      # Uncached read: a stale 30s TTL can hand an agent a task on a
+      # fully-cracked attack. See Issue #570.
+      if attack.uncracked_count_uncached.zero?
         @skip_reasons << "all_hashes_cracked"
         Rails.logger.debug {
           "[TaskAssignment] all_hashes_cracked: agent_id=#{agent.id} " \

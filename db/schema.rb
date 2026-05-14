@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_29_211021) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_14_033140) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -219,6 +219,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_29_211021) do
     t.index ["cracked_time"], name: "index_hash_items_on_cracked_time"
     t.index ["hash_list_id", "attack_id"], name: "index_hash_items_on_hash_list_id_and_attack_id"
     t.index ["hash_list_id"], name: "index_hash_items_on_hash_list_id"
+    t.index ["hash_list_id"], name: "index_hash_items_on_hash_list_id_uncracked", where: "(cracked = false)"
     t.index ["hash_value_digest", "cracked"], name: "index_hash_items_on_hash_value_digest_and_cracked"
     t.index ["hash_value_digest", "hash_list_id"], name: "index_hash_items_on_hash_value_digest_and_hash_list_id"
   end
