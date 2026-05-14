@@ -532,4 +532,21 @@ RSpec.describe Campaign do
       end
     end
   end
+
+  describe "#broadcast_recent_cracks_update" do
+    let(:campaign) { create(:campaign) }
+
+    it "uses the async broadcast_replace_later_to variant" do
+      allow(campaign).to receive(:broadcast_replace_later_to)
+
+      campaign.broadcast_recent_cracks_update
+
+      expect(campaign).to have_received(:broadcast_replace_later_to).with(
+        campaign,
+        target: "recent_cracks",
+        partial: "campaigns/recent_cracks",
+        locals: { campaign: campaign }
+      )
+    end
+  end
 end

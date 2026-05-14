@@ -317,7 +317,7 @@ class Campaign < ApplicationRecord
 
   def broadcast_recent_cracks_update
     Rails.logger.info("[BroadcastUpdate] Campaign #{id} - Broadcasting recent cracks update")
-    broadcast_replace_to(
+    broadcast_replace_later_to(
       self,
       target: "recent_cracks",
       partial: "campaigns/recent_cracks",
