@@ -149,12 +149,12 @@ end
 
 Sidekiq logs job arguments only at `:debug` level. The server logger here is `:info`, so arguments are not written through the Sidekiq logger itself. Jobs that need to log argument context — for example `ApplicationJob`'s `discard_on` handler — must run arguments through `ActiveSupport::ParameterFilter.new(Rails.application.config.filter_parameters)` before writing. See `app/jobs/application_job.rb` for the canonical pattern.
 
-### Production Noise Suppression
+## Production Noise Suppression
 
-In production, `ActionMailer` and `ActionCable` per-event chatter is routed to `IO::NULL`:
+In production, `ActionMailer` and `ActionCable` per-event chatter is routed to `IO::NULL` so the structured JSON log stream stays focused on signal:
 
-- ActionMailer delivery lines are not useful for production observability; delivery failures still surface through Rails' exception path and lograge's exception payload.
-- ActionCable logs every Turbo Streams subscribe/unsubscribe — volume far above the operational signal value.
+- **ActionMailer**: delivery lines are not useful for production observability. Delivery failures still surface because `raise_delivery_errors` defaults to `true` — raised SMTP errors propagate through the request stack and reach lograge's exception payload.
+- **ActionCable**: every Turbo Streams subscribe/unsubscribe is logged by default, which is far higher volume than the operational signal value justifies. **Caveat**: connection errors and channel rejections do not route through controllers, so silencing the cable logger removes the only server-side trace of those events. To investigate a broken WebSocket, temporarily swap the logger back to `Rails.logger` for the duration of the investigation.
 
 See [config/environments/production.rb](../../config/environments/production.rb).
 

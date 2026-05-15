@@ -83,12 +83,45 @@ RSpec.describe "Lograge configuration" do
         expect(result[:exception_message]).not_to include("\r")
       end
 
-      it "truncates exception_message longer than 500 chars" do
+      it "strips Unicode line and paragraph separators (U+2028, U+2029)" do
+        allow(event).to receive(:payload).and_return(
+          base_payload.merge(exception: ["StandardError", "before middle after"])
+        )
+        result = custom_options.call(event)
+        expect(result[:exception_message]).not_to include(" ")
+        expect(result[:exception_message]).not_to include(" ")
+      end
+
+      it "strips NUL bytes" do
+        allow(event).to receive(:payload).and_return(
+          base_payload.merge(exception: ["StandardError", "before\x00after"])
+        )
+        result = custom_options.call(event)
+        expect(result[:exception_message]).not_to include("\x00")
+      end
+
+      it "does not raise on invalid UTF-8 byte sequences" do
+        allow(event).to receive(:payload).and_return(
+          base_payload.merge(exception: ["StandardError", "valid \xC3\x28 invalid".b])
+        )
+        expect { custom_options.call(event) }.not_to raise_error
+      end
+
+      it "truncates exception_message to exactly EXCEPTION_MESSAGE_MAX_LEN chars" do
         allow(event).to receive(:payload).and_return(
           base_payload.merge(exception: ["StandardError", "x" * 1000])
         )
         result = custom_options.call(event)
-        expect(result[:exception_message].length).to be <= 500
+        expect(result[:exception_message].length).to eq(CipherSwarm::Logging::EXCEPTION_MESSAGE_MAX_LEN)
+      end
+
+      it "leaves an exception_message at the max length unchanged" do
+        message = "x" * CipherSwarm::Logging::EXCEPTION_MESSAGE_MAX_LEN
+        allow(event).to receive(:payload).and_return(
+          base_payload.merge(exception: ["StandardError", message])
+        )
+        result = custom_options.call(event)
+        expect(result[:exception_message].length).to eq(CipherSwarm::Logging::EXCEPTION_MESSAGE_MAX_LEN)
       end
 
       it "coerces exception_class to a String even if it arrives as a Class" do
@@ -148,6 +181,11 @@ RSpec.describe "Lograge configuration" do
       expect(payload[:task_id]).to eq("123")
     end
 
+    it "extracts attack_id from params[:attack_id] when controller is not attacks" do
+      payload = custom_payload.call(build_controller(params: { attack_id: "456" }))
+      expect(payload[:attack_id]).to eq("456")
+    end
+
     it "always includes host, request_id, user_agent, ip" do
       payload = custom_payload.call(build_controller(params: {}))
       expect(payload).to include(host: "h", request_id: "r", user_agent: "ua", ip: "1.2.3.4")
@@ -156,6 +194,80 @@ RSpec.describe "Lograge configuration" do
     it "does not set agent_id when no source is available (unauthenticated path)" do
       payload = custom_payload.call(build_controller(params: {}))
       expect(payload).not_to have_key(:agent_id)
+    end
+
+    context "with agent token authentication (current_agent path)" do
+      let(:controller_with_current_agent) do
+        Class.new(controller_class) do
+          attr_writer :stub_current_agent
+
+          def current_agent
+            @stub_current_agent
+          end
+        end
+      end
+
+      it "prefers current_agent over params[:agent_id] when both are set" do
+        agent = instance_double(Agent, id: 99, present?: true)
+        controller = controller_with_current_agent.new(
+          request: request_double, params: { agent_id: "7" }, controller_name: "anything"
+        )
+        controller.stub_current_agent = agent
+        payload = custom_payload.call(controller)
+        expect(payload[:agent_id]).to eq(99)
+      end
+    end
+
+    context "with @agent instance variable (controller before_action assignment)" do
+      it "uses @agent.id when no current_agent or params[:agent_id]" do
+        agent = instance_double(Agent, id: 7, present?: true)
+        controller = build_controller(params: {})
+        controller.instance_variable_set(:@agent, agent)
+        payload = custom_payload.call(controller)
+        expect(payload[:agent_id]).to eq(7)
+      end
+    end
+
+    context "with @task instance variable" do
+      it "uses @task.id when no params provide the task id" do
+        task = instance_double(Task, id: 42, present?: true)
+        controller = build_controller(params: {})
+        controller.instance_variable_set(:@task, task)
+        payload = custom_payload.call(controller)
+        expect(payload[:task_id]).to eq(42)
+      end
+    end
+
+    context "with @attack instance variable" do
+      it "uses @attack.id when no params provide the attack id" do
+        attack = instance_double(Attack, id: 33, present?: true)
+        controller = build_controller(params: {})
+        controller.instance_variable_set(:@attack, attack)
+        payload = custom_payload.call(controller)
+        expect(payload[:attack_id]).to eq(33)
+      end
+    end
+
+    context "with Devise current_user (web UI path)" do
+      let(:controller_with_current_user) do
+        Class.new(controller_class) do
+          attr_writer :stub_current_user
+
+          def current_user
+            @stub_current_user
+          end
+        end
+      end
+
+      it "populates user_id from current_user.id" do
+        user = instance_double(User, id: 5, present?: true)
+        controller = controller_with_current_user.new(
+          request: request_double, params: {}, controller_name: "anything"
+        )
+        controller.stub_current_user = user
+        payload = custom_payload.call(controller)
+        expect(payload[:user_id]).to eq(5)
+      end
     end
   end
 end

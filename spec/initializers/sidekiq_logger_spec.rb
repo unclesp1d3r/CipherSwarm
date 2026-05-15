@@ -28,5 +28,23 @@ RSpec.describe "Sidekiq logger configuration" do
     expect(parsed).to have_key("ts")
     expect(parsed).to have_key("pid")
   end
+
+  describe "config/initializers/sidekiq.rb wires the JSON formatter on the server" do
+    # `Sidekiq.configure_server` is a no-op in the test environment because
+    # `Sidekiq::CLI` is not loaded — meaning a naive spec that creates its own
+    # logger would pass even if the initializer file were deleted. Capture the
+    # configure_server block, run it against a real Sidekiq config object, and
+    # assert the wiring directly.
+    let(:captured_config) { Sidekiq::Config.new }
+
+    it "sets the server logger to JSON output on $stdout" do
+      allow(Sidekiq).to receive(:configure_server).and_yield(captured_config)
+      load Rails.root.join("config/initializers/sidekiq.rb").to_s
+
+      expect(captured_config.logger).to be_a(Sidekiq::Logger)
+      expect(captured_config.logger.formatter).to be_a(Sidekiq::Logger::Formatters::JSON)
+      expect(captured_config.logger.level).to eq(Logger::INFO)
+    end
+  end
 end
 # rubocop:enable RSpec/DescribeClass

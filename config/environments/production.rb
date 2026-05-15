@@ -54,10 +54,17 @@ Rails.application.configure do
 
   # Suppress noisy framework loggers in production (issue #652).
   # - ActionMailer per-delivery lines are not useful for production
-  #   observability; delivery failures still surface through the normal
-  #   exception path and lograge's exception payload.
+  #   observability. Delivery failures still surface because
+  #   `raise_delivery_errors` defaults to true; raised SMTP errors propagate
+  #   through the request stack and reach lograge's exception payload.
   # - ActionCable logs every Turbo Streams subscribe/unsubscribe, far higher
-  #   volume than the operational signal value justifies.
+  #   volume than the operational signal value justifies. Note: connection
+  #   errors and channel rejections do NOT route through controllers, so
+  #   silencing the cable logger removes the *only* server-side trace of
+  #   those events. If operators ever need to diagnose a broken WebSocket,
+  #   the recourse is to swap this logger back to `Rails.logger` for the
+  #   duration of the investigation rather than to assume errors will
+  #   appear elsewhere automatically.
   # Routed to IO::NULL rather than nil — some Rails 8 paths assume the logger
   # responds to #info/#debug, and a nil logger raises in those paths.
   config.action_mailer.logger = ActiveSupport::Logger.new(IO::NULL)
