@@ -52,23 +52,27 @@ Rails.application.configure do
   # Prevent health checks from clogging up the logs.
   config.silence_healthcheck_path = "/up"
 
-  # Suppress noisy framework loggers in production (issue #652).
-  # - ActionMailer per-delivery lines are not useful for production
-  #   observability. Delivery failures still surface because
-  #   `raise_delivery_errors` defaults to true; raised SMTP errors propagate
-  #   through the request stack and reach lograge's exception payload.
-  # - ActionCable logs every Turbo Streams subscribe/unsubscribe, far higher
-  #   volume than the operational signal value justifies. Note: connection
-  #   errors and channel rejections do NOT route through controllers, so
-  #   silencing the cable logger removes the *only* server-side trace of
-  #   those events. If operators ever need to diagnose a broken WebSocket,
-  #   the recourse is to swap this logger back to `Rails.logger` for the
-  #   duration of the investigation rather than to assume errors will
-  #   appear elsewhere automatically.
-  # Routed to IO::NULL rather than nil — some Rails 8 paths assume the logger
-  # responds to #info/#debug, and a nil logger raises in those paths.
-  config.action_mailer.logger = ActiveSupport::Logger.new(IO::NULL)
-  config.action_cable.logger = ActiveSupport::Logger.new(IO::NULL)
+  # Filter noisy framework loggers in production (issue #652).
+  #
+  # Each subsystem gets a `$stdout` logger pinned at WARN — DEBUG/INFO output
+  # is dropped, WARN/ERROR/FATAL still reach an operator via the same JSON
+  # stream lograge and Sidekiq emit to.
+  #
+  # - ActionMailer: per-delivery INFO lines disappear; SMTP delivery errors
+  #   (raised by Rails 8's default `raise_delivery_errors: true` — verify on
+  #   future Rails upgrades) still propagate through the request stack and
+  #   reach lograge's exception payload.
+  # - ActionCable: per-subscribe/unsubscribe INFO chatter disappears, but
+  #   connection rejection/error WARN+ events are still logged. Cable
+  #   subsystem WARN+ events do NOT route through controllers — they only
+  #   surface via this logger, so dropping below WARN here without preserving
+  #   WARN+ would create a permanent observability gap.
+  #
+  # Defined inline (rather than via a named class in lib/) because
+  # `config/environments/production.rb` loads before app autoload paths are
+  # active, so a `CipherSwarm::Logging::...` reference here would not resolve.
+  config.action_mailer.logger = ActiveSupport::Logger.new($stdout).tap { |l| l.level = Logger::WARN }
+  config.action_cable.logger = ActiveSupport::Logger.new($stdout).tap { |l| l.level = Logger::WARN }
 
   # Don't log any deprecations.
   config.active_support.report_deprecations = false

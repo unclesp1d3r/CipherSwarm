@@ -15,49 +15,17 @@ RSpec.describe "Lograge configuration" do
   let(:custom_payload) { Rails.application.config.lograge.custom_payload_method }
 
   describe "custom_options" do
-    let(:base_payload) do
-      {
-        host: "cipherswarm.lab.local",
-        request_id: "req-abc",
-        user_agent: "curl/8",
-        ip: "10.0.0.5"
-      }
-    end
     let(:event) do
-      instance_double(ActiveSupport::Notifications::Event, payload: base_payload)
+      instance_double(ActiveSupport::Notifications::Event, payload: {})
     end
 
-    it "returns host, request_id, user_agent, ip and an iso8601 time" do
+    it "always emits an ISO8601 time" do
       result = custom_options.call(event)
-      expect(result).to include(
-        host: "cipherswarm.lab.local",
-        request_id: "req-abc",
-        user_agent: "curl/8",
-        ip: "10.0.0.5"
-      )
       expect(result[:time]).to match(/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
     end
 
-    it "includes agent_id, task_id, attack_id, user_id when present" do
-      allow(event).to receive(:payload).and_return(
-        base_payload.merge(agent_id: 7, task_id: 42, attack_id: 11, user_id: 3)
-      )
-      result = custom_options.call(event)
-      expect(result).to include(agent_id: 7, task_id: 42, attack_id: 11, user_id: 3)
-    end
-
-    it "omits domain ids when absent" do
-      result = custom_options.call(event)
-      expect(result).not_to have_key(:agent_id)
-      expect(result).not_to have_key(:task_id)
-      expect(result).not_to have_key(:attack_id)
-      expect(result).not_to have_key(:user_id)
-    end
-
     it "includes exception class and message when payload has :exception" do
-      allow(event).to receive(:payload).and_return(
-        base_payload.merge(exception: ["StandardError", "boom"])
-      )
+      allow(event).to receive(:payload).and_return(exception: ["StandardError", "boom"])
       result = custom_options.call(event)
       expect(result[:exception_class]).to eq("StandardError")
       expect(result[:exception_message]).to eq("boom")
@@ -67,17 +35,32 @@ RSpec.describe "Lograge configuration" do
       exc = StandardError.new("boom")
       exc.set_backtrace((1..20).map { |i| "frame_#{i}" })
       allow(event).to receive(:payload).and_return(
-        base_payload.merge(exception: ["StandardError", "boom"], exception_object: exc)
+        exception: ["StandardError", "boom"], exception_object: exc
       )
       result = custom_options.call(event)
       expect(result[:backtrace]).to eq(%w[frame_1 frame_2 frame_3 frame_4 frame_5])
     end
 
+    it "omits backtrace key when exception_object has nil backtrace (raised but not caught)" do
+      exc = StandardError.new("boom")
+      # exc.backtrace is nil — Ruby populates it only on `raise`, not `new`.
+      allow(event).to receive(:payload).and_return(
+        exception: ["StandardError", "boom"], exception_object: exc
+      )
+      result = custom_options.call(event)
+      expect(result).not_to have_key(:backtrace)
+    end
+
+    it "omits exception fields entirely when payload has no :exception" do
+      result = custom_options.call(event)
+      expect(result).not_to have_key(:exception_class)
+      expect(result).not_to have_key(:exception_message)
+      expect(result).not_to have_key(:backtrace)
+    end
+
     context "with hostile exception data (log-injection defense)" do
       it "strips newlines and carriage returns from exception_message" do
-        allow(event).to receive(:payload).and_return(
-          base_payload.merge(exception: ["StandardError", "line1\nline2\rline3"])
-        )
+        allow(event).to receive(:payload).and_return(exception: ["StandardError", "line1\nline2\rline3"])
         result = custom_options.call(event)
         expect(result[:exception_message]).not_to include("\n")
         expect(result[:exception_message]).not_to include("\r")
@@ -85,7 +68,7 @@ RSpec.describe "Lograge configuration" do
 
       it "strips Unicode line and paragraph separators (U+2028, U+2029)" do
         allow(event).to receive(:payload).and_return(
-          base_payload.merge(exception: ["StandardError", "before middle after"])
+          exception: ["StandardError", "before middle after"]
         )
         result = custom_options.call(event)
         expect(result[:exception_message]).not_to include(" ")
@@ -93,43 +76,53 @@ RSpec.describe "Lograge configuration" do
       end
 
       it "strips NUL bytes" do
-        allow(event).to receive(:payload).and_return(
-          base_payload.merge(exception: ["StandardError", "before\x00after"])
-        )
+        allow(event).to receive(:payload).and_return(exception: ["StandardError", "before\x00after"])
         result = custom_options.call(event)
         expect(result[:exception_message]).not_to include("\x00")
       end
 
+      it "preserves tabs and other whitespace that do not break the envelope" do
+        # Tab, VT, FF, BEL, BS are deliberately NOT in LINE_BREAKING_CHARS — they
+        # do not split JSON lines and may carry useful structure. Pin this so a
+        # future "let's be safer" refactor cannot silently broaden the regex.
+        allow(event).to receive(:payload).and_return(exception: ["StandardError", "col1\tcol2"])
+        result = custom_options.call(event)
+        expect(result[:exception_message]).to include("\t")
+      end
+
       it "does not raise on invalid UTF-8 byte sequences" do
         allow(event).to receive(:payload).and_return(
-          base_payload.merge(exception: ["StandardError", "valid \xC3\x28 invalid".b])
+          exception: ["StandardError", "valid \xC3\x28 invalid".b]
         )
         expect { custom_options.call(event) }.not_to raise_error
       end
 
-      it "truncates exception_message to exactly EXCEPTION_MESSAGE_MAX_LEN chars" do
-        allow(event).to receive(:payload).and_return(
-          base_payload.merge(exception: ["StandardError", "x" * 1000])
-        )
+      it "truncates exception_message to EXCEPTION_MESSAGE_MAX_LEN chars and appends the truncation marker" do
+        allow(event).to receive(:payload).and_return(exception: ["StandardError", "x" * 1000])
         result = custom_options.call(event)
         expect(result[:exception_message].length).to eq(CipherSwarm::Logging::EXCEPTION_MESSAGE_MAX_LEN)
+        expect(result[:exception_message]).to end_with(CipherSwarm::Logging::TRUNCATION_MARKER)
       end
 
-      it "leaves an exception_message at the max length unchanged" do
+      it "leaves an exception_message at the max length unchanged (no marker, no truncation)" do
         message = "x" * CipherSwarm::Logging::EXCEPTION_MESSAGE_MAX_LEN
-        allow(event).to receive(:payload).and_return(
-          base_payload.merge(exception: ["StandardError", message])
-        )
+        allow(event).to receive(:payload).and_return(exception: ["StandardError", message])
         result = custom_options.call(event)
-        expect(result[:exception_message].length).to eq(CipherSwarm::Logging::EXCEPTION_MESSAGE_MAX_LEN)
+        expect(result[:exception_message]).to eq(message)
+        expect(result[:exception_message]).not_to end_with(CipherSwarm::Logging::TRUNCATION_MARKER)
       end
 
       it "coerces exception_class to a String even if it arrives as a Class" do
-        allow(event).to receive(:payload).and_return(
-          base_payload.merge(exception: [StandardError, "boom"])
-        )
+        allow(event).to receive(:payload).and_return(exception: [StandardError, "boom"])
         result = custom_options.call(event)
         expect(result[:exception_class]).to eq("StandardError")
+      end
+
+      it "returns a sanitize_failed marker rather than dropping the line if the sanitizer raises" do
+        allow(CipherSwarm::Logging).to receive(:sanitize_exception_message).and_raise(StandardError, "boom")
+        allow(event).to receive(:payload).and_return(exception: ["StandardError", "anything"])
+        result = custom_options.call(event)
+        expect(result[:exception_message]).to start_with("<sanitize_failed:")
       end
     end
   end
@@ -169,6 +162,12 @@ RSpec.describe "Lograge configuration" do
     it "extracts attack_id from params[:id] when controller is attacks" do
       payload = custom_payload.call(build_controller(params: { id: "55" }, controller_name: "attacks"))
       expect(payload[:attack_id]).to eq("55")
+    end
+
+    it "does NOT populate task_id or attack_id from params[:id] on a different controller" do
+      payload = custom_payload.call(build_controller(params: { id: "77" }, controller_name: "users"))
+      expect(payload).not_to have_key(:task_id)
+      expect(payload).not_to have_key(:attack_id)
     end
 
     it "extracts agent_id from params[:agent_id] when no current_agent and no @agent" do

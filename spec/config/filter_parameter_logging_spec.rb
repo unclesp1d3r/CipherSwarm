@@ -34,5 +34,40 @@ RSpec.describe "filter_parameters configuration" do
     expect(result["task_id"]).to eq(42)
     expect(result["name"]).to eq("alice")
   end
+
+  describe "v1 Agent API `hash` wire-key redaction" do
+    # The v1 submit_crack endpoint at app/controllers/api/v1/client/tasks_controller.rb
+    # reads `params[:hash]`. Substring matching against `:hash_value` does NOT match
+    # the literal key `hash`, so it would leak the raw cracked-hash payload through
+    # any params-dumping path (Rails exception page, Sidekiq retry serialization,
+    # NewRelic/AppSignal, etc.). The anchored regex `/\Ahash\z/i` redacts only
+    # the exact key.
+    it "redacts the exact `hash` wire key" do
+      result = filter.filter("hash" => "5f4dcc3b5aa765d61d8327deb882cf99")
+      expect(result["hash"]).to eq("[FILTERED]")
+    end
+
+    it "redacts a symbolised `:hash` wire key" do
+      result = filter.filter(hash: "5f4dcc3b5aa765d61d8327deb882cf99")
+      expect(result[:hash]).to eq("[FILTERED]")
+    end
+
+    it "does NOT redact unrelated `hash`-prefixed keys" do
+      # These are non-secret references — redacting them would lose useful debug
+      # context. The anchored regex must not match.
+      result = filter.filter(
+        "hash_list_id" => 7,
+        "hash_type" => "MD5",
+        "hashed_password" => "not-a-secret-id",
+        "password_hash" => "another-ref"
+      )
+      expect(result["hash_list_id"]).to eq(7)
+      expect(result["hash_type"]).to eq("MD5")
+      # password_hash and hashed_password contain the substring "passw" so they
+      # match the existing credential filter, not the new `hash` filter.
+      expect(result["hashed_password"]).to eq("[FILTERED]")
+      expect(result["password_hash"]).to eq("[FILTERED]")
+    end
+  end
 end
 # rubocop:enable RSpec/DescribeClass

@@ -147,18 +147,33 @@ end
 
 ### Argument Redaction
 
-Sidekiq logs job arguments only at `:debug` level. The server logger here is `:info`, so arguments are not written through the Sidekiq logger itself. Jobs that need to log argument context — for example `ApplicationJob`'s `discard_on` handler — must run arguments through `ActiveSupport::ParameterFilter.new(Rails.application.config.filter_parameters)` before writing. See `app/jobs/application_job.rb` for the canonical pattern.
+Sidekiq 8.x's `JobLogger` never logs job arguments at any level — only the lifecycle markers (`start`, `done`, `fail`) plus the per-job context hash (`jid`, `class`, `logged_job_attributes`). Verified against `sidekiq-8.1.5/lib/sidekiq/job_logger.rb`. The `:info` level here is the standard production setting, not a redaction control.
+
+Jobs that need to log argument context — for example `ApplicationJob`'s `discard_on` handler — must run arguments through `ActiveSupport::ParameterFilter.new(Rails.application.config.filter_parameters)` before writing. See `app/jobs/application_job.rb` for the canonical pattern.
+
+### Backtrace Access for Postmortem
+
+Sidekiq's default `ERROR_HANDLER` emits `ex.detailed_message` (class + message, no backtrace) at the standard log level. The backtrace is only included when the logger is set to `:debug`. If you need a backtrace for a novel exception:
+
+1. Edit `config/initializers/sidekiq.rb` and change `level: Logger::INFO` to `level: Logger::DEBUG`.
+2. Restart the Sidekiq process (`docker compose restart sidekiq` in dev; orchestrator-specific in prod).
+3. Reproduce the error.
+4. Revert the change once you have what you need — DEBUG roughly doubles log volume.
+
+The default stays at `:info` because backtraces from common, well-understood errors create more noise than signal in production.
 
 ## Production Noise Suppression
 
-In production, `ActionMailer` and `ActionCable` per-event chatter is routed to `IO::NULL` so the structured JSON log stream stays focused on signal:
+In production, `ActionMailer` and `ActionCable` are pinned to log level `WARN` — `DEBUG`/`INFO` per-event chatter is dropped, but `WARN`/`ERROR`/`FATAL` still reach `$stdout` and the JSON log stream:
 
-- **ActionMailer**: delivery lines are not useful for production observability. Delivery failures still surface because `raise_delivery_errors` defaults to `true` — raised SMTP errors propagate through the request stack and reach lograge's exception payload.
-- **ActionCable**: every Turbo Streams subscribe/unsubscribe is logged by default, which is far higher volume than the operational signal value justifies. **Caveat**: connection errors and channel rejections do not route through controllers, so silencing the cable logger removes the only server-side trace of those events. To investigate a broken WebSocket, temporarily swap the logger back to `Rails.logger` for the duration of the investigation.
+- **ActionMailer**: per-delivery INFO lines disappear. Delivery failures still surface because `raise_delivery_errors` defaults to `true` (Rails 8.x default — verify on future upgrades) — raised SMTP errors propagate through the request stack and reach lograge's exception payload.
+- **ActionCable**: per-subscribe/unsubscribe INFO chatter disappears, but cable connection rejections and channel errors at WARN+ still log. Cable subsystem WARN+ events do NOT route through controllers — they only surface via this logger, which is why we preserve WARN+ rather than dropping the logger entirely.
 
 See [config/environments/production.rb](../../config/environments/production.rb).
 
 ## Useful `jq` Queries
+
+These are recipes for slicing the local `docker compose logs` JSON stream. For aggregator-side queries (Datadog/Splunk/Loki DSL) see the [Common Queries](#common-queries) section under Production Monitoring further down.
 
 The structured JSON output is greppable, but most operator tasks compose more cleanly with `jq`. Examples:
 
@@ -760,6 +775,8 @@ CipherSwarm's structured JSON logs are compatible with:
 - **Stackdriver** (GCP)
 
 ### Common Queries
+
+> For local Docker-compose stdout streams, see the [Useful jq Queries](#useful-jq-queries) section earlier in this doc. The recipes below are aggregator-side queries (Datadog/Splunk/Loki).
 
 #### Find All API Errors
 
