@@ -8,11 +8,49 @@
 # Provides safe broadcasting functionality for models that use Turbo Streams.
 # Wraps broadcast operations in error handling to catch and log failures without disrupting
 # application flow. This ensures that broadcast failures don't cause application errors
-# and provide debugging information through structured logging.
+# and provide debugging information through structured logging. Also offers a
+# distributed leading-edge throttle (`throttled_broadcast`) for high-frequency
+# broadcast callbacks.
+#
+# REASONING:
+# - Summary: Centralizes two related concerns that every Turbo broadcaster in
+#   this app needs — error-resilient broadcast method wrappers, and a
+#   distributed throttle primitive for high-frequency callbacks. Keeping both
+#   here means a single include carries the full posture (issue #568).
+# - Alternatives:
+#   - Rack/Sidekiq middleware for throttling: rejected — broadcasts fire from
+#     after_commit / state-machine after_transition, not from a request, so
+#     middleware can't see them.
+#   - Per-model debounce timers: rejected — duplicated state, not distributed
+#     across Puma processes; also fights the existing SafeBroadcasting include
+#     pattern.
+#   - rack-attack or a dedicated rate-limit gem: rejected — vendoring a new
+#     dep for an eight-line primitive violates the air-gapped constraint in
+#     AGENTS.md.
+#   - HashItem's trailing-edge debounce (`Job.set(wait:).perform_later`):
+#     wrong shape for continuous-value displays like progress/ETA — the UI
+#     should update during a burst, not after.
+# - Decision: SafeBroadcasting already owns broadcast error posture and is
+#   included by every broadcaster, so the throttle lives here. The throttle
+#   uses `Rails.cache.write(..., unless_exist: true)`, which compiles to
+#   atomic SET NX EX on Redis-backed caches. Throttle keys are namespaced
+#   under `THROTTLE_KEY_PREFIX` so they cannot collide with application-level
+#   cache entries. Callers pair `throttled_broadcast` with
+#   `broadcast_replace_later_to` to keep render off the request path.
+# - Performance implications: One Redis SET NX EX per call (write-only,
+#   fast). Suppressed calls do not enqueue the downstream Sidekiq broadcast
+#   job, which is the actual savings — under 10+ concurrent agents each
+#   firing per-Task-transition callbacks, the throttle collapses bursts to a
+#   single frame per record per TTL window.
 #
 # Usage:
 #   include SafeBroadcasting
 #   broadcasts_refreshes unless Rails.env.test?
+#
+#   # In a high-frequency callback:
+#   throttled_broadcast("attack_progress_#{id}") do
+#     broadcast_replace_later_to(campaign, target: "...", partial: "...")
+#   end
 #
 # This concern overrides Turbo broadcast methods to add error handling around broadcast operations.
 module SafeBroadcasting
@@ -80,30 +118,6 @@ module SafeBroadcasting
 
   private
 
-  # REASONING (per CONTRIBUTING.md):
-  #   Why this extraction: high-frequency Turbo callbacks (Attack progress,
-  #     Campaign ETA, see issue #568) saturate Puma workers rendering frames
-  #     the client never sees. We needed a single primitive that wraps any
-  #     broadcast in a leading-edge throttle so callers stay one-liners.
-  #   Alternatives considered:
-  #     - Rack/Sidekiq middleware: too far from the model layer; broadcasts
-  #       fire from after_commit, not from a request.
-  #     - Per-model debounce timers: duplicated state, not distributed across
-  #       Puma processes.
-  #     - rack-attack or a dedicated rate-limit gem: vendoring new deps for an
-  #       8-line primitive violated the air-gapped constraint in AGENTS.md.
-  #     - HashItem's trailing-edge debounce (Job.set(wait:).perform_later):
-  #       wrong shape for continuous-value displays — the UI should update
-  #       during a burst, not after.
-  #   Decision rationale: SafeBroadcasting already owns the broadcast error
-  #     posture and is included by every broadcaster, so the throttle lives
-  #     here. Rails.cache.write(..., unless_exist: true) compiles to atomic
-  #     SET NX EX under Redis; no new infra. Pair with broadcast_replace_later_to
-  #     to keep render off the request path.
-  #   Performance: one Redis SET NX EX per call (write-only, fast). Suppressed
-  #     calls do not enqueue the downstream Sidekiq job, which is the actual
-  #     savings.
-  #
   # Leading-edge throttle for high-frequency broadcasts. Yields the block at
   # most once per `ttl` per `key`, using `Rails.cache.write(..., unless_exist:
   # true)` as an atomic distributed mutex (SET NX EX under Redis-backed
