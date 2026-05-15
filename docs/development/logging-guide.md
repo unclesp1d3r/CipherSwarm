@@ -103,6 +103,82 @@ Rails.application.configure do
 end
 ```
 
+### Exception Sanitization (Log-Injection Defense)
+
+The lograge `custom_options` lambda also emits `exception_class`, `exception_message`, and the first five backtrace frames when a request raises. To prevent log injection from attacker-controlled error text, the message is:
+
+- Stripped of `\r`/`\n` so it cannot break the single-line JSON envelope.
+- Coerced to a `String` (so a raw exception `Class` cannot surface).
+- Truncated to **500 characters** (`EXCEPTION_MESSAGE_MAX_LEN`) to bound log volume.
+
+The pinning is enforced by `spec/initializers/lograge_spec.rb` so regressions are caught at CI time.
+
+## Sidekiq Background Job Logs
+
+CipherSwarm's Sidekiq workers emit single-line JSON via the formatter shipped with Sidekiq 8.x. The format mirrors lograge so the same log pipeline can ingest both layers without bespoke parsers.
+
+### Configuration File
+
+Location: [config/initializers/sidekiq.rb](../../config/initializers/sidekiq.rb)
+
+```ruby
+Sidekiq.configure_server do |config|
+  config.logger = Sidekiq::Logger.new($stdout, level: Logger::INFO)
+  config.logger.formatter = Sidekiq::Logger::Formatters::JSON.new
+end
+```
+
+### JSON Format Structure
+
+```json
+{
+  "ts": "2026-05-15T10:00:01.234Z",
+  "pid": 12,
+  "tid": "abc",
+  "lvl": "INFO",
+  "msg": "start",
+  "ctx": {
+    "class": "ProcessHashListJob",
+    "jid": "5f4dcc3b",
+    "queue": "ingest"
+  }
+}
+```
+
+### Argument Redaction
+
+Sidekiq logs job arguments only at `:debug` level. The server logger here is `:info`, so arguments are not written through the Sidekiq logger itself. Jobs that need to log argument context — for example `ApplicationJob`'s `discard_on` handler — must run arguments through `ActiveSupport::ParameterFilter.new(Rails.application.config.filter_parameters)` before writing. See `app/jobs/application_job.rb` for the canonical pattern.
+
+### Production Noise Suppression
+
+In production, `ActionMailer` and `ActionCable` per-event chatter is routed to `IO::NULL`:
+
+- ActionMailer delivery lines are not useful for production observability; delivery failures still surface through Rails' exception path and lograge's exception payload.
+- ActionCable logs every Turbo Streams subscribe/unsubscribe — volume far above the operational signal value.
+
+See [config/environments/production.rb](../../config/environments/production.rb).
+
+## Useful `jq` Queries
+
+The structured JSON output is greppable, but most operator tasks compose more cleanly with `jq`. Examples:
+
+```bash
+# All HTTP requests that returned 5xx
+docker compose logs web | jq -c 'select(.status >= 500)'
+
+# All Sidekiq events for a specific job class
+docker compose logs sidekiq | jq -c 'select(.ctx.class == "ProcessHashListJob")'
+
+# Sidekiq errors only
+docker compose logs sidekiq | jq -c 'select(.lvl == "ERROR")'
+
+# Cross-layer correlation by agent_id (web only — Sidekiq does not carry agent_id today)
+docker compose logs web | jq -c 'select(.agent_id == 7)'
+
+# Slow requests above 1s
+docker compose logs web | jq -c 'select(.duration > 1000)'
+```
+
 ## Log Types and Formats
 
 CipherSwarm uses four main log type prefixes to categorize different logging scenarios.

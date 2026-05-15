@@ -52,6 +52,17 @@ Rails.application.configure do
   # Prevent health checks from clogging up the logs.
   config.silence_healthcheck_path = "/up"
 
+  # Suppress noisy framework loggers in production (issue #652).
+  # - ActionMailer per-delivery lines are not useful for production
+  #   observability; delivery failures still surface through the normal
+  #   exception path and lograge's exception payload.
+  # - ActionCable logs every Turbo Streams subscribe/unsubscribe, far higher
+  #   volume than the operational signal value justifies.
+  # Routed to IO::NULL rather than nil — some Rails 8 paths assume the logger
+  # responds to #info/#debug, and a nil logger raises in those paths.
+  config.action_mailer.logger = ActiveSupport::Logger.new(IO::NULL)
+  config.action_cable.logger = ActiveSupport::Logger.new(IO::NULL)
+
   # Don't log any deprecations.
   config.active_support.report_deprecations = false
 
