@@ -7,6 +7,12 @@
 # Replaces verbose Rails logs with single-line JSON entries per request.
 # This enables easier parsing by log aggregation services (ELK, Datadog, etc.).
 
+# Cap exception messages to bound log line size and prevent log flooding from
+# attacker-controlled error text. 500 characters preserves enough context for
+# debugging (class name + first sentence of message) while staying well under
+# typical line-length limits for log aggregators.
+EXCEPTION_MESSAGE_MAX_LEN = 500 unless defined?(EXCEPTION_MESSAGE_MAX_LEN)
+
 Rails.application.configure do
   # Enable in production for structured logging and in development for testing purposes
   config.lograge.enabled = Rails.env.production? || Rails.env.development?
@@ -41,11 +47,19 @@ Rails.application.configure do
       options[:user_id] = event.payload[:user_id]
     end
 
-    # Include error context if present
+    # Include error context if present.
+    # OWASP Logging Cheat Sheet: sanitize exception messages before writing to
+    # logs to prevent log injection. Strip CR/LF that could break the
+    # single-line JSON envelope, and cap length to prevent unbounded log growth
+    # from attacker-controlled error text. Coerce both fields to String so a
+    # raw exception Class (rather than its name) does not surface in the output.
     if event.payload[:exception].present?
       exception = event.payload[:exception]
-      options[:exception_class] = exception.first
-      options[:exception_message] = exception.second
+      raw_message = exception.second.to_s
+      sanitized = raw_message.gsub(/[\r\n]+/, " ").strip
+      sanitized = sanitized[0, EXCEPTION_MESSAGE_MAX_LEN] if sanitized.length > EXCEPTION_MESSAGE_MAX_LEN
+      options[:exception_class] = exception.first.to_s
+      options[:exception_message] = sanitized
     end
 
     if event.payload[:exception_object].present?
@@ -61,6 +75,16 @@ Rails.application.configure do
   # Log to STDOUT for containerized environments
   config.lograge.logger = ActiveSupport::Logger.new($stdout)
 
+  # OWASP / PII policy for the request payload below:
+  # - `ip` and `user_agent` are logged on every request to support incident
+  #   response and agent-traffic correlation. Acceptable trade-off in
+  #   CipherSwarm's air-gapped deployment model; operators in GDPR/CCPA
+  #   contexts must ensure their log retention policy covers these fields.
+  # - This block extracts only IDs and request metadata. Sensitive submission
+  #   fields (`hash_value`, `plain_text`, credentials) are redacted upstream
+  #   by `config.filter_parameters` in `filter_parameter_logging.rb` — lograge
+  #   does not log raw request bodies, so the filter list is the only path
+  #   those values could leak through.
   # Filter sensitive parameters from logs
   config.lograge.custom_payload do |controller|
     payload = {

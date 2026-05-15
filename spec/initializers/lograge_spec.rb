@@ -72,6 +72,33 @@ RSpec.describe "Lograge configuration" do
       result = custom_options.call(event)
       expect(result[:backtrace]).to eq(%w[frame_1 frame_2 frame_3 frame_4 frame_5])
     end
+
+    context "with hostile exception data (log-injection defense)" do
+      it "strips newlines and carriage returns from exception_message" do
+        allow(event).to receive(:payload).and_return(
+          base_payload.merge(exception: ["StandardError", "line1\nline2\rline3"])
+        )
+        result = custom_options.call(event)
+        expect(result[:exception_message]).not_to include("\n")
+        expect(result[:exception_message]).not_to include("\r")
+      end
+
+      it "truncates exception_message longer than 500 chars" do
+        allow(event).to receive(:payload).and_return(
+          base_payload.merge(exception: ["StandardError", "x" * 1000])
+        )
+        result = custom_options.call(event)
+        expect(result[:exception_message].length).to be <= 500
+      end
+
+      it "coerces exception_class to a String even if it arrives as a Class" do
+        allow(event).to receive(:payload).and_return(
+          base_payload.merge(exception: [StandardError, "boom"])
+        )
+        result = custom_options.call(event)
+        expect(result[:exception_class]).to eq("StandardError")
+      end
+    end
   end
 
   describe "custom_payload extraction" do
