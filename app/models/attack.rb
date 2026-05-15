@@ -221,7 +221,18 @@ class Attack < ApplicationRecord
   # record that's about to be hidden by default_scope produces noise at best
   # and 500s at worst (e.g., broadcasting to a now-gone channel). Guard with
   # `unless: :discarded?` so soft-delete is a silent UPDATE.
-  after_commit :broadcast_attack_progress_update, on: [:update], unless: :discarded?
+  #
+  # `saved_change_to_state?` is also part of the guard because the state
+  # machine's after_transition (app/models/concerns/attack_state_machine.rb)
+  # already fires :safe_broadcast_attack_progress_update on every state move.
+  # Without the guard, state changes would trigger two broadcast invocations
+  # per commit (one from after_transition, one from after_commit). The
+  # throttle would absorb the second, but the redundant Redis SET NX EX is
+  # measurable under 10+ concurrent agent load. Non-state-change updates
+  # (counter cache touches, attribute edits) still flow through after_commit.
+  after_commit :safe_broadcast_attack_progress_update,
+               on: [:update],
+               unless: -> { discarded? || saved_change_to_state? }
   after_update_commit :broadcast_index_state, if: :saved_change_to_state?, unless: :discarded?
   after_commit :clear_campaign_quarantine_if_needed, on: [:update], unless: :discarded?
 
@@ -259,21 +270,55 @@ class Attack < ApplicationRecord
       locals: { attack: self }
   end
 
+  # Replaces the per-attack progress partial on the campaign view. Throttled
+  # leading-edge per attack so a burst of Task transitions collapses into a
+  # single broadcast within the throttle window. Async via
+  # broadcast_replace_later_to (Sidekiq) so Puma workers do not render Turbo
+  # frames on the request path.
+  #
+  # The inline campaign.broadcast_eta_update sits inside this throttle so a
+  # suppressed attack progress also suppresses the ETA refresh from this path
+  # — that's intentional, since both partials are co-temporal and we only
+  # need one fresh render per window. Campaign#broadcast_eta_update carries
+  # its own independent campaign_eta_<id> throttle for callers that fire it
+  # directly (the Campaign after_commit on priority/attacks_count/quarantined
+  # changes), so direct-path ETA refreshes are not gated by the attack key.
   def broadcast_attack_progress_update
-    Rails.logger.info("[BroadcastUpdate] Attack #{id} - Broadcasting progress update to campaign #{campaign_id}")
-    broadcast_replace_to(
-      campaign,
-      target: "attack-progress-#{id}",
-      partial: "campaigns/attack_progress",
-      locals: {
-        attack: self,
-        campaign: campaign,
-        failed_attack_error_map: build_failed_attack_error_map
-      }
-    )
+    throttled_broadcast("attack_progress_#{id}") do
+      Rails.logger.info("[BroadcastUpdate] Attack #{id} - Broadcasting progress update to campaign #{campaign_id}")
+      broadcast_replace_later_to(
+        campaign,
+        target: "attack-progress-#{id}",
+        partial: "campaigns/attack_progress",
+        locals: {
+          attack: self,
+          campaign: campaign,
+          failed_attack_error_map: build_failed_attack_error_map
+        }
+      )
 
-    # Also broadcast the campaign's ETA summary update
-    campaign.broadcast_eta_update
+      campaign.broadcast_eta_update
+    end
+  end
+
+  # Belt-and-suspenders wrapper for callers that cannot tolerate a broadcast
+  # bug propagating up the call stack. Specifically required for state-machine
+  # `after_transition` callbacks (see app/models/concerns/attack_state_machine.rb):
+  # the state_machines gem treats an unrescued exception in an `after_transition`
+  # as a rollback signal, so a render-time bug in the throttled block could
+  # silently revert a legitimate state move. Mirrors the pattern in
+  # `Task#safe_broadcast_attack_progress_update`.
+  #
+  # @return [void]
+  def safe_broadcast_attack_progress_update
+    broadcast_attack_progress_update
+  rescue StandardError => e
+    StateChangeLogger.log_broadcast_error(
+      model_name: "Attack",
+      record_id: id,
+      error: e,
+      context: { target: "attack-progress-#{id}", partial: "campaigns/attack_progress" }
+    )
   end
 
   # Builds a hash mapping this attack's ID to its latest error, if failed.

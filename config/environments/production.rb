@@ -55,10 +55,19 @@ Rails.application.configure do
   # Don't log any deprecations.
   config.active_support.report_deprecations = false
 
-  # Use Redis for caching
+  # Use Redis for caching. The connection pool keeps Rails.cache writes from
+  # serializing through a single connection under high concurrent agent load —
+  # the broadcast throttling feature (issue #568) adds per-Task-transition
+  # cache writes, and `pool: false` would funnel those through one connection.
+  # Size defaults to RAILS_MAX_THREADS (matches Puma's worker thread budget)
+  # with a 1s acquisition timeout so a saturated pool fails fast rather than
+  # stacking requests behind cache I/O.
   config.cache_store = :redis_cache_store, {
     url: ENV.fetch("REDIS_URL", "redis://localhost:6379/0"),
-    pool: false
+    pool: {
+      size: ENV.fetch("RAILS_MAX_THREADS", 5).to_i,
+      timeout: 1
+    }
   }
 
   # Use Sidekiq for background job processing
