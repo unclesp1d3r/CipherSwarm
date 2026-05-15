@@ -549,4 +549,66 @@ RSpec.describe Campaign do
       )
     end
   end
+
+  describe "#broadcast_eta_update" do
+    let(:campaign) { create(:campaign) }
+
+    context "when the throttle fires" do
+      before do
+        allow(Rails.cache).to receive(:write).and_return(true)
+        allow(campaign).to receive(:broadcast_replace_later_to)
+      end
+
+      it "uses the async broadcast_replace_later_to path" do
+        campaign.broadcast_eta_update
+        expect(campaign).to have_received(:broadcast_replace_later_to).with(
+          campaign,
+          hash_including(
+            target: "eta_summary",
+            partial: "campaigns/eta_summary"
+          )
+        )
+      end
+
+      it "does not call the synchronous broadcast_replace_to" do
+        allow(campaign).to receive(:broadcast_replace_to)
+        campaign.broadcast_eta_update
+        expect(campaign).not_to have_received(:broadcast_replace_to)
+      end
+    end
+
+    context "when the throttle suppresses" do
+      before do
+        allow(Rails.cache).to receive(:write).and_return(false)
+        allow(campaign).to receive(:broadcast_replace_later_to)
+      end
+
+      it "does not invoke broadcast_replace_later_to" do
+        campaign.broadcast_eta_update
+        expect(campaign).not_to have_received(:broadcast_replace_later_to)
+      end
+    end
+
+    it "uses a per-campaign throttle key with the default ttl" do
+      allow(Rails.cache).to receive(:write).and_return(true)
+      allow(campaign).to receive(:broadcast_replace_later_to)
+
+      campaign.broadcast_eta_update
+
+      expect(Rails.cache).to have_received(:write).with(
+        "campaign_eta_#{campaign.id}",
+        true,
+        hash_including(expires_in: SafeBroadcasting::DEFAULT_THROTTLE_TTL, unless_exist: true)
+      ).at_least(:once)
+    end
+
+    it "still fires from the should_broadcast_eta? after_commit hook" do
+      campaign # ensure created
+      allow(campaign).to receive(:broadcast_eta_update)
+
+      campaign.update!(quarantined: !campaign.quarantined)
+
+      expect(campaign).to have_received(:broadcast_eta_update).at_least(:once)
+    end
+  end
 end
