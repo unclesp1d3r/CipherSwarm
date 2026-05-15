@@ -24,6 +24,77 @@ RSpec.describe SafeBroadcasting do
         Errno::EPIPE
       )
     end
+
+    it "defines DEFAULT_THROTTLE_TTL as a positive duration" do
+      expect(SafeBroadcasting::DEFAULT_THROTTLE_TTL).to be_a(ActiveSupport::Duration)
+      expect(SafeBroadcasting::DEFAULT_THROTTLE_TTL).to be > 0
+    end
+  end
+
+  describe "#throttled_broadcast" do
+    # Use Agent as a concrete includer of SafeBroadcasting so we can exercise
+    # the private helper without defining a throwaway test class.
+    let(:agent) { create(:agent) }
+
+    it "yields and returns the block's value when the cache write succeeds" do
+      allow(Rails.cache).to receive(:write).and_return(true)
+      result = agent.send(:throttled_broadcast, "k") { :fired }
+      expect(result).to eq(:fired)
+    end
+
+    it "does not yield when the cache write reports the key already exists" do
+      allow(Rails.cache).to receive(:write).and_return(false)
+      expect { |b| agent.send(:throttled_broadcast, "k", &b) }.not_to yield_control
+    end
+
+    it "returns nil when suppressed" do
+      allow(Rails.cache).to receive(:write).and_return(false)
+      expect(agent.send(:throttled_broadcast, "k") { :fired }).to be_nil
+    end
+
+    it "treats different keys independently" do
+      allow(Rails.cache).to receive(:write).with("a", anything, anything).and_return(true)
+      allow(Rails.cache).to receive(:write).with("b", anything, anything).and_return(true)
+      a_fired = false
+      b_fired = false
+      agent.send(:throttled_broadcast, "a") { a_fired = true }
+      agent.send(:throttled_broadcast, "b") { b_fired = true }
+      expect(a_fired).to be(true)
+      expect(b_fired).to be(true)
+    end
+
+    it "forwards a custom ttl as expires_in to Rails.cache.write" do
+      allow(Rails.cache).to receive(:write).and_return(true)
+      agent.send(:throttled_broadcast, "k", ttl: 10.seconds) { :ok }
+      expect(Rails.cache).to have_received(:write).with(
+        "k",
+        true,
+        hash_including(expires_in: 10.seconds, unless_exist: true)
+      )
+    end
+
+    it "uses DEFAULT_THROTTLE_TTL when ttl is not provided" do
+      allow(Rails.cache).to receive(:write).and_return(true)
+      agent.send(:throttled_broadcast, "k") { :ok }
+      expect(Rails.cache).to have_received(:write).with(
+        "k",
+        true,
+        hash_including(expires_in: SafeBroadcasting::DEFAULT_THROTTLE_TTL, unless_exist: true)
+      )
+    end
+
+    it "fails open and yields when Rails.cache.write raises" do
+      allow(Rails.cache).to receive(:write).and_raise(StandardError.new("redis down"))
+      allow(Rails.logger).to receive(:error)
+      expect { |b| agent.send(:throttled_broadcast, "k", &b) }.to yield_control
+    end
+
+    it "logs an error via log_broadcast_error when the cache write raises" do
+      allow(Rails.cache).to receive(:write).and_raise(StandardError.new("redis down"))
+      allow(Rails.logger).to receive(:error)
+      agent.send(:throttled_broadcast, "k") { :ok }
+      expect(Rails.logger).to have_received(:error).with(/\[BroadcastError\].*redis down/m).at_least(:once)
+    end
   end
 
   describe "model inclusion" do
