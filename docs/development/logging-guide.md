@@ -103,6 +103,97 @@ Rails.application.configure do
 end
 ```
 
+### Exception Sanitization (Log-Injection Defense)
+
+The lograge `custom_options` lambda also emits `exception_class`, `exception_message`, and the first five backtrace frames when a request raises. To prevent log injection from attacker-controlled error text, the message is:
+
+- Stripped of `\r`/`\n` so it cannot break the single-line JSON envelope.
+- Coerced to a `String` (so a raw exception `Class` cannot surface).
+- Truncated to **500 characters** (`EXCEPTION_MESSAGE_MAX_LEN`) to bound log volume.
+
+The pinning is enforced by `spec/initializers/lograge_spec.rb` so regressions are caught at CI time.
+
+## Sidekiq Background Job Logs
+
+CipherSwarm's Sidekiq workers emit single-line JSON via the formatter shipped with Sidekiq 8.x. The format mirrors lograge so the same log pipeline can ingest both layers without bespoke parsers.
+
+### Configuration File
+
+Location: [config/initializers/sidekiq.rb](../../config/initializers/sidekiq.rb)
+
+```ruby
+Sidekiq.configure_server do |config|
+  config.logger = Sidekiq::Logger.new($stdout, level: Logger::INFO)
+  config.logger.formatter = Sidekiq::Logger::Formatters::JSON.new
+end
+```
+
+### JSON Format Structure
+
+```json
+{
+  "ts": "2026-05-15T10:00:01.234Z",
+  "pid": 12,
+  "tid": "abc",
+  "lvl": "INFO",
+  "msg": "start",
+  "ctx": {
+    "class": "ProcessHashListJob",
+    "jid": "5f4dcc3b",
+    "queue": "ingest"
+  }
+}
+```
+
+### Argument Redaction
+
+Sidekiq 8.x's `JobLogger` never logs job arguments at any level — only the lifecycle markers (`start`, `done`, `fail`) plus the per-job context hash (`jid`, `class`, `logged_job_attributes`). Verified against `sidekiq-8.1.5/lib/sidekiq/job_logger.rb`. The `:info` level here is the standard production setting, not a redaction control.
+
+Jobs that need to log argument context — for example `ApplicationJob`'s `discard_on` handler — must run arguments through `ActiveSupport::ParameterFilter.new(Rails.application.config.filter_parameters)` before writing. See `app/jobs/application_job.rb` for the canonical pattern.
+
+### Backtrace Access for Postmortem
+
+Sidekiq's default `ERROR_HANDLER` emits `ex.detailed_message` (class + message, no backtrace) at the standard log level. The backtrace is only included when the logger is set to `:debug`. If you need a backtrace for a novel exception:
+
+1. Edit `config/initializers/sidekiq.rb` and change `level: Logger::INFO` to `level: Logger::DEBUG`.
+2. Restart the Sidekiq process (`docker compose restart sidekiq` in dev; orchestrator-specific in prod).
+3. Reproduce the error.
+4. Revert the change once you have what you need — DEBUG roughly doubles log volume.
+
+The default stays at `:info` because backtraces from common, well-understood errors create more noise than signal in production.
+
+## Production Noise Suppression
+
+In production, `ActionMailer` and `ActionCable` are pinned to log level `WARN` — `DEBUG`/`INFO` per-event chatter is dropped, but `WARN`/`ERROR`/`FATAL` still reach `$stdout` and the JSON log stream:
+
+- **ActionMailer**: per-delivery INFO lines disappear. Delivery failures still surface because `raise_delivery_errors` defaults to `true` (Rails 8.x default — verify on future upgrades) — raised SMTP errors propagate through the request stack and reach lograge's exception payload.
+- **ActionCable**: per-subscribe/unsubscribe INFO chatter disappears, but cable connection rejections and channel errors at WARN+ still log. Cable subsystem WARN+ events do NOT route through controllers — they only surface via this logger, which is why we preserve WARN+ rather than dropping the logger entirely.
+
+See [config/environments/production.rb](../../config/environments/production.rb).
+
+## Useful `jq` Queries
+
+These are recipes for slicing the local `docker compose logs` JSON stream. For aggregator-side queries (Datadog/Splunk/Loki DSL) see the [Common Queries](#common-queries) section under Production Monitoring further down.
+
+The structured JSON output is greppable, but most operator tasks compose more cleanly with `jq`. Examples:
+
+```bash
+# All HTTP requests that returned 5xx
+docker compose logs web | jq -c 'select(.status >= 500)'
+
+# All Sidekiq events for a specific job class
+docker compose logs sidekiq | jq -c 'select(.ctx.class == "ProcessHashListJob")'
+
+# Sidekiq errors only
+docker compose logs sidekiq | jq -c 'select(.lvl == "ERROR")'
+
+# Cross-layer correlation by agent_id (web only — Sidekiq does not carry agent_id today)
+docker compose logs web | jq -c 'select(.agent_id == 7)'
+
+# Slow requests above 1s
+docker compose logs web | jq -c 'select(.duration > 1000)'
+```
+
 ## Log Types and Formats
 
 CipherSwarm uses four main log type prefixes to categorize different logging scenarios.
@@ -684,6 +775,8 @@ CipherSwarm's structured JSON logs are compatible with:
 - **Stackdriver** (GCP)
 
 ### Common Queries
+
+> For local Docker-compose stdout streams, see the [Useful jq Queries](#useful-jq-queries) section earlier in this doc. The recipes below are aggregator-side queries (Datadog/Splunk/Loki).
 
 #### Find All API Errors
 

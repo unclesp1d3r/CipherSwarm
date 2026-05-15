@@ -193,7 +193,10 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
       return
     end
 
-    Rails.logger.info("[Agent #{@agent.id}] Task #{@task.id} - Submitting crack for hash: #{hash[0..15]}...")
+    # Do not include any portion of the cracked hash in the log line — even a
+    # truncated prefix is sensitive credential material. Task/agent IDs carry
+    # the correlation context an operator actually needs.
+    Rails.logger.info("[Agent #{@agent.id}] Task #{@task.id} - Submitting crack")
 
     result = CrackSubmissionService.new(
       task: @task,
@@ -279,25 +282,29 @@ class Api::V1::Client::TasksController < Api::V1::BaseController
 
   # Handles failed crack submission.
   #
-  # @param hash [String] the hash value that failed
+  # @param hash [String] the hash value that failed (NOT included in logs —
+  #   even a truncated prefix is sensitive credential material).
   # @param result [CrackSubmissionService::Result] the service result
   def handle_failed_crack(hash, result)
+    # `hash` is passed only to satisfy the existing call-site signature; we do
+    # not log any portion of it. Correlation uses agent/task IDs instead.
+    _ = hash
     case result.error_type
     when :not_found
       Rails.logger.error(
-        "[APIError] HASH_NOT_FOUND - Agent #{@agent.id} - Task #{@task.id} - Hash: #{hash[0..15]}... - #{Time.current}"
+        "[APIError] HASH_NOT_FOUND - Agent #{@agent.id} - Task #{@task.id} - #{Time.current}"
       )
       render json: { error: result.error }, status: :not_found
     when :validation_error
       Rails.logger.error(
         "[APIError] CRACK_SUBMISSION_FAILED - Agent #{@agent.id} - Task #{@task.id} - " \
-        "Hash: #{hash[0..15]}... - Errors: #{result.error} - #{Time.current}"
+        "Errors: #{result.error} - #{Time.current}"
       )
       render json: { error: result.error }, status: :unprocessable_content
     else
       Rails.logger.error(
         "[APIError] UNKNOWN_CRACK_ERROR - Agent #{@agent.id} - Task #{@task.id} - " \
-        "Hash: #{hash[0..15]}... - Type: #{result.error_type} - Errors: #{result.error} - #{Time.current}"
+        "Type: #{result.error_type} - Errors: #{result.error} - #{Time.current}"
       )
       render json: { error: result.error || "An unexpected error occurred" }, status: :internal_server_error
     end
