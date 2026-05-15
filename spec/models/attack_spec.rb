@@ -334,7 +334,12 @@ RSpec.describe Attack do
           attack.campaign,
           hash_including(
             target: "attack-progress-#{attack.id}",
-            partial: "campaigns/attack_progress"
+            partial: "campaigns/attack_progress",
+            locals: hash_including(
+              attack: attack,
+              campaign: attack.campaign,
+              failed_attack_error_map: an_instance_of(Hash)
+            )
           )
         )
       end
@@ -381,6 +386,30 @@ RSpec.describe Attack do
         true,
         hash_including(expires_in: SafeBroadcasting::DEFAULT_THROTTLE_TTL, unless_exist: true)
       ).at_least(:once)
+    end
+
+    context "when the cache layer raises (fail-open)" do
+      before do
+        allow(Rails.cache).to receive(:write).and_raise(StandardError.new("redis down"))
+        allow(Rails.logger).to receive(:error)
+        allow(attack).to receive(:broadcast_replace_later_to)
+        allow(attack.campaign).to receive(:broadcast_eta_update)
+      end
+
+      it "still enqueues the progress broadcast" do
+        attack.broadcast_attack_progress_update
+        expect(attack).to have_received(:broadcast_replace_later_to)
+      end
+
+      it "still invokes campaign.broadcast_eta_update" do
+        attack.broadcast_attack_progress_update
+        expect(attack.campaign).to have_received(:broadcast_eta_update)
+      end
+
+      it "logs the cache error via log_broadcast_error" do
+        attack.broadcast_attack_progress_update
+        expect(Rails.logger).to have_received(:error).with(/\[BroadcastError\].*redis down/m).at_least(:once)
+      end
     end
   end
 

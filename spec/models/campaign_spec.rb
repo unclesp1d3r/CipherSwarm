@@ -602,6 +602,24 @@ RSpec.describe Campaign do
       ).at_least(:once)
     end
 
+    context "when the cache layer raises (fail-open)" do
+      before do
+        allow(Rails.cache).to receive(:write).and_raise(StandardError.new("redis down"))
+        allow(Rails.logger).to receive(:error)
+        allow(campaign).to receive(:broadcast_replace_later_to)
+      end
+
+      it "still enqueues the ETA broadcast" do
+        campaign.broadcast_eta_update
+        expect(campaign).to have_received(:broadcast_replace_later_to)
+      end
+
+      it "logs the cache error via log_broadcast_error" do
+        campaign.broadcast_eta_update
+        expect(Rails.logger).to have_received(:error).with(/\[BroadcastError\].*redis down/m).at_least(:once)
+      end
+    end
+
     it "still fires from the should_broadcast_eta? after_commit hook" do
       campaign # ensure created
       allow(campaign).to receive(:broadcast_eta_update)

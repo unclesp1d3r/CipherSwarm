@@ -263,8 +263,15 @@ class Attack < ApplicationRecord
   # leading-edge per attack so a burst of Task transitions collapses into a
   # single broadcast within the throttle window. Async via
   # broadcast_replace_later_to (Sidekiq) so Puma workers do not render Turbo
-  # frames on the request path. The campaign ETA broadcast is co-temporal
-  # with progress and lives inside the same throttle.
+  # frames on the request path.
+  #
+  # The inline campaign.broadcast_eta_update sits inside this throttle so a
+  # suppressed attack progress also suppresses the ETA refresh from this path
+  # — that's intentional, since both partials are co-temporal and we only
+  # need one fresh render per window. Campaign#broadcast_eta_update carries
+  # its own independent campaign_eta_<id> throttle for callers that fire it
+  # directly (the Campaign after_commit on priority/attacks_count/quarantined
+  # changes), so direct-path ETA refreshes are not gated by the attack key.
   def broadcast_attack_progress_update
     throttled_broadcast("attack_progress_#{id}") do
       Rails.logger.info("[BroadcastUpdate] Attack #{id} - Broadcasting progress update to campaign #{campaign_id}")

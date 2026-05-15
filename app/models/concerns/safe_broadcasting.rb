@@ -18,9 +18,13 @@
 module SafeBroadcasting
   extend ActiveSupport::Concern
 
-  # Only wrap broadcast methods that are actually used in the codebase:
-  # - broadcast_replace_to: used by Campaign (eta_summary), Attack
-  # - broadcast_replace_later_to: used by Agent, Attack, Campaign (recent_cracks, via BroadcastRecentCracksJob), HashcatStatus
+  # Wrap every Turbo broadcast entrypoint a model in this app might invoke:
+  # - broadcast_replace_to: retained as a safety net; no active call sites since
+  #   issue #568 migrated Attack#broadcast_attack_progress_update and
+  #   Campaign#broadcast_eta_update to the async variant. Future callers
+  #   that fall back to the synchronous form still get error handling.
+  # - broadcast_replace_later_to: used by Agent, Attack, Campaign (eta_summary +
+  #   recent_cracks via BroadcastRecentCracksJob), HashcatStatus
   # - broadcast_refresh_to/broadcast_refresh: used via broadcasts_refreshes
   BROADCAST_METHODS = %i[
     broadcast_replace_to
@@ -67,12 +71,45 @@ module SafeBroadcasting
 
   private
 
+  # REASONING (per CONTRIBUTING.md):
+  #   Why this extraction: high-frequency Turbo callbacks (Attack progress,
+  #     Campaign ETA, see issue #568) saturate Puma workers rendering frames
+  #     the client never sees. We needed a single primitive that wraps any
+  #     broadcast in a leading-edge throttle so callers stay one-liners.
+  #   Alternatives considered:
+  #     - Rack/Sidekiq middleware: too far from the model layer; broadcasts
+  #       fire from after_commit, not from a request.
+  #     - Per-model debounce timers: duplicated state, not distributed across
+  #       Puma processes.
+  #     - rack-attack or a dedicated rate-limit gem: vendoring new deps for an
+  #       8-line primitive violated the air-gapped constraint in AGENTS.md.
+  #     - HashItem's trailing-edge debounce (Job.set(wait:).perform_later):
+  #       wrong shape for continuous-value displays — the UI should update
+  #       during a burst, not after.
+  #   Decision rationale: SafeBroadcasting already owns the broadcast error
+  #     posture and is included by every broadcaster, so the throttle lives
+  #     here. Rails.cache.write(..., unless_exist: true) compiles to atomic
+  #     SET NX EX under Redis; no new infra. Pair with broadcast_replace_later_to
+  #     to keep render off the request path.
+  #   Performance: one Redis SET NX EX per call (write-only, fast). Suppressed
+  #     calls do not enqueue the downstream Sidekiq job, which is the actual
+  #     savings.
+  #
   # Leading-edge throttle for high-frequency broadcasts. Yields the block at
   # most once per `ttl` per `key`, using `Rails.cache.write(..., unless_exist:
   # true)` as an atomic distributed mutex (SET NX EX under Redis-backed
   # caches). When the cache layer itself fails, yields the block (fail-open):
   # we'd rather emit an occasional unthrottled broadcast than silently
   # suppress all UI updates during a Redis outage.
+  #
+  # Rescue scope is intentionally narrow: only `Rails.cache.write` is
+  # rescued here. Errors from the yielded block propagate to the caller —
+  # downstream broadcast methods (`broadcast_replace_to`,
+  # `broadcast_replace_later_to`) carry their own error handling via
+  # BROADCAST_METHODS, but any other exception inside the block surfaces
+  # to whoever invoked `throttled_broadcast`. Callers that need
+  # belt-and-suspenders should wrap their call site (see
+  # `Task#safe_broadcast_attack_progress_update`).
   #
   # Test-environment note: when `Rails.cache` is the null store (default in
   # test), every write returns `true`, so the helper always yields. The
