@@ -10,12 +10,14 @@
 # Sidekiq 8.x ships `Sidekiq::Logger::Formatters::JSON`, which emits
 # single-line JSON for each job lifecycle event (start, done, error).
 #
-# Argument redaction policy: Sidekiq logs job arguments only at the :debug
-# level. The server log level here is :info, so arguments are not written by
-# the Sidekiq logger itself. Jobs that need to log argument context must use
-# `ActiveSupport::ParameterFilter` with
-# `Rails.application.config.filter_parameters` — see `ApplicationJob` for the
-# canonical pattern.
+# Argument redaction policy: Sidekiq 8.x `JobLogger` never logs job arguments
+# at any level — only the lifecycle markers (`start`, `done`, `fail`) plus the
+# per-job context hash (`jid`, `class`, `logged_job_attributes`). Verified
+# against sidekiq-8.1.5 `lib/sidekiq/job_logger.rb`. The `:info` level here is
+# the standard production setting, not a redaction control. Application code
+# that needs to log argument context must run arguments through
+# `ActiveSupport::ParameterFilter.new(Rails.application.config.filter_parameters)`
+# before writing — see `app/jobs/application_job.rb` for the canonical pattern.
 
 Sidekiq.configure_server do |config|
   config.logger = Sidekiq::Logger.new($stdout, level: Logger::INFO)
