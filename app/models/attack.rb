@@ -221,7 +221,18 @@ class Attack < ApplicationRecord
   # record that's about to be hidden by default_scope produces noise at best
   # and 500s at worst (e.g., broadcasting to a now-gone channel). Guard with
   # `unless: :discarded?` so soft-delete is a silent UPDATE.
-  after_commit :broadcast_attack_progress_update, on: [:update], unless: :discarded?
+  #
+  # `saved_change_to_state?` is also part of the guard because the state
+  # machine's after_transition (app/models/concerns/attack_state_machine.rb)
+  # already fires :safe_broadcast_attack_progress_update on every state move.
+  # Without the guard, state changes would trigger two broadcast invocations
+  # per commit (one from after_transition, one from after_commit). The
+  # throttle would absorb the second, but the redundant Redis SET NX EX is
+  # measurable under 10+ concurrent agent load. Non-state-change updates
+  # (counter cache touches, attribute edits) still flow through after_commit.
+  after_commit :safe_broadcast_attack_progress_update,
+               on: [:update],
+               unless: -> { discarded? || saved_change_to_state? }
   after_update_commit :broadcast_index_state, if: :saved_change_to_state?, unless: :discarded?
   after_commit :clear_campaign_quarantine_if_needed, on: [:update], unless: :discarded?
 
@@ -288,6 +299,26 @@ class Attack < ApplicationRecord
 
       campaign.broadcast_eta_update
     end
+  end
+
+  # Belt-and-suspenders wrapper for callers that cannot tolerate a broadcast
+  # bug propagating up the call stack. Specifically required for state-machine
+  # `after_transition` callbacks (see app/models/concerns/attack_state_machine.rb):
+  # the state_machines gem treats an unrescued exception in an `after_transition`
+  # as a rollback signal, so a render-time bug in the throttled block could
+  # silently revert a legitimate state move. Mirrors the pattern in
+  # `Task#safe_broadcast_attack_progress_update`.
+  #
+  # @return [void]
+  def safe_broadcast_attack_progress_update
+    broadcast_attack_progress_update
+  rescue StandardError => e
+    StateChangeLogger.log_broadcast_error(
+      model_name: "Attack",
+      record_id: id,
+      error: e,
+      context: { target: "attack-progress-#{id}", partial: "campaigns/attack_progress" }
+    )
   end
 
   # Builds a hash mapping this attack's ID to its latest error, if failed.

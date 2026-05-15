@@ -596,7 +596,7 @@ RSpec.describe Campaign do
       campaign.broadcast_eta_update
 
       expect(Rails.cache).to have_received(:write).with(
-        "campaign_eta_#{campaign.id}",
+        "throttle:broadcast:campaign_eta_#{campaign.id}",
         true,
         hash_including(expires_in: SafeBroadcasting::DEFAULT_THROTTLE_TTL, unless_exist: true)
       ).at_least(:once)
@@ -604,7 +604,11 @@ RSpec.describe Campaign do
 
     context "when the cache layer raises (fail-open)" do
       before do
-        allow(Rails.cache).to receive(:write).and_raise(StandardError.new("redis down"))
+        # Use an EXPECTED_BROADCAST_ERROR — the helper distinguishes
+        # connection-class errors (fail open silently) from arbitrary
+        # StandardErrors (re-raise in dev) per the sibling
+        # BROADCAST_METHODS posture.
+        allow(Rails.cache).to receive(:write).and_raise(Redis::CannotConnectError.new("redis down"))
         allow(Rails.logger).to receive(:error)
         allow(campaign).to receive(:broadcast_replace_later_to)
       end
