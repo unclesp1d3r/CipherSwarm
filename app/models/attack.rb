@@ -259,21 +259,28 @@ class Attack < ApplicationRecord
       locals: { attack: self }
   end
 
+  # Replaces the per-attack progress partial on the campaign view. Throttled
+  # leading-edge per attack so a burst of Task transitions collapses into a
+  # single broadcast within the throttle window. Async via
+  # broadcast_replace_later_to (Sidekiq) so Puma workers do not render Turbo
+  # frames on the request path. The campaign ETA broadcast is co-temporal
+  # with progress and lives inside the same throttle.
   def broadcast_attack_progress_update
-    Rails.logger.info("[BroadcastUpdate] Attack #{id} - Broadcasting progress update to campaign #{campaign_id}")
-    broadcast_replace_to(
-      campaign,
-      target: "attack-progress-#{id}",
-      partial: "campaigns/attack_progress",
-      locals: {
-        attack: self,
-        campaign: campaign,
-        failed_attack_error_map: build_failed_attack_error_map
-      }
-    )
+    throttled_broadcast("attack_progress_#{id}") do
+      Rails.logger.info("[BroadcastUpdate] Attack #{id} - Broadcasting progress update to campaign #{campaign_id}")
+      broadcast_replace_later_to(
+        campaign,
+        target: "attack-progress-#{id}",
+        partial: "campaigns/attack_progress",
+        locals: {
+          attack: self,
+          campaign: campaign,
+          failed_attack_error_map: build_failed_attack_error_map
+        }
+      )
 
-    # Also broadcast the campaign's ETA summary update
-    campaign.broadcast_eta_update
+      campaign.broadcast_eta_update
+    end
   end
 
   # Builds a hash mapping this attack's ID to its latest error, if failed.

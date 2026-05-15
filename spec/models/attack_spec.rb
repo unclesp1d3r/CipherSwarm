@@ -318,6 +318,72 @@ RSpec.describe Attack do
     end
   end
 
+  describe "#broadcast_attack_progress_update" do
+    let(:attack) { create(:dictionary_attack) }
+
+    context "when the throttle fires" do
+      before do
+        allow(Rails.cache).to receive(:write).and_return(true)
+        allow(attack).to receive(:broadcast_replace_later_to)
+        allow(attack.campaign).to receive(:broadcast_eta_update)
+      end
+
+      it "uses the async broadcast_replace_later_to path" do
+        attack.broadcast_attack_progress_update
+        expect(attack).to have_received(:broadcast_replace_later_to).with(
+          attack.campaign,
+          hash_including(
+            target: "attack-progress-#{attack.id}",
+            partial: "campaigns/attack_progress"
+          )
+        )
+      end
+
+      it "invokes campaign.broadcast_eta_update inside the throttle block" do
+        attack.broadcast_attack_progress_update
+        expect(attack.campaign).to have_received(:broadcast_eta_update)
+      end
+
+      it "does not call the synchronous broadcast_replace_to" do
+        allow(attack).to receive(:broadcast_replace_to)
+        attack.broadcast_attack_progress_update
+        expect(attack).not_to have_received(:broadcast_replace_to)
+      end
+    end
+
+    context "when the throttle suppresses" do
+      before do
+        allow(Rails.cache).to receive(:write).and_return(false)
+        allow(attack).to receive(:broadcast_replace_later_to)
+        allow(attack.campaign).to receive(:broadcast_eta_update)
+      end
+
+      it "does not invoke broadcast_replace_later_to" do
+        attack.broadcast_attack_progress_update
+        expect(attack).not_to have_received(:broadcast_replace_later_to)
+      end
+
+      it "does not invoke campaign.broadcast_eta_update" do
+        attack.broadcast_attack_progress_update
+        expect(attack.campaign).not_to have_received(:broadcast_eta_update)
+      end
+    end
+
+    it "uses a per-attack throttle key with the default ttl" do
+      allow(Rails.cache).to receive(:write).and_return(true)
+      allow(attack).to receive(:broadcast_replace_later_to)
+      allow(attack.campaign).to receive(:broadcast_eta_update)
+
+      attack.broadcast_attack_progress_update
+
+      expect(Rails.cache).to have_received(:write).with(
+        "attack_progress_#{attack.id}",
+        true,
+        hash_including(expires_in: SafeBroadcasting::DEFAULT_THROTTLE_TTL, unless_exist: true)
+      ).at_least(:once)
+    end
+  end
+
   describe "#pause_tasks" do
     let(:attack) { create(:dictionary_attack, :running) }
     let(:agent) { create(:agent, state: :active) }
