@@ -27,7 +27,7 @@ Decision filter: "Will this work on an isolated LAN with no Internet, 10+ agents
 
 - Always use `just` recipes instead of raw `bundle exec` commands
 - Always use Rails generators for migrations — never create migration files manually
-- Service objects and concerns require a REASONING block (see CONTRIBUTING.md)
+- Service objects and concerns require a REASONING block at the top of the file, in the header comment block above the `module`/`class` declaration. See `app/models/concerns/soft_deletable.rb` for the canonical shape (Summary / Alternatives / Decision / Performance implications).
 - Run `just ci-check` as final verification before claiming work is complete
 - `docs/plans/` is gitignored — working implementation documents, stay local only
 - `docs/solutions/` is committed — searchable knowledge base of documented solutions organized by category (e.g. `best-practices/`, `runtime-errors/`, `database-issues/`) with YAML frontmatter (`module`, `tags`, `problem_type`). Relevant when implementing or debugging in documented areas.
@@ -47,6 +47,10 @@ Campaign and Attack use `SoftDeletable` concern (`app/models/concerns/soft_delet
 ### Caching aggregates read by state machines
 
 When `Rails.cache.fetch` wraps a model aggregate (e.g. `uncracked_count`, `recent_cracks_count`), also expose a `*_uncached` sibling. State-machine transition guards, `before_transition`/`after_transition` blocks, service objects returning the value to API clients, and Turbo broadcast partials must read the uncached variant — TTL staleness in these paths leaves work running after it should have completed or re-renders stale UI. See `docs/solutions/best-practices/cache-key-strategy.md`.
+
+### Mergify human-PR enqueue
+
+Human PRs (non-dependabot, non-dosubot) need a manual `@mergifyio queue` comment from a maintainer to actually merge — Mergify's `default` queue rule in `.mergify.yml` requires explicit enqueue even when all CI checks pass. The PR will sit at `mergeStateStatus: BLOCKED` indefinitely otherwise. Post via `gh pr comment <N> --body "@mergifyio queue"`. (Mergify uses `@mergifyio <command>`, not `/queue` — `/queue` is silently ignored.)
 
 ### For planning agents
 
