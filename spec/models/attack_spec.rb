@@ -318,6 +318,152 @@ RSpec.describe Attack do
     end
   end
 
+  describe "#broadcast_attack_progress_update" do
+    let(:attack) { create(:dictionary_attack) }
+
+    context "when the throttle fires" do
+      before do
+        allow(Rails.cache).to receive(:write).and_return(true)
+        allow(attack).to receive(:broadcast_replace_later_to)
+        allow(attack.campaign).to receive(:broadcast_eta_update)
+      end
+
+      it "uses the async broadcast_replace_later_to path" do
+        attack.broadcast_attack_progress_update
+        expect(attack).to have_received(:broadcast_replace_later_to).with(
+          attack.campaign,
+          hash_including(
+            target: "attack-progress-#{attack.id}",
+            partial: "campaigns/attack_progress",
+            locals: hash_including(
+              attack: attack,
+              campaign: attack.campaign,
+              failed_attack_error_map: an_instance_of(Hash)
+            )
+          )
+        )
+      end
+
+      it "invokes campaign.broadcast_eta_update inside the throttle block" do
+        attack.broadcast_attack_progress_update
+        expect(attack.campaign).to have_received(:broadcast_eta_update)
+      end
+
+      it "does not call the synchronous broadcast_replace_to" do
+        allow(attack).to receive(:broadcast_replace_to)
+        attack.broadcast_attack_progress_update
+        expect(attack).not_to have_received(:broadcast_replace_to)
+      end
+    end
+
+    context "when the throttle suppresses" do
+      before do
+        allow(Rails.cache).to receive(:write).and_return(false)
+        allow(attack).to receive(:broadcast_replace_later_to)
+        allow(attack.campaign).to receive(:broadcast_eta_update)
+      end
+
+      it "does not invoke broadcast_replace_later_to" do
+        attack.broadcast_attack_progress_update
+        expect(attack).not_to have_received(:broadcast_replace_later_to)
+      end
+
+      it "does not invoke campaign.broadcast_eta_update" do
+        attack.broadcast_attack_progress_update
+        expect(attack.campaign).not_to have_received(:broadcast_eta_update)
+      end
+    end
+
+    it "uses a per-attack throttle key with the default ttl" do
+      allow(Rails.cache).to receive(:write).and_return(true)
+      allow(attack).to receive(:broadcast_replace_later_to)
+      allow(attack.campaign).to receive(:broadcast_eta_update)
+
+      attack.broadcast_attack_progress_update
+
+      expect(Rails.cache).to have_received(:write).with(
+        "throttle:broadcast:attack_progress_#{attack.id}",
+        true,
+        hash_including(expires_in: SafeBroadcasting::DEFAULT_THROTTLE_TTL, unless_exist: true)
+      ).at_least(:once)
+    end
+
+    context "when the cache layer raises (fail-open)" do
+      before do
+        # Use an EXPECTED_BROADCAST_ERROR — the helper distinguishes
+        # connection-class errors (fail open silently) from arbitrary
+        # StandardErrors (re-raise in dev) per the sibling
+        # BROADCAST_METHODS posture.
+        allow(Rails.cache).to receive(:write).and_raise(Redis::CannotConnectError.new("redis down"))
+        allow(Rails.logger).to receive(:error)
+        allow(attack).to receive(:broadcast_replace_later_to)
+        allow(attack.campaign).to receive(:broadcast_eta_update)
+      end
+
+      it "still enqueues the progress broadcast" do
+        attack.broadcast_attack_progress_update
+        expect(attack).to have_received(:broadcast_replace_later_to)
+      end
+
+      it "still invokes campaign.broadcast_eta_update" do
+        attack.broadcast_attack_progress_update
+        expect(attack.campaign).to have_received(:broadcast_eta_update)
+      end
+
+      it "logs the cache error via log_broadcast_error" do
+        attack.broadcast_attack_progress_update
+        expect(Rails.logger).to have_received(:error).with(/\[BroadcastError\].*redis down/m).at_least(:once)
+      end
+    end
+  end
+
+  describe "#safe_broadcast_attack_progress_update" do
+    let(:attack) { create(:dictionary_attack) }
+
+    it "forwards to broadcast_attack_progress_update when the broadcast succeeds" do
+      allow(attack).to receive(:broadcast_attack_progress_update)
+      attack.safe_broadcast_attack_progress_update
+      expect(attack).to have_received(:broadcast_attack_progress_update)
+    end
+
+    it "rescues block-time errors and logs them via StateChangeLogger" do
+      allow(attack).to receive(:broadcast_attack_progress_update).and_raise(StandardError.new("partial render boom"))
+      allow(StateChangeLogger).to receive(:log_broadcast_error)
+      expect { attack.safe_broadcast_attack_progress_update }.not_to raise_error
+      expect(StateChangeLogger).to have_received(:log_broadcast_error).with(
+        hash_including(
+          model_name: "Attack",
+          record_id: attack.id,
+          error: an_instance_of(StandardError),
+          context: hash_including(target: "attack-progress-#{attack.id}")
+        )
+      )
+    end
+  end
+
+  describe "double-trigger guard (after_commit + state-machine after_transition)" do
+    # State changes already route through the state machine's after_transition
+    # callback. Guarding the after_commit with `unless: saved_change_to_state?`
+    # avoids a redundant second broadcast call (which the throttle would
+    # absorb, but still costs a Redis SET NX EX).
+    let(:attack) { create(:dictionary_attack) }
+
+    it "skips broadcast_attack_progress_update from after_commit on state changes" do
+      allow(attack).to receive(:safe_broadcast_attack_progress_update)
+      attack.update!(state: "running")
+      # The state machine after_transition is the sole trigger here; the
+      # after_commit guard must prevent a second call.
+      expect(attack).to have_received(:safe_broadcast_attack_progress_update).at_most(:once)
+    end
+
+    it "still fires broadcast_attack_progress_update from after_commit on non-state-change updates" do
+      attack
+      allow(attack).to receive(:safe_broadcast_attack_progress_update)
+      attack.update!(updated_at: 1.second.from_now)
+      expect(attack).to have_received(:safe_broadcast_attack_progress_update)
+    end
+  end
+
   describe "#pause_tasks" do
     let(:attack) { create(:dictionary_attack, :running) }
     let(:agent) { create(:agent, state: :active) }

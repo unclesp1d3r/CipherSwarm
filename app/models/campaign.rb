@@ -305,14 +305,25 @@ class Campaign < ApplicationRecord
     @eta_calculator ||= CampaignEtaCalculator.new(self)
   end
 
+  # Replaces the ETA summary partial on the campaign view. Throttled
+  # leading-edge per campaign so direct callers (the
+  # should_broadcast_eta? after_commit hook, plus any future direct
+  # invocations) do not flood the UI. Attack progress broadcasts also
+  # call this, but they sit behind their own attack_progress_<id>
+  # throttle in Attack#broadcast_attack_progress_update — the two keys
+  # are independent so each callsite gets its own 5s window. Async via
+  # broadcast_replace_later_to so the render happens off the request
+  # path.
   def broadcast_eta_update
-    Rails.logger.info("[BroadcastUpdate] Campaign #{id} - Broadcasting ETA update")
-    broadcast_replace_to(
-      self,
-      target: "eta_summary",
-      partial: "campaigns/eta_summary",
-      locals: { campaign: self }
-    )
+    throttled_broadcast("campaign_eta_#{id}") do
+      Rails.logger.info("[BroadcastUpdate] Campaign #{id} - Broadcasting ETA update")
+      broadcast_replace_later_to(
+        self,
+        target: "eta_summary",
+        partial: "campaigns/eta_summary",
+        locals: { campaign: self }
+      )
+    end
   end
 
   def broadcast_recent_cracks_update

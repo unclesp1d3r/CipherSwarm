@@ -24,6 +24,163 @@ RSpec.describe SafeBroadcasting do
         Errno::EPIPE
       )
     end
+
+    it "defines DEFAULT_THROTTLE_TTL as a positive duration" do
+      expect(SafeBroadcasting::DEFAULT_THROTTLE_TTL).to be_a(ActiveSupport::Duration)
+      expect(SafeBroadcasting::DEFAULT_THROTTLE_TTL).to be > 0
+    end
+
+    it "namespaces throttle keys to avoid collision with application cache entries" do
+      expect(SafeBroadcasting::THROTTLE_KEY_PREFIX).to eq("throttle:broadcast")
+    end
+
+    it "includes Redis::BaseError in EXPECTED_BROADCAST_ERRORS so Redis outages fail open" do
+      expect(SafeBroadcasting::EXPECTED_BROADCAST_ERRORS).to include(Redis::BaseError)
+    end
+  end
+
+  describe "#throttled_broadcast" do
+    # Use Agent as a concrete includer of SafeBroadcasting so we can exercise
+    # the private helper without defining a throwaway test class.
+    let(:agent) { create(:agent) }
+    let(:namespaced_key) { "throttle:broadcast:k" }
+
+    it "yields and returns the block's value when the cache write succeeds" do
+      allow(Rails.cache).to receive(:write).and_return(true)
+      result = agent.send(:throttled_broadcast, "k") { :fired }
+      expect(result).to eq(:fired)
+    end
+
+    it "does not yield when the cache write reports the key already exists" do
+      allow(Rails.cache).to receive(:write).and_return(false)
+      expect { |b| agent.send(:throttled_broadcast, "k", &b) }.not_to yield_control
+    end
+
+    it "returns nil when suppressed" do
+      allow(Rails.cache).to receive(:write).and_return(false)
+      expect(agent.send(:throttled_broadcast, "k") { :fired }).to be_nil
+    end
+
+    it "treats different keys independently" do
+      allow(Rails.cache).to receive(:write).with("throttle:broadcast:a", anything, anything).and_return(true)
+      allow(Rails.cache).to receive(:write).with("throttle:broadcast:b", anything, anything).and_return(true)
+      a_fired = false
+      b_fired = false
+      agent.send(:throttled_broadcast, "a") { a_fired = true }
+      agent.send(:throttled_broadcast, "b") { b_fired = true }
+      expect(a_fired).to be(true)
+      expect(b_fired).to be(true)
+    end
+
+    it "prefixes the caller-supplied key with THROTTLE_KEY_PREFIX before writing to Rails.cache" do
+      allow(Rails.cache).to receive(:write).and_return(true)
+      agent.send(:throttled_broadcast, "campaign_eta_42") { :ok }
+      expect(Rails.cache).to have_received(:write).with(
+        "throttle:broadcast:campaign_eta_42",
+        true,
+        hash_including(expires_in: SafeBroadcasting::DEFAULT_THROTTLE_TTL, unless_exist: true)
+      )
+    end
+
+    it "forwards a custom ttl as expires_in to Rails.cache.write" do
+      allow(Rails.cache).to receive(:write).and_return(true)
+      agent.send(:throttled_broadcast, "k", ttl: 10.seconds) { :ok }
+      expect(Rails.cache).to have_received(:write).with(
+        namespaced_key,
+        true,
+        hash_including(expires_in: 10.seconds, unless_exist: true)
+      )
+    end
+
+    it "uses DEFAULT_THROTTLE_TTL when ttl is not provided" do
+      allow(Rails.cache).to receive(:write).and_return(true)
+      agent.send(:throttled_broadcast, "k") { :ok }
+      expect(Rails.cache).to have_received(:write).with(
+        namespaced_key,
+        true,
+        hash_including(expires_in: SafeBroadcasting::DEFAULT_THROTTLE_TTL, unless_exist: true)
+      )
+    end
+
+    context "when the cache layer raises an EXPECTED_BROADCAST_ERROR" do
+      before do
+        allow(Rails.cache).to receive(:write).and_raise(Redis::CannotConnectError.new("redis down"))
+        allow(Rails.logger).to receive(:error)
+      end
+
+      it "fails open and yields" do
+        expect { |b| agent.send(:throttled_broadcast, "k", &b) }.to yield_control
+      end
+
+      it "logs the error with a throttle:cache_write context tag" do
+        agent.send(:throttled_broadcast, "k") { :ok }
+        expect(Rails.logger).to have_received(:error).with(
+          /\[BroadcastError\].*Context: throttle:cache_write:throttle:broadcast:k.*redis down/m
+        ).at_least(:once)
+      end
+    end
+
+    context "when the cache layer raises an unexpected StandardError" do
+      before do
+        allow(Rails.cache).to receive(:write).and_raise(StandardError.new("oops"))
+        allow(Rails.logger).to receive(:error)
+      end
+
+      it "fails open in production environments (non-development)" do
+        # Rails.env.test? is true in the spec suite; the helper treats test
+        # the same as production (fail open, do not re-raise).
+        expect { |b| agent.send(:throttled_broadcast, "k", &b) }.to yield_control
+      end
+
+      it "re-raises in development to surface bugs" do
+        allow(Rails.env).to receive(:development?).and_return(true)
+        expect { agent.send(:throttled_broadcast, "k") { :ok } }.to raise_error(StandardError, "oops")
+      end
+    end
+
+    context "when the yielded block raises after the key was set" do
+      before do
+        allow(Rails.cache).to receive(:write).and_return(true)
+        allow(Rails.cache).to receive(:delete)
+      end
+
+      it "releases the throttle key so the next caller is not silently suppressed for the TTL" do
+        expect {
+          agent.send(:throttled_broadcast, "k") { raise StandardError, "boom" }
+        }.to raise_error(StandardError, "boom")
+        expect(Rails.cache).to have_received(:delete).with(namespaced_key)
+      end
+
+      it "propagates the block's exception to the caller" do
+        expect {
+          agent.send(:throttled_broadcast, "k") { raise RuntimeError, "boom" }
+        }.to raise_error(RuntimeError, "boom")
+      end
+
+      it "still releases the key even when Rails.cache.delete itself raises" do
+        allow(Rails.cache).to receive(:delete).and_raise(Redis::CannotConnectError.new("redis down on delete"))
+        allow(Rails.logger).to receive(:error)
+        expect {
+          agent.send(:throttled_broadcast, "k") { raise StandardError, "boom" }
+        }.to raise_error(StandardError, "boom")
+      end
+    end
+  end
+
+  describe "#log_broadcast_error" do
+    let(:agent) { create(:agent) }
+
+    it "accepts an optional context: kwarg and includes it in the log line" do
+      allow(Rails.logger).to receive(:error)
+      agent.send(:log_broadcast_error, StandardError.new("Test"), context: "throttle:cache_write:foo")
+      expect(Rails.logger).to have_received(:error).with(/Context: throttle:cache_write:foo/m).at_least(:once)
+    end
+
+    it "omits the Context segment when context is nil (backward compatible)" do
+      allow(Rails.logger).to receive(:error)
+      agent.send(:log_broadcast_error, StandardError.new("Test"))
+      expect(Rails.logger).not_to have_received(:error).with(/Context:/)
+    end
   end
 
   describe "model inclusion" do

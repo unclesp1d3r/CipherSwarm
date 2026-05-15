@@ -111,7 +111,10 @@ module AttackStateMachine # rubocop:disable Metrics/ModuleLength
       end
       after_transition any => :paused, :do => :pause_tasks
       after_transition paused: any, do: :resume_tasks
-      after_transition any => %i[running completed exhausted failed paused], do: :broadcast_attack_progress_update
+      # Use the safe wrapper so a render bug inside the throttled broadcast
+      # cannot abort the transition. The state_machines gem treats unrescued
+      # exceptions in after_transition callbacks as rollback signals.
+      after_transition any => %i[running completed exhausted failed paused], do: :safe_broadcast_attack_progress_update
       after_transition any => :completed, :do => :complete_hash_list
       after_transition any => :completed, :do => :touch_campaign
       before_transition on: :complete do |attack|
