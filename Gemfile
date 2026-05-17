@@ -14,7 +14,7 @@ gem "bcrypt", "~> 3.1.22"
 gem "bootsnap", "~> 1.24.4", require: false
 gem "cssbundling-rails", "~> 1.4.3"
 gem "image_processing", "~> 1.14"
-gem "jbuilder", "~> 2.14.1"
+gem "jbuilder", "~> 2.15.0"
 gem "jsbundling-rails", "~> 1.3.1"
 gem "pg", "~> 1.6.3"
 gem "propshaft", "~> 1.3.2"
