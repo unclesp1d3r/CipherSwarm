@@ -25,7 +25,7 @@
     "ghcr.io/rails/devcontainer/features/activestorage:1": {
       "variantProcessor": "vips"
     },
-    "ghcr.io/rails/devcontainer/features/postgres-client:1": {},
+    "ghcr.io/rails/devcontainer/features/postgres-client:": {},
     "ghcr.io/rails/devcontainer/features/ruby:": {
       "versionManager": "mise",
       "version": "3.4.5"
