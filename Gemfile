@@ -11,7 +11,7 @@ ruby "3.4.5"
 gem "rails", "~> 8.1.3"
 
 gem "bcrypt", "~> 3.1.22"
-gem "bootsnap", "~> 1.24.4", require: false
+gem "bootsnap", "~> 1.24.5", require: false
 gem "cssbundling-rails", "~> 1.4.3"
 gem "image_processing", "~> 1.14"
 gem "jbuilder", "~> 2.15.0"
