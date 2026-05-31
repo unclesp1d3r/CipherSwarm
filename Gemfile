@@ -51,7 +51,7 @@ group :development, :test do
   gem "rubocop", "~> 1.86.2", require: false
   gem "rubocop-capybara", "~> 2.23.0", require: false
   gem "rubocop-factory_bot", "~> 2.28", require: false
-  gem "rubocop-ordered_methods", "~> 0.14", require: false
+  gem "rubocop-ordered_methods", "~> 0.16", require: false
   gem "rubocop-rails-omakase", "~> 1.1"
   gem "rubocop-rake", "~> 0.7.1", require: false
   gem "rubocop-rspec", "~> 3.9.0", require: false
