@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v6.0.3
       - uses: jdx/mise-action@v4.0.1
         with:
           install: true
@@ -45,7 +45,7 @@ jobs:
     needs: scan_ruby
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v6.0.3
       - uses: jdx/mise-action@v4.0.1
         with:
           install: true
@@ -61,7 +61,7 @@ jobs:
     needs: scan_ruby
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v6.0.3
       - uses: jdx/mise-action@v4.0.1
         with:
           install: true
@@ -89,7 +89,7 @@ jobs:
         options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v6.0.3
         with:
           fetch-depth: 0
       - uses: jdx/mise-action@v4.0.1
