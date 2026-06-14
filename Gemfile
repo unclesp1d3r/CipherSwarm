@@ -81,7 +81,7 @@ gem "devise", "~> 5.0.4"
 gem "dry-initializer", "~> 3.2.0"
 gem "inline_svg", "~> 1.10.0"
 
-gem "discard", "~> 1.4.0"
+gem "discard", "~> 2.0.0"
 gem "lograge", "~> 0.14"
 gem "meta-tags", "~> 2.23.0"
 gem "oj", "~> 3.17.1"
