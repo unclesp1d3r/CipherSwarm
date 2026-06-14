@@ -54,7 +54,7 @@ group :development, :test do
   gem "rubocop-ordered_methods", "~> 0.16", require: false
   gem "rubocop-rails-omakase", "~> 1.1"
   gem "rubocop-rake", "~> 0.7.1", require: false
-  gem "rubocop-rspec", "~> 3.9.0", require: false
+  gem "rubocop-rspec", "~> 3.10.2", require: false
   gem "rubocop-rspec_rails", "~> 2.32", require: false
   gem "rubocop-thread_safety", "~> 0.7.3", require: false
 end
