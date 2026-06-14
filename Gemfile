@@ -97,7 +97,7 @@ gem "sidekiq", "~> 8.1.6"
 gem "sidekiq_alive", "~> 2.5.0", groups: %i[production development]
 gem "sidekiq-cron", "~> 2.4.0"
 gem "simple_form", "~> 5.4.1"
-gem "state_machines-activerecord", "~> 0.103.0"
+gem "state_machines-activerecord", "~> 0.200.0"
 gem "store_model", "~> 4.6.0"
 gem "sys-filesystem", "~> 1.5.5"
 # Thruster removed — nginx handles HTTP/2, compression, and asset caching
