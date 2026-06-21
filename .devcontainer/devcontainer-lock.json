@@ -1,9 +1,9 @@
 {
   "features": {
-    "ghcr.io/devcontainers-extra/features/claude-code:2": {
-      "version": "2.0.0",
-      "resolved": "ghcr.io/devcontainers-extra/features/claude-code@sha256:37b0d444a704021ee5f6d24242a4621bf337867d110e4e3c06b863a3a78122ac",
-      "integrity": "sha256:37b0d444a704021ee5f6d24242a4621bf337867d110e4e3c06b863a3a78122ac"
+    "ghcr.io/devcontainers-extra/features/claude-code:": {
+      "version": "2.0.2",
+      "resolved": "ghcr.io/devcontainers-extra/features/claude-code@sha256:64df717f3bb4d985f8597905f539ad04730d131e22fb9b738b82fb5a669b8fa8",
+      "integrity": "sha256:64df717f3bb4d985f8597905f539ad04730d131e22fb9b738b82fb5a669b8fa8"
     },
     "ghcr.io/devcontainers-extra/features/markdownlint-cli2:1": {
       "version": "1.0.2",
@@ -16,9 +16,9 @@
       "integrity": "sha256:5c389ab1e3c8e44e5e0ff119f6868d54dbb781bc860bd8587dc66209cb8c4a8c"
     },
     "ghcr.io/devcontainers/features/docker-outside-of-docker:": {
-      "version": "1.9.1",
-      "resolved": "ghcr.io/devcontainers/features/docker-outside-of-docker@sha256:dc89605f01ff2f24252c61f7c8ba2a58ccdbc14f2ebf87a7952d9e2b89834850",
-      "integrity": "sha256:dc89605f01ff2f24252c61f7c8ba2a58ccdbc14f2ebf87a7952d9e2b89834850"
+      "version": "1.10.0",
+      "resolved": "ghcr.io/devcontainers/features/docker-outside-of-docker@sha256:c2c2cf829505ead8e4892c88c31b6594ae94a2bbb209e16e1fac456c1a3a624e",
+      "integrity": "sha256:c2c2cf829505ead8e4892c88c31b6594ae94a2bbb209e16e1fac456c1a3a624e"
     },
     "ghcr.io/guiyomh/features/just:0": {
       "version": "0.1.0",
@@ -56,9 +56,9 @@
       "integrity": "sha256:7e6b118646d6e0d82a9ec06e81ad1b5406f7042f0279d35fff3a7a612be7a050"
     },
     "ghcr.io/rails/devcontainer/features/ruby:": {
-      "version": "2.2.2",
-      "resolved": "ghcr.io/rails/devcontainer/features/ruby@sha256:7c86be7a867d193bbc2684593ed7cbeecd803230c89713d1f2b341643809c149",
-      "integrity": "sha256:7c86be7a867d193bbc2684593ed7cbeecd803230c89713d1f2b341643809c149"
+      "version": "2.2.3",
+      "resolved": "ghcr.io/rails/devcontainer/features/ruby@sha256:6248ff5a9979b06b53a50313c4c7263fff53755061257ec4920988025a6e1bde",
+      "integrity": "sha256:6248ff5a9979b06b53a50313c4c7263fff53755061257ec4920988025a6e1bde"
     }
   }
 }
