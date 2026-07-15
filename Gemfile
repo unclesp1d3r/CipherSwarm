@@ -104,7 +104,7 @@ gem "sys-filesystem", "~> 1.5.5"
 # in production. Thruster's default 30s HTTP_READ_TIMEOUT silently killed
 # large Active Storage direct uploads (multi-GB word lists). See #675.
 gem "openssl", "~> 4.0.2"
-gem "view_component", "~> 4.10.0"
+gem "view_component", "~> 4.12.0"
 
 # Prometheus metrics (opt-in via METRICS_ENABLED env var).
 # require: false — only loaded by config/initializers/yabeda.rb when enabled.
