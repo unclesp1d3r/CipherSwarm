@@ -431,6 +431,19 @@ Each task maintains a status history showing all state transitions:
 4. Try a smaller file to isolate the issue
 5. Check browser console for JavaScript errors
 
+### Insufficient Temp Storage During Processing
+
+**Symptoms**: Hash list or attack resource upload succeeds, but background processing job fails with "InsufficientTempStorageError" or "Errno::ENOSPC (No space left on device)".
+
+**Cause**: The tmpfs mount at `/tmp` is too small for the hash list or attack file being processed. Background jobs download the entire file to `/tmp` before analysis, and jobs will retry 5 times with polynomial backoff before being discarded.
+
+**Solutions**:
+
+1. Increase the tmpfs size allocation in docker-compose configuration for web and sidekiq services
+2. The tmpfs must be at least as large as your largest attack file (hash list, wordlist, rule file)
+3. See [Docker Storage and Temp Management](../deployment/docker-storage-and-tmp.md) for sizing guidance and configuration examples
+4. Alternatively, reduce Sidekiq concurrency to limit concurrent downloads
+
 ### Resource Access Denied
 
 **Symptoms**: Agents report they cannot download resources.
@@ -478,7 +491,8 @@ Each task maintains a status history showing all state transitions:
 1. Check Sidekiq job queue depth on the health dashboard
 2. Review active campaigns for unusually large operations
 3. Monitor database query performance
-4. Consider scaling resources if usage is consistently high
+4. Check tmpfs memory consumption - tmpfs mounts at `/tmp` count against container memory limits and can cause memory pressure if undersized or if multiple large files are being processed concurrently
+5. Consider scaling resources if usage is consistently high
 
 ### Slow Agent Performance
 
@@ -579,19 +593,21 @@ See [Agent Troubleshooting](troubleshooting-agents.md#log-analysis) for agent-sp
 
 ## Common Error Messages
 
-| Error Message                     | Meaning                                | Solution                                         |
-| --------------------------------- | -------------------------------------- | ------------------------------------------------ |
-| "You are not authorized"          | Authorization failure (HTML, 403)      | Check role and project access                    |
-| "Forbidden" (JSON)                | Authorization failure (JSON API, 403)  | Check role and project access                    |
-| "Record not found"                | Resource was deleted or doesn't exist  | Verify resource exists, check project context    |
-| "Hash list is still processing"   | Hash list upload hasn't completed      | Wait for processing, check job queue             |
-| "No agents available"             | No online agents in this project       | Register agents or check agent status            |
-| "Resource download failed"        | Agent couldn't download wordlist/rules | Check file storage status and agent connectivity |
-| "Invalid attack configuration"    | Attack parameters are incorrect        | Review attack settings, check hash type compat   |
-| "Connection refused"              | A backend service is down              | Check system health dashboard                    |
-| "Task expired"                    | Agent took too long to complete a task | Check agent performance, increase timeout        |
-| "Circuit breaker open"            | Agent protecting against failed server | Check server health and network connectivity     |
-| "All API request attempts failed" | Retries exhausted for API request      | Check network stability and server availability  |
+| Error Message                       | Meaning                                                  | Solution                                                                                                                                                |
+| ----------------------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| "You are not authorized"            | Authorization failure (HTML, 403)                        | Check role and project access                                                                                                                           |
+| "Forbidden" (JSON)                  | Authorization failure (JSON API, 403)                    | Check role and project access                                                                                                                           |
+| "Record not found"                  | Resource was deleted or doesn't exist                    | Verify resource exists, check project context                                                                                                           |
+| "Hash list is still processing"     | Hash list upload hasn't completed                        | Wait for processing, check job queue                                                                                                                    |
+| "No agents available"               | No online agents in this project                         | Register agents or check agent status                                                                                                                   |
+| "Resource download failed"          | Agent couldn't download wordlist/rules                   | Check file storage status and agent connectivity                                                                                                        |
+| "Invalid attack configuration"      | Attack parameters are incorrect                          | Review attack settings, check hash type compat                                                                                                          |
+| "Connection refused"                | A backend service is down                                | Check system health dashboard                                                                                                                           |
+| "Task expired"                      | Agent took too long to complete a task                   | Check agent performance, increase timeout                                                                                                               |
+| "Circuit breaker open"              | Agent protecting against failed server                   | Check server health and network connectivity                                                                                                            |
+| "All API request attempts failed"   | Retries exhausted for API request                        | Check network stability and server availability                                                                                                         |
+| "InsufficientTempStorageError"      | Sidekiq job failed due to insufficient temp storage      | Increase tmpfs size in docker-compose config for web and sidekiq services. Size must be at least as large as largest file. See docker-storage-and-tmp.md |
+| "Errno::ENOSPC (No space left...)"  | No space left on device during file processing           | Increase tmpfs size allocation or reduce Sidekiq concurrency. See docker-storage-and-tmp.md                                                            |
 
 ---
 
@@ -601,3 +617,4 @@ See [Agent Troubleshooting](troubleshooting-agents.md#log-analysis) for agent-sp
 - [Agent Troubleshooting](troubleshooting-agents.md) - Detailed agent diagnostics
 - [FAQ](faq.md) - Frequently asked questions
 - [Performance Optimization](optimization.md) - System and agent tuning
+- [Docker Storage and Temp Management](../deployment/docker-storage-and-tmp.md) - Sizing guidance and troubleshooting for storage-related issues
